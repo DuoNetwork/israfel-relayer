@@ -1,0 +1,21 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"resolveJsonModule": true,
+		"esModuleInterop": true,
+		"moduleResolution": "node",
+		"outDir": "./dist/",
+		"target": "es5",
+		"sourceMap": true,
+		"lib": ["es2017", "es2015", "es6"],
+		"noImplicitAny": true,
+		"strict": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"allowSyntheticDefaultImports": true,
+		"allowJs": true,
+		"typeRoots": ["node_modules/@0xproject/typescript-typings/types", "node_modules/@types"]
+	}
+}

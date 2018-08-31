@@ -1,0 +1,14 @@
+# npm debugging logs
+*.log
+# project dependencies
+node_modules
+# OSX folder attributes
+.DS_Store
+# temporary files
+*.tmp
+*~
+dist
+*firebase-adminsdk*.json
+*.txt
+keys
+*package-lock.json

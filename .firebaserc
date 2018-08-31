@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "duo-relayer",
+    "dev": "duo-relayer",
+    "live": "duo-relayer"
+  }
+}

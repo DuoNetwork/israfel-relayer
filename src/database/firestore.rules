@@ -1,0 +1,40 @@
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth.uid != null;
+    }
+
+    function sameUser(uid) {
+      return request.auth.uid == uid;
+    }
+
+    match /status/{document=**} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /servers/{document=**} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /sources/{document=**} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /assets/{document=**} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /prices/{document=**} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /users/{uid}/{document=**} {
+      allow read, write: if sameUser(uid);
+    }
+  }
+}
