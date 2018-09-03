@@ -15,11 +15,11 @@ npm run testrpc
 ```
 npm run server
 ```
-5. generate a initial orderbook to fill our fake api with orders signed by addresses available from testrpc
+5. generate orders every 5 seconds and send to our relayer
 ```
-npm run init_orderbook
+npm run send_orders
 ```
-6. run relayer server
+6. run relayer server for RESTful APIs and websocket subscription
 ```
 npm run relayer_ws
 ```

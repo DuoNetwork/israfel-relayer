@@ -27,7 +27,7 @@ const mainAsync = async () => {
 	);
 
 	// Instantiate an orderbook channel pointing to a local server on port 3001
-	const relayerWsApiUrl = 'http://localhost:3001/v0';
+	const relayerWsApiUrl = CST.RELAYER_HTTP_URL;
 	const orderbookChannel: OrderbookChannel = new WebSocketOrderbookChannel(relayerWsApiUrl);
 
 	// Get exchange contract address

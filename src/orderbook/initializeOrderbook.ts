@@ -10,10 +10,10 @@ const mainAsync = async () => {
 
 	// Instantiate 0x.js instance
 	const zeroEx = new ZeroEx(provider, {
-		networkId: 50
+		networkId: CST.NETWORK_ID_LOCAL
 	});
 	// Instantiate relayer client pointing to a local server on port 3000
-	const relayerHttpApiUrl = 'http://localhost:3000/v0';
+	const relayerHttpApiUrl = CST.RELAYER_HTTP_URL;
 	const relayerClient = new HttpClient(relayerHttpApiUrl);
 
 	// Get exchange contract address
