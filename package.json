@@ -10,9 +10,10 @@
 		"server": "ts-node ./src/server/server",
 		"testrpc": "testrpc -p 8545 --networkId 50 --db ./0x_testrpc_snapshot -m \"${npm_package_config_mnemonic}\"",
 		"download_snapshot": "download --extract --strip 1 --out 0x_testrpc_snapshot ${npm_package_config_snapshot_url}",
-		"relayer_ws": "ts-node ./src/orderbook/index",
-		"init_orderbook": "ts-node ./src/orderbook/initializeOrderbook",
-		"send_orders": "ts-node ./src/orderbook/sendOrdersWithIntervals"
+		"relayer_ws": "ts-node ./src/relayer_ws/index",
+		"init_orderbook": "ts-node ./src/relayer_ws/initializeOrderbook",
+		"send_orders": "ts-node ./src/relayer_ws/sendOrdersWithIntervals",
+		"actions": "ts-node ./src/actions/index"
 	},
 	"jest": {
 		"roots": [

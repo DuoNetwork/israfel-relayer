@@ -4,7 +4,7 @@ import * as bodyParser from 'body-parser';
 import express from 'express';
 import * as http from 'http';
 import { connection as WebSocketConnection, server as WebSocketServer } from 'websocket';
-import { ISignedOrder } from '../types';
+import { ISignedOrder } from "../types";
 
 // Global state
 const orders: ISignedOrder[] = [];
@@ -15,9 +15,9 @@ const app = express();
 app.use(bodyParser.json());
 app.get('/v0/orderbook', (req, res) => {
 	console.log('HTTP: GET orderbook');
-	const baseTokenAmount = req.param('baseTokenAmount');
-	const quoteTokenAmount = req.param('quoteTokenAmount');
-	res.status(201).send(renderOrderBook(baseTokenAmount, quoteTokenAmount));
+	const baseTokenAddress = req.param('baseTokenAddress');
+	const quoteTokenAddress = req.param('quoteTokenAddress');
+	res.status(201).send(renderOrderBook(baseTokenAddress, quoteTokenAddress));
 });
 app.post('/v0/order', (req, res) => {
 	console.log('HTTP: POST order');
@@ -35,9 +35,10 @@ app.post('/v0/order', (req, res) => {
 	res.status(201).send({});
 });
 app.post('/v0/fees', (req, res) => {
-	console.log(`HTTP: POST ${req}`);
+	console.log('HTTP: POST fees');
 	const makerFee = new BigNumber(0).toString();
 	const takerFee = ZeroEx.toBaseUnitAmount(new BigNumber(10), 18).toString();
+	console.log(req);
 	res.status(201).send({
 		feeRecipient: ZeroEx.NULL_ADDRESS,
 		makerFee,
@@ -67,11 +68,11 @@ wsServer.on('request', request => {
 			const parsedMessage = JSON.parse(message.utf8Data);
 			console.log('WS: Received Message: ' + parsedMessage.type);
 			const snapshotNeeded = parsedMessage.payload.snapshot;
-			const baseTokenAmount = parsedMessage.payload.baseTokenAmount;
-			const quoteTokenAmount = parsedMessage.payload.quoteTokenAmount;
+			const baseTokenAddress = parsedMessage.payload.baseTokenAddress;
+			const quoteTokenAddress = parsedMessage.payload.quoteTokenAddress;
 			const requestId = parsedMessage.requestId;
 			if (snapshotNeeded && socketConnection !== undefined) {
-				const orderbook = renderOrderBook(baseTokenAmount, quoteTokenAmount);
+				const orderbook = renderOrderBook(baseTokenAddress, quoteTokenAddress);
 				const returnMessage = {
 					type: 'snapshot',
 					channel: 'orderbook',
@@ -87,17 +88,17 @@ wsServer.on('request', request => {
 	});
 });
 
-function renderOrderBook(baseTokenAmount: string, quoteTokenAmount: string): object {
+function renderOrderBook(baseTokenAddress: string, quoteTokenAddress: string): object {
 	const bids = orders.filter(order => {
 		return (
-			order.takerTokenAmount === baseTokenAmount &&
-			order.makerTokenAmount === quoteTokenAmount
+			order.takerTokenAddress === baseTokenAddress &&
+			order.makerTokenAddress === quoteTokenAddress
 		);
 	});
 	const asks = orders.filter(order => {
 		return (
-			order.takerTokenAmount === quoteTokenAmount &&
-			order.makerTokenAmount === baseTokenAmount
+			order.takerTokenAddress === quoteTokenAddress &&
+			order.makerTokenAddress === baseTokenAddress
 		);
 	});
 	return {

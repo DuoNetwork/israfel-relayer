@@ -1,8 +1,8 @@
-import { CollectionReference, DocumentReference, DocumentSnapshot } from '@google-cloud/firestore';
+import { CollectionReference, DocumentReference } from '@google-cloud/firestore';
 import * as admin from 'firebase-admin';
 import * as CST from './constants';
+// import { ISignedOrder } from './types';
 import util from './util';
-import {ISignedOrder} from './types';
 
 class FirebaseUtil {
 	private db: admin.firestore.Firestore | null = null;
@@ -37,21 +37,19 @@ class FirebaseUtil {
 		return (this.getRef(path) as DocumentReference).set(updates, { merge: merge });
 	}
 
-	public async addOrder(order: ISignedOrder) {
-	}
+	// public async addOrder(order: ISignedOrder) {}
 
-	public async getOrders(makerAddr:string) {
+	public async getOrders(makerAddr: string) {
 		let query = (this.db as admin.firestore.Firestore)
-            .collection(CST.DB_ORDERS)
-            .where(CST.DB_TIMESTAMP, '>=', 0);;
-		if (makerAddr) query = query.where(CST.DB_MAKER_ADDR, '==', makerAddr)
+			.collection(CST.DB_ORDERS)
+			.where(CST.DB_TIMESTAMP, '>=', 0);
+		if (makerAddr) query = query.where(CST.DB_MAKER_ADDR, '==', makerAddr);
 		query = query.orderBy(CST.DB_TIMESTAMP, 'desc');
 		const result = await query.get();
 		if (result.empty) return [];
 
 		return result;
 	}
-
 }
 
 const firebaseUtil = new FirebaseUtil();

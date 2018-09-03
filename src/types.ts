@@ -5,7 +5,7 @@ export interface IOrder {
 	feeRecipient: string;
 	senderAddress: string;
 	makerTokenAddress: string;
-	takerTokenAdress: string;
+	takerTokenAddress: string;
 	makerFee: string;
 	takerFee: string;
 	expirationUnixTimestampSec: string;
