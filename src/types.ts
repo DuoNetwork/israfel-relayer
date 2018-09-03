@@ -1,19 +1,19 @@
 export interface IOrder {
-	makerAddress: string;
-    takerAddress: string;
-    feeRecipientAddress: string;
-    senderAddress: string;
-    makerAssetAmount: string;
-    takerAssetAmount: string;
-    makerFee: string;
-    takerFee: string;
-    expirationTimeSeconds: string;
-    salt: string;
-    makerAssetData: string;
-    takerAssetData: string;
-    exchangeAddress: string;
+	exchangeContractAddress: string;
+	maker: string;
+	taker: string;
+	feeRecipient: string;
+	senderAddress: string;
+	makerTokenAddress: string;
+	takerTokenAdress: string;
+	makerFee: string;
+	takerFee: string;
+	expirationUnixTimestampSec: string;
+	salt: string;
+	makerTokenAmount: string;
+	takerTokenAmount: string;
 }
 
-export interface ISignedOrder extends IOrder{
-    signature: string;
+export interface ISignedOrder extends IOrder {
+	ecSignature: string;
 }

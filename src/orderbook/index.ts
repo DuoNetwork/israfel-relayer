@@ -15,11 +15,10 @@ import { CustomOrderbookChannelHandler } from './customOrderbookChannelHandler';
 const mainAsync = async () => {
 	// Provider pointing to local TestRPC on default port 8545
 	const provider = new Web3.providers.HttpProvider(CST.PROVIDER_LOCAL);
-	console.log('RPC provider');
 
 	// Instantiate 0x.js instance
 	const zeroExConfig = {
-		networkId: 50 // testrpc
+		networkId: 	CST.NETWORK_ID_LOCAL
 	};
 	const zeroEx = new ZeroEx(provider, zeroExConfig);
 	// Create a OrderbookChannelHandler to handle messages from the relayer

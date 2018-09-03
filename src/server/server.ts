@@ -15,9 +15,9 @@ const app = express();
 app.use(bodyParser.json());
 app.get('/v0/orderbook', (req, res) => {
 	console.log('HTTP: GET orderbook');
-	const baseAssetData = req.param('baseAssetData');
-	const quoteAssetData = req.param('quoteAssetData');
-	res.status(201).send(renderOrderBook(baseAssetData, quoteAssetData));
+	const baseTokenAmount = req.param('baseTokenAmount');
+	const quoteTokenAmount = req.param('quoteTokenAmount');
+	res.status(201).send(renderOrderBook(baseTokenAmount, quoteTokenAmount));
 });
 app.post('/v0/order', (req, res) => {
 	console.log('HTTP: POST order');
@@ -67,11 +67,11 @@ wsServer.on('request', request => {
 			const parsedMessage = JSON.parse(message.utf8Data);
 			console.log('WS: Received Message: ' + parsedMessage.type);
 			const snapshotNeeded = parsedMessage.payload.snapshot;
-			const baseAssetData = parsedMessage.payload.baseAssetData;
-			const quoteAssetData = parsedMessage.payload.quoteAssetData;
+			const baseTokenAmount = parsedMessage.payload.baseTokenAmount;
+			const quoteTokenAmount = parsedMessage.payload.quoteTokenAmount;
 			const requestId = parsedMessage.requestId;
 			if (snapshotNeeded && socketConnection !== undefined) {
-				const orderbook = renderOrderBook(baseAssetData, quoteAssetData);
+				const orderbook = renderOrderBook(baseTokenAmount, quoteTokenAmount);
 				const returnMessage = {
 					type: 'snapshot',
 					channel: 'orderbook',
@@ -87,17 +87,17 @@ wsServer.on('request', request => {
 	});
 });
 
-function renderOrderBook(baseAssetData: string, quoteAssetData: string): object {
+function renderOrderBook(baseTokenAmount: string, quoteTokenAmount: string): object {
 	const bids = orders.filter(order => {
 		return (
-			order.takerAssetData === baseAssetData &&
-			order.makerAssetData === quoteAssetData
+			order.takerTokenAmount === baseTokenAmount &&
+			order.makerTokenAmount === quoteTokenAmount
 		);
 	});
 	const asks = orders.filter(order => {
 		return (
-			order.takerAssetData === quoteAssetData &&
-			order.makerAssetData === baseAssetData
+			order.takerTokenAmount === quoteTokenAmount &&
+			order.makerTokenAmount === baseTokenAmount
 		);
 	});
 	return {

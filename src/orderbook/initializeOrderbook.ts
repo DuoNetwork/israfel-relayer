@@ -2,10 +2,11 @@ import { ZeroEx } from '0x.js';
 import { FeesRequest, FeesResponse, HttpClient, Order, SignedOrder } from '@0xproject/connect';
 import { BigNumber } from '@0xproject/utils';
 import * as Web3 from 'web3';
+import * as CST from '../constants';
 
 const mainAsync = async () => {
 	// Provider pointing to local TestRPC on default port 8545
-	const provider = new Web3.providers.HttpProvider('https://localhost:8545');
+	const provider = new Web3.providers.HttpProvider(CST.PROVIDER_LOCAL);
 
 	// Instantiate 0x.js instance
 	const zeroEx = new ZeroEx(provider, {
@@ -69,6 +70,7 @@ const mainAsync = async () => {
 				address,
 				zrxToTransfer
 			);
+			console.log(index + ":" + address + "receive a tx" + txHash);
 			return zeroEx.awaitTransactionMinedAsync(txHash);
 		})
 	);
@@ -165,6 +167,7 @@ const mainAsync = async () => {
 
 			// Send fees request to relayer and receive a FeesResponse instance
 			const feesResponse: FeesResponse = await relayerClient.getFeesAsync(feesRequest);
+			console.log(index + "： maker" + address + "receive fee response is" + feesResponse);
 
 			// Combine the fees request and response to from a complete order
 			const order: Order = {
