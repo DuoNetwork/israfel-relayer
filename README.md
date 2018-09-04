@@ -23,3 +23,7 @@ npm run send_orders
 ```
 npm run relayer_ws
 ```
+7. run relayer actions for fill/take orders
+```
+npm run actions
+```
