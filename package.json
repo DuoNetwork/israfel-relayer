@@ -7,8 +7,8 @@
 	"scripts": {
 		"test": "jest",
 		"tslint": "tslint -c tslint.json -p tsconfig.json src/**/*.ts{,x} --fix",
-		"server": "ts-node ./src/server/server",
-		"testrpc": "testrpc -p 8545 --networkId 50 --db ./0x_testrpc_snapshot -m \"${npm_package_config_mnemonic}\"",
+		"server": "ts-node ./src/utils/server",
+		"start": "ganache-cli -p 8545 --networkId 50 --db ./0x_testrpc_snapshot -m \"${npm_package_config_mnemonic}\"",
 		"download_snapshot": "download --extract --strip 1 --out 0x_testrpc_snapshot ${npm_package_config_snapshot_url}",
 		"relayer_ws": "ts-node ./src/relayer_ws/index",
 		"init_orderbook": "ts-node ./src/relayer_ws/initializeOrderbook",
@@ -57,6 +57,7 @@
 		"@types/websocket": "0.0.40",
 		"body-parser": "^1.18.3",
 		"firebase-admin": "^6.0.0",
+		"ganache-cli": "^6.1.8",
 		"moment": "^2.22.2",
 		"request": "^2.88.0",
 		"ts-node": "^7.0.1",
