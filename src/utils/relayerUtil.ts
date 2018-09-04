@@ -16,26 +16,18 @@ class RelayerUtil {
 		return await this.zeroEx.token.setUnlimitedProxyAllowanceAsync(tokenAddr, ownerAddr);
 	}
 
-	public setUnlimitedProxyAllowance(tokenAddr: string, addrs: string[]): string[] {
+	public setAllUnlimitedAllowance(tokenAddr: string, addrs: string[]): Array<Promise<string>> {
 		return addrs.map(address =>
 			this.zeroEx.token.setUnlimitedProxyAllowanceAsync(tokenAddr, address)
 		);
 	}
-	// const setZrxAllowanceTxHashes = await Promise.all(
-	// 	addresses.map(address => {
-	// 		return relayerUtil.setAllowanceTxHashes(ZRX_ADDRESS, address);
-	// 	})
-	// );
-	// const setWethAllowanceTxHashes = await Promise.all(
-	// 	addresses.map(address => {
-	// 		return relayerUtil.setAllowanceTxHashes(WETH_ADDRESS, address);
-	// 	})
-	// );
-	// await Promise.all(
-	// 	setZrxAllowanceTxHashes.concat(setWethAllowanceTxHashes).map(tx => {
-	// 		return zeroEx.awaitTransactionMinedAsync(tx);
-	// 	})
-	// );
+
+	public async setBaseQuoteAllowance(baseToken: string, quoteToken: string, addrs: string[]): Promise<void> {
+		const responses =  await Promise.all(this.setAllUnlimitedAllowance(quoteToken, addrs).concat(this.setAllUnlimitedAllowance(baseToken, addrs)));
+		await Promise.all(responses.map(tx => {
+			return this.zeroEx.awaitTransactionMinedAsync(tx);
+		}))
+	}
 }
 const relayerUtil = new RelayerUtil();
 export default relayerUtil;

@@ -9,7 +9,7 @@ npm run download_snapshot
 ```
 3. start TestRPC in a seperate terminal
 ```
-npm run testrpc
+npm run start
 ```
 4. start WebSocket server in another seperate terminal
 ```

@@ -52,21 +52,7 @@ const mainAsync = async () => {
 	const wethOwnerAddresses = addresses.slice(1);
 
 	// Set WETH and ZRX unlimited allowances for all addresses
-	const setZrxAllowanceTxHashes = await Promise.all(
-		addresses.map(address => {
-			return relayerUtil.setAllowanceTxHashes(ZRX_ADDRESS, address);
-		})
-	);
-	const setWethAllowanceTxHashes = await Promise.all(
-		addresses.map(address => {
-			return relayerUtil.setAllowanceTxHashes(WETH_ADDRESS, address);
-		})
-	);
-	await Promise.all(
-		setZrxAllowanceTxHashes.concat(setWethAllowanceTxHashes).map(tx => {
-			return zeroEx.awaitTransactionMinedAsync(tx);
-		})
-	);
+	relayerUtil.setBaseQuoteAllowance(WETH_ADDRESS, ZRX_ADDRESS, addresses);
 
 	// Deposit ETH and generate WETH tokens for each address in wethOwnerAddresses
 	const ethToConvert = ZeroEx.toBaseUnitAmount(new BigNumber(5), wethTokenInfo.decimals);
