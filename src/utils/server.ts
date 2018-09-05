@@ -5,7 +5,7 @@ import express from 'express';
 import * as http from 'http';
 import { connection as WebSocketConnection, server as WebSocketServer } from 'websocket';
 import { ISignedOrder } from '../types';
-import orderWatcherUtil from './orderWatcher';
+// import orderWatcherUtil from './orderWatcher';
 import relayerUtil from './relayerUtil';
 
 // Global state
@@ -26,7 +26,7 @@ app.post('/v0/order', (req, res) => {
 	console.log('HTTP: POST order');
 	const order = req.body;
 
-	if (!orderWatcherUtil.validatePayloadOrder(order).valid)
+	if (!relayerUtil.validatePayloadOrder(order).valid)
 		throw console.error('invalid order schema');
 
 	orders.push(order);
