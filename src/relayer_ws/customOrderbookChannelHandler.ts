@@ -60,8 +60,8 @@ export class CustomOrderbookChannelHandler implements OrderbookChannelHandler {
 	// tslint:disable-next-line:prefer-function-over-method
 	public onError(
 		channel: OrderbookChannel,
-		subscriptionOpts: OrderbookChannelSubscriptionOpts,
-		err: Error
+		err: Error,
+		subscriptionOpts?: OrderbookChannelSubscriptionOpts
 	) {
 		// Log error
 		console.log(`ERROR: ${err} at channel ${channel} with options ${subscriptionOpts}`);

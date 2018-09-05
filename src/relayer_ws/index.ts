@@ -2,13 +2,12 @@ import { ZeroEx } from '0x.js';
 
 import {
 	OrderbookChannel,
+	orderbookChannelFactory,
 	OrderbookChannelHandler,
 	OrderbookChannelSubscriptionOpts,
-	WebSocketOrderbookChannel
 } from '@0xproject/connect';
 import * as Web3 from 'web3';
 import * as CST from '../constants';
-// import {WebSocketOrderbookChannel} from '@0xproject/connect/lib/src/ws_orderbook_channel.d';
 
 import { CustomOrderbookChannelHandler } from './customOrderbookChannelHandler';
 
@@ -28,7 +27,7 @@ const mainAsync = async () => {
 
 	// Instantiate an orderbook channel pointing to a local server on port 3001
 	const relayerWsApiUrl = CST.RELAYER_HTTP_URL;
-	const orderbookChannel: OrderbookChannel = new WebSocketOrderbookChannel(relayerWsApiUrl);
+	const orderbookChannel: OrderbookChannel = await orderbookChannelFactory.createWebSocketOrderbookChannelAsync(relayerWsApiUrl, orderbookChannelHandler);
 
 	// Get exchange contract address
 	// const EXCHANGE_ADDRESS = await zeroEx.exchange.getContractAddress();
@@ -56,7 +55,7 @@ const mainAsync = async () => {
 	};
 
 	// Subscribe to the relayer
-	orderbookChannel.subscribe(zrxWethSubscriptionOpts, orderbookChannelHandler);
+	orderbookChannel.subscribe(zrxWethSubscriptionOpts);
 	console.log('Listening for ZRX/WETH orderbook...');
 };
 

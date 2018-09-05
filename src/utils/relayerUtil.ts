@@ -20,15 +20,25 @@ class RelayerUtil {
 		);
 	}
 
-	public async setBaseQuoteAllowance(baseToken: string, quoteToken: string, addrs: string[]): Promise<void> {
-		const responses =  await Promise.all(this.setAllUnlimitedAllowance(quoteToken, addrs).concat(this.setAllUnlimitedAllowance(baseToken, addrs)));
-		await Promise.all(responses.map(tx => {
-			return this.zeroEx.awaitTransactionMinedAsync(tx);
-		}))
+	public async setBaseQuoteAllowance(
+		baseToken: string,
+		quoteToken: string,
+		addrs: string[]
+	): Promise<void> {
+		const responses = await Promise.all(
+			this.setAllUnlimitedAllowance(quoteToken, addrs).concat(
+				this.setAllUnlimitedAllowance(baseToken, addrs)
+			)
+		);
+		await Promise.all(
+			responses.map(tx => {
+				return this.zeroEx.awaitTransactionMinedAsync(tx);
+			})
+		);
 	}
 
-	public validatePayloadOrder(order:SignedOrder): ValidatorResult {
-		const {signedOrderSchema} = schemas;
+	public validatePayloadOrder(order: SignedOrder): ValidatorResult {
+		const { signedOrderSchema } = schemas;
 		const validator = new SchemaValidator();
 		return validator.validate(order, signedOrderSchema);
 	}
