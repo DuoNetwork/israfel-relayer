@@ -1,7 +1,7 @@
 {
   "projects": {
-    "default": "duo-relayer",
-    "dev": "duo-relayer",
-    "live": "duo-relayer"
+    "default": "duo-dev-f64ce",
+    "dev": "duo-dev-f64ce",
+    "live": "duo-live"
   }
 }
