@@ -26,7 +26,8 @@ app.post('/v0/order', (req, res) => {
 	console.log('HTTP: POST order');
 	const order = req.body;
 
-	if (!orderWatcherUtil.validatePayloadOrder(order).valid) throw console.error('invalid order schema');
+	if (!orderWatcherUtil.validatePayloadOrder(order).valid)
+		throw console.error('invalid order schema');
 
 	orders.push(order);
 	if (socketConnection !== undefined) {
@@ -89,7 +90,17 @@ wsServer.on('request', request => {
 				};
 				// boradcast to all clients
 				for (const connection of clients) connection.sendUTF(JSON.stringify(returnMessage));
-			}
+			} else if (socketConnection !== undefined) {
+				const newOrder = parsedMessage.payload;
+				//broadcast new order
+				const returnMessage = {
+					type: 'update',
+					channel: 'orderbook',
+					requestId,
+					payload: newOrder
+				};
+				for (const connection of clients) connection.sendUTF(JSON.stringify(returnMessage));
+			} else throw console.error('no client connected!');
 		}
 	});
 	socketConnection.on('close', () => {

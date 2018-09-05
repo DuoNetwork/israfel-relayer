@@ -1,6 +1,4 @@
 import { ZeroEx } from '0x.js';
-import { SignedOrder } from '@0xproject/connect';
-import { schemas, SchemaValidator, ValidatorResult } from '@0xproject/json-schemas';
 import * as Web3 from 'web3';
 import * as CST from '../constants';
 
@@ -37,11 +35,6 @@ class RelayerUtil {
 		);
 	}
 
-	public validatePayloadOrder(order: SignedOrder): ValidatorResult {
-		const { signedOrderSchema } = schemas;
-		const validator = new SchemaValidator();
-		return validator.validate(order, signedOrderSchema);
-	}
 }
 const relayerUtil = new RelayerUtil();
 export default relayerUtil;
