@@ -4,9 +4,11 @@ import * as bodyParser from 'body-parser';
 import express from 'express';
 import * as http from 'http';
 import { connection as WebSocketConnection, server as WebSocketServer } from 'websocket';
-import { ISignedOrder } from "../types";
+import { ISignedOrder } from '../types';
+import relayerUtil from './relayerUtil';
 
 // Global state
+const clients: any[] = [];
 const orders: ISignedOrder[] = [];
 let socketConnection: WebSocketConnection | undefined;
 
@@ -22,6 +24,9 @@ app.get('/v0/orderbook', (req, res) => {
 app.post('/v0/order', (req, res) => {
 	console.log('HTTP: POST order');
 	const order = req.body;
+
+	if (!relayerUtil.validatePayloadOrder(order).valid) throw console.error('invalid order schema');
+
 	orders.push(order);
 	if (socketConnection !== undefined) {
 		const message = {
@@ -61,7 +66,9 @@ const wsServer = new WebSocketServer({
 	autoAcceptConnections: false
 });
 wsServer.on('request', request => {
-	socketConnection = request.accept();
+	console.log(new Date() + ' Connection from origin ' + request.origin);
+	socketConnection = request.accept(undefined, request.origin);
+	const index = clients.push(socketConnection) - 1;
 	console.log('WS: Connection accepted');
 	socketConnection.on('message', message => {
 		if (message.type === 'utf8' && message.utf8Data !== undefined) {
@@ -79,12 +86,14 @@ wsServer.on('request', request => {
 					requestId,
 					payload: orderbook
 				};
-				socketConnection.sendUTF(JSON.stringify(returnMessage));
+				// boradcast to all clients
+				for (const connection of clients) connection.sendUTF(JSON.stringify(returnMessage));
 			}
 		}
 	});
 	socketConnection.on('close', () => {
 		console.log('WS: Peer disconnected');
+		clients.splice(index, 1);
 	});
 });
 

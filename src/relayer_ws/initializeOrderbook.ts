@@ -3,6 +3,7 @@ import { FeesRequest, FeesResponse, HttpClient, Order, SignedOrder } from '@0xpr
 import { BigNumber } from '@0xproject/utils';
 import * as Web3 from 'web3';
 import * as CST from '../constants';
+import relayerUtil from '../utils/relayerUtil';
 
 const mainAsync = async () => {
 	// Provider pointing to local TestRPC on default port 8545
@@ -41,21 +42,7 @@ const mainAsync = async () => {
 	const wethOwnerAddresses = addresses.slice(1);
 
 	// Set WETH and ZRX unlimited allowances for all addresses
-	const setZrxAllowanceTxHashes = await Promise.all(
-		addresses.map(address => {
-			return zeroEx.token.setUnlimitedProxyAllowanceAsync(ZRX_ADDRESS, address);
-		})
-	);
-	const setWethAllowanceTxHashes = await Promise.all(
-		addresses.map(address => {
-			return zeroEx.token.setUnlimitedProxyAllowanceAsync(WETH_ADDRESS, address);
-		})
-	);
-	await Promise.all(
-		setZrxAllowanceTxHashes.concat(setWethAllowanceTxHashes).map(tx => {
-			return zeroEx.awaitTransactionMinedAsync(tx);
-		})
-	);
+	relayerUtil.setBaseQuoteAllowance(WETH_ADDRESS, ZRX_ADDRESS, addresses);
 
 	// Send 1000 ZRX from zrxOwner to all other addresses
 	await Promise.all(

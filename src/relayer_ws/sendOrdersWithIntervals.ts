@@ -4,6 +4,7 @@ import { BigNumber } from '@0xproject/utils';
 import { setInterval } from 'timers';
 import * as Web3 from 'web3';
 import * as CST from '../constants';
+import relayerUtil from '../utils/relayerUtil';
 
 const mainAsync = async () => {
 	const intervalInMs = 3000;
@@ -42,21 +43,7 @@ const mainAsync = async () => {
 	const zrxOwnerAddress = addresses[0];
 
 	// Set WETH and ZRX unlimited allowances for all addresses
-	const setZrxAllowanceTxHashes = await Promise.all(
-		addresses.map(address => {
-			return zeroEx.token.setUnlimitedProxyAllowanceAsync(ZRX_ADDRESS, address);
-		})
-	);
-	const setWethAllowanceTxHashes = await Promise.all(
-		addresses.map(address => {
-			return zeroEx.token.setUnlimitedProxyAllowanceAsync(WETH_ADDRESS, address);
-		})
-	);
-	await Promise.all(
-		setZrxAllowanceTxHashes.concat(setWethAllowanceTxHashes).map(tx => {
-			return zeroEx.awaitTransactionMinedAsync(tx);
-		})
-	);
+	relayerUtil.setBaseQuoteAllowance(WETH_ADDRESS, ZRX_ADDRESS, addresses);
 
 	// Send signed order to relayer every 5 seconds, increase the exchange rate every 3 orders
 	let exchangeRate = 5; // ZRX/WETH
