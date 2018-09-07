@@ -13,7 +13,8 @@
 		"relayer_ws": "ts-node ./src/relayer_ws/index",
 		"init_orderbook": "ts-node ./src/relayer_ws/initializeOrderbook",
 		"send_orders": "ts-node ./src/relayer_ws/sendOrdersWithIntervals",
-		"actions": "ts-node ./src/actions/index"
+		"actions": "ts-node ./src/actions/index",
+		"order-watcher": "ts-node ./src/orderWatcher"
 	},
 	"jest": {
 		"roots": [
