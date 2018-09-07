@@ -10,9 +10,9 @@
 		"server": "ts-node ./src/utils/server",
 		"start": "ganache-cli -p 8545 --networkId 50 --db ./0x_testrpc_snapshot -m \"concert load couple harbor equip island argue ramp clarify fence smart topic\"",
 		"download_snapshot": "download --extract --strip 1 --out 0x_testrpc_snapshot https://s3.amazonaws.com/testrpc-shapshots/07d00cc515e0f9825b81595386b358593b7a3d6f.zip",
-		"relayer_ws": "ts-node ./src/relayer_ws/index",
-		"init_orderbook": "ts-node ./src/relayer_ws/initializeOrderbook",
-		"send_orders": "ts-node ./src/relayer_ws/sendOrdersWithIntervals",
+		"relayer_ws": "ts-node ./src/client/index",
+		"init_orderbook": "ts-node ./src/client/initializeOrderbook",
+		"send_orders": "ts-node ./src/client/sendOrdersWithIntervals",
 		"actions": "ts-node ./src/actions/index",
 		"order-watcher": "ts-node ./src/orderWatcher"
 	},

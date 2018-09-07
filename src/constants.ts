@@ -7,5 +7,5 @@ export const NETWORK_ID_KOVAN = 42;
 export const PROVIDER_LOCAL = 'http://localhost:8545';
 export const NETWORK_ID_LOCAL = 50;
 export const RELAYER_HTTP_URL = 'http://localhost:3000/v0';
-export const PRUNE_INTERVAL = 1000;
+export const RELAYER_WS_URL = 'http://localhost:3001/v0'
 export const PENDING_HOURS = 24;

@@ -7,7 +7,7 @@ import * as CST from '../constants';
 import relayerUtil from '../utils/relayerUtil';
 
 const mainAsync = async () => {
-	const intervalInMs = 3000;
+	const intervalInMs = 5000;
 	console.log(`START: sending new orders to relayer every ${intervalInMs / 1000}s`);
 	// Provider pointing to local TestRPC on default port 8545
 	const provider = new Web3.providers.HttpProvider(CST.PROVIDER_LOCAL);
@@ -18,7 +18,8 @@ const mainAsync = async () => {
 	};
 	const zeroEx = new ZeroEx(provider, zeroExConfig);
 	// Instantiate relayer client pointing to a local server on port 3000
-	const relayerHttpApiUrl = CST.RELAYER_HTTP_URL;
+	// const relayerHttpApiUrl = CST.RELAYER_HTTP_URL;
+	const relayerHttpApiUrl = CST.RELAYER_WS_URL;
 	const relayerClient = new HttpClient(relayerHttpApiUrl);
 
 	// Get exchange contract address
@@ -67,7 +68,12 @@ const mainAsync = async () => {
 		};
 
 		// Send fees request to relayer and receive a FeesResponse instance
-		const feesResponse: FeesResponse = await relayerClient.getFeesAsync(feesRequest);
+		// const feesResponse: FeesResponse = await relayerClient.getFeesAsync(feesRequest);
+		const feesResponse: FeesResponse = {
+			feeRecipient: ZeroEx.NULL_ADDRESS,
+			makerFee: new BigNumber(0),
+			takerFee: ZeroEx.toBaseUnitAmount(new BigNumber(10), 18)
+		};
 
 		// Combine the fees request and response to from a complete order
 		const order: Order = {
