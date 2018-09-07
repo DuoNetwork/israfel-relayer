@@ -1,14 +1,14 @@
-import { CollectionReference, DocumentReference } from '@google-cloud/firestore';
+import { OrderStateInvalid, OrderStateValid, SignedOrder } from '0x.js';
+import { CollectionReference, DocumentReference, DocumentSnapshot } from '@google-cloud/firestore';
 import * as admin from 'firebase-admin';
 import * as CST from './constants';
-// import { ISignedOrder } from './types';
+import { IDuoOrder } from './types';
 import util from './util';
 
 class FirebaseUtil {
 	private db: admin.firestore.Firestore | null = null;
-	private tool: string = 'tool';
 
-	public init(tool: string) {
+	public init() {
 		util.log('initialize firebase');
 		const serviceAccount = require('./keys/x-dev-5a1e9-firebase-adminsdk-pdiep-5bb8187969.json');
 		admin.initializeApp({
@@ -17,7 +17,6 @@ class FirebaseUtil {
 		});
 		this.db = admin.firestore();
 		this.db.settings({ timestampsInSnapshots: true });
-		this.tool = tool;
 	}
 
 	private getRef(path: string): CollectionReference | DocumentReference {
@@ -37,18 +36,39 @@ class FirebaseUtil {
 		return (this.getRef(path) as DocumentReference).set(updates, { merge: merge });
 	}
 
-	// public async addOrder(order: ISignedOrder) {}
+	public async deleteDoc(path: string) {
+		return (this.getRef(path) as DocumentReference).delete();
+	}
 
-	public async getOrders(makerAddr: string) {
-		let query = (this.db as admin.firestore.Firestore)
-			.collection(CST.DB_ORDERS)
-			.where(CST.DB_TIMESTAMP, '>=', 0);
-		if (makerAddr) query = query.where(CST.DB_MAKER_ADDR, '==', makerAddr);
-		query = query.orderBy(CST.DB_TIMESTAMP, 'desc');
-		const result = await query.get();
-		if (result.empty) return [];
+	public async addOrder(order: SignedOrder, orderHash: string) {
+		return this.setDoc(
+			`/${CST.DB_ORDERS}/${orderHash}`,
+			Object.assign({}, order, {
+				[CST.DB_TIMESTAMP]: admin.firestore.FieldValue.serverTimestamp()
+			}),
+			false
+		);
+	}
 
-		return result;
+	public async getOrders() {
+		return ((await this.getDoc(
+			`/${CST.DB_ORDERS}`
+		)) as DocumentSnapshot).data() as IDuoOrder[];
+	}
+
+	public async deleteOrder(orderHash: string) {
+		return this.deleteDoc(`/${CST.DB_ORDERS}/${orderHash}`);
+	}
+
+	public async updateOrderState(orderState: OrderStateValid | OrderStateInvalid) {
+		const { orderHash, ...rest } = orderState;
+		return this.setDoc(
+			`/${CST.DB_ORDERS}/${orderHash}`,
+			Object.assign({}, rest, {
+				[CST.DB_UPDATED_AT]: admin.firestore.FieldValue.serverTimestamp()
+			}),
+			true
+		);
 	}
 }
 

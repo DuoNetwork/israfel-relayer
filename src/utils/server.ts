@@ -4,13 +4,10 @@ import * as bodyParser from 'body-parser';
 import express from 'express';
 import * as http from 'http';
 import { connection as WebSocketConnection, server as WebSocketServer } from 'websocket';
-import { ISignedOrder } from '../types';
-// import orderWatcherUtil from './orderWatcher';
 import relayerUtil from './relayerUtil';
 
 // Global state
 const clients: any[] = [];
-const orders: ISignedOrder[] = [];
 let socketConnection: WebSocketConnection | undefined;
 
 // HTTP Server
@@ -20,25 +17,14 @@ app.get('/v0/orderbook', (req, res) => {
 	console.log('HTTP: GET orderbook');
 	const baseTokenAddress = req.param('baseTokenAddress');
 	const quoteTokenAddress = req.param('quoteTokenAddress');
-	res.status(201).send(renderOrderBook(baseTokenAddress, quoteTokenAddress));
+	res.status(201).send(relayerUtil.renderOrderBook(baseTokenAddress, quoteTokenAddress));
 });
 app.post('/v0/order', (req, res) => {
 	console.log('HTTP: POST order');
 	const order = req.body;
+	const returnMsg = relayerUtil.handleWsMsg(order);
+	for (const connection of clients) connection.sendUTF(JSON.stringify(returnMsg));
 
-	if (!relayerUtil.validatePayloadOrder(order).valid)
-		throw console.error('invalid order schema');
-
-	orders.push(order);
-	if (socketConnection !== undefined) {
-		const message = {
-			type: 'update',
-			channel: 'orderbook',
-			requestId: 1,
-			payload: order
-		};
-		socketConnection.send(JSON.stringify(message));
-	}
 	res.status(201).send({});
 });
 app.post('/v0/fees', (req, res) => {
@@ -75,55 +61,13 @@ wsServer.on('request', request => {
 	socketConnection.on('message', message => {
 		if (message.type === 'utf8' && message.utf8Data !== undefined) {
 			const parsedMessage = JSON.parse(message.utf8Data);
-			console.log('WS: Received Message: ' + parsedMessage.type);
-			const snapshotNeeded = parsedMessage.payload.snapshot;
-			const baseTokenAddress = parsedMessage.payload.baseTokenAddress;
-			const quoteTokenAddress = parsedMessage.payload.quoteTokenAddress;
-			const requestId = parsedMessage.requestId;
-			if (snapshotNeeded && socketConnection !== undefined) {
-				const orderbook = renderOrderBook(baseTokenAddress, quoteTokenAddress);
-				const returnMessage = {
-					type: 'snapshot',
-					channel: 'orderbook',
-					requestId,
-					payload: orderbook
-				};
-				// boradcast to all clients
-				for (const connection of clients) connection.sendUTF(JSON.stringify(returnMessage));
-			} else if (socketConnection !== undefined) {
-				const newOrder = parsedMessage.payload;
-				//broadcast new order
-				const returnMessage = {
-					type: 'update',
-					channel: 'orderbook',
-					requestId,
-					payload: newOrder
-				};
-				for (const connection of clients) connection.sendUTF(JSON.stringify(returnMessage));
-			} else throw console.error('no client connected!');
-		}
+			if (socketConnection === undefined) throw console.error('Socket connection is undefined！');
+			const returnMsg = relayerUtil.handleWsMsg(parsedMessage);
+			for (const connection of clients) connection.sendUTF(JSON.stringify(returnMsg));
+		} else throw console.error('message is not utf8 or defined!');
 	});
 	socketConnection.on('close', () => {
 		console.log('WS: Peer disconnected');
 		clients.splice(index, 1);
 	});
 });
-
-function renderOrderBook(baseTokenAddress: string, quoteTokenAddress: string): object {
-	const bids = orders.filter(order => {
-		return (
-			order.takerTokenAddress === baseTokenAddress &&
-			order.makerTokenAddress === quoteTokenAddress
-		);
-	});
-	const asks = orders.filter(order => {
-		return (
-			order.takerTokenAddress === quoteTokenAddress &&
-			order.makerTokenAddress === baseTokenAddress
-		);
-	});
-	return {
-		bids,
-		asks
-	};
-}

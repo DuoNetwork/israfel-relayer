@@ -1,19 +1,19 @@
-export interface IOrder {
-	exchangeContractAddress: string;
-	maker: string;
-	taker: string;
-	feeRecipient: string;
-	senderAddress: string;
-	makerTokenAddress: string;
-	takerTokenAddress: string;
-	makerFee: string;
-	takerFee: string;
-	expirationUnixTimestampSec: string;
-	salt: string;
-	makerTokenAmount: string;
-	takerTokenAmount: string;
+import {SignedOrder} from '0x.js';
+
+export interface IDuoOrder extends SignedOrder {
+	orderHash: string;
+	isValid: boolean;
+	updatedAt: number;
 }
 
-export interface ISignedOrder extends IOrder {
-	ecSignature: string;
+export interface IOrderBook {
+	bids: IDuoOrder[];
+	asks: IDuoOrder[];
+}
+
+export interface IReturnWsMessage {
+	type: string;
+	channel: string;
+	requestId: number;
+	payload: IOrderBook | IDuoOrder
 }

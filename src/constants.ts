@@ -1,8 +1,11 @@
 export const DB_ORDERS = 'orders';
 export const DB_MAKER_ADDR = 'makerAddr';
 export const DB_TIMESTAMP = 'timestamp';
+export const DB_UPDATED_AT = 'updatedAt';
 export const PROVIDER_INFURA_KOVAN = 'https://kovan.infura.io';
 export const NETWORK_ID_KOVAN = 42;
 export const PROVIDER_LOCAL = 'http://localhost:8545';
 export const NETWORK_ID_LOCAL = 50;
 export const RELAYER_HTTP_URL = 'http://localhost:3000/v0';
+export const PRUNE_INTERVAL = 1000;
+export const PENDING_HOURS = 24;
