@@ -1,5 +1,5 @@
 import { OrderStateInvalid, OrderStateValid, SignedOrder } from '0x.js';
-import { CollectionReference, DocumentReference, DocumentSnapshot } from '@google-cloud/firestore';
+import { CollectionReference, DocumentReference, QuerySnapshot } from '@google-cloud/firestore';
 import * as admin from 'firebase-admin';
 import * as CST from './constants';
 import { IDuoOrder } from './types';
@@ -10,10 +10,10 @@ class FirebaseUtil {
 
 	public init() {
 		util.log('initialize firebase');
-		const serviceAccount = require('./keys/x-dev-5a1e9-firebase-adminsdk-pdiep-5bb8187969.json');
+		const serviceAccount = require('./keys/duo-dev-f64ce-firebase-adminsdk-gu930-519c00a624.json');
 		admin.initializeApp({
 			credential: admin.credential.cert(serviceAccount),
-			databaseURL: 'https://x-dev-5a1e9.firebaseio.com'
+			databaseURL: 'https://duo-dev-f64ce.firebaseio.com'
 		});
 		this.db = admin.firestore();
 		this.db.settings({ timestampsInSnapshots: true });
@@ -51,9 +51,10 @@ class FirebaseUtil {
 	}
 
 	public async getOrders() {
-		return ((await this.getDoc(
-			`/${CST.DB_ORDERS}`
-		)) as DocumentSnapshot).data() as IDuoOrder[];
+		const orders: IDuoOrder[] = [];
+		const docs = (await this.getDoc(`/${CST.DB_ORDERS}`)) as QuerySnapshot;
+		docs.forEach(doc => orders.push(doc.data() as IDuoOrder));
+		return orders;
 	}
 
 	public async deleteOrder(orderHash: string) {

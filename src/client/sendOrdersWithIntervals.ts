@@ -1,8 +1,10 @@
 import { ZeroEx } from '0x.js';
-import { FeesRequest, FeesResponse, HttpClient, Order, SignedOrder } from '@0xproject/connect';
+import { FeesRequest, FeesResponse, Order, SignedOrder } from '@0xproject/connect';
+import { OrderbookChannelMessageTypes, UpdateOrderbookChannelMessage } from '@0xproject/connect/lib/src/types';
 import { BigNumber } from '@0xproject/utils';
 import { setInterval } from 'timers';
 import * as Web3 from 'web3';
+import * as WebSocket from 'websocket';
 import * as CST from '../constants';
 import relayerUtil from '../utils/relayerUtil';
 
@@ -19,8 +21,10 @@ const mainAsync = async () => {
 	const zeroEx = new ZeroEx(provider, zeroExConfig);
 	// Instantiate relayer client pointing to a local server on port 3000
 	// const relayerHttpApiUrl = CST.RELAYER_HTTP_URL;
-	const relayerHttpApiUrl = CST.RELAYER_WS_URL;
-	const relayerClient = new HttpClient(relayerHttpApiUrl);
+	// const relayerClient = new HttpClient(relayerHttpApiUrl);
+
+	const relayerWSApiUrl = CST.RELAYER_WS_URL;
+	const relayerClient = new WebSocket.w3cwebsocket(relayerWSApiUrl);
 
 	// Get exchange contract address
 	const EXCHANGE_ADDRESS = await zeroEx.exchange.getContractAddress();
@@ -94,8 +98,23 @@ const mainAsync = async () => {
 		};
 
 		// Submit order to relayer
-		await relayerClient.submitOrderAsync(signedOrder);
-		numberOfOrdersSent++;
+		// await relayerClient.submitOrderAsync(signedOrder);
+
+		//Submit order to relayer WS
+		relayerClient.onopen = () => {
+			console.log('client_send_orders connected!');
+		}
+		relayerClient.onmessage = () => {
+			console.log('client connected!');
+			const msg: UpdateOrderbookChannelMessage = {
+				type: OrderbookChannelMessageTypes.Update,
+				requestId: Date.now(),
+				payload: signedOrder,
+			}
+			relayerClient.send(msg);
+			numberOfOrdersSent++;
+		}
+
 		if (numberOfOrdersSent % 3 === 0) exchangeRate++;
 
 		console.log(`SENT ORDER: ${orderHash}`);

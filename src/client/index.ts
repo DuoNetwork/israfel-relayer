@@ -26,8 +26,8 @@ const mainAsync = async () => {
 	);
 
 	// Instantiate an orderbook channel pointing to a local server on port 3001
-	const relayerWsApiUrl = CST.RELAYER_HTTP_URL;
-	const orderbookChannel: OrderbookChannel = await orderbookChannelFactory.createWebSocketOrderbookChannelAsync(relayerWsApiUrl, orderbookChannelHandler);
+	const relayerWsApiUrl = CST.RELAYER_WS_URL;
+	const orderbookChannelWS: OrderbookChannel = await orderbookChannelFactory.createWebSocketOrderbookChannelAsync(relayerWsApiUrl, orderbookChannelHandler);
 
 	// Get exchange contract address
 	// const EXCHANGE_ADDRESS = await zeroEx.exchange.getContractAddress();
@@ -35,7 +35,7 @@ const mainAsync = async () => {
 	// Get token information
 	// zeroEx.tokenRegistry.getTokenBySymbolIfExistsAsync()
 	const wethTokenInfo = await zeroEx.tokenRegistry.getTokenBySymbolIfExistsAsync('WETH');
-	console.log(wethTokenInfo);
+	// console.log(wethTokenInfo);
 	const zrxTokenInfo = await zeroEx.tokenRegistry.getTokenBySymbolIfExistsAsync('ZRX');
 
 	// Check if either getTokenBySymbolIfExistsAsync query resulted in undefined
@@ -53,9 +53,10 @@ const mainAsync = async () => {
 		snapshot: true,
 		limit: 20
 	};
+	console.log(zrxWethSubscriptionOpts);
 
 	// Subscribe to the relayer
-	orderbookChannel.subscribe(zrxWethSubscriptionOpts);
+	orderbookChannelWS.subscribe(zrxWethSubscriptionOpts);
 	console.log('Listening for ZRX/WETH orderbook...');
 };
 

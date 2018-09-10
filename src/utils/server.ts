@@ -4,11 +4,14 @@ import * as bodyParser from 'body-parser';
 import express from 'express';
 import * as http from 'http';
 import { connection as WebSocketConnection, server as WebSocketServer } from 'websocket';
+import firebaseUtil from '../firebaseUtil';
 import relayerUtil from './relayerUtil';
 
 // Global state
 const clients: any[] = [];
 let socketConnection: WebSocketConnection | undefined;
+
+firebaseUtil.init();
 
 // HTTP Server
 const app = express();
@@ -54,13 +57,15 @@ const wsServer = new WebSocketServer({
 	autoAcceptConnections: false
 });
 wsServer.on('request', request => {
-	console.log(new Date() + ' Connection from origin ' + request.origin);
+	// console.log(new Date() + ' Connection from origin ' + request.origin);
+	console.log(request);
 	socketConnection = request.accept(undefined, request.origin);
 	const index = clients.push(socketConnection) - 1;
 	console.log('WS: Connection accepted');
 	socketConnection.on('message', message => {
 		if (message.type === 'utf8' && message.utf8Data !== undefined) {
 			const parsedMessage = JSON.parse(message.utf8Data);
+			console.log(parsedMessage);
 			if (socketConnection === undefined) throw console.error('Socket connection is undefined！');
 			const returnMsg = relayerUtil.handleWsMsg(parsedMessage);
 			for (const connection of clients) connection.sendUTF(JSON.stringify(returnMsg));
