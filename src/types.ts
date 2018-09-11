@@ -15,5 +15,5 @@ export interface IReturnWsMessage {
 	type: string;
 	channel: string;
 	requestId: number;
-	payload: IOrderBook | IDuoOrder
+	payload: IOrderBook | SignedOrder
 }

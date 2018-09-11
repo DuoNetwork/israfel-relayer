@@ -1,5 +1,6 @@
 import { ZeroEx } from '0x.js';
 import { FeesRequest, FeesResponse, Order, SignedOrder } from '@0xproject/connect';
+import { OrderbookChannelMessageTypes } from '@0xproject/connect/lib/src/types';
 import { BigNumber } from '@0xproject/utils';
 import { setInterval } from 'timers';
 import * as Web3 from 'web3';
@@ -111,8 +112,8 @@ const mainAsync = async () => {
 
 		const ws = new WebSocket('ws://localhost:8080');
 		const msg = {
-			type: 'update',
-			channel: 'orderbook',
+			type: OrderbookChannelMessageTypes.Update,
+			channel: CST.WS_CHANNEL_ORDERBOOK,
 			requestId: Date.now(),
 			payload: signedOrder
 		};

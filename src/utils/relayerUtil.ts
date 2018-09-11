@@ -42,11 +42,12 @@ class RelayerUtil {
 	}
 
 	public validateNewOrder(signedOrder: SignedOrder, orderHash: string): boolean {
-		const { signedOrderSchema } = schemas;
-		const validator = new SchemaValidator();
-		const isValidSchema = validator.validate(signedOrder, signedOrderSchema).valid;
+		const { orderSchema } = schemas;
 		const { ecSignature, ...rest } = signedOrder;
+		const validator = new SchemaValidator();
+		const isValidSchema = validator.validate(rest, orderSchema).valid;
 		const isValidSig = ZeroEx.isValidSignature(orderHash, ecSignature, rest.maker);
+		console.log('schema is %s and signature is %s', isValidSchema, isValidSig);
 		return isValidSchema && isValidSig;
 	}
 
@@ -91,15 +92,17 @@ class RelayerUtil {
 	public async handleUpdate(message: any): Promise<IReturnWsMessage> {
 		console.log('WS: Received Message: ' + message.type);
 		const requestId = message.requestId;
+		const newOrder: SignedOrder = message.payload;
+		const orderHash = ZeroEx.getOrderHashHex(newOrder);
+		if (this.validateNewOrder(newOrder, orderHash)) firebaseUtil.addOrder(newOrder, orderHash);
 		const returnMessage = {
 			type: OrderbookChannelMessageTypes.Update,
 			channel: CST.WS_CHANNEL_ORDERBOOK,
 			requestId,
-			payload: message
+			payload: newOrder
 		};
 		return returnMessage;
 	}
-
 }
 const relayerUtil = new RelayerUtil();
 export default relayerUtil;

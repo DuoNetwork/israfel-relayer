@@ -6,6 +6,7 @@ import {
 	// OrderbookChannelHandler,
 	OrderbookChannelSubscriptionOpts
 } from '@0xproject/connect';
+import { OrderbookChannelMessageTypes } from '@0xproject/connect/lib/src/types';
 import * as Web3 from 'web3';
 import WebSocket from 'ws';
 import * as CST from '../constants';
@@ -62,8 +63,8 @@ const mainAsync = async () => {
 	// Subscribe to the relayer
 	const ws = new WebSocket('ws://localhost:8080');
 	const msg = {
-		type: 'subscribe',
-		channel: 'orderbook',
+		type: OrderbookChannelMessageTypes.Snapshot,
+		channel: CST.WS_CHANNEL_ORDERBOOK,
 		requestId: Date.now(),
 		payload: zrxWethSubscriptionOpts
 	};

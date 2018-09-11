@@ -41,6 +41,7 @@ class FirebaseUtil {
 	}
 
 	public async addOrder(order: SignedOrder, orderHash: string) {
+		console.log(orderHash);
 		return this.setDoc(
 			`/${CST.DB_ORDERS}/${orderHash}`,
 			Object.assign({}, order, {
