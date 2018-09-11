@@ -2,7 +2,9 @@ import firebaseUtil from './firebaseUtil';
 import orderWatcherUtil from './utils/orderWatcherUtil';
 
 const mainAsync = async () => {
-	const orders = firebaseUtil.getOrders();
-	setTimeout(orderWatcherUtil.pruneOrderBook, 0, orders);
+	firebaseUtil.init();
+
+	const orders = await firebaseUtil.getOrders();
+	setTimeout(() => orderWatcherUtil.pruneOrderBook(orders), 0);
 };
 mainAsync().catch(console.error);

@@ -1,5 +1,6 @@
 import { ZeroEx } from '0x.js';
 import { SignedOrder } from '@0xproject/connect';
+import { BigNumber } from '@0xproject/contract-wrappers/node_modules/@0xproject/types/node_modules/bignumber.js/bignumber';
 import { OrderWatcher } from '@0xproject/order-watcher';
 import * as Web3 from 'web3';
 import * as CST from '../constants';
@@ -19,22 +20,24 @@ class OrderWatcherUtil {
 		this.orderWatcher = new OrderWatcher(this.provider, CST.NETWORK_ID_LOCAL);
 	}
 
-	public watchOrder(signedOrder: SignedOrder) {
-		this.orderWatcher.addOrder(signedOrder);
-		this.orderWatcher.subscribe((err, orderState) => {
-			if (err) {
-				console.log(err);
-				return;
-			}
+	public async addOrder(signedOrder: SignedOrder) {
+		console.log('TIME', signedOrder.expirationUnixTimestampSec);
+		await this.orderWatcher.addOrder(signedOrder);
+		console.log('order added!');
+		// this.orderWatcher.subscribe(async (err, orderState) => {
+		// 	if (err) {
+		// 		console.log(err);
+		// 		return;
+		// 	}
 
-			console.log(Date.now().toString(), orderState);
-			if (orderState !== undefined) firebaseUtil.updateOrderState(orderState);
-		});
+		// 	console.log(Date.now().toString(), orderState);
+		// 	if (orderState !== undefined) await firebaseUtil.updateOrderState(orderState);
+		// });
 	}
 
 	//remove invalid orders in deep blocks from DB
-	public pruneOrderBook(orders: IDuoOrder[]) {
-		orders.forEach(order => {
+	public async pruneOrderBook(orders: IDuoOrder[]) {
+		for (const order of orders) {
 			const inValidTime = !order.isValid ? Date.now() - order.updatedAt : 0;
 			const signedOrder: SignedOrder = {
 				maker: order.maker,
@@ -48,13 +51,19 @@ class OrderWatcherUtil {
 				feeRecipient: order.feeRecipient,
 				salt: order.salt,
 				exchangeContractAddress: order.exchangeContractAddress,
-				expirationUnixTimestampSec: order.expirationUnixTimestampSec,
+				expirationUnixTimestampSec: new BigNumber(
+					order.expirationUnixTimestampSec.valueOf()
+				),
 				ecSignature: order.ecSignature
 			};
-			if (inValidTime > CST.PENDING_HOURS * 3600000)
+			if (inValidTime > CST.PENDING_HOURS * 3600000) {
 				firebaseUtil.deleteOrder(order.orderHash);
-			else this.watchOrder(signedOrder);
-		});
+				// await this.orderWatcher.removeOrder(order.orderHash);
+			} else {
+				// await this.orderWatcher.removeOrder(order.orderHash);
+				await this.addOrder(signedOrder);
+			}
+		}
 	}
 }
 
