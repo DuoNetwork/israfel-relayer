@@ -1,15 +1,16 @@
 import { ZeroEx } from '0x.js';
 
 import {
-	OrderbookChannel,
-	orderbookChannelFactory,
-	OrderbookChannelHandler,
-	OrderbookChannelSubscriptionOpts,
+	// OrderbookChannel,
+	// orderbookChannelFactory,
+	// OrderbookChannelHandler,
+	OrderbookChannelSubscriptionOpts
 } from '@0xproject/connect';
 import * as Web3 from 'web3';
+import WebSocket from 'ws';
 import * as CST from '../constants';
 
-import { CustomOrderbookChannelHandler } from './customOrderbookChannelHandler';
+// import { CustomOrderbookChannelHandler } from './customOrderbookChannelHandler';
 
 const mainAsync = async () => {
 	// Provider pointing to local TestRPC on default port 8545
@@ -17,17 +18,20 @@ const mainAsync = async () => {
 
 	// Instantiate 0x.js instance
 	const zeroExConfig = {
-		networkId: 	CST.NETWORK_ID_LOCAL
+		networkId: CST.NETWORK_ID_LOCAL
 	};
 	const zeroEx = new ZeroEx(provider, zeroExConfig);
 	// Create a OrderbookChannelHandler to handle messages from the relayer
-	const orderbookChannelHandler: OrderbookChannelHandler = new CustomOrderbookChannelHandler(
-		zeroEx
-	);
+	// const orderbookChannelHandler: OrderbookChannelHandler = new CustomOrderbookChannelHandler(
+	// zeroEx
+	// );
 
 	// Instantiate an orderbook channel pointing to a local server on port 3001
-	const relayerWsApiUrl = CST.RELAYER_WS_URL;
-	const orderbookChannelWS: OrderbookChannel = await orderbookChannelFactory.createWebSocketOrderbookChannelAsync(relayerWsApiUrl, orderbookChannelHandler);
+	// const relayerWsApiUrl = CST.RELAYER_WS_URL;
+	// const orderbookChannelWS: OrderbookChannel = await orderbookChannelFactory.createWebSocketOrderbookChannelAsync(
+	// 	relayerWsApiUrl,
+	// 	orderbookChannelHandler
+	// );
 
 	// Get exchange contract address
 	// const EXCHANGE_ADDRESS = await zeroEx.exchange.getContractAddress();
@@ -56,8 +60,24 @@ const mainAsync = async () => {
 	console.log(zrxWethSubscriptionOpts);
 
 	// Subscribe to the relayer
-	orderbookChannelWS.subscribe(zrxWethSubscriptionOpts);
-	console.log('Listening for ZRX/WETH orderbook...');
+	const ws = new WebSocket('ws://localhost:8080');
+	const msg = {
+		type: 'subscribe',
+		channel: 'orderbook',
+		requestId: Date.now(),
+		payload: zrxWethSubscriptionOpts
+	};
+	ws.on('open', () => {
+		console.log('Listening for ZRX/WETH orderbook...');
+		ws.send(JSON.stringify(msg));
+	});
+	ws.on('message', m => console.log(m));
+
+	ws.on('error', (error: Error) => {
+		console.log('client got error! %s', error);
+	});
+
+	ws.on('close', () => console.log('connection closed!'));
 };
 
 mainAsync().catch(console.error);

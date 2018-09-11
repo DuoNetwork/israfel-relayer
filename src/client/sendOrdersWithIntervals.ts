@@ -1,30 +1,25 @@
 import { ZeroEx } from '0x.js';
 import { FeesRequest, FeesResponse, Order, SignedOrder } from '@0xproject/connect';
-import { OrderbookChannelMessageTypes, UpdateOrderbookChannelMessage } from '@0xproject/connect/lib/src/types';
 import { BigNumber } from '@0xproject/utils';
 import { setInterval } from 'timers';
 import * as Web3 from 'web3';
-import * as WebSocket from 'websocket';
+import WebSocket from 'ws';
 import * as CST from '../constants';
-import relayerUtil from '../utils/relayerUtil';
 
 const mainAsync = async () => {
-	const intervalInMs = 5000;
+	const intervalInMs = 3000;
 	console.log(`START: sending new orders to relayer every ${intervalInMs / 1000}s`);
 	// Provider pointing to local TestRPC on default port 8545
 	const provider = new Web3.providers.HttpProvider(CST.PROVIDER_LOCAL);
 
 	// Instantiate 0x.js instance
 	const zeroExConfig = {
-		networkId: CST.NETWORK_ID_LOCAL // testrpc
+		networkId: 50 // testrpc
 	};
 	const zeroEx = new ZeroEx(provider, zeroExConfig);
 	// Instantiate relayer client pointing to a local server on port 3000
 	// const relayerHttpApiUrl = CST.RELAYER_HTTP_URL;
 	// const relayerClient = new HttpClient(relayerHttpApiUrl);
-
-	const relayerWSApiUrl = CST.RELAYER_WS_URL;
-	const relayerClient = new WebSocket.w3cwebsocket(relayerWSApiUrl);
 
 	// Get exchange contract address
 	const EXCHANGE_ADDRESS = await zeroEx.exchange.getContractAddress();
@@ -48,7 +43,21 @@ const mainAsync = async () => {
 	const zrxOwnerAddress = addresses[0];
 
 	// Set WETH and ZRX unlimited allowances for all addresses
-	relayerUtil.setBaseQuoteAllowance(WETH_ADDRESS, ZRX_ADDRESS, addresses);
+	const setZrxAllowanceTxHashes = await Promise.all(
+		addresses.map(address => {
+			return zeroEx.token.setUnlimitedProxyAllowanceAsync(ZRX_ADDRESS, address);
+		})
+	);
+	const setWethAllowanceTxHashes = await Promise.all(
+		addresses.map(address => {
+			return zeroEx.token.setUnlimitedProxyAllowanceAsync(WETH_ADDRESS, address);
+		})
+	);
+	await Promise.all(
+		setZrxAllowanceTxHashes.concat(setWethAllowanceTxHashes).map(tx => {
+			return zeroEx.awaitTransactionMinedAsync(tx);
+		})
+	);
 
 	// Send signed order to relayer every 5 seconds, increase the exchange rate every 3 orders
 	let exchangeRate = 5; // ZRX/WETH
@@ -74,9 +83,9 @@ const mainAsync = async () => {
 		// Send fees request to relayer and receive a FeesResponse instance
 		// const feesResponse: FeesResponse = await relayerClient.getFeesAsync(feesRequest);
 		const feesResponse: FeesResponse = {
-			feeRecipient: ZeroEx.NULL_ADDRESS,
+			feeRecipient: zeroEx.exchange.getContractAddress(),
 			makerFee: new BigNumber(0),
-			takerFee: ZeroEx.toBaseUnitAmount(new BigNumber(10), 18)
+			takerFee: new BigNumber(0)
 		};
 
 		// Combine the fees request and response to from a complete order
@@ -100,24 +109,29 @@ const mainAsync = async () => {
 		// Submit order to relayer
 		// await relayerClient.submitOrderAsync(signedOrder);
 
-		//Submit order to relayer WS
-		relayerClient.onopen = () => {
-			console.log('client_send_orders connected!');
-		}
-		relayerClient.onmessage = () => {
+		const ws = new WebSocket('ws://localhost:8080');
+		const msg = {
+			type: 'update',
+			channel: 'orderbook',
+			requestId: Date.now(),
+			payload: signedOrder
+		};
+
+		ws.on('open', () => {
 			console.log('client connected!');
-			const msg: UpdateOrderbookChannelMessage = {
-				type: OrderbookChannelMessageTypes.Update,
-				requestId: Date.now(),
-				payload: signedOrder,
-			}
-			relayerClient.send(msg);
+			ws.send(JSON.stringify(msg));
+			console.log(`SENT ORDER: ${orderHash}`);
 			numberOfOrdersSent++;
-		}
+			if (numberOfOrdersSent % 3 === 0) exchangeRate++;
+		});
 
-		if (numberOfOrdersSent % 3 === 0) exchangeRate++;
+		ws.on('message', m => console.log(m));
 
-		console.log(`SENT ORDER: ${orderHash}`);
+		ws.on('error', (error: Error) => {
+			console.log('client got error! %s', error);
+		});
+
+		ws.on('close', () => console.log('connection closed!'));
 	}, intervalInMs);
 };
 

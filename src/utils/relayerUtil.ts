@@ -1,5 +1,6 @@
 import { ZeroEx } from '0x.js';
 import { SignedOrder } from '@0xproject/connect';
+import { OrderbookChannelMessageTypes } from '@0xproject/connect/lib/src/types';
 import { schemas, SchemaValidator } from '@0xproject/json-schemas';
 import * as Web3 from 'web3';
 import * as CST from '../constants';
@@ -72,39 +73,33 @@ class RelayerUtil {
 		};
 	}
 
-	public async handleWsMsg(parsedMessage: any): Promise<IReturnWsMessage> {
-		console.log('WS: Received Message: ' + parsedMessage.type);
-		const snapshotNeeded = parsedMessage.payload.snapshot;
-		const baseTokenAddress = parsedMessage.payload.baseTokenAddress;
-		const quoteTokenAddress = parsedMessage.payload.quoteTokenAddress;
-		const requestId = parsedMessage.requestId;
-		if (snapshotNeeded) {
-			const orderbook = await this.renderOrderBook(baseTokenAddress, quoteTokenAddress);
-			const returnMessage = {
-				type: 'snapshot',
-				channel: 'orderbook',
-				requestId,
-				payload: orderbook
-			};
-			return returnMessage;
-		} else {
-			const newOrder = parsedMessage.payload;
-			const orderHash = ZeroEx.getOrderHashHex(newOrder);
-			if (!this.validateNewOrder(newOrder, orderHash))
-				throw console.error('Invalid order schema or signature');
-
-			firebaseUtil.addOrder(newOrder, orderHash);
-
-			//broadcast new order
-			const returnMessage = {
-				type: 'update',
-				channel: 'orderbook',
-				requestId,
-				payload: newOrder
-			};
-			return returnMessage;
-		}
+	public async handleSnapshot(message: any): Promise<IReturnWsMessage> {
+		console.log('WS: Received Message: ' + message.type);
+		const baseTokenAddress = message.payload.baseTokenAddress;
+		const quoteTokenAddress = message.payload.quoteTokenAddress;
+		const requestId = message.requestId;
+		const orderbook = await this.renderOrderBook(baseTokenAddress, quoteTokenAddress);
+		const returnMessage = {
+			type: OrderbookChannelMessageTypes.Snapshot,
+			channel: CST.WS_CHANNEL_ORDERBOOK,
+			requestId,
+			payload: orderbook
+		};
+		return returnMessage;
 	}
+
+	public async handleUpdate(message: any): Promise<IReturnWsMessage> {
+		console.log('WS: Received Message: ' + message.type);
+		const requestId = message.requestId;
+		const returnMessage = {
+			type: OrderbookChannelMessageTypes.Update,
+			channel: CST.WS_CHANNEL_ORDERBOOK,
+			requestId,
+			payload: message
+		};
+		return returnMessage;
+	}
+
 }
 const relayerUtil = new RelayerUtil();
 export default relayerUtil;

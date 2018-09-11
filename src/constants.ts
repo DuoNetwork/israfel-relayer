@@ -9,3 +9,4 @@ export const NETWORK_ID_LOCAL = 50;
 export const RELAYER_HTTP_URL = 'http://localhost:3000/v0';
 export const RELAYER_WS_URL = 'http://localhost:3001/v0'
 export const PENDING_HOURS = 24;
+export const WS_CHANNEL_ORDERBOOK = 'orerbook';
