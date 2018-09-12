@@ -1,27 +1,33 @@
-import { ZeroEx } from '0x.js';
-import { SignedOrder } from '@0xproject/connect';
-import { OrderbookChannelMessageTypes } from '@0xproject/connect/lib/src/types';
+import {
+	ContractWrappers,
+	orderHashUtils,
+	RPCSubprovider,
+	signatureUtils,
+	SignedOrder,
+	Web3ProviderEngine
+} from '0x.js';
 import { schemas, SchemaValidator } from '@0xproject/json-schemas';
-import * as Web3 from 'web3';
+import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import * as CST from '../constants';
 import firebaseUtil from '../firebaseUtil';
-import { IDuoOrder, IOrderBook, IReturnWsMessage } from '../types';
+import { IDuoOrder, IOrderBook, IReturnWsMessage, IWsChannelMessageTypes } from '../types';
 
 class RelayerUtil {
-	public zeroEx: ZeroEx;
-	public provider = new Web3.providers.HttpProvider(CST.PROVIDER_LOCAL);
+	public provider = new RPCSubprovider(CST.PROVIDER_LOCAL);
+	public providerEngine = new Web3ProviderEngine();
+	public zeroEx: ContractWrappers;
+	public web3Wrapper: Web3Wrapper;
 	public orders: IDuoOrder[] = [];
 
 	constructor() {
-		this.zeroEx = new ZeroEx(this.provider, {
-			networkId: CST.NETWORK_ID_LOCAL
-		});
+		this.providerEngine.addProvider(this.provider);
+		this.providerEngine.start();
+		this.web3Wrapper = new Web3Wrapper(this.providerEngine);
+		this.zeroEx = new ContractWrappers(this.providerEngine, { networkId: CST.NETWORK_ID_LOCAL	});
 	}
 
 	public setAllUnlimitedAllowance(tokenAddr: string, addrs: string[]): Array<Promise<string>> {
-		return addrs.map(address =>
-			this.zeroEx.token.setUnlimitedProxyAllowanceAsync(tokenAddr, address)
-		);
+		return addrs.map(address => this.zeroEx.erc20Token.setUnlimitedProxyAllowanceAsync(tokenAddr, address));
 	}
 
 	public async setBaseQuoteAllowance(
@@ -36,17 +42,22 @@ class RelayerUtil {
 		);
 		await Promise.all(
 			responses.map(tx => {
-				return this.zeroEx.awaitTransactionMinedAsync(tx);
+				return this.web3Wrapper.awaitTransactionSuccessAsync(tx);
 			})
 		);
 	}
 
-	public validateNewOrder(signedOrder: SignedOrder, orderHash: string): boolean {
+	public async validateNewOrder(signedOrder: SignedOrder, orderHash: string): Promise<boolean> {
 		const { orderSchema } = schemas;
-		const { ecSignature, ...rest } = signedOrder;
+		const { signature, ...rest } = signedOrder;
 		const validator = new SchemaValidator();
 		const isValidSchema = validator.validate(rest, orderSchema).valid;
-		const isValidSig = ZeroEx.isValidSignature(orderHash, ecSignature, rest.maker);
+		const isValidSig = await signatureUtils.isValidSignatureAsync(
+			this.providerEngine,
+			orderHash,
+			signature,
+			rest.makerAddress
+		);
 		console.log('schema is %s and signature is %s', isValidSchema, isValidSig);
 		return isValidSchema && isValidSig;
 	}
@@ -58,14 +69,14 @@ class RelayerUtil {
 		this.orders = await firebaseUtil.getOrders();
 		const bids = this.orders.filter(order => {
 			return (
-				order.takerTokenAddress === baseTokenAddress &&
-				order.makerTokenAddress === quoteTokenAddress
+				order.takerAssetData === baseTokenAddress &&
+				order.makerAssetData === quoteTokenAddress
 			);
 		});
 		const asks = this.orders.filter(order => {
 			return (
-				order.takerTokenAddress === quoteTokenAddress &&
-				order.makerTokenAddress === baseTokenAddress
+				order.takerAssetData === quoteTokenAddress &&
+				order.makerAssetData === baseTokenAddress
 			);
 		});
 		return {
@@ -81,7 +92,7 @@ class RelayerUtil {
 		const requestId = message.requestId;
 		const orderbook = await this.renderOrderBook(baseTokenAddress, quoteTokenAddress);
 		const returnMessage = {
-			type: OrderbookChannelMessageTypes.Snapshot,
+			type: IWsChannelMessageTypes.Snapshot,
 			channel: CST.WS_CHANNEL_ORDERBOOK,
 			requestId,
 			payload: orderbook
@@ -93,10 +104,10 @@ class RelayerUtil {
 		console.log('WS: Received Message: ' + message.type);
 		const requestId = message.requestId;
 		const newOrder: SignedOrder = message.payload;
-		const orderHash = ZeroEx.getOrderHashHex(newOrder);
+		const orderHash = orderHashUtils.getOrderHashHex(newOrder);
 		if (this.validateNewOrder(newOrder, orderHash)) firebaseUtil.addOrder(newOrder, orderHash);
 		const returnMessage = {
-			type: OrderbookChannelMessageTypes.Update,
+			type: IWsChannelMessageTypes.Update,
 			channel: CST.WS_CHANNEL_ORDERBOOK,
 			requestId,
 			payload: newOrder

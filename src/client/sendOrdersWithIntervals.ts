@@ -110,7 +110,7 @@ const mainAsync = async () => {
 		// Submit order to relayer
 		// await relayerClient.submitOrderAsync(signedOrder);
 
-		const ws = new WebSocket('ws://localhost:8080');
+		const ws = new WebSocket(CST.RELAYER_WS_URL);
 		const msg = {
 			type: OrderbookChannelMessageTypes.Update,
 			channel: CST.WS_CHANNEL_ORDERBOOK,

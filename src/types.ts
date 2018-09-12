@@ -1,4 +1,4 @@
-import {SignedOrder} from '0x.js';
+import { SignedOrder } from '0x.js';
 
 export interface IDuoOrder extends SignedOrder {
 	orderHash: string;
@@ -15,5 +15,11 @@ export interface IReturnWsMessage {
 	type: string;
 	channel: string;
 	requestId: number;
-	payload: IOrderBook | SignedOrder
+	payload: IOrderBook | SignedOrder;
+}
+
+export declare enum IWsChannelMessageTypes {
+	Snapshot = 'snapshot',
+	Update = 'update',
+	Unknown = 'unknown'
 }
