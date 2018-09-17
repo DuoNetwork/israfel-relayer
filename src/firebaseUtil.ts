@@ -1,8 +1,8 @@
 import { OrderStateInvalid, OrderStateValid, SignedOrder } from '0x.js';
 import {
 	CollectionReference,
-	DocumentData,
 	DocumentReference,
+	DocumentSnapshot,
 	QuerySnapshot
 } from '@google-cloud/firestore';
 import * as admin from 'firebase-admin';
@@ -81,8 +81,39 @@ class FirebaseUtil {
 		);
 	}
 
-	public getUpdates(onData: (qs: QuerySnapshot) => any) {
+	public onOrderQuery(onData: (qs: QuerySnapshot) => any) {
 		return (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference).onSnapshot(onData);
+	}
+
+	public onOrder(onData: (orders: IDuoOrder[]) => any) {
+		return this.onOrderQuery((qs: QuerySnapshot) => {
+			if (!qs.empty) onData(qs.docs.map(d => this.parseOrder(d)));
+		});
+	}
+
+	public parseOrder(doc: DocumentSnapshot): IDuoOrder {
+		const data = doc.data();
+		if (!data) throw new Error('order does not exist');
+		return {
+			senderAddress: data.senderAddress,
+			makerAddress: data.makerAddress,
+			takerAddress: data.takerAddress,
+			makerFee: data.makerFee,
+			takerFee: data.takerFee,
+			makerAssetAmount: data.makerAssetAmount,
+			takerAssetAmount: data.takerAssetAmount,
+			makerAssetData: data.makerAssetData,
+			takerAssetData: data.takerAssetData,
+			salt: data.salt,
+			exchangeAddress: data.exchangeAddress,
+			feeRecipientAddress: data.feeRecipientAddress,
+			expirationTimeSeconds: data.expirationTimeSeconds,
+			signature: data.signature,
+			orderHash: data.orderHash,
+			isValid: data.isValid,
+			updatedAt: data.updatedAt,
+			orderRelevantState: data.orderRelevantState
+		};
 	}
 }
 
