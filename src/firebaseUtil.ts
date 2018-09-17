@@ -1,5 +1,10 @@
 import { OrderStateInvalid, OrderStateValid, SignedOrder } from '0x.js';
-import { CollectionReference, DocumentReference, QuerySnapshot } from '@google-cloud/firestore';
+import {
+	CollectionReference,
+	DocumentData,
+	DocumentReference,
+	QuerySnapshot
+} from '@google-cloud/firestore';
 import * as admin from 'firebase-admin';
 import * as CST from './constants';
 import { IDuoOrder } from './types';
@@ -32,6 +37,10 @@ class FirebaseUtil {
 		return this.getRef(path).get();
 	}
 
+	public isExistRef(orderHash: string) {
+		return (this.getRef(`/${CST.DB_ORDERS}/${orderHash}`) as DocumentReference) ? true : false;
+	}
+
 	public async setDoc(path: string, updates: object, merge: boolean = true) {
 		return (this.getRef(path) as DocumentReference).set(updates, { merge: merge });
 	}
@@ -41,7 +50,6 @@ class FirebaseUtil {
 	}
 
 	public async addOrder(order: SignedOrder, orderHash: string) {
-		console.log(orderHash);
 		return this.setDoc(
 			`/${CST.DB_ORDERS}/${orderHash}`,
 			Object.assign({}, order, {
@@ -51,7 +59,7 @@ class FirebaseUtil {
 		);
 	}
 
-	public async getOrders() {
+	public async getOrders(): Promise<IDuoOrder[]> {
 		const orders: IDuoOrder[] = [];
 		const docs = (await this.getDoc(`/${CST.DB_ORDERS}`)) as QuerySnapshot;
 		docs.forEach(doc => orders.push(doc.data() as IDuoOrder));
@@ -71,6 +79,10 @@ class FirebaseUtil {
 			}),
 			true
 		);
+	}
+
+	public getUpdates(onData: (qs: QuerySnapshot) => any) {
+		return (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference).onSnapshot(onData);
 	}
 }
 

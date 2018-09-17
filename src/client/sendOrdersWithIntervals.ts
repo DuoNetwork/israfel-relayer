@@ -1,118 +1,105 @@
-import { ZeroEx } from '0x.js';
-import { FeesRequest, FeesResponse, Order, SignedOrder } from '@0xproject/connect';
-import { OrderbookChannelMessageTypes } from '@0xproject/connect/lib/src/types';
-import { BigNumber } from '@0xproject/utils';
+import {
+	assetDataUtils,
+	BigNumber,
+	ContractWrappers,
+	generatePseudoRandomSalt,
+	Order,
+	orderHashUtils,
+	RPCSubprovider,
+	signatureUtils,
+	SignerType,
+	Web3ProviderEngine
+} from '0x.js';
+import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import { setInterval } from 'timers';
-import * as Web3 from 'web3';
 import WebSocket from 'ws';
 import * as CST from '../constants';
+import { WsChannelMessageTypes } from '../types';
 
 const mainAsync = async () => {
-	const intervalInMs = 3000;
-	console.log(`START: sending new orders to relayer every ${intervalInMs / 1000}s`);
-	// Provider pointing to local TestRPC on default port 8545
-	const provider = new Web3.providers.HttpProvider(CST.PROVIDER_LOCAL);
+	const provider = new RPCSubprovider(CST.PROVIDER_LOCAL);
+	const providerEngine = new Web3ProviderEngine();
+	const web3Wrapper = new Web3Wrapper(providerEngine);
 
-	// Instantiate 0x.js instance
-	const zeroExConfig = {
-		networkId: 50 // testrpc
-	};
-	const zeroEx = new ZeroEx(provider, zeroExConfig);
-	// Instantiate relayer client pointing to a local server on port 3000
-	// const relayerHttpApiUrl = CST.RELAYER_HTTP_URL;
-	// const relayerClient = new HttpClient(relayerHttpApiUrl);
+	providerEngine.addProvider(provider);
+	providerEngine.start();
+	const zeroEx = new ContractWrappers(providerEngine, { networkId: CST.NETWORK_ID_LOCAL });
 
-	// Get exchange contract address
-	const EXCHANGE_ADDRESS = await zeroEx.exchange.getContractAddress();
+	const [maker, taker] = await web3Wrapper.getAvailableAddressesAsync();
 
-	// Get token information
-	const wethTokenInfo = await zeroEx.tokenRegistry.getTokenBySymbolIfExistsAsync('WETH');
-	const zrxTokenInfo = await zeroEx.tokenRegistry.getTokenBySymbolIfExistsAsync('ZRX');
-
-	// Check if either getTokenBySymbolIfExistsAsync query resulted in undefined
-	if (wethTokenInfo === undefined || zrxTokenInfo === undefined)
-		throw new Error('could not find token info');
+	const exchangeAddress = zeroEx.exchange.getContractAddress();
 
 	// Get token contract addresses
-	const WETH_ADDRESS = wethTokenInfo.address;
-	const ZRX_ADDRESS = zrxTokenInfo.address;
+	const zrxTokenAddress = zeroEx.exchange.getZRXTokenAddress();
+	const etherTokenAddress = zeroEx.etherToken.getContractAddressIfExists();
 
-	// Get all available addresses
-	const addresses = await zeroEx.getAvailableAddressesAsync();
+	if (etherTokenAddress === undefined) throw console.error('undefined etherTokenAddress');
 
-	// Get the first address, this address is preloaded with a ZRX balance from the snapshot
-	const zrxOwnerAddress = addresses[0];
+	const makerAssetData = assetDataUtils.encodeERC20AssetData(zrxTokenAddress);
+	const takerAssetData = assetDataUtils.encodeERC20AssetData(etherTokenAddress);
 
-	// Set WETH and ZRX unlimited allowances for all addresses
-	const setZrxAllowanceTxHashes = await Promise.all(
-		addresses.map(address => {
-			return zeroEx.token.setUnlimitedProxyAllowanceAsync(ZRX_ADDRESS, address);
-		})
+	// the amount the maker is selling of maker asset
+	const makerAssetAmount = Web3Wrapper.toBaseUnitAmount(new BigNumber(5), 18);
+	// the amount the maker wants of taker asset
+	const takerAssetAmount = Web3Wrapper.toBaseUnitAmount(new BigNumber(0.1), 18);
+
+	// Allow the 0x ERC20 Proxy to move ZRX on behalf of makerAccount
+	const makerZRXApprovalTxHash = await zeroEx.erc20Token.setUnlimitedProxyAllowanceAsync(
+		zrxTokenAddress,
+		maker
 	);
-	const setWethAllowanceTxHashes = await Promise.all(
-		addresses.map(address => {
-			return zeroEx.token.setUnlimitedProxyAllowanceAsync(WETH_ADDRESS, address);
-		})
-	);
-	await Promise.all(
-		setZrxAllowanceTxHashes.concat(setWethAllowanceTxHashes).map(tx => {
-			return zeroEx.awaitTransactionMinedAsync(tx);
-		})
-	);
+	await web3Wrapper.awaitTransactionSuccessAsync(makerZRXApprovalTxHash);
 
+	// Allow the 0x ERC20 Proxy to move WETH on behalf of takerAccount
+	const takerWETHApprovalTxHash = await zeroEx.erc20Token.setUnlimitedProxyAllowanceAsync(
+		etherTokenAddress,
+		taker
+	);
+	await web3Wrapper.awaitTransactionSuccessAsync(takerWETHApprovalTxHash);
+
+	// Convert ETH into WETH for taker by depositing ETH into the WETH contract
+	const takerWETHDepositTxHash = await zeroEx.etherToken.depositAsync(
+		etherTokenAddress,
+		takerAssetAmount,
+		taker
+	);
+	await web3Wrapper.awaitTransactionSuccessAsync(takerWETHDepositTxHash);
 	// Send signed order to relayer every 5 seconds, increase the exchange rate every 3 orders
-	let exchangeRate = 5; // ZRX/WETH
 	let numberOfOrdersSent = 0;
 	setInterval(async () => {
-		const makerTokenAmount = ZeroEx.toBaseUnitAmount(new BigNumber(5), zrxTokenInfo.decimals);
-		const takerTokenAmount = makerTokenAmount.div(exchangeRate).floor();
+		const randomExpiration = new BigNumber(Date.now() + 10000).div(1000).ceil();
 
-		// Generate fees request for the order
-		const ONE_HOUR_IN_MS = 3600000;
-		const feesRequest: FeesRequest = {
-			exchangeContractAddress: EXCHANGE_ADDRESS,
-			maker: zrxOwnerAddress,
-			taker: ZeroEx.NULL_ADDRESS,
-			makerTokenAddress: ZRX_ADDRESS,
-			takerTokenAddress: WETH_ADDRESS,
-			makerTokenAmount,
-			takerTokenAmount,
-			expirationUnixTimestampSec: new BigNumber(Date.now() + ONE_HOUR_IN_MS),
-			salt: ZeroEx.generatePseudoRandomSalt()
-		};
-
-		// Send fees request to relayer and receive a FeesResponse instance
-		// const feesResponse: FeesResponse = await relayerClient.getFeesAsync(feesRequest);
-		const feesResponse: FeesResponse = {
-			feeRecipient: zeroEx.exchange.getContractAddress(),
+		// Create the order
+		const order: Order = {
+			exchangeAddress,
+			makerAddress: maker,
+			takerAddress: '0x0000000000000000000000000000000000000000',
+			senderAddress: '0x0000000000000000000000000000000000000000',
+			feeRecipientAddress: '0x0000000000000000000000000000000000000000',
+			expirationTimeSeconds: randomExpiration,
+			salt: generatePseudoRandomSalt(),
+			makerAssetAmount,
+			takerAssetAmount,
+			makerAssetData,
+			takerAssetData,
 			makerFee: new BigNumber(0),
 			takerFee: new BigNumber(0)
 		};
 
-		// Combine the fees request and response to from a complete order
-		const order: Order = {
-			...feesRequest,
-			...feesResponse
-		};
-
-		// Create orderHash
-		const orderHash = ZeroEx.getOrderHashHex(order);
-
-		// Sign orderHash and produce a ecSignature
-		const ecSignature = await zeroEx.signOrderHashAsync(orderHash, zrxOwnerAddress, false);
-
-		// Append signature to order
-		const signedOrder: SignedOrder = {
-			...order,
-			ecSignature
-		};
+		const orderHashHex = orderHashUtils.getOrderHashHex(order);
+		const signature = await signatureUtils.ecSignOrderHashAsync(
+			providerEngine,
+			orderHashHex,
+			maker,
+			SignerType.Default
+		);
+		const signedOrder = { ...order, signature };
+		const orderHash = orderHashUtils.getOrderHashHex(signedOrder);
 
 		// Submit order to relayer
-		// await relayerClient.submitOrderAsync(signedOrder);
-
 		const ws = new WebSocket(CST.RELAYER_WS_URL);
 		const msg = {
-			type: OrderbookChannelMessageTypes.Update,
+			type: WsChannelMessageTypes.Update,
 			channel: CST.WS_CHANNEL_ORDERBOOK,
 			requestId: Date.now(),
 			payload: signedOrder
@@ -123,7 +110,6 @@ const mainAsync = async () => {
 			ws.send(JSON.stringify(msg));
 			console.log(`SENT ORDER: ${orderHash}`);
 			numberOfOrdersSent++;
-			if (numberOfOrdersSent % 3 === 0) exchangeRate++;
 		});
 
 		ws.on('message', m => console.log(m));
@@ -133,7 +119,7 @@ const mainAsync = async () => {
 		});
 
 		ws.on('close', () => console.log('connection closed!'));
-	}, intervalInMs);
+	}, 5000);
 };
 
 mainAsync().catch(console.error);

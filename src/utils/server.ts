@@ -1,17 +1,14 @@
 // import { ZeroEx } from '0x.js';
-import { OrderbookChannelMessageTypes } from '@0xproject/connect/lib/src/types';
 // import { BigNumber } from '@0xproject/utils';
 // import * as bodyParser from 'body-parser';
 // import express from 'express';
 // import { connection as WebSocketConnection, server as WebSocketServer } from 'websocket';
 import WebSocket from 'ws';
 import firebaseUtil from '../firebaseUtil';
+import { WsChannel, WsChannelMessageTypes } from '../types';
 import relayerUtil from './relayerUtil';
 
 // Global state
-// const clients: any[] = [];
-// let socketConnection: WebSocketConnection | undefined;
-
 firebaseUtil.init();
 
 // HTTP Server
@@ -59,24 +56,24 @@ wss.on('connection', ws => {
 		console.log('received: %s', message);
 		const parsedMessage = JSON.parse(message.toString());
 		const type = parsedMessage.type;
-		if (type === OrderbookChannelMessageTypes.Snapshot) {
-			const snapshotNeeded = parsedMessage.payload.snapshot;
-			if (snapshotNeeded) {
+		const channel = parsedMessage.channel;
+		if (type === WsChannelMessageTypes.Subscribe)
+			if (channel === WsChannel.Orderbook) {
 				const returnMsg = await relayerUtil.handleSnapshot(parsedMessage);
 				ws.send(JSON.stringify(returnMsg));
 				console.log('send orderbook snapshot!');
-			} else {
-				ws.send('subscribed without orderbook snapshot!');
+			} else if (channel === WsChannel.Orders) {
+				ws.send('subscribed orders');
 				console.log('received subscription!');
+				// TO DO send new orders based on payload Assetpairs
+			} else if (type === WsChannelMessageTypes.Update) {
+				const returnMsg = await relayerUtil.handleUpdate(parsedMessage);
+				wss.clients.forEach(client => {
+					if (client.readyState === WebSocket.OPEN) {
+						client.send(JSON.stringify(returnMsg));
+						console.log('broadcast new order!');
+					}
+				});
 			}
-		} else if (type === OrderbookChannelMessageTypes.Update) {
-			const returnMsg = await relayerUtil.handleUpdate(parsedMessage);
-			wss.clients.forEach(client => {
-				if (client.readyState === WebSocket.OPEN) {
-					client.send(JSON.stringify(returnMsg));
-					console.log('broadcast new order!');
-				}
-			});
-		}
 	});
 });

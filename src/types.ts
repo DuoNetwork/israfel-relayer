@@ -1,9 +1,10 @@
-import { SignedOrder } from '0x.js';
+import { BigNumber, OrderRelevantState, SignedOrder } from '0x.js';
 
 export interface IDuoOrder extends SignedOrder {
 	orderHash: string;
 	isValid: boolean;
 	updatedAt: number;
+	orderRelevantState: OrderRelevantState;
 }
 
 export interface IOrderBook {
@@ -11,15 +12,39 @@ export interface IOrderBook {
 	asks: IDuoOrder[];
 }
 
-export interface IReturnWsMessage {
+export interface IOrderBookSnapshotWs {
 	type: string;
 	channel: string;
 	requestId: number;
-	payload: IOrderBook | SignedOrder;
+	payload: IOrderBook;
 }
 
-export declare enum IWsChannelMessageTypes {
-	Snapshot = 'snapshot',
+export interface IUpdatePayloadWs {
+	order: SignedOrder;
+	metaData: {
+		remainingTakerAssetAmount: BigNumber;
+	};
+}
+
+export declare enum ErrorResponseWs {
+	InvalidOrder = 'Invalid order schema or signature!',
+	ExistOrder = 'Order exists in DB!'
+}
+
+export interface IUpdateResponseWs {
+	type: string;
+	channel: string;
+	requestId: number;
+	payload: IUpdatePayloadWs[] | string;
+}
+
+export declare enum WsChannelMessageTypes {
+	Subscribe = 'subscribe',
 	Update = 'update',
 	Unknown = 'unknown'
+}
+
+export declare enum WsChannel {
+	Orderbook = 'orderbook',
+	Orders = 'orders'
 }
