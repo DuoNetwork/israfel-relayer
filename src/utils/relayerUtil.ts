@@ -1,6 +1,6 @@
 import {
 	ContractWrappers,
-	orderHashUtils,
+	// orderHashUtils,
 	RPCSubprovider,
 	signatureUtils,
 	SignedOrder,
@@ -11,12 +11,12 @@ import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import * as CST from '../constants';
 import firebaseUtil from '../firebaseUtil';
 import {
-	ErrorResponseWs,
+	// ErrorResponseWs,
 	IDuoOrder,
 	IOrderBook,
 	IOrderBookSnapshotWs,
-	IUpdatePayloadWs,
-	IUpdateResponseWs,
+	// IUpdatePayloadWs,
+	// IUpdateResponseWs,
 	WsChannel,
 	WsChannelMessageTypes
 } from '../types';
@@ -114,39 +114,39 @@ class RelayerUtil {
 		return returnMessage;
 	}
 
-	public async handleUpdate(message: any): Promise<IUpdateResponseWs> {
-		console.log('WS: Received Message: ' + message.type);
-		const requestId = message.requestId;
-		const receiveOrder: SignedOrder = message.payload.order;
-		const orderHash = orderHashUtils.getOrderHashHex(receiveOrder);
-		if (!firebaseUtil.isExistRef(orderHash))
-			return {
-				type: WsChannelMessageTypes.Update,
-				channel: WsChannel.Orders,
-				requestId,
-				payload: await this.newOrderHandler(receiveOrder, orderHash)
-			};
-		else
-			return {
-				type: WsChannelMessageTypes.Update,
-				channel: WsChannel.Orders,
-				requestId,
-				payload: ErrorResponseWs.ExistOrder
-			};
-	}
+	// public async handleUpdate(message: any): Promise<IUpdateResponseWs> {
+	// 	console.log('WS: Received Message: ' + message.type);
+	// 	const requestId = message.requestId;
+	// 	const receiveOrder: SignedOrder = message.payload.order;
+	// 	const orderHash = orderHashUtils.getOrderHashHex(receiveOrder);
+	// 	if (!firebaseUtil.isExistRef(orderHash))
+	// 		return {
+	// 			type: WsChannelMessageTypes.Update,
+	// 			channel: WsChannel.Orders,
+	// 			requestId,
+	// 			payload: await this.newOrderHandler(receiveOrder, orderHash)
+	// 		};
+	// 	else
+	// 		return {
+	// 			type: WsChannelMessageTypes.Update,
+	// 			channel: WsChannel.Orders,
+	// 			requestId,
+	// 			payload: ErrorResponseWs.ExistOrder
+	// 		};
+	// }
 
-	public async newOrderHandler(
-		order: SignedOrder,
-		orderHash: string
-	): Promise<IUpdatePayloadWs[] | string> {
-		if (this.validateNewOrder(order, orderHash)) {
-			await firebaseUtil.addOrder(order, orderHash);
-			const returnOrders: IUpdatePayloadWs[] = await this.getDBUpdates();
-			return returnOrders;
-		} else return ErrorResponseWs.InvalidOrder;
-	}
+	// public async newOrderHandler(
+	// 	order: SignedOrder,
+	// 	orderHash: string
+	// ): Promise<IUpdatePayloadWs[] | string> {
+	// 	if (this.validateNewOrder(order, orderHash)) {
+	// 		await firebaseUtil.addOrder(order, orderHash);
+	// 		const returnOrders: IUpdatePayloadWs[] = await this.getDBUpdates();
+	// 		return returnOrders;
+	// 	} else return ErrorResponseWs.InvalidOrder;
+	// }
 
-	public async getDBUpdates(): IUpdatePayloadWs[] {}
+	// public async getDBUpdates(): IUpdatePayloadWs[] {}
 }
 const relayerUtil = new RelayerUtil();
 export default relayerUtil;

@@ -65,7 +65,7 @@ const mainAsync = async () => {
 	);
 	await web3Wrapper.awaitTransactionSuccessAsync(takerWETHDepositTxHash);
 	// Send signed order to relayer every 5 seconds, increase the exchange rate every 3 orders
-	let numberOfOrdersSent = 0;
+	// let numberOfOrdersSent = 0;
 	setInterval(async () => {
 		const randomExpiration = new BigNumber(Date.now() + 10000).div(1000).ceil();
 
@@ -109,7 +109,7 @@ const mainAsync = async () => {
 			console.log('client connected!');
 			ws.send(JSON.stringify(msg));
 			console.log(`SENT ORDER: ${orderHash}`);
-			numberOfOrdersSent++;
+			// numberOfOrdersSent++;
 		});
 
 		ws.on('message', m => console.log(m));
