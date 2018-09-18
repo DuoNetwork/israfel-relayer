@@ -1,5 +1,7 @@
+import { BigNumber } from '0x.js';
 import moment from 'moment';
 import * as os from 'os';
+import * as CST from './constants';
 
 class Util {
 	public log(text: any): void {
@@ -23,6 +25,9 @@ class Util {
 		return os.hostname();
 	}
 
+	public getRandomFutureDateInSeconds() {
+		return new BigNumber(Date.now() + CST.TEN_MINUTES_MS).div(CST.ONE_SECOND_MS).ceil();
+	}
 }
 
 const util = new Util();

@@ -13,10 +13,13 @@ import { setInterval } from 'timers';
 import WebSocket from 'ws';
 import * as CST from '../constants';
 import { WsChannelMessageTypes } from '../types';
+import util from '../util';
 import { providerEngine } from './providerEngine';
 
 const mainAsync = async () => {
-	const contractWrappers = new ContractWrappers(providerEngine, { networkId: CST.NETWORK_ID_LOCAL });
+	const contractWrappers = new ContractWrappers(providerEngine, {
+		networkId: CST.NETWORK_ID_LOCAL
+	});
 	const web3Wrapper = new Web3Wrapper(providerEngine);
 
 	const [maker, taker] = await web3Wrapper.getAvailableAddressesAsync();
@@ -43,7 +46,7 @@ const mainAsync = async () => {
 		maker
 	);
 	await web3Wrapper.awaitTransactionSuccessAsync(makerZRXApprovalTxHash);
-	console.log('maker approved');
+	util.log('maker approved');
 
 	// Allow the 0x ERC20 Proxy to move WETH on behalf of takerAccount
 	const takerWETHApprovalTxHash = await contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
@@ -51,7 +54,7 @@ const mainAsync = async () => {
 		taker
 	);
 	await web3Wrapper.awaitTransactionSuccessAsync(takerWETHApprovalTxHash);
-	console.log('taker approved');
+	util.log('taker approved');
 
 	// Convert ETH into WETH for taker by depositing ETH into the WETH contract
 	const takerWETHDepositTxHash = await contractWrappers.etherToken.depositAsync(
@@ -60,19 +63,19 @@ const mainAsync = async () => {
 		taker
 	);
 	await web3Wrapper.awaitTransactionSuccessAsync(takerWETHDepositTxHash);
-	console.log('wrapped!');
+	util.log('wrapped!');
 	// Send signed order to relayer every 5 seconds, increase the exchange rate every 3 orders
 	// let numberOfOrdersSent = 0;
 	setInterval(async () => {
-		const randomExpiration = new BigNumber(Date.now() + 10000).div(1000).ceil();
+		const randomExpiration = util.getRandomFutureDateInSeconds();
 
 		// Create the order
 		const order: Order = {
 			exchangeAddress,
 			makerAddress: maker,
-			takerAddress: '0x0000000000000000000000000000000000000000',
-			senderAddress: '0x0000000000000000000000000000000000000000',
-			feeRecipientAddress: '0x0000000000000000000000000000000000000000',
+			takerAddress: CST.NULL_ADDRESS,
+			senderAddress: CST.NULL_ADDRESS,
+			feeRecipientAddress: CST.NULL_ADDRESS,
 			expirationTimeSeconds: randomExpiration,
 			salt: generatePseudoRandomSalt(),
 			makerAssetAmount,
@@ -84,6 +87,7 @@ const mainAsync = async () => {
 		};
 
 		const orderHashHex = orderHashUtils.getOrderHashHex(order);
+		console.log(orderHashHex);
 		const signature = await signatureUtils.ecSignOrderHashAsync(
 			providerEngine,
 			orderHashHex,
@@ -91,7 +95,9 @@ const mainAsync = async () => {
 			SignerType.Default
 		);
 		const signedOrder = { ...order, signature };
+		console.log(signedOrder);
 		const orderHash = orderHashUtils.getOrderHashHex(signedOrder);
+		console.log(orderHash);
 
 		// Submit order to relayer
 		const ws = new WebSocket(CST.RELAYER_WS_URL);
