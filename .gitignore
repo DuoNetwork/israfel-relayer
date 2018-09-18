@@ -12,4 +12,4 @@ dist
 *.txt
 keys
 *package-lock.json
-0x_testrpc_snapshot
+0x_ganache_snapshot

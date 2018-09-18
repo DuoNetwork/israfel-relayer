@@ -49,6 +49,7 @@ const mainAsync = async () => {
 		maker
 	);
 	await web3Wrapper.awaitTransactionSuccessAsync(makerZRXApprovalTxHash);
+	console.log('maker approved');
 
 	// Allow the 0x ERC20 Proxy to move WETH on behalf of takerAccount
 	const takerWETHApprovalTxHash = await zeroEx.erc20Token.setUnlimitedProxyAllowanceAsync(
@@ -56,6 +57,7 @@ const mainAsync = async () => {
 		taker
 	);
 	await web3Wrapper.awaitTransactionSuccessAsync(takerWETHApprovalTxHash);
+	console.log('taker approved');
 
 	// Convert ETH into WETH for taker by depositing ETH into the WETH contract
 	const takerWETHDepositTxHash = await zeroEx.etherToken.depositAsync(
@@ -64,6 +66,7 @@ const mainAsync = async () => {
 		taker
 	);
 	await web3Wrapper.awaitTransactionSuccessAsync(takerWETHDepositTxHash);
+	console.log('wrapped!');
 	// Send signed order to relayer every 5 seconds, increase the exchange rate every 3 orders
 	// let numberOfOrdersSent = 0;
 	setInterval(async () => {
