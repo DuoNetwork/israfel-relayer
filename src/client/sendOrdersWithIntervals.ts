@@ -19,7 +19,6 @@ const mainAsync = async () => {
 	const contractWrappers = new ContractWrappers(providerEngine, { networkId: CST.NETWORK_ID_LOCAL });
 	const web3Wrapper = new Web3Wrapper(providerEngine);
 
-
 	const [maker, taker] = await web3Wrapper.getAvailableAddressesAsync();
 
 	const exchangeAddress = contractWrappers.exchange.getContractAddress();
