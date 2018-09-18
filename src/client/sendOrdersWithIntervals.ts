@@ -5,33 +5,28 @@ import {
 	generatePseudoRandomSalt,
 	Order,
 	orderHashUtils,
-	RPCSubprovider,
 	signatureUtils,
-	SignerType,
-	Web3ProviderEngine
+	SignerType
 } from '0x.js';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import { setInterval } from 'timers';
 import WebSocket from 'ws';
 import * as CST from '../constants';
 import { WsChannelMessageTypes } from '../types';
+import { providerEngine } from './providerEngine';
 
 const mainAsync = async () => {
-	const provider = new RPCSubprovider(CST.PROVIDER_LOCAL);
-	const providerEngine = new Web3ProviderEngine();
+	const contractWrappers = new ContractWrappers(providerEngine, { networkId: CST.NETWORK_ID_LOCAL });
 	const web3Wrapper = new Web3Wrapper(providerEngine);
 
-	providerEngine.addProvider(provider);
-	providerEngine.start();
-	const zeroEx = new ContractWrappers(providerEngine, { networkId: CST.NETWORK_ID_LOCAL });
 
 	const [maker, taker] = await web3Wrapper.getAvailableAddressesAsync();
 
-	const exchangeAddress = zeroEx.exchange.getContractAddress();
+	const exchangeAddress = contractWrappers.exchange.getContractAddress();
 
 	// Get token contract addresses
-	const zrxTokenAddress = zeroEx.exchange.getZRXTokenAddress();
-	const etherTokenAddress = zeroEx.etherToken.getContractAddressIfExists();
+	const zrxTokenAddress = contractWrappers.exchange.getZRXTokenAddress();
+	const etherTokenAddress = contractWrappers.etherToken.getContractAddressIfExists();
 
 	if (etherTokenAddress === undefined) throw console.error('undefined etherTokenAddress');
 
@@ -44,7 +39,7 @@ const mainAsync = async () => {
 	const takerAssetAmount = Web3Wrapper.toBaseUnitAmount(new BigNumber(0.1), 18);
 
 	// Allow the 0x ERC20 Proxy to move ZRX on behalf of makerAccount
-	const makerZRXApprovalTxHash = await zeroEx.erc20Token.setUnlimitedProxyAllowanceAsync(
+	const makerZRXApprovalTxHash = await contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
 		zrxTokenAddress,
 		maker
 	);
@@ -52,7 +47,7 @@ const mainAsync = async () => {
 	console.log('maker approved');
 
 	// Allow the 0x ERC20 Proxy to move WETH on behalf of takerAccount
-	const takerWETHApprovalTxHash = await zeroEx.erc20Token.setUnlimitedProxyAllowanceAsync(
+	const takerWETHApprovalTxHash = await contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
 		etherTokenAddress,
 		taker
 	);
@@ -60,7 +55,7 @@ const mainAsync = async () => {
 	console.log('taker approved');
 
 	// Convert ETH into WETH for taker by depositing ETH into the WETH contract
-	const takerWETHDepositTxHash = await zeroEx.etherToken.depositAsync(
+	const takerWETHDepositTxHash = await contractWrappers.etherToken.depositAsync(
 		etherTokenAddress,
 		takerAssetAmount,
 		taker
