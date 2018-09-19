@@ -12,9 +12,9 @@ import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import { setInterval } from 'timers';
 import WebSocket from 'ws';
 import * as CST from '../constants';
+import { providerEngine } from '../providerEngine';
 import { WsChannelMessageTypes } from '../types';
 import util from '../util';
-import { providerEngine } from './providerEngine';
 
 const mainAsync = async () => {
 	const contractWrappers = new ContractWrappers(providerEngine, {

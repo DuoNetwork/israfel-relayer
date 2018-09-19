@@ -1,21 +1,19 @@
-import { assetDataUtils, ContractWrappers, RPCSubprovider, Web3ProviderEngine } from '0x.js';
+import { assetDataUtils, ContractWrappers } from '0x.js';
 import WebSocket from 'ws';
 import * as CST from '../constants';
+import { providerEngine } from '../providerEngine';
 import { WsChannel, WsChannelMessageTypes } from '../types';
 
 // import { CustomOrderbookChannelHandler } from './customOrderbookChannelHandler';
 
 const mainAsync = async () => {
-	const provider = new RPCSubprovider(CST.PROVIDER_LOCAL);
-	const providerEngine = new Web3ProviderEngine();
-
-	providerEngine.addProvider(provider);
-	providerEngine.start();
-	const zeroEx = new ContractWrappers(providerEngine, { networkId: CST.NETWORK_ID_LOCAL });
+	const contractWrappers = new ContractWrappers(providerEngine, {
+		networkId: CST.NETWORK_ID_LOCAL
+	});
 
 	// Get token contract addresses
-	const zrxTokenAddress = zeroEx.exchange.getZRXTokenAddress();
-	const etherTokenAddress = zeroEx.etherToken.getContractAddressIfExists();
+	const zrxTokenAddress = contractWrappers.exchange.getZRXTokenAddress();
+	const etherTokenAddress = contractWrappers.etherToken.getContractAddressIfExists();
 
 	if (etherTokenAddress === undefined) throw console.error('undefined etherTokenAddress');
 

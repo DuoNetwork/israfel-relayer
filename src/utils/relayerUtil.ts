@@ -1,46 +1,41 @@
 import {
 	ContractWrappers,
-	// orderHashUtils,
-	RPCSubprovider,
+	orderHashUtils,
 	signatureUtils,
-	SignedOrder,
-	Web3ProviderEngine
+	SignedOrder
 } from '0x.js';
 import { schemas, SchemaValidator } from '@0xproject/json-schemas';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import * as CST from '../constants';
 import firebaseUtil from '../firebaseUtil';
+import { providerEngine } from '../providerEngine';
 import {
-	// ErrorResponseWs,
+	ErrorResponseWs,
 	IDuoOrder,
 	IOrderBook,
 	IOrderBookSnapshotWs,
-	// IUpdatePayloadWs,
-	// IUpdateResponseWs,
+	IUpdatePayloadWs,
+	IUpdateResponseWs,
 	WsChannel,
 	WsChannelMessageTypes
 } from '../types';
 
 class RelayerUtil {
-	public provider = new RPCSubprovider(CST.PROVIDER_LOCAL);
-	public providerEngine = new Web3ProviderEngine();
-	public zeroEx: ContractWrappers;
+	public contractWrappers: ContractWrappers;
 	public web3Wrapper: Web3Wrapper;
 	public orders: IDuoOrder[] = [];
 	// public returnOrders: IUpdatePayloadWs[] = [];
 
 	constructor() {
-		this.providerEngine.addProvider(this.provider);
-		this.providerEngine.start();
-		this.web3Wrapper = new Web3Wrapper(this.providerEngine);
-		this.zeroEx = new ContractWrappers(this.providerEngine, {
+		this.web3Wrapper = new Web3Wrapper(providerEngine);
+		this.contractWrappers = new ContractWrappers(providerEngine, {
 			networkId: CST.NETWORK_ID_LOCAL
 		});
 	}
 
 	public setAllUnlimitedAllowance(tokenAddr: string, addrs: string[]): Array<Promise<string>> {
 		return addrs.map(address =>
-			this.zeroEx.erc20Token.setUnlimitedProxyAllowanceAsync(tokenAddr, address)
+			this.contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(tokenAddr, address)
 		);
 	}
 
@@ -114,39 +109,39 @@ class RelayerUtil {
 		return returnMessage;
 	}
 
-	// public async handleUpdate(message: any): Promise<IUpdateResponseWs> {
-	// 	console.log('WS: Received Message: ' + message.type);
-	// 	const requestId = message.requestId;
-	// 	const receiveOrder: SignedOrder = message.payload.order;
-	// 	const orderHash = orderHashUtils.getOrderHashHex(receiveOrder);
-	// 	if (!firebaseUtil.isExistRef(orderHash))
-	// 		return {
-	// 			type: WsChannelMessageTypes.Update,
-	// 			channel: WsChannel.Orders,
-	// 			requestId,
-	// 			payload: await this.newOrderHandler(receiveOrder, orderHash)
-	// 		};
-	// 	else
-	// 		return {
-	// 			type: WsChannelMessageTypes.Update,
-	// 			channel: WsChannel.Orders,
-	// 			requestId,
-	// 			payload: ErrorResponseWs.ExistOrder
-	// 		};
-	// }
+	public async handleUpdate(message: any): Promise<IUpdateResponseWs> {
+		console.log('WS: Received Message: ' + message.type);
+		const requestId = message.requestId;
+		const receiveOrder: SignedOrder = message.payload.order;
+		const orderHash = orderHashUtils.getOrderHashHex(receiveOrder);
+		if (!firebaseUtil.isExistRef(orderHash))
+			return {
+				type: WsChannelMessageTypes.Update,
+				channel: WsChannel.Orders,
+				requestId,
+				payload: await this.newOrderHandler(receiveOrder, orderHash)
+			};
+		else
+			return {
+				type: WsChannelMessageTypes.Update,
+				channel: WsChannel.Orders,
+				requestId,
+				payload: ErrorResponseWs.ExistOrder
+			};
+	}
 
-	// public async newOrderHandler(
-	// 	order: SignedOrder,
-	// 	orderHash: string
-	// ): Promise<IUpdatePayloadWs[] | string> {
-	// 	if (this.validateNewOrder(order, orderHash)) {
-	// 		await firebaseUtil.addOrder(order, orderHash);
-	// 		const returnOrders: IUpdatePayloadWs[] = await this.getDBUpdates();
-	// 		return returnOrders;
-	// 	} else return ErrorResponseWs.InvalidOrder;
-	// }
+	public async newOrderHandler(
+		order: SignedOrder,
+		orderHash: string
+	): Promise<IUpdatePayloadWs[] | string> {
+		if (this.validateNewOrder(order, orderHash)) {
+			await firebaseUtil.addOrder(order, orderHash);
+			const returnOrders: IUpdatePayloadWs[] = await this.getDBUpdates();
+			return returnOrders;
+		} else return ErrorResponseWs.InvalidOrder;
+	}
 
-	// public async getDBUpdates(): IUpdatePayloadWs[] {}
+	public async getDBUpdates(): IUpdatePayloadWs[] {}
 }
 const relayerUtil = new RelayerUtil();
 export default relayerUtil;
