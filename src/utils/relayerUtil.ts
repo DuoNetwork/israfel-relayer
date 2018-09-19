@@ -16,8 +16,6 @@ import {
 	IOrderBookSnapshotWs,
 	IOrderBookUpdateWS,
 	IUpdateResponseWs,
-	WsChannel,
-	WsChannelMessageTypes
 } from '../types';
 
 class RelayerUtil {
@@ -100,31 +98,23 @@ class RelayerUtil {
 		console.log('WS: Received Message: ' + message.type);
 		const baseTokenAddress = message.payload.baseTokenAddress;
 		const quoteTokenAddress = message.payload.quoteTokenAddress;
-		const requestId = message.requestId;
 		const orderbook = await this.renderOrderBook(baseTokenAddress, quoteTokenAddress);
 		const returnMessage = {
-			type: WsChannelMessageTypes.Subscribe,
-			channel: WsChannel.Orderbook,
-			requestId,
+			type: message.type,
+			channel: message.channel,
+			requestId: message.requestId,
 			payload: orderbook
 		};
 		return returnMessage;
 	}
 
 	public async handleAddorder(message: any): Promise<IUpdateResponseWs> {
-		const requestId = message.requestId;
-		// const receiveOrder: SignedOrder = message.payload.order;
-		const order: SignedOrder = message.payload;
-		const orderHash = message.orderHash;
 		console.log(message.payload);
-		// const orderHash = orderHashUtils.getOrderHashHex(order);
-		console.log(orderHash);
-
 		return {
-			type: CST.WS_TYPE_ORDER_ADD,
-			channel: CST.WS_CHANNEL_ORDER,
-			requestId,
-			payload: await this.newOrderHandler(order, orderHash)
+			type: message.type,
+			channel: message.channel,
+			requestId: message.requestId,
+			payload: await this.newOrderHandler(message.payload, message.orderHash)
 		};
 	}
 
@@ -136,9 +126,6 @@ class RelayerUtil {
 			console.log('save order to db');
 			await firebaseUtil.addOrder(order, orderHash);
 			return {
-				type: CST.WS_TYPE_ORDER_ADD,
-				// channel: CST.WS_CHANNEL_ORDER,
-				pair: order.makerAssetData + order.takerAssetData,
 				changes: [
 					{
 						side: 'sell',

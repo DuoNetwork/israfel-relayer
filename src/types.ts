@@ -27,8 +27,6 @@ export interface IUpdatePayloadWs {
 }
 
 export interface IOrderBookUpdateWS {
-	type: string;
-	pair: string;
 	changes: Array<{
 		side: string;
 		price: string;
