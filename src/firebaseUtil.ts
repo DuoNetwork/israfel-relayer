@@ -1,8 +1,8 @@
 import { OrderStateInvalid, OrderStateValid, SignedOrder } from '0x.js';
 import {
 	CollectionReference,
+	DocumentChange,
 	DocumentReference,
-	DocumentSnapshot,
 	QuerySnapshot
 } from '@google-cloud/firestore';
 import * as admin from 'firebase-admin';
@@ -85,15 +85,15 @@ class FirebaseUtil {
 		return (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference).onSnapshot(onData);
 	}
 
-	public onOrder(onData: (orders: IDuoOrder[]) => any) {
-		return this.onOrderQuery((qs: QuerySnapshot) => {
-			if (!qs.empty) onData(qs.docs.map(d => this.parseOrder(d)));
+	public onOrder() {
+		return (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference).onSnapshot((qs: QuerySnapshot) => {
+			if (!qs.empty) qs.docChanges.map(d => this.parseOrder(d));
 		});
 	}
 
-	public parseOrder(doc: DocumentSnapshot): IDuoOrder {
-		const data = doc.data();
-		if (!data) throw new Error('order does not exist');
+	public parseOrder(change: DocumentChange): IDuoOrder {
+		const data = change.doc.data();
+		if (!data) throw new Error('change does not exist');
 		return {
 			senderAddress: data.senderAddress,
 			makerAddress: data.makerAddress,
