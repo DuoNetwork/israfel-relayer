@@ -24,7 +24,7 @@ class FirebaseUtil {
 		this.db.settings({ timestampsInSnapshots: true });
 	}
 
-	private getRef(path: string): CollectionReference | DocumentReference {
+	public getRef(path: string): CollectionReference | DocumentReference {
 		const parts = ((path.startsWith('/') ? '' : '/') + path).split('/').filter(p => !!p.trim());
 		let dbRef: any = this.db;
 		parts.forEach((p, i) => {

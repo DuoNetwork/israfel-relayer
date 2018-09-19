@@ -27,21 +27,18 @@ export interface IUpdatePayloadWs {
 }
 
 export interface IOrderBookUpdateWS {
-	changes: Array<{
-		side: string;
-		price: string;
-		amount: string;
-	}>;
+	side: string;
+	price: string;
+	amount: string;
 }
 
 export interface IUpdateResponseWs {
 	type: string;
 	channel: {
-		name: WsChannelName,
-		marketId: string
-	}
-	requestId: number;
-	payload: IOrderBookUpdateWS | string;
+		name: WsChannelName;
+		marketId: string;
+	};
+	changes: IOrderBookUpdateWS[];
 }
 
 export enum ErrorResponseWs {
@@ -49,13 +46,23 @@ export enum ErrorResponseWs {
 	ExistOrder = 'Order exists in DB!'
 }
 
-export  enum WsChannelMessageTypes {
+export enum WsChannelMessageTypes {
 	Add = 'add',
 	Update = 'update',
-	Cancel = 'cancel'
+	Cancel = 'cancel',
+	Subscribe = 'subscribe'
 }
 
-export  enum WsChannelName {
+export enum WsChannelName {
 	Orderbook = 'orderbook',
 	Orders = 'orders'
+}
+
+export interface IOrderInfo {
+	makerTokenName: string;
+	takerTokenName: string;
+	marketId: string;
+	side: string;
+	amount: string;
+	price: string;
 }

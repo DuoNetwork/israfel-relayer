@@ -2,7 +2,7 @@ import { assetDataUtils, ContractWrappers } from '0x.js';
 import WebSocket from 'ws';
 import * as CST from '../constants';
 import { providerEngine } from '../providerEngine';
-import { WsChannel, WsChannelMessageTypes } from '../types';
+import { WsChannelMessageTypes, WsChannelName } from '../types';
 
 // import { CustomOrderbookChannelHandler } from './customOrderbookChannelHandler';
 
@@ -32,7 +32,7 @@ const mainAsync = async () => {
 	const ws = new WebSocket(CST.RELAYER_WS_URL);
 	const msg = {
 		type: WsChannelMessageTypes.Subscribe,
-		channel: WsChannel.Orderbook,
+		channel: WsChannelName.Orderbook,
 		requestId: Date.now(),
 		payload: zrxWethSubscriptionOpts
 	};

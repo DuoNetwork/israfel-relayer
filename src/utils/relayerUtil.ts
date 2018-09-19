@@ -1,4 +1,5 @@
 import {
+	assetDataUtils,
 	ContractWrappers,
 	//  orderHashUtils,
 	signatureUtils,
@@ -14,8 +15,10 @@ import {
 	IDuoOrder,
 	IOrderBook,
 	IOrderBookSnapshotWs,
-	IOrderBookUpdateWS,
+	// IOrderBookUpdateWS,
+	IOrderInfo,
 	IUpdateResponseWs,
+	WsChannelName
 } from '../types';
 
 class RelayerUtil {
@@ -108,38 +111,50 @@ class RelayerUtil {
 		return returnMessage;
 	}
 
-	public async handleAddorder(message: any): Promise<IUpdateResponseWs> {
+	public async handleAddorder(message: any): Promise<IUpdateResponseWs | string> {
 		console.log(message.payload);
-		return {
-			type: message.type,
-			channel: message.channel,
-			requestId: message.requestId,
-			payload: await this.newOrderHandler(message.payload, message.orderHash)
-		};
-	}
+		const order: SignedOrder = message.payload;
+		const orderHash = message.orderHash;
+		const parsedOrder = this.parseOrderInfo(order);
 
-	public async newOrderHandler(
-		order: SignedOrder,
-		orderHash: string
-	): Promise<IOrderBookUpdateWS | string> {
 		if (await this.validateNewOrder(order, orderHash)) {
-			console.log('save order to db');
 			await firebaseUtil.addOrder(order, orderHash);
 			return {
+				type: message.type,
+				channel: {
+					name: WsChannelName.Orderbook,
+					marketId: parsedOrder.marketId
+				},
 				changes: [
 					{
-						side: 'sell',
-						price: '',
-						amount: ''
+						side: parsedOrder.side,
+						price: parsedOrder.price,
+						amount: parsedOrder.amount
 					}
 				]
 			};
-			// const returnOrders: IOrderBookUpdateWS[] = await this.getDBUpdates();
-			// return returnOrders;
 		} else return ErrorResponseWs.InvalidOrder;
 	}
 
-	// public async getDBUpdates(): IUpdatePayloadWs[] {}
+	public parseOrderInfo(order: SignedOrder | IDuoOrder): IOrderInfo {
+		const makerTokenAddr = assetDataUtils.decodeERC20AssetData(order.makerAssetData);
+		const takerTokenAddr = assetDataUtils.decodeERC20AssetData(order.takerAssetData);
+		const makerToken = CST.TOKEN_MAPPING[makerTokenAddr.tokenAddress];
+		const takerToken = CST.TOKEN_MAPPING[takerTokenAddr.tokenAddress];
+		return {
+			takerTokenName: makerToken,
+			makerTokenName: takerToken,
+			marketId: (makerToken === CST.TOKEN_WETH
+				? takerToken
+				: CST.TOKEN_WETH) +
+			'-' +
+			CST.TOKEN_WETH,
+			side: makerToken === CST.TOKEN_ZRX ? CST.ORDER_SELL : CST.ORDER_BUY,
+			amount: order.takerAssetAmount.toString(),
+			price: (Number(order.makerAssetAmount) / Number(order.takerAssetAmount)).toString()
+		};
+	}
+
 }
 const relayerUtil = new RelayerUtil();
 export default relayerUtil;
