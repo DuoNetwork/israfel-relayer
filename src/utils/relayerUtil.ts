@@ -1,9 +1,4 @@
-import {
-	ContractWrappers,
-	orderHashUtils,
-	signatureUtils,
-	SignedOrder
-} from '0x.js';
+import { ContractWrappers, orderHashUtils, signatureUtils, SignedOrder } from '0x.js';
 import { schemas, SchemaValidator } from '@0xproject/json-schemas';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import * as CST from '../constants';
@@ -14,7 +9,7 @@ import {
 	IDuoOrder,
 	IOrderBook,
 	IOrderBookSnapshotWs,
-	IUpdatePayloadWs,
+	IOrderBookUpdateWS,
 	IUpdateResponseWs,
 	WsChannel,
 	WsChannelMessageTypes
@@ -62,13 +57,13 @@ class RelayerUtil {
 		const validator = new SchemaValidator();
 		const isValidSchema = validator.validate(rest, orderSchema).valid;
 		const isValidSig = await signatureUtils.isValidSignatureAsync(
-			this.providerEngine,
+			providerEngine,
 			orderHash,
 			signature,
 			rest.makerAddress
 		);
 		console.log('schema is %s and signature is %s', isValidSchema, isValidSig);
-		return isValidSchema && isValidSig;
+		return (isValidSchema && isValidSig);
 	}
 
 	public async renderOrderBook(
@@ -109,39 +104,47 @@ class RelayerUtil {
 		return returnMessage;
 	}
 
-	public async handleUpdate(message: any): Promise<IUpdateResponseWs> {
-		console.log('WS: Received Message: ' + message.type);
+	public async handleAddorder(message: any): Promise<IUpdateResponseWs> {
 		const requestId = message.requestId;
-		const receiveOrder: SignedOrder = message.payload.order;
-		const orderHash = orderHashUtils.getOrderHashHex(receiveOrder);
-		if (!firebaseUtil.isExistRef(orderHash))
-			return {
-				type: WsChannelMessageTypes.Update,
-				channel: WsChannel.Orders,
-				requestId,
-				payload: await this.newOrderHandler(receiveOrder, orderHash)
-			};
-		else
-			return {
-				type: WsChannelMessageTypes.Update,
-				channel: WsChannel.Orders,
-				requestId,
-				payload: ErrorResponseWs.ExistOrder
-			};
+		// const receiveOrder: SignedOrder = message.payload.order;
+		const order: SignedOrder = message.payload;
+		console.log(message.payload);
+		const orderHash = orderHashUtils.getOrderHashHex(order);
+		console.log(orderHash);
+
+		return {
+			type: CST.WS_TYPE_ORDER_ADD,
+			channel: CST.WS_CHANNEL_ORDER,
+			requestId,
+			payload: await this.newOrderHandler(order, orderHash)
+		};
 	}
 
 	public async newOrderHandler(
 		order: SignedOrder,
 		orderHash: string
-	): Promise<IUpdatePayloadWs[] | string> {
-		if (this.validateNewOrder(order, orderHash)) {
+	): Promise<IOrderBookUpdateWS | string> {
+		if (await this.validateNewOrder(order, orderHash)) {
+			console.log('save order to db');
 			await firebaseUtil.addOrder(order, orderHash);
-			const returnOrders: IUpdatePayloadWs[] = await this.getDBUpdates();
-			return returnOrders;
+			return {
+				type: CST.WS_TYPE_ORDER_ADD,
+				// channel: CST.WS_CHANNEL_ORDER,
+				pair: order.makerAssetData + order.takerAssetData,
+				changes: [
+					{
+						side: 'sell',
+						price: '',
+						amount: ''
+					}
+				]
+			};
+			// const returnOrders: IOrderBookUpdateWS[] = await this.getDBUpdates();
+			// return returnOrders;
 		} else return ErrorResponseWs.InvalidOrder;
 	}
 
-	public async getDBUpdates(): IUpdatePayloadWs[] {}
+	// public async getDBUpdates(): IUpdatePayloadWs[] {}
 }
 const relayerUtil = new RelayerUtil();
 export default relayerUtil;

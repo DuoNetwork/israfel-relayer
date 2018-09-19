@@ -13,7 +13,7 @@ import { setInterval } from 'timers';
 import WebSocket from 'ws';
 import * as CST from '../constants';
 import { providerEngine } from '../providerEngine';
-import { WsChannelMessageTypes } from '../types';
+// import { WsChannelMessageTypes } from '../types';
 import util from '../util';
 
 const mainAsync = async () => {
@@ -87,7 +87,6 @@ const mainAsync = async () => {
 		};
 
 		const orderHashHex = orderHashUtils.getOrderHashHex(order);
-		console.log(orderHashHex);
 		const signature = await signatureUtils.ecSignOrderHashAsync(
 			providerEngine,
 			orderHashHex,
@@ -95,18 +94,17 @@ const mainAsync = async () => {
 			SignerType.Default
 		);
 		const signedOrder = { ...order, signature };
-		console.log(signedOrder);
 		const orderHash = orderHashUtils.getOrderHashHex(signedOrder);
-		console.log(orderHash);
 
 		// Submit order to relayer
 		const ws = new WebSocket(CST.RELAYER_WS_URL);
 		const msg = {
-			type: WsChannelMessageTypes.Update,
-			channel: CST.WS_CHANNEL_ORDERBOOK,
+			type: CST.WS_TYPE_ORDER_ADD,
+			channel: CST.WS_CHANNEL_ORDER,
 			requestId: Date.now(),
 			payload: signedOrder
 		};
+		// console.log(msg);
 
 		ws.on('open', () => {
 			console.log('client connected!');

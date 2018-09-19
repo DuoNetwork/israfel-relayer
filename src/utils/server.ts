@@ -4,8 +4,9 @@
 // import express from 'express';
 // import { connection as WebSocketConnection, server as WebSocketServer } from 'websocket';
 import WebSocket from 'ws';
+import * as CST from '../constants';
 import firebaseUtil from '../firebaseUtil';
-import { WsChannel, WsChannelMessageTypes } from '../types';
+import util from '../util';
 import relayerUtil from './relayerUtil';
 
 // Global state
@@ -14,30 +15,33 @@ firebaseUtil.init();
 // WebSocket server
 const wss = new WebSocket.Server({ port: 8080 });
 wss.on('connection', ws => {
-	console.log('Standard relayer API (WS) listening on port 8080!', ws);
+	console.log('Standard relayer API (WS) listening on port 8080!');
 	ws.on('message', async message => {
-		console.log('received: %s', message);
+		// console.log('received: %s', message);
 		const parsedMessage = JSON.parse(message.toString());
 		const type = parsedMessage.type;
 		const channel = parsedMessage.channel;
-		if (type === WsChannelMessageTypes.Subscribe)
-			if (channel === WsChannel.Orderbook) {
-				const returnMsg = await relayerUtil.handleSnapshot(parsedMessage);
+		console.log(parsedMessage);
+		if (channel === CST.WS_CHANNEL_ORDER) {
+			if (type === CST.WS_TYPE_ORDER_ADD) {
+				util.log('add new order');
+				const returnMsg = await relayerUtil.handleAddorder(parsedMessage);
 				ws.send(JSON.stringify(returnMsg));
-				console.log('send orderbook snapshot!');
-			} else if (channel === WsChannel.Orders) {
-				ws.send('subscribed orders');
-				console.log('received subscription!');
-				// TO DO send new orders based on payload Assetpairs
-			} else if (type === WsChannelMessageTypes.Update) {
-				const returnMsg = await relayerUtil.handleUpdate(parsedMessage);
-				wss.clients.forEach(client => {
-					if (client.readyState === WebSocket.OPEN) {
-						client.send(JSON.stringify(returnMsg));
-						console.log('broadcast new order!');
-					}
-				});
 			}
+			// else if (channel === WsChannel.Orders) {
+			// 	ws.send('subscribed orders');
+			// 	console.log('received subscription!');
+			// 	// TO DO send new orders based on payload Assetpairs
+			// } else if (type === CST.ORDERBOOK_UPDATE) {
+			// 	const returnMsg = await relayerUtil.handleUpdate(parsedMessage);
+			// 	wss.clients.forEach(client => {
+			// 		if (client.readyState === WebSocket.OPEN) {
+			// 			client.send(JSON.stringify(returnMsg));
+			// 			console.log('broadcast new order!');
+			// 		}
+			// 	});
+			// }
+		} else if (channel === CST.WS_CHANNEL_ORDERBOOK) util.log('subscrib orderbook');
 	});
 });
 
@@ -77,4 +81,3 @@ wss.on('connection', ws => {
 // 	});
 // });
 // app.listen(3000, () => console.log('Standard relayer API (HTTP) listening on port 3000!'));
-
