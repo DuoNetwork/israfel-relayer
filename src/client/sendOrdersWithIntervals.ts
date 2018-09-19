@@ -13,7 +13,7 @@ import { setInterval } from 'timers';
 import WebSocket from 'ws';
 import * as CST from '../constants';
 import { providerEngine } from '../providerEngine';
-// import { WsChannelMessageTypes } from '../types';
+import { WsChannelMessageTypes, WsChannelName } from '../types';
 import util from '../util';
 
 const mainAsync = async () => {
@@ -98,8 +98,11 @@ const mainAsync = async () => {
 		// Submit order to relayer
 		const ws = new WebSocket(CST.RELAYER_WS_URL);
 		const msg = {
-			type: CST.WS_TYPE_ORDER_ADD,
-			channel: CST.WS_CHANNEL_ORDER,
+			type: WsChannelMessageTypes.Add,
+			channel: {
+				name: WsChannelName.Orders,
+				marketId: 'ZRX-ETH'
+			},
 			requestId: Date.now(),
 			payload: signedOrder,
 			orderHash: orderHashHex

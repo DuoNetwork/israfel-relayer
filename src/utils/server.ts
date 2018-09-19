@@ -6,6 +6,7 @@
 import WebSocket from 'ws';
 import * as CST from '../constants';
 import firebaseUtil from '../firebaseUtil';
+import { WsChannelMessageTypes, WsChannelName } from '../types';
 import util from '../util';
 import relayerUtil from './relayerUtil';
 
@@ -22,8 +23,8 @@ wss.on('connection', ws => {
 		const type = parsedMessage.type;
 		const channel = parsedMessage.channel;
 		console.log(parsedMessage);
-		if (channel === CST.WS_CHANNEL_ORDER) {
-			if (type === CST.WS_TYPE_ORDER_ADD) {
+		if (channel === WsChannelName.Orders) {
+			if (type === WsChannelMessageTypes.Add) {
 				util.log('add new order');
 				const returnMsg = await relayerUtil.handleAddorder(parsedMessage);
 				ws.send(JSON.stringify(returnMsg));
