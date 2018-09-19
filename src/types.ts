@@ -36,11 +36,6 @@ export interface IOrderBookUpdateWS {
 	}>;
 }
 
-export declare enum ErrorResponseWs {
-	InvalidOrder = 'Invalid order schema or signature!',
-	ExistOrder = 'Order exists in DB!'
-}
-
 export interface IUpdateResponseWs {
 	type: string;
 	channel: string;
@@ -48,13 +43,18 @@ export interface IUpdateResponseWs {
 	payload: IOrderBookUpdateWS | string;
 }
 
-export declare enum WsChannelMessageTypes {
+export enum ErrorResponseWs {
+	InvalidOrder = 'Invalid order schema or signature!',
+	ExistOrder = 'Order exists in DB!'
+}
+
+export  enum WsChannelMessageTypes {
 	Subscribe = 'subscribe',
 	Update = 'update',
 	Unknown = 'unknown'
 }
 
-export declare enum WsChannel {
+export  enum WsChannel {
 	Orderbook = 'orderbook',
 	Orders = 'orders'
 }

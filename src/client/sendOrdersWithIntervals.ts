@@ -94,7 +94,6 @@ const mainAsync = async () => {
 			SignerType.Default
 		);
 		const signedOrder = { ...order, signature };
-		const orderHash = orderHashUtils.getOrderHashHex(signedOrder);
 
 		// Submit order to relayer
 		const ws = new WebSocket(CST.RELAYER_WS_URL);
@@ -102,14 +101,15 @@ const mainAsync = async () => {
 			type: CST.WS_TYPE_ORDER_ADD,
 			channel: CST.WS_CHANNEL_ORDER,
 			requestId: Date.now(),
-			payload: signedOrder
+			payload: signedOrder,
+			orderHash: orderHashHex
 		};
 		// console.log(msg);
 
 		ws.on('open', () => {
 			console.log('client connected!');
 			ws.send(JSON.stringify(msg));
-			console.log(`SENT ORDER: ${orderHash}`);
+			console.log(`SENT ORDER: ${orderHashHex}`);
 			// numberOfOrdersSent++;
 		});
 

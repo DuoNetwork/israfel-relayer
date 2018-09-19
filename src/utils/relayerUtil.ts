@@ -1,4 +1,9 @@
-import { ContractWrappers, orderHashUtils, signatureUtils, SignedOrder } from '0x.js';
+import {
+	ContractWrappers,
+	//  orderHashUtils,
+	signatureUtils,
+	SignedOrder
+} from '0x.js';
 import { schemas, SchemaValidator } from '@0xproject/json-schemas';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import * as CST from '../constants';
@@ -56,6 +61,8 @@ class RelayerUtil {
 		const { signature, ...rest } = signedOrder;
 		const validator = new SchemaValidator();
 		const isValidSchema = validator.validate(rest, orderSchema).valid;
+		// const ECSignature = signatureUtils.parseECSignature(signature);
+		// console.log(ECSignature);
 		const isValidSig = await signatureUtils.isValidSignatureAsync(
 			providerEngine,
 			orderHash,
@@ -63,7 +70,7 @@ class RelayerUtil {
 			rest.makerAddress
 		);
 		console.log('schema is %s and signature is %s', isValidSchema, isValidSig);
-		return (isValidSchema && isValidSig);
+		return isValidSchema && isValidSig;
 	}
 
 	public async renderOrderBook(
@@ -108,8 +115,9 @@ class RelayerUtil {
 		const requestId = message.requestId;
 		// const receiveOrder: SignedOrder = message.payload.order;
 		const order: SignedOrder = message.payload;
+		const orderHash = message.orderHash;
 		console.log(message.payload);
-		const orderHash = orderHashUtils.getOrderHashHex(order);
+		// const orderHash = orderHashUtils.getOrderHashHex(order);
 		console.log(orderHash);
 
 		return {
