@@ -38,7 +38,10 @@ export interface IOrderBookUpdateWS {
 
 export interface IUpdateResponseWs {
 	type: string;
-	channel: string;
+	channel: {
+		name: WsChannelName,
+		marketId: string
+	}
 	requestId: number;
 	payload: IOrderBookUpdateWS | string;
 }
@@ -49,12 +52,12 @@ export enum ErrorResponseWs {
 }
 
 export  enum WsChannelMessageTypes {
-	Subscribe = 'subscribe',
+	Add = 'add',
 	Update = 'update',
-	Unknown = 'unknown'
+	Cancel = 'cancel'
 }
 
-export  enum WsChannel {
+export  enum WsChannelName {
 	Orderbook = 'orderbook',
 	Orders = 'orders'
 }
