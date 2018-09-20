@@ -56,7 +56,7 @@ class FirebaseUtil {
 				orderHash: orderHash,
 				isValid: true,
 				isCancelled: false,
-				[CST.DB_TIMESTAMP]: admin.firestore.FieldValue.serverTimestamp()
+				[CST.DB_UPDATED_AT]: admin.firestore.FieldValue.serverTimestamp()
 			}),
 			false
 		);
@@ -67,6 +67,22 @@ class FirebaseUtil {
 		const docs = (await this.getDoc(`/${CST.DB_ORDERS}`)) as QuerySnapshot;
 		docs.forEach(doc => orders.push(doc.data() as IDuoOrder));
 		return orders;
+	}
+
+	public async getOrdersByAddress(address: string): Promise<IDuoOrder[]> {
+		console.log(address);
+		const result = await (this.db as admin.firestore.Firestore)
+			.collection(`/${CST.DB_ORDERS}`)
+			.where(CST.DB_ORDER_MAKER_ADDR, '==', address)
+			.where(CST.DB_ORDER_IS_CANCELLED, '==', false)
+			.orderBy(CST.DB_UPDATED_AT, 'desc')
+			.get();
+
+		if (result.empty) return [];
+
+		return result.docs.map(
+			doc => (doc.data() as IDuoOrder)
+		);
 	}
 
 	public async deleteOrder(orderHash: string) {
@@ -81,8 +97,7 @@ class FirebaseUtil {
 			`/${CST.DB_ORDERS}/${orderHash}`,
 			Object.assign({}, rest, {
 				[CST.DB_UPDATED_AT]: admin.firestore.FieldValue.serverTimestamp()
-			}),
-			true
+			})
 		);
 	}
 

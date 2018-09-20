@@ -29,7 +29,9 @@ wss.on('connection', ws => {
 				util.log('add new order');
 				ws.send(JSON.stringify(await relayerUtil.handleAddorder(parsedMessage)));
 			} else if (type === WsChannelMessageTypes.Cancel)
-				ws.send(await relayerUtil.handleCancel(parsedMessage.payload.orderHash));
+				ws.send(
+					JSON.stringify(await relayerUtil.handleCancel(parsedMessage.payload.orderHash))
+				);
 			// TO DO send new orders based on payload Assetpairs
 			// else if (type === CST.ORDERBOOK_UPDATE)
 			// 	const returnMsg = await relayerUtil.handleUpdate(parsedMessage);

@@ -42,6 +42,11 @@ export interface IUpdateResponseWs {
 	changes: IOrderBookUpdateWS[];
 }
 
+export interface ICancelOrderResponseWs {
+	status: string;
+	orderHash: string;
+}
+
 export enum ErrorResponseWs {
 	InvalidOrder = 'Invalid order schema or signature!',
 	NoExistOrder = 'Order does not exist in DB!'

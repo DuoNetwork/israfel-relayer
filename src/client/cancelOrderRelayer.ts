@@ -11,13 +11,11 @@ const mainAsync = async () => {
 	const web3Wrapper = new Web3Wrapper(providerEngine);
 
 	const [maker] = await web3Wrapper.getAvailableAddressesAsync();
-	const orders = await firebaseUtil.getOrders();
-	if (!orders) throw Error('No orders in DB!');
+	const orders = await firebaseUtil.getOrdersByAddress(maker);
+	if (orders.length === 0) throw Error('No orders found in DB!');
+	console.log('num of fetched orders' + orders.length);
 
-	const ordersByMaker = orders.filter(order => order.makerAddress === maker);
-	//sort orders by descending timestamp
-	ordersByMaker.sort((a, b) => b.updatedAt - a.updatedAt);
-	const orderHashHex = ordersByMaker[0].orderHash;
+	const orderHashHex = orders[0].orderHash;
 	console.log('Order to be cancelled is', orderHashHex);
 
 	// Send cancel order request

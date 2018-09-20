@@ -12,6 +12,7 @@ import firebaseUtil from '../firebaseUtil';
 import { providerEngine } from '../providerEngine';
 import {
 	ErrorResponseWs,
+	ICancelOrderResponseWs,
 	IDuoOrder,
 	IOrderBook,
 	IOrderBookSnapshotWs,
@@ -137,14 +138,18 @@ class RelayerUtil {
 		} else return ErrorResponseWs.InvalidOrder;
 	}
 
-	public async handleCancel(orderHash: string): Promise<string> {
+	public async handleCancel(orderHash: string): Promise<ICancelOrderResponseWs | string> {
 		if (firebaseUtil.isExistRef(orderHash)) {
 			const cancelledOrderState: IOrderStateCancelled = {
 				isCancelled: true,
 				orderHash: orderHash
 			};
 			await firebaseUtil.updateOrderState(cancelledOrderState);
-			return 'Cancel order in DB!';
+			return {
+				status: 'success',
+				orderHash: orderHash
+			};
+			// return 'success';
 		} else return ErrorResponseWs.NoExistOrder;
 	}
 
