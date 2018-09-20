@@ -35,3 +35,5 @@ export const TOKEN_MAPPING: {[key: string]: string} = {
 	'0x871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c': TOKEN_ZRX,
 	'0x0b1ba0af832d7c05fd64161e0db78e85978e8082': TOKEN_WETH
 };
+
+export const PRUNE_INTERVAL = 3600000;

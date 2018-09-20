@@ -38,7 +38,7 @@ class OrderWatcherUtil {
 		this.orderWatcher.unsubscribe();
 	}
 
-	//remove invalid orders in deep blocks from DB
+	//remove orders remaining invalid for 24 hours from DB
 	public async pruneOrders(orders: IDuoOrder[]) {
 		for (const order of orders) {
 			const inValidTime = !order.isValid ? Date.now() - order.updatedAt : 0;
