@@ -53,6 +53,9 @@ class FirebaseUtil {
 		return this.setDoc(
 			`/${CST.DB_ORDERS}/${orderHash}`,
 			Object.assign({}, order, {
+				orderHash: orderHash,
+				isValid: true,
+				isCancelled: false,
 				[CST.DB_TIMESTAMP]: admin.firestore.FieldValue.serverTimestamp()
 			}),
 			false
@@ -70,7 +73,9 @@ class FirebaseUtil {
 		return this.deleteDoc(`/${CST.DB_ORDERS}/${orderHash}`);
 	}
 
-	public async updateOrderState(orderState: OrderStateValid | OrderStateInvalid | IOrderStateCancelled) {
+	public async updateOrderState(
+		orderState: OrderStateValid | OrderStateInvalid | IOrderStateCancelled
+	) {
 		const { orderHash, ...rest } = orderState;
 		return this.setDoc(
 			`/${CST.DB_ORDERS}/${orderHash}`,
@@ -86,9 +91,11 @@ class FirebaseUtil {
 	}
 
 	public onOrder() {
-		return (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference).onSnapshot((qs: QuerySnapshot) => {
-			if (!qs.empty) qs.docChanges.map(d => this.parseOrder(d));
-		});
+		return (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference).onSnapshot(
+			(qs: QuerySnapshot) => {
+				if (!qs.empty) qs.docChanges.map(d => this.parseOrder(d));
+			}
+		);
 	}
 
 	public parseOrder(change: DocumentChange): IDuoOrder {
@@ -111,8 +118,9 @@ class FirebaseUtil {
 			signature: data.signature,
 			orderHash: data.orderHash,
 			isValid: data.isValid,
+			isCancelled: data.isCancelled,
 			updatedAt: data.updatedAt,
-			orderRelevantState: data.orderRelevantState
+			orderWatcherState: data.orderRelevantState
 		};
 	}
 }
