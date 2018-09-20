@@ -14,7 +14,8 @@
 		"init_orderbook": "ts-node ./src/client/initializeOrderbook",
 		"send_orders": "ts-node ./src/client/sendOrdersWithIntervals",
 		"actions": "ts-node ./src/actions/index",
-		"order_watcher": "ts-node ./src/orderWatcher"
+		"order_watcher": "ts-node ./src/orderWatcher",
+		"cancel_order": "ts-node ./src/client/cancelOrderRelayer"
 	},
 	"jest": {
 		"roots": [
@@ -46,10 +47,6 @@
 		"jest": "^23.5.0",
 		"ts-jest": "^23.1.4",
 		"tslint": "^5.11.0",
-		"0x.js": "1.0.1",
-		"@0xproject/connect": "2.0.0",
-		"@0xproject/subproviders": "^2.0.2",
-		"@0xproject/web3-wrapper": "^2.0.2",
 		"body-parser": "^1.18.3",
 		"cli-table": "^0.3.1",
 		"express": "^4.16.3"
@@ -63,14 +60,12 @@
 		"@0xproject/utils": "^1.0.8",
 		"@0xproject/web3-wrapper": "^2.0.2",
 		"@types/web3-provider-engine": "^14.0.0",
+		"cross-env": "^5.1.4",
 		"firebase-admin": "^6.0.0",
+		"ganache-cli": "^6.1.6",
 		"moment": "^2.22.2",
 		"ts-node": "^7.0.1",
-		"ws": "^6.0.0",
-		"cross-env": "^5.1.4",
-		"download-cli": "^1.0.5",
-		"ganache-cli": "^6.1.6",
-		"tslint": "5.11.0",
-		"typescript": "3.0.1"
+		"typescript": "3.0.1",
+		"ws": "^6.0.0"
 	}
 }

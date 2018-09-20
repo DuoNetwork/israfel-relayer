@@ -9,7 +9,6 @@ import {
 	SignerType
 } from '0x.js';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
-import { setInterval } from 'timers';
 import WebSocket from 'ws';
 import * as CST from '../constants';
 import { providerEngine } from '../providerEngine';
@@ -66,66 +65,80 @@ const mainAsync = async () => {
 	util.log('wrapped!');
 	// Send signed order to relayer every 5 seconds, increase the exchange rate every 3 orders
 	// let numberOfOrdersSent = 0;
-	setInterval(async () => {
-		const randomExpiration = util.getRandomFutureDateInSeconds();
+	const randomExpiration = util.getRandomFutureDateInSeconds();
 
-		// Create the order
-		const order: Order = {
-			exchangeAddress,
-			makerAddress: maker,
-			takerAddress: CST.NULL_ADDRESS,
-			senderAddress: CST.NULL_ADDRESS,
-			feeRecipientAddress: CST.NULL_ADDRESS,
-			expirationTimeSeconds: randomExpiration,
-			salt: generatePseudoRandomSalt(),
-			makerAssetAmount,
-			takerAssetAmount,
-			makerAssetData,
-			takerAssetData,
-			makerFee: new BigNumber(0),
-			takerFee: new BigNumber(0)
-		};
+	// Create the order
+	const order: Order = {
+		exchangeAddress,
+		makerAddress: maker,
+		takerAddress: CST.NULL_ADDRESS,
+		senderAddress: CST.NULL_ADDRESS,
+		feeRecipientAddress: CST.NULL_ADDRESS,
+		expirationTimeSeconds: randomExpiration,
+		salt: generatePseudoRandomSalt(),
+		makerAssetAmount,
+		takerAssetAmount,
+		makerAssetData,
+		takerAssetData,
+		makerFee: new BigNumber(0),
+		takerFee: new BigNumber(0)
+	};
 
-		const orderHashHex = orderHashUtils.getOrderHashHex(order);
-		const signature = await signatureUtils.ecSignOrderHashAsync(
-			providerEngine,
-			orderHashHex,
-			maker,
-			SignerType.Default
-		);
-		const signedOrder = { ...order, signature };
+	const orderHashHex = orderHashUtils.getOrderHashHex(order);
+	const signature = await signatureUtils.ecSignOrderHashAsync(
+		providerEngine,
+		orderHashHex,
+		maker,
+		SignerType.Default
+	);
+	const signedOrder = { ...order, signature };
 
-		// Submit order to relayer
-		const ws = new WebSocket(CST.RELAYER_WS_URL);
-		const msg = {
-			type: WsChannelMessageTypes.Add,
-			channel: {
-				name: WsChannelName.Orders,
-				marketId: 'ZRX-ETH'
-			},
-			requestId: Date.now(),
-			payload: {
-				order: signedOrder,
-				orderHash: orderHashHex
-			}
-		};
-		// console.log(msg);
+	// Submit order to relayer
+	const ws = new WebSocket(CST.RELAYER_WS_URL);
+	const addReq = {
+		type: WsChannelMessageTypes.Add,
+		channel: {
+			name: WsChannelName.Orders,
+			marketId: 'ZRX-ETH'
+		},
+		requestId: Date.now(),
+		payload: {
+			order: signedOrder,
+			orderHash: orderHashHex
+		}
+	};
+	// Send cancel order request
+	const cancelReq = {
+		type: WsChannelMessageTypes.Cancel,
+		channel: {
+			name: WsChannelName.Orders,
+			marketId: 'ZRX-ETH'
+		},
+		requestId: Date.now(),
+		payload: {
+			orderHash: orderHashHex
+		}
+	};
 
-		ws.on('open', () => {
-			console.log('client connected!');
-			ws.send(JSON.stringify(msg));
-			console.log(`SENT ORDER: ${orderHashHex}`);
-			// numberOfOrdersSent++;
-		});
+	ws.on('open', () => {
+		console.log('client connected!');
+		ws.send(JSON.stringify(addReq));
+		console.log(`SENT ORDER: ${orderHashHex}`);
+	});
 
-		ws.on('message', m => console.log(m));
+	ws.on('message', m => {
+		console.log(m);
+		setTimeout(() => {
+			ws.send(JSON.stringify(cancelReq));
+			console.log(`check if order is added ${orderHashHex}`);
+		}, 10000);
+	});
 
-		ws.on('error', (error: Error) => {
-			console.log('client got error! %s', error);
-		});
+	ws.on('error', (error: Error) => {
+		console.log('client got error! %s', error);
+	});
 
-		ws.on('close', () => console.log('connection closed!'));
-	}, 5000);
+	ws.on('close', () => console.log('connection closed!'));
 };
 
 mainAsync().catch(console.error);

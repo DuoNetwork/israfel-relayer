@@ -43,7 +43,7 @@ export interface IUpdateResponseWs {
 
 export enum ErrorResponseWs {
 	InvalidOrder = 'Invalid order schema or signature!',
-	ExistOrder = 'Order exists in DB!'
+	NoExistOrder = 'Order does not exist in DB!'
 }
 
 export enum WsChannelMessageTypes {
@@ -65,4 +65,9 @@ export interface IOrderInfo {
 	side: string;
 	amount: string;
 	price: string;
+}
+
+export interface IOrderStateCancelled {
+	isCancelled: boolean;
+	orderHash: string;
 }

@@ -3,11 +3,11 @@
 // import * as bodyParser from 'body-parser';
 // import express from 'express';
 // import { connection as WebSocketConnection, server as WebSocketServer } from 'websocket';
-import { CollectionReference } from '@google-cloud/firestore';
+// import { CollectionReference } from '@google-cloud/firestore';
 import WebSocket from 'ws';
 import * as CST from '../constants';
 import firebaseUtil from '../firebaseUtil';
-import { IDuoOrder, IUpdateResponseWs, WsChannelMessageTypes, WsChannelName } from '../types';
+import { /*IDuoOrder, IUpdateResponseWs,*/ WsChannelMessageTypes, WsChannelName } from '../types';
 import util from '../util';
 import relayerUtil from './relayerUtil';
 
@@ -19,61 +19,57 @@ const wss = new WebSocket.Server({ port: 8080 });
 wss.on('connection', ws => {
 	console.log('Standard relayer API (WS) listening on port 8080!');
 	ws.on('message', async message => {
-		// console.log('received: %s', message);
+		console.log('received: %s', message);
 		const parsedMessage = JSON.parse(message.toString());
 		const type = parsedMessage.type;
 		const channelName = parsedMessage.channel.name;
 		console.log(parsedMessage);
-		if (channelName === WsChannelName.Orders) {
+		if (channelName === WsChannelName.Orders)
 			if (type === WsChannelMessageTypes.Add) {
 				util.log('add new order');
-				const returnMsg = await relayerUtil.handleAddorder(parsedMessage);
-				ws.send(JSON.stringify(returnMsg));
-			}
-			// else if (channel === WsChannel.Orders) {
-			// 	ws.send('subscribed orders');
-			// 	console.log('received subscription!');
-			// 	// TO DO send new orders based on payload Assetpairs
-			// } else if (type === CST.ORDERBOOK_UPDATE) {
+				ws.send(JSON.stringify(await relayerUtil.handleAddorder(parsedMessage)));
+			} else if (type === WsChannelMessageTypes.Cancel)
+				ws.send(await relayerUtil.handleCancel(parsedMessage.payload.orderHash));
+			// TO DO send new orders based on payload Assetpairs
+			// else if (type === CST.ORDERBOOK_UPDATE)
 			// 	const returnMsg = await relayerUtil.handleUpdate(parsedMessage);
-			// }
-		} else if (channelName === CST.WS_CHANNEL_ORDERBOOK) util.log('subscrib orderbook');
+			else if (channelName === CST.WS_CHANNEL_ORDERBOOK) util.log('subscribe orderbook');
 	});
 });
 
-const orderListener = firebaseUtil.getRef(`/${CST.DB_ORDERS}`);
+// const orderListener = firebaseUtil.getRef(`/${CST.DB_ORDERS}`);
 
-(orderListener as CollectionReference).onSnapshot(docs => {
-	// const orders: any[] = [];
-	docs.docChanges.forEach(doc => {
-		if (doc.type === CST.DB_ORDER_ADDED) {
-			util.log('new order added');
-			console.log(doc.doc.data());
-			const parsedOrder = relayerUtil.parseOrderInfo(doc.doc.data() as IDuoOrder);
-			let orderBookUpdate: IUpdateResponseWs;
-			orderBookUpdate = {
-				type: CST.ORDERBOOK_UPDATE,
-				channel: {
-					name: WsChannelName.Orderbook,
-					marketId: parsedOrder.marketId
-				},
-				changes: [
-					{
-						side: parsedOrder.side,
-						price: parsedOrder.price,
-						amount: parsedOrder.amount
-					}
-				]
-			};
-			wss.clients.forEach(client => {
-				if (client.readyState === WebSocket.OPEN) {
-					client.send(JSON.stringify(orderBookUpdate));
-					console.log('broadcast new order!');
-				}
-			});
-		}
-	});
-});
+// (orderListener as CollectionReference).onSnapshot(docs => {
+// 	// const orders: any[] = [];
+// 	docs.docChanges.forEach(doc => {
+// 		if (doc.type === CST.DB_ORDER_ADDED) {
+// 			util.log('new order added');
+// 			console.log(doc.doc.data());
+// 			const parsedOrder = relayerUtil.parseOrderInfo(doc.doc.data() as IDuoOrder);
+// 			let orderBookUpdate: IUpdateResponseWs;
+// 			orderBookUpdate = {
+// 				type: CST.ORDERBOOK_UPDATE,
+// 				channel: {
+// 					name: WsChannelName.Orderbook,
+// 					marketId: parsedOrder.marketId
+// 				},
+// 				changes: [
+// 					{
+// 						side: parsedOrder.side,
+// 						price: parsedOrder.price,
+// 						amount: parsedOrder.amount
+// 					}
+// 				]
+// 			};
+// 			wss.clients.forEach(client => {
+// 				if (client.readyState === WebSocket.OPEN) {
+// 					client.send(JSON.stringify(orderBookUpdate));
+// 					console.log('broadcast new order!');
+// 				}
+// 			});
+// 		}
+// 	});
+// });
 
 // HTTP Server
 // const app = express();

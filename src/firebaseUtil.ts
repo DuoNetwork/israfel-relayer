@@ -7,7 +7,7 @@ import {
 } from '@google-cloud/firestore';
 import * as admin from 'firebase-admin';
 import * as CST from './constants';
-import { IDuoOrder } from './types';
+import { IDuoOrder, IOrderStateCancelled } from './types';
 import util from './util';
 
 class FirebaseUtil {
@@ -70,7 +70,7 @@ class FirebaseUtil {
 		return this.deleteDoc(`/${CST.DB_ORDERS}/${orderHash}`);
 	}
 
-	public async updateOrderState(orderState: OrderStateValid | OrderStateInvalid) {
+	public async updateOrderState(orderState: OrderStateValid | OrderStateInvalid | IOrderStateCancelled) {
 		const { orderHash, ...rest } = orderState;
 		return this.setDoc(
 			`/${CST.DB_ORDERS}/${orderHash}`,

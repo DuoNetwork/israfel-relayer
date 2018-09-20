@@ -17,8 +17,9 @@ import {
 	IOrderBookSnapshotWs,
 	// IOrderBookUpdateWS,
 	IOrderInfo,
+	IOrderStateCancelled,
 	IUpdateResponseWs,
-	WsChannelName
+	WsChannelName,
 } from '../types';
 
 class RelayerUtil {
@@ -113,8 +114,8 @@ class RelayerUtil {
 
 	public async handleAddorder(message: any): Promise<IUpdateResponseWs | string> {
 		console.log(message.payload);
-		const order: SignedOrder = message.payload;
-		const orderHash = message.orderHash;
+		const order: SignedOrder = message.payload.order;
+		const orderHash = message.payload.orderHash;
 		const parsedOrder = this.parseOrderInfo(order);
 
 		if (await this.validateNewOrder(order, orderHash)) {
@@ -136,6 +137,17 @@ class RelayerUtil {
 		} else return ErrorResponseWs.InvalidOrder;
 	}
 
+	public async handleCancel(orderHash: string): Promise<string> {
+		if (firebaseUtil.isExistRef(orderHash)) {
+			const cancelledOrderState: IOrderStateCancelled = {
+				isCancelled: true,
+				orderHash: orderHash
+			};
+			await firebaseUtil.updateOrderState(cancelledOrderState);
+			return 'Cancel order in DB!';
+		} else return ErrorResponseWs.NoExistOrder;
+	}
+
 	public parseOrderInfo(order: SignedOrder | IDuoOrder): IOrderInfo {
 		const makerTokenAddr = assetDataUtils.decodeERC20AssetData(order.makerAssetData);
 		const takerTokenAddr = assetDataUtils.decodeERC20AssetData(order.takerAssetData);
@@ -144,17 +156,15 @@ class RelayerUtil {
 		return {
 			takerTokenName: makerToken,
 			makerTokenName: takerToken,
-			marketId: (makerToken === CST.TOKEN_WETH
-				? takerToken
-				: CST.TOKEN_WETH) +
-			'-' +
-			CST.TOKEN_WETH,
+			marketId:
+				(makerToken === CST.TOKEN_WETH ? takerToken : CST.TOKEN_WETH) +
+				'-' +
+				CST.TOKEN_WETH,
 			side: makerToken === CST.TOKEN_ZRX ? CST.ORDER_SELL : CST.ORDER_BUY,
 			amount: order.takerAssetAmount.toString(),
 			price: (Number(order.makerAssetAmount) / Number(order.takerAssetAmount)).toString()
 		};
 	}
-
 }
 const relayerUtil = new RelayerUtil();
 export default relayerUtil;
