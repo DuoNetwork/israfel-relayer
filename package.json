@@ -14,9 +14,9 @@
 		"init_orderbook": "ts-node ./src/client/initializeOrderbook",
 		"send_orders": "ts-node ./src/client/sendOrdersWithIntervals",
 		"actions": "ts-node ./src/actions/index",
-		"order_watcher": "ts-node ./src/orderWatcher",
+		"orderWatcher": "ts-node ./src/index orderWatcher",
 		"cancel_order": "ts-node ./src/client/cancelOrderRelayer",
-		"modifyState": "ts-node ./src/index"
+		"modifyState": "ts-node ./src/index modifyState"
 	},
 	"jest": {
 		"roots": [

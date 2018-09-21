@@ -65,8 +65,16 @@ class FirebaseUtil {
 		return qs.docs.map(doc => doc.data() as IDuoOrder);
 	}
 
-	public async getOrders(): Promise<IDuoOrder[]> {
-		return this.querySnapshotToDuo((await this.getDoc(`/${CST.DB_ORDERS}`)) as QuerySnapshot);
+	public async getOrders(marketId: string, address: string = ''): Promise<IDuoOrder[]> {
+		let query = (this.getRef(`/${CST.DB_ORDERS + '|' + marketId}`) as CollectionReference)
+			.where(CST.DB_ORDER_IS_CANCELLED, '==', false)
+			.where(CST.DB_ORDER_IS_VALID, '==', true);
+
+		if (address) query = query.where(CST.DB_ORDER_MAKER_ADDR, '==', address);
+		query = query.orderBy(CST.DB_UPDATED_AT, 'desc');
+		const result = await query.get();
+		if (result.empty) return [];
+		return this.querySnapshotToDuo(result);
 	}
 
 	public async getOrderBook(
@@ -94,18 +102,18 @@ class FirebaseUtil {
 		return { bids, asks };
 	}
 
-	public async getOrdersByAddress(address: string): Promise<IDuoOrder[]> {
-		const result = await (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference)
-			.where(CST.DB_ORDER_MAKER_ADDR, '==', address)
-			.where(CST.DB_ORDER_IS_CANCELLED, '==', false)
-			.where(CST.DB_ORDER_IS_VALID, '==', true)
-			.orderBy(CST.DB_UPDATED_AT, 'desc')
-			.get();
+	// public async getOrdersByAddress(address: string): Promise<IDuoOrder[]> {
+	// 	const result = await (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference)
+	// 		.where(CST.DB_ORDER_MAKER_ADDR, '==', address)
+	// 		.where(CST.DB_ORDER_IS_CANCELLED, '==', false)
+	// 		.where(CST.DB_ORDER_IS_VALID, '==', true)
+	// 		.orderBy(CST.DB_UPDATED_AT, 'desc')
+	// 		.get();
 
-		if (result.empty) return [];
+	// 	if (result.empty) return [];
 
-		return this.querySnapshotToDuo(result);
-	}
+	// 	return this.querySnapshotToDuo(result);
+	// }
 
 	public async deleteOrder(orderHash: string) {
 		return this.deleteDoc(`/${CST.DB_ORDERS}/${orderHash}`);

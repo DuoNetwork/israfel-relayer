@@ -1,7 +1,7 @@
-import * as CST from './constants';
-
 import assetsUtil from './assetsUtil';
+import * as CST from './constants';
 import util from './util';
+import orderWatcherUtil from './utils/orderWatcherUtil';
 
 const tool = process.argv[2];
 
@@ -10,8 +10,11 @@ util.log('tool ' + tool);
 const option = util.parseOptions(process.argv);
 
 switch (tool) {
-	case CST.CMD_MODIFY_STATE:
+	case CST.MODIFY_STATE:
 		assetsUtil.setTokenAllowance(option);
+		break;
+	case CST.ORDER_WATCHER:
+		orderWatcherUtil.startOrderWatcher(option);
 		break;
 	default:
 		break;

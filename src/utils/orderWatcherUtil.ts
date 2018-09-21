@@ -1,13 +1,9 @@
-import {
-	ContractWrappers,
-	OrderWatcher,
-	RPCSubprovider,
-	SignedOrder
-} from '0x.js';
+import { ContractWrappers, OrderWatcher, RPCSubprovider, SignedOrder } from '0x.js';
 import * as CST from '../constants';
 import firebaseUtil from '../firebaseUtil';
 import { providerEngine } from '../providerEngine';
-import { IDuoOrder } from '../types';
+import { IDuoOrder, IOption } from '../types';
+import util from '../util';
 
 class OrderWatcherUtil {
 	public provider = new RPCSubprovider(CST.PROVIDER_LOCAL);
@@ -68,6 +64,49 @@ class OrderWatcherUtil {
 				console.log('order added to watcher!');
 			}
 		}
+	}
+
+	public parseToSignedOrder(duoOrders: IDuoOrder[]): SignedOrder[] {
+		const signedOrder: SignedOrder[] = [];
+		duoOrders.forEach(order =>
+			signedOrder.push({
+				signature: order.signature,
+				senderAddress: order.senderAddress,
+				makerAddress: order.makerAddress,
+				takerAddress: order.takerAddress,
+				makerFee: order.makerFee,
+				takerFee: order.takerFee,
+				makerAssetAmount: order.makerAssetAmount,
+				takerAssetAmount: order.takerAssetAmount,
+				makerAssetData: order.makerAssetData,
+				takerAssetData: order.takerAssetData,
+				salt: order.salt,
+				exchangeAddress: order.exchangeAddress,
+				feeRecipientAddress: order.feeRecipientAddress,
+				expirationTimeSeconds: order.expirationTimeSeconds
+			})
+		);
+		return signedOrder;
+	}
+
+	public async startOrderWatcher(option: IOption) {
+		const marketId = option.token + '-' + CST.TOKEN_WETH;
+		util.log('start order watcher for' + marketId);
+		firebaseUtil.init();
+		const orders: IDuoOrder[] = await firebaseUtil.getOrders(marketId);
+		const signedOrders: SignedOrder[] = this.parseToSignedOrder(orders);
+
+		for (const order of signedOrders) await this.orderWatcher.addOrderAsync(order);
+
+		this.orderWatcher.subscribe(async (err, orderState) => {
+			if (err) {
+				console.log(err);
+				return;
+			}
+
+			console.log(Date.now().toString(), 'Subscribed rderstate is %s', orderState);
+			if (orderState !== undefined) await firebaseUtil.updateOrderState(orderState);
+		});
 	}
 }
 

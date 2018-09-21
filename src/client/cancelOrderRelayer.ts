@@ -11,7 +11,8 @@ const mainAsync = async () => {
 	const web3Wrapper = new Web3Wrapper(providerEngine);
 
 	const [maker] = await web3Wrapper.getAvailableAddressesAsync();
-	const orders = await firebaseUtil.getOrdersByAddress(maker);
+	const marketId = CST.TOKEN_ZRX + '-' + CST.TOKEN_WETH;
+	const orders = await firebaseUtil.getOrders(marketId, maker);
 	if (orders.length === 0) throw Error('No orders found in DB!');
 	console.log('num of fetched orders' + orders.length);
 

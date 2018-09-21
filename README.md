@@ -27,3 +27,8 @@ npm run relayer_ws
 ```
 npm run actions
 ```
+
+8. start orderWatcher
+```
+npm run orderWatcher token=ZRX
+```
