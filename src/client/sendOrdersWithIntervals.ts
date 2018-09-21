@@ -78,12 +78,12 @@ const mainAsync = async () => {
 		const maker = getRandomMaker(makers);
 		// the amount the maker is selling of maker asset
 		const makerAssetAmount = Web3Wrapper.toBaseUnitAmount(
-			new BigNumber(Number(Math.random().toPrecision(3)) * 10),
+			new BigNumber(Number(Math.random().toFixed(3)) * 10 || 1),
 			18
 		);
 		// the amount the maker wants of taker asset
 		const takerAssetAmount = Web3Wrapper.toBaseUnitAmount(
-			new BigNumber(Number(Math.random().toPrecision(3))),
+			new BigNumber(Number(Math.random().toFixed(3)) || 1),
 			18
 		);
 
