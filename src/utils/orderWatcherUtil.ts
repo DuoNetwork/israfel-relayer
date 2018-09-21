@@ -2,24 +2,24 @@ import {
 	ContractWrappers,
 	OrderWatcher,
 	RPCSubprovider,
-	SignedOrder,
-	Web3ProviderEngine
+	SignedOrder
 } from '0x.js';
 import * as CST from '../constants';
 import firebaseUtil from '../firebaseUtil';
+import { providerEngine } from '../providerEngine';
 import { IDuoOrder } from '../types';
 
 class OrderWatcherUtil {
 	public provider = new RPCSubprovider(CST.PROVIDER_LOCAL);
-	public providerEngine = new Web3ProviderEngine();
+	// public providerEngine = new Web3ProviderEngine();
 	public zeroEx: ContractWrappers;
 	public orderWatcher: OrderWatcher;
 
 	constructor() {
-		this.providerEngine.addProvider(this.provider);
-		this.providerEngine.start();
-		this.zeroEx = new ContractWrappers(this.providerEngine, { networkId: CST.NETWORK_ID_LOCAL });
-		this.orderWatcher = new OrderWatcher(this.providerEngine, CST.NETWORK_ID_LOCAL);
+		// this.providerEngine.addProvider(this.provider);
+		// this.providerEngine.start();
+		this.zeroEx = new ContractWrappers(providerEngine, { networkId: CST.NETWORK_ID_LOCAL });
+		this.orderWatcher = new OrderWatcher(providerEngine, CST.NETWORK_ID_LOCAL);
 	}
 
 	public async subscribeOrderWatcher() {

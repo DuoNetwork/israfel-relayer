@@ -16,13 +16,29 @@ import { providerEngine } from '../providerEngine';
 import { WsChannelMessageTypes, WsChannelName } from '../types';
 import util from '../util';
 
+const getRandomMaker = (makers: string[]): string => {
+	const index = Math.floor(Math.random() * Math.floor(makers.length));
+	return makers[index];
+};
+const TAKER_ETH_DEPOSIT = 10;
+
 const mainAsync = async () => {
 	const contractWrappers = new ContractWrappers(providerEngine, {
 		networkId: CST.NETWORK_ID_LOCAL
 	});
 	const web3Wrapper = new Web3Wrapper(providerEngine);
+	const [taker, ...makers] = await web3Wrapper.getAvailableAddressesAsync();
 
-	const [maker, taker] = await web3Wrapper.getAvailableAddressesAsync();
+	const approveAllMakers = async (tokenAddress: string) => {
+		// Allow the 0x ERC20 Proxy to move erc20 token on behalf of makerAccount
+		for (const maker of makers) {
+			const makerZRXApprovalTxHash = await contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
+				tokenAddress,
+				maker
+			);
+			await web3Wrapper.awaitTransactionSuccessAsync(makerZRXApprovalTxHash);
+		}
+	};
 
 	const exchangeAddress = contractWrappers.exchange.getContractAddress();
 
@@ -35,39 +51,41 @@ const mainAsync = async () => {
 	const makerAssetData = assetDataUtils.encodeERC20AssetData(zrxTokenAddress);
 	const takerAssetData = assetDataUtils.encodeERC20AssetData(etherTokenAddress);
 
-	// the amount the maker is selling of maker asset
-	const makerAssetAmount = Web3Wrapper.toBaseUnitAmount(new BigNumber(5), 18);
-	// the amount the maker wants of taker asset
-	const takerAssetAmount = Web3Wrapper.toBaseUnitAmount(new BigNumber(0.1), 18);
-
-	// Allow the 0x ERC20 Proxy to move ZRX on behalf of makerAccount
-	const makerZRXApprovalTxHash = await contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
-		zrxTokenAddress,
-		maker
-	);
-	await web3Wrapper.awaitTransactionSuccessAsync(makerZRXApprovalTxHash);
-	util.log('maker approved');
-
 	// Allow the 0x ERC20 Proxy to move WETH on behalf of takerAccount
 	const takerWETHApprovalTxHash = await contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
 		etherTokenAddress,
 		taker
 	);
 	await web3Wrapper.awaitTransactionSuccessAsync(takerWETHApprovalTxHash);
-	util.log('taker approved');
+	util.log('taker WETH approved');
 
 	// Convert ETH into WETH for taker by depositing ETH into the WETH contract
 	const takerWETHDepositTxHash = await contractWrappers.etherToken.depositAsync(
 		etherTokenAddress,
-		takerAssetAmount,
+		Web3Wrapper.toBaseUnitAmount(new BigNumber(TAKER_ETH_DEPOSIT), 18),
 		taker
 	);
 	await web3Wrapper.awaitTransactionSuccessAsync(takerWETHDepositTxHash);
-	util.log('wrapped!');
+	util.log('taker ETH wrapped!');
+
+	await approveAllMakers(zrxTokenAddress);
+	util.log('all maker approved');
+
 	// Send signed order to relayer every 5 seconds, increase the exchange rate every 3 orders
 	// let numberOfOrdersSent = 0;
 	setInterval(async () => {
 		const randomExpiration = util.getRandomFutureDateInSeconds();
+		const maker = getRandomMaker(makers);
+		// the amount the maker is selling of maker asset
+		const makerAssetAmount = Web3Wrapper.toBaseUnitAmount(
+			new BigNumber(Number(Math.random().toPrecision(3)) * 10),
+			18
+		);
+		// the amount the maker wants of taker asset
+		const takerAssetAmount = Web3Wrapper.toBaseUnitAmount(
+			new BigNumber(Number(Math.random().toPrecision(3))),
+			18
+		);
 
 		// Create the order
 		const order: Order = {

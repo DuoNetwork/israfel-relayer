@@ -120,7 +120,7 @@ class RelayerUtil {
 		const parsedOrder = this.parseOrderInfo(order);
 
 		if (await this.validateNewOrder(order, orderHash)) {
-			await firebaseUtil.addOrder(order, orderHash);
+			await firebaseUtil.addOrder(order, orderHash, parsedOrder.marketId);
 			return {
 				type: message.type,
 				channel: {
@@ -162,7 +162,7 @@ class RelayerUtil {
 			takerTokenName: makerToken,
 			makerTokenName: takerToken,
 			marketId:
-				(makerToken === CST.TOKEN_WETH ? takerToken : CST.TOKEN_WETH) +
+				(makerToken === CST.TOKEN_WETH ? takerToken : makerToken) +
 				'-' +
 				CST.TOKEN_WETH,
 			side: makerToken === CST.TOKEN_ZRX ? CST.ORDER_SELL : CST.ORDER_BUY,

@@ -49,9 +49,9 @@ class FirebaseUtil {
 		return (this.getRef(path) as DocumentReference).delete();
 	}
 
-	public async addOrder(order: SignedOrder, orderHash: string) {
+	public async addOrder(order: SignedOrder, orderHash: string, marketId: string) {
 		return this.setDoc(
-			`/${CST.DB_ORDERS}/${orderHash}`,
+			`/${CST.DB_ORDERS + '|' + marketId}/${orderHash}`,
 			Object.assign({}, order, {
 				orderHash: orderHash,
 				isValid: true,
@@ -66,28 +66,31 @@ class FirebaseUtil {
 	}
 
 	public async getOrders(): Promise<IDuoOrder[]> {
-		return this.querySnapshotToDuo(await this.getDoc(`/${CST.DB_ORDERS}`) as QuerySnapshot);
+		return this.querySnapshotToDuo((await this.getDoc(`/${CST.DB_ORDERS}`)) as QuerySnapshot);
 	}
 
 	public async getOrderBook(
 		baseTokenAddress: string,
 		quoteTokenAddress: string
 	): Promise<IOrderBook> {
-		const bids = this.querySnapshotToDuo(await (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference)
-			.where(CST.DB_ORDER_MAKER_ADDR, '==', quoteTokenAddress)
-			.where(CST.DB_ORDER_TAKER_ADDR, '==', baseTokenAddress)
-			.get());
+		const bids = this.querySnapshotToDuo(
+			await (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference)
+				.where(CST.DB_ORDER_MAKER_ADDR, '==', quoteTokenAddress)
+				.where(CST.DB_ORDER_TAKER_ADDR, '==', baseTokenAddress)
+				.get()
+		);
 
-		const asks = this.querySnapshotToDuo(await (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference)
-			.where(CST.DB_ORDER_MAKER_ADDR, '==', baseTokenAddress)
-			.where(CST.DB_ORDER_TAKER_ADDR, '==', quoteTokenAddress)
-			.get());
+		const asks = this.querySnapshotToDuo(
+			await (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference)
+				.where(CST.DB_ORDER_MAKER_ADDR, '==', baseTokenAddress)
+				.where(CST.DB_ORDER_TAKER_ADDR, '==', quoteTokenAddress)
+				.get()
+		);
 
 		return { bids, asks };
 	}
 
 	public async getOrdersByAddress(address: string): Promise<IDuoOrder[]> {
-		console.log(address);
 		const result = await (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference)
 			.where(CST.DB_ORDER_MAKER_ADDR, '==', address)
 			.where(CST.DB_ORDER_IS_CANCELLED, '==', false)
