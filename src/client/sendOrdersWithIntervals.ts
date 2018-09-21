@@ -1,7 +1,6 @@
 import {
 	assetDataUtils,
 	BigNumber,
-	ContractWrappers,
 	generatePseudoRandomSalt,
 	Order,
 	orderHashUtils,
@@ -22,16 +21,9 @@ const TAKER_ETH_DEPOSIT = 1;
 const mainAsync = async () => {
 	await assetsUtil.init();
 	const taker = assetsUtil.taker;
-	const contractWrappers = new ContractWrappers(providerEngine, {
-		networkId: CST.NETWORK_ID_LOCAL
-	});
-	const web3Wrapper = new Web3Wrapper(providerEngine);
-
-	const exchangeAddress = contractWrappers.exchange.getContractAddress();
-
-	// Get token contract addresses
-	const zrxTokenAddress = contractWrappers.exchange.getZRXTokenAddress();
-	const etherTokenAddress = contractWrappers.etherToken.getContractAddressIfExists();
+	const exchangeAddress = assetsUtil.contractWrappers.exchange.getContractAddress();
+	const zrxTokenAddress = assetsUtil.getTokenAddressFromName(CST.TOKEN_ZRX);
+	const etherTokenAddress = assetsUtil.getTokenAddressFromName(CST.TOKEN_WETH);
 
 	if (etherTokenAddress === undefined) throw console.error('undefined etherTokenAddress');
 
@@ -39,25 +31,23 @@ const mainAsync = async () => {
 	const takerAssetData = assetDataUtils.encodeERC20AssetData(etherTokenAddress);
 
 	// Allow the 0x ERC20 Proxy to move WETH on behalf of takerAccount
-	const takerWETHApprovalTxHash = await contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
+	const takerWETHApprovalTxHash = await assetsUtil.contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
 		etherTokenAddress,
 		taker
 	);
-	await web3Wrapper.awaitTransactionSuccessAsync(takerWETHApprovalTxHash);
+	await assetsUtil.web3Wrapper.awaitTransactionSuccessAsync(takerWETHApprovalTxHash);
 	util.log('taker WETH approved');
 
 	// Convert ETH into WETH for taker by depositing ETH into the WETH contract
-	const takerWETHDepositTxHash = await contractWrappers.etherToken.depositAsync(
+	const takerWETHDepositTxHash = await assetsUtil.contractWrappers.etherToken.depositAsync(
 		etherTokenAddress,
 		Web3Wrapper.toBaseUnitAmount(new BigNumber(TAKER_ETH_DEPOSIT), 18),
 		taker
 	);
-	await web3Wrapper.awaitTransactionSuccessAsync(takerWETHDepositTxHash);
-
+	await assetsUtil.web3Wrapper.awaitTransactionSuccessAsync(takerWETHDepositTxHash);
 	await assetsUtil.approveAllMakers(zrxTokenAddress);
 
-	// Send signed order to relayer every 5 seconds, increase the exchange rate every 3 orders
-	// let numberOfOrdersSent = 0;
+	// Send signed order to relayer every 5 seconds
 	setInterval(async () => {
 		const randomExpiration = util.getRandomFutureDateInSeconds();
 		const maker = assetsUtil.getRandomMaker();

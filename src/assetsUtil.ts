@@ -45,6 +45,13 @@ class AccountsUtil {
 		switch (tokenName) {
 			case CST.TOKEN_ZRX:
 				return this.contractWrappers.exchange.getZRXTokenAddress();
+			case CST.TOKEN_WETH:
+				const ethTokenAddr = this.contractWrappers.etherToken.getContractAddressIfExists();
+				if (!ethTokenAddr) {
+					util.log('no eth token address');
+					return '';
+				} else return ethTokenAddr;
+
 			default:
 				util.log('no such token found');
 				return '';
@@ -59,6 +66,29 @@ class AccountsUtil {
 			Web3Wrapper.toBaseUnitAmount(new BigNumber(option.amount), 18)
 		);
 		return await this.web3Wrapper.awaitTransactionSuccessAsync(TxHash);
+	}
+
+	public setAllUnlimitedAllowance(tokenAddr: string, addrs: string[]): Array<Promise<string>> {
+		return addrs.map(address =>
+			this.contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(tokenAddr, address)
+		);
+	}
+
+	public async setBaseQuoteAllowance(
+		baseTokenAddr: string,
+		quoteTokenAddr: string,
+		addrs: string[]
+	): Promise<void> {
+		const responses = await Promise.all(
+			this.setAllUnlimitedAllowance(quoteTokenAddr, addrs).concat(
+				this.setAllUnlimitedAllowance(baseTokenAddr, addrs)
+			)
+		);
+		await Promise.all(
+			responses.map(tx => {
+				return this.web3Wrapper.awaitTransactionSuccessAsync(tx);
+			})
+		);
 	}
 }
 const accountsUtil = new AccountsUtil();

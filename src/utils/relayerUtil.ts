@@ -36,29 +36,6 @@ class RelayerUtil {
 		});
 	}
 
-	public setAllUnlimitedAllowance(tokenAddr: string, addrs: string[]): Array<Promise<string>> {
-		return addrs.map(address =>
-			this.contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(tokenAddr, address)
-		);
-	}
-
-	public async setBaseQuoteAllowance(
-		baseToken: string,
-		quoteToken: string,
-		addrs: string[]
-	): Promise<void> {
-		const responses = await Promise.all(
-			this.setAllUnlimitedAllowance(quoteToken, addrs).concat(
-				this.setAllUnlimitedAllowance(baseToken, addrs)
-			)
-		);
-		await Promise.all(
-			responses.map(tx => {
-				return this.web3Wrapper.awaitTransactionSuccessAsync(tx);
-			})
-		);
-	}
-
 	public async validateNewOrder(signedOrder: SignedOrder, orderHash: string): Promise<boolean> {
 		const { orderSchema } = schemas;
 		const { signature, ...rest } = signedOrder;
