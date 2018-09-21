@@ -58,16 +58,16 @@ class RelayerUtil {
 			baseTokenAddress,
 			quoteTokenAddress
 		);
-		const bidInfo = rawOrderBook.bids.map(bid => this.parseOrderInfo(bid));
-		const askInfo = rawOrderBook.asks.map(ask => this.parseOrderInfo(ask));
+		const bidAggr = this.aggrByPrice(rawOrderBook.bids.map(bid => this.parseOrderInfo(bid)));
+		const askAggr = this.aggrByPrice(rawOrderBook.asks.map(ask => this.parseOrderInfo(ask)));
+		return { bidAggr, askAggr };
 	}
 
-	public groupByPrice(orderInfo: IOrderInfo[]) {
+	public aggrByPrice(orderInfo: IOrderInfo[]) {
 		return orderInfo.reduce((rv: IOrderInfo[], v) => {
 			const el = rv.find(r => r && r.price === v.price);
-			if (el) el.amount += v.amount;
+			if (el) el.amount = (Number(el.amount) + Number(v.amount)).toString();
 			else rv.push(v);
-
 			return rv;
 		}, []);
 	}
