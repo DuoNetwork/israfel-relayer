@@ -20,7 +20,7 @@ const getRandomMaker = (makers: string[]): string => {
 	const index = Math.floor(Math.random() * Math.floor(makers.length));
 	return makers[index];
 };
-const TAKER_ETH_DEPOSIT = 10;
+const TAKER_ETH_DEPOSIT = 1;
 
 const mainAsync = async () => {
 	const contractWrappers = new ContractWrappers(providerEngine, {
@@ -78,12 +78,12 @@ const mainAsync = async () => {
 		const maker = getRandomMaker(makers);
 		// the amount the maker is selling of maker asset
 		const makerAssetAmount = Web3Wrapper.toBaseUnitAmount(
-			new BigNumber(Number(Math.random().toFixed(3)) * 10 || 1),
+			new BigNumber((Number(Math.random().toFixed(3)) * 10) || 1),
 			18
 		);
 		// the amount the maker wants of taker asset
 		const takerAssetAmount = Web3Wrapper.toBaseUnitAmount(
-			new BigNumber(Number(Math.random().toFixed(3)) || 1),
+			new BigNumber((Number(Math.random().toFixed(3))) || 1),
 			18
 		);
 
