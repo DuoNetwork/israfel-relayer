@@ -3,11 +3,12 @@ import {
 	CollectionReference,
 	DocumentChange,
 	DocumentReference,
-	QuerySnapshot
+	QuerySnapshot,
+	QueryDocumentSnapshot
 } from '@google-cloud/firestore';
 import * as admin from 'firebase-admin';
 import * as CST from './constants';
-import { IDuoOrder, IOrderStateCancelled } from './types';
+import { IDuoOrder, IOrderBook, IOrderStateCancelled } from './types';
 import util from './util';
 
 class FirebaseUtil {
@@ -61,12 +62,29 @@ class FirebaseUtil {
 			false
 		);
 	}
+	public querySnapshotToDuo(qs: QuerySnapshot): IDuoOrder[] {
+		return qs.docs.map(doc => doc.data() as IDuoOrder);
+	}
 
 	public async getOrders(): Promise<IDuoOrder[]> {
-		const orders: IDuoOrder[] = [];
-		const docs = (await this.getDoc(`/${CST.DB_ORDERS}`)) as QuerySnapshot;
-		docs.forEach(doc => orders.push(doc.data() as IDuoOrder));
-		return orders;
+		return this.querySnapshotToDuo(await this.getDoc(`/${CST.DB_ORDERS}`) as QuerySnapshot);
+	}
+
+	public async getOrderBook(
+		baseTokenAddress: string,
+		quoteTokenAddress: string
+	): Promise<IOrderBook> {
+		const bids = this.querySnapshotToDuo(await (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference)
+			.where(CST.DB_ORDER_MAKER_ADDR, '==', quoteTokenAddress)
+			.where(CST.DB_ORDER_TAKER_ADDR, '==', baseTokenAddress)
+			.get());
+
+		const asks = this.querySnapshotToDuo(await (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference)
+			.where(CST.DB_ORDER_MAKER_ADDR, '==', baseTokenAddress)
+			.where(CST.DB_ORDER_TAKER_ADDR, '==', quoteTokenAddress)
+			.get());
+
+		return { bids, asks };
 	}
 
 	public async getOrdersByAddress(address: string): Promise<IDuoOrder[]> {
@@ -79,9 +97,7 @@ class FirebaseUtil {
 
 		if (result.empty) return [];
 
-		return result.docs.map(
-			doc => (doc.data() as IDuoOrder)
-		);
+		return this.querySnapshotToDuo(result);
 	}
 
 	public async deleteOrder(orderHash: string) {

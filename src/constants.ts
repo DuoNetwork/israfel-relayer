@@ -4,6 +4,7 @@ export const DB_TIMESTAMP = 'timestamp';
 export const DB_UPDATED_AT = 'updatedAt';
 export const DB_ORDER_ADDED = 'added';
 export const DB_ORDER_MAKER_ADDR = 'makerAddress';
+export const DB_ORDER_TAKER_ADDR = 'takerAddress';
 export const DB_ORDER_IS_CANCELLED = 'isCancelled';
 export const ORDER_BUY = 'buy';
 export const ORDER_SELL = 'sell';
