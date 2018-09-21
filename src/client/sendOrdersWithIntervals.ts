@@ -91,9 +91,9 @@ const mainAsync = async () => {
 		const order: Order = {
 			exchangeAddress,
 			makerAddress: maker,
-			takerAddress: CST.NULL_ADDRESS,
-			senderAddress: CST.NULL_ADDRESS,
-			feeRecipientAddress: CST.NULL_ADDRESS,
+			takerAddress: taker,
+			senderAddress: maker,
+			feeRecipientAddress: taker,
 			expirationTimeSeconds: randomExpiration,
 			salt: generatePseudoRandomSalt(),
 			makerAssetAmount,
