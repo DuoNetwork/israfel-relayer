@@ -20,7 +20,7 @@ import {
 	IOrderInfo,
 	IOrderStateCancelled,
 	IUpdateResponseWs,
-	WsChannelName,
+	WsChannelName
 } from '../types';
 
 class RelayerUtil {
@@ -76,34 +76,30 @@ class RelayerUtil {
 		return isValidSchema && isValidSig;
 	}
 
-	public async renderOrderBook(
-		baseTokenAddress: string,
-		quoteTokenAddress: string
-	): Promise<IOrderBook> {
-		this.orders = await firebaseUtil.getOrders();
-		const bids = this.orders.filter(order => {
-			return (
-				order.takerAssetData === baseTokenAddress &&
-				order.makerAssetData === quoteTokenAddress
-			);
-		});
-		const asks = this.orders.filter(order => {
-			return (
-				order.takerAssetData === quoteTokenAddress &&
-				order.makerAssetData === baseTokenAddress
-			);
-		});
-		return {
-			bids,
-			asks
-		};
+	public async aggrOrderBook(baseTokenAddress: string, quoteTokenAddress: string): Promise<any> {
+		const rawOrderBook: IOrderBook = await firebaseUtil.getOrderBook(
+			baseTokenAddress,
+			quoteTokenAddress
+		);
+		const bidInfo = rawOrderBook.bids.map(bid => this.parseOrderInfo(bid));
+		const askInfo = rawOrderBook.asks.map(ask => this.parseOrderInfo(ask));
+	}
+
+	public groupByPrice(orderInfo: IOrderInfo[]) {
+		return orderInfo.reduce((rv: IOrderInfo[], v) => {
+			const el = rv.find(r => r && r.price === v.price);
+			if (el) el.amount += v.amount;
+			else rv.push(v);
+
+			return rv;
+		}, []);
 	}
 
 	public async handleSnapshot(message: any): Promise<IOrderBookSnapshotWs> {
 		console.log('WS: Received Message: ' + message.type);
 		const baseTokenAddress = message.payload.baseTokenAddress;
 		const quoteTokenAddress = message.payload.quoteTokenAddress;
-		const orderbook = await this.renderOrderBook(baseTokenAddress, quoteTokenAddress);
+		const orderbook = await this.aggrOrderBook(baseTokenAddress, quoteTokenAddress);
 		const returnMessage = {
 			type: message.type,
 			channel: message.channel,
@@ -120,7 +116,7 @@ class RelayerUtil {
 		const parsedOrder = this.parseOrderInfo(order);
 
 		if (await this.validateNewOrder(order, orderHash)) {
-			await firebaseUtil.addOrder(order, orderHash, parsedOrder.marketId);
+			await firebaseUtil.addOrder(order, orderHash, message.channel.marketId);
 			return {
 				type: message.type,
 				channel: {
@@ -162,7 +158,7 @@ class RelayerUtil {
 			takerTokenName: makerToken,
 			makerTokenName: takerToken,
 			marketId:
-				(makerToken === CST.TOKEN_WETH ? takerToken : makerToken) +
+				(makerToken === CST.TOKEN_WETH ? takerToken : CST.TOKEN_WETH) +
 				'-' +
 				CST.TOKEN_WETH,
 			side: makerToken === CST.TOKEN_ZRX ? CST.ORDER_SELL : CST.ORDER_BUY,

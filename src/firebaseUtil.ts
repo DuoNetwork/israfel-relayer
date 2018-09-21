@@ -77,6 +77,8 @@ class FirebaseUtil {
 			await (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference)
 				.where(CST.DB_ORDER_MAKER_ADDR, '==', quoteTokenAddress)
 				.where(CST.DB_ORDER_TAKER_ADDR, '==', baseTokenAddress)
+				.where(CST.DB_ORDER_IS_CANCELLED, '==', false)
+				.where(CST.DB_ORDER_IS_VALID, '==', true)
 				.get()
 		);
 
@@ -84,6 +86,8 @@ class FirebaseUtil {
 			await (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference)
 				.where(CST.DB_ORDER_MAKER_ADDR, '==', baseTokenAddress)
 				.where(CST.DB_ORDER_TAKER_ADDR, '==', quoteTokenAddress)
+				.where(CST.DB_ORDER_IS_CANCELLED, '==', false)
+				.where(CST.DB_ORDER_IS_VALID, '==', true)
 				.get()
 		);
 
@@ -94,6 +98,7 @@ class FirebaseUtil {
 		const result = await (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference)
 			.where(CST.DB_ORDER_MAKER_ADDR, '==', address)
 			.where(CST.DB_ORDER_IS_CANCELLED, '==', false)
+			.where(CST.DB_ORDER_IS_VALID, '==', true)
 			.orderBy(CST.DB_UPDATED_AT, 'desc')
 			.get();
 

@@ -6,6 +6,7 @@ export const DB_ORDER_ADDED = 'added';
 export const DB_ORDER_MAKER_ADDR = 'makerAddress';
 export const DB_ORDER_TAKER_ADDR = 'takerAddress';
 export const DB_ORDER_IS_CANCELLED = 'isCancelled';
+export const DB_ORDER_IS_VALID = 'isValid';
 export const ORDER_BUY = 'buy';
 export const ORDER_SELL = 'sell';
 export const ORDERBOOK_UPDATE = 'orderBookUpdate';
