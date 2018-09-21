@@ -71,8 +71,7 @@ class FirebaseUtil {
 
 	public async getOrdersByAddress(address: string): Promise<IDuoOrder[]> {
 		console.log(address);
-		const result = await (this.db as admin.firestore.Firestore)
-			.collection(`/${CST.DB_ORDERS}`)
+		const result = await (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference)
 			.where(CST.DB_ORDER_MAKER_ADDR, '==', address)
 			.where(CST.DB_ORDER_IS_CANCELLED, '==', false)
 			.orderBy(CST.DB_UPDATED_AT, 'desc')
