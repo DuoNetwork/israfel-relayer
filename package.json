@@ -15,7 +15,8 @@
 		"send_orders": "ts-node ./src/client/sendOrdersWithIntervals",
 		"actions": "ts-node ./src/actions/index",
 		"order_watcher": "ts-node ./src/orderWatcher",
-		"cancel_order": "ts-node ./src/client/cancelOrderRelayer"
+		"cancel_order": "ts-node ./src/client/cancelOrderRelayer",
+		"modifyState": "ts-node ./src/index"
 	},
 	"jest": {
 		"roots": [

@@ -77,3 +77,10 @@ export interface IOrderStateCancelled {
 	isCancelled: boolean;
 	orderHash: string;
 }
+
+export interface IOption {
+	token: string;
+	maker: number;
+	spender: number;
+	amount: number;
+}

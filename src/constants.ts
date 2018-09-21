@@ -40,3 +40,5 @@ export const TOKEN_MAPPING: {[key: string]: string} = {
 };
 
 export const PRUNE_INTERVAL = 3600000;
+
+export const CMD_MODIFY_STATE = 'modifyState';

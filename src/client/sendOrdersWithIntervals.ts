@@ -11,34 +11,21 @@ import {
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import { setInterval } from 'timers';
 import WebSocket from 'ws';
+import assetsUtil from '../assetsUtil';
 import * as CST from '../constants';
 import { providerEngine } from '../providerEngine';
 import { WsChannelMessageTypes, WsChannelName } from '../types';
 import util from '../util';
 
-const getRandomMaker = (makers: string[]): string => {
-	const index = Math.floor(Math.random() * Math.floor(makers.length));
-	return makers[index];
-};
 const TAKER_ETH_DEPOSIT = 1;
 
 const mainAsync = async () => {
+	await assetsUtil.init();
+	const taker = assetsUtil.taker;
 	const contractWrappers = new ContractWrappers(providerEngine, {
 		networkId: CST.NETWORK_ID_LOCAL
 	});
 	const web3Wrapper = new Web3Wrapper(providerEngine);
-	const [taker, ...makers] = await web3Wrapper.getAvailableAddressesAsync();
-
-	const approveAllMakers = async (tokenAddress: string) => {
-		// Allow the 0x ERC20 Proxy to move erc20 token on behalf of makerAccount
-		for (const maker of makers) {
-			const makerZRXApprovalTxHash = await contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
-				tokenAddress,
-				maker
-			);
-			await web3Wrapper.awaitTransactionSuccessAsync(makerZRXApprovalTxHash);
-		}
-	};
 
 	const exchangeAddress = contractWrappers.exchange.getContractAddress();
 
@@ -66,16 +53,14 @@ const mainAsync = async () => {
 		taker
 	);
 	await web3Wrapper.awaitTransactionSuccessAsync(takerWETHDepositTxHash);
-	util.log('taker ETH wrapped!');
 
-	await approveAllMakers(zrxTokenAddress);
-	util.log('all maker approved');
+	await assetsUtil.approveAllMakers(zrxTokenAddress);
 
 	// Send signed order to relayer every 5 seconds, increase the exchange rate every 3 orders
 	// let numberOfOrdersSent = 0;
 	setInterval(async () => {
 		const randomExpiration = util.getRandomFutureDateInSeconds();
-		const maker = getRandomMaker(makers);
+		const maker = assetsUtil.getRandomMaker();
 		// the amount the maker is selling of maker asset
 		const makerAssetAmount = Web3Wrapper.toBaseUnitAmount(
 			new BigNumber(Number(Math.random() * 10 || 5).toFixed(3)),
