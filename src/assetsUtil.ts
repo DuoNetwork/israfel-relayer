@@ -43,7 +43,7 @@ class AccountsUtil {
 
 	public getTokenAddressFromName(tokenName: string): string {
 		switch (tokenName) {
-			case 'ZRX':
+			case CST.TOKEN_ZRX:
 				return this.contractWrappers.exchange.getZRXTokenAddress();
 			default:
 				util.log('no such token found');
