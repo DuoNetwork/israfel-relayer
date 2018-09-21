@@ -3,8 +3,7 @@ import {
 	CollectionReference,
 	DocumentChange,
 	DocumentReference,
-	QuerySnapshot,
-	QueryDocumentSnapshot
+	QuerySnapshot
 } from '@google-cloud/firestore';
 import * as admin from 'firebase-admin';
 import * as CST from './constants';
