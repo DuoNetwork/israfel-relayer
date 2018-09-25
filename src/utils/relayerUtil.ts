@@ -53,19 +53,13 @@ class RelayerUtil {
 		return isValidSchema && isValidSig;
 	}
 
-	public async aggrOrderBook(
-		baseAssetData: string,
-		quoteAssetData: string,
-		marketId: string
-	): Promise<any> {
-		const rawOrderBook: IOrderBook = await firebaseUtil.getOrderBook(
-			baseAssetData,
-			quoteAssetData,
-			marketId
+	public async aggrOrderBook(rawOrderBook: IOrderBook, marketId: string): Promise<any> {
+		const bidAggr = this.aggrByPrice(
+			rawOrderBook.bids.map(bid => this.parseOrderInfo(bid, marketId))
 		);
-		console.log('raworderbook is ', rawOrderBook);
-		const bidAggr = this.aggrByPrice(rawOrderBook.bids.map(bid => this.parseOrderInfo(bid, marketId)));
-		const askAggr = this.aggrByPrice(rawOrderBook.asks.map(ask => this.parseOrderInfo(ask, marketId)));
+		const askAggr = this.aggrByPrice(
+			rawOrderBook.asks.map(ask => this.parseOrderInfo(ask, marketId))
+		);
 		console.log('length of bids is ' + bidAggr.length);
 		console.log('length of asks is ' + askAggr.length);
 		return {
@@ -85,13 +79,12 @@ class RelayerUtil {
 
 	public async handleSubscribe(message: any): Promise<IOrderBookSnapshotWs> {
 		console.log('Handle Message: ' + message.type);
-		const baseAssetData = message.baseAssetData;
-		const quoteAssetData = message.quoteAssetData;
-		const orderbook = await this.aggrOrderBook(
-			baseAssetData,
-			quoteAssetData,
+		const rawOrderBook: IOrderBook = await firebaseUtil.getOrderBook(
+			message.baseAssetData,
+			message.quoteAssetData,
 			message.channel.marketId
 		);
+		const orderbook = await this.aggrOrderBook(rawOrderBook, message.channel.marketId);
 		const returnMessage = {
 			type: message.type,
 			marketId: message.channel.marketId,

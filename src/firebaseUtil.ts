@@ -61,7 +61,7 @@ class FirebaseUtil {
 	}
 
 	public async getOrders(marketId: string, address: string = ''): Promise<IDuoOrder[]> {
-		let query = (this.getRef(`/${CST.DB_ORDERS + '|' + marketId}`) as CollectionReference)
+		let query = (this.getRef(`/${CST.DB_ORDERS}|${marketId}`) as CollectionReference)
 			.where(CST.DB_ORDER_IS_CANCELLED, '==', false)
 			.where(CST.DB_ORDER_IS_VALID, '==', true);
 

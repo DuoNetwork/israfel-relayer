@@ -1,6 +1,6 @@
-// import { CollectionReference } from '@google-cloud/firestore';
+import { CollectionReference } from '@google-cloud/firestore';
 import WebSocket from 'ws';
-// import * as CST from '../constants';
+import * as CST from '../constants';
 import firebaseUtil from '../firebaseUtil';
 import { /*IDuoOrder, IUpdateResponseWs, */ WsChannelMessageTypes, WsChannelName } from '../types';
 import util from '../util';
@@ -36,8 +36,9 @@ wss.on('connection', ws => {
 		}
 	});
 });
-
-// const orderListener = firebaseUtil.getRef(`/${CST.DB_ORDERS}|ZRX-WETH`);
+// Listen to DB changes
+const orderListener = firebaseUtil.getRef(`/${CST.DB_ORDERS}|ZRX-WETH`);
+(orderListener as CollectionReference).onSnapshot(docs => {firebaseUtil.querySnapshotToDuo(docs)})
 
 // (orderListener as CollectionReference).onSnapshot(docs => {
 // 	// const orders: any[] = [];

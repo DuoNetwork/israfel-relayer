@@ -42,16 +42,6 @@ export interface IUpdateResponseWs {
 	changes: IOrderBookUpdateWS[];
 }
 
-export interface IUResponseWs {
-	type: string;
-	channel: {
-		name: WsChannelName;
-		marketId: string;
-	};
-	changes: IOrderBookUpdateWS[];
-}
-
-
 export interface ICancelOrderResponseWs {
 	status: string;
 	orderHash: string;
