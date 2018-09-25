@@ -1,13 +1,8 @@
-// import { ZeroEx } from '0x.js';
-// import { BigNumber } from '@0xproject/utils';
-// import * as bodyParser from 'body-parser';
-// import express from 'express';
-// import { connection as WebSocketConnection, server as WebSocketServer } from 'websocket';
 // import { CollectionReference } from '@google-cloud/firestore';
 import WebSocket from 'ws';
-import * as CST from '../constants';
+// import * as CST from '../constants';
 import firebaseUtil from '../firebaseUtil';
-import { /*IDuoOrder, IUpdateResponseWs,*/ WsChannelMessageTypes, WsChannelName } from '../types';
+import { /*IDuoOrder, IUpdateResponseWs, */ WsChannelMessageTypes, WsChannelName } from '../types';
 import util from '../util';
 import relayerUtil from './relayerUtil';
 
@@ -23,7 +18,7 @@ wss.on('connection', ws => {
 		const parsedMessage = JSON.parse(message.toString());
 		const type = parsedMessage.type;
 		const channelName = parsedMessage.channel.name;
-		console.log(parsedMessage);
+		console.log(channelName);
 		if (channelName === WsChannelName.Orders)
 			if (type === WsChannelMessageTypes.Add) {
 				util.log('add new order');
@@ -32,14 +27,17 @@ wss.on('connection', ws => {
 				ws.send(
 					JSON.stringify(await relayerUtil.handleCancel(parsedMessage.payload.orderHash))
 				);
-			// TO DO send new orders based on payload Assetpairs
-			// else if (type === CST.ORDERBOOK_UPDATE)
-			// 	const returnMsg = await relayerUtil.handleUpdate(parsedMessage);
-			else if (channelName === CST.WS_CHANNEL_ORDERBOOK) util.log('subscribe orderbook');
+		// TO DO send new orders based on payload Assetpairs
+		// else if (type === CST.ORDERBOOK_UPDATE)
+		// 	const returnMsg = await relayerUtil.handleUpdate(parsedMessage);
+		if (channelName === WsChannelName.Orderbook) {
+			console.log('subscribe orderbook');
+			ws.send(JSON.stringify(await relayerUtil.handleSubscribe(parsedMessage)));
+		}
 	});
 });
 
-// const orderListener = firebaseUtil.getRef(`/${CST.DB_ORDERS}`);
+// const orderListener = firebaseUtil.getRef(`/${CST.DB_ORDERS}|ZRX-WETH`);
 
 // (orderListener as CollectionReference).onSnapshot(docs => {
 // 	// const orders: any[] = [];
@@ -47,7 +45,7 @@ wss.on('connection', ws => {
 // 		if (doc.type === CST.DB_ORDER_ADDED) {
 // 			util.log('new order added');
 // 			console.log(doc.doc.data());
-// 			const parsedOrder = relayerUtil.parseOrderInfo(doc.doc.data() as IDuoOrder);
+// 			const parsedOrder = relayerUtil.parseOrderInfo(doc.doc.data() as IDuoOrder, 'ZRX-WETH');
 // 			let orderBookUpdate: IUpdateResponseWs;
 // 			orderBookUpdate = {
 // 				type: CST.ORDERBOOK_UPDATE,

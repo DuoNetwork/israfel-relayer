@@ -1,10 +1,5 @@
 import { OrderStateInvalid, OrderStateValid, SignedOrder } from '0x.js';
-import {
-	CollectionReference,
-	DocumentChange,
-	DocumentReference,
-	QuerySnapshot
-} from '@google-cloud/firestore';
+import { CollectionReference, DocumentReference, QuerySnapshot } from '@google-cloud/firestore';
 import * as admin from 'firebase-admin';
 import * as CST from './constants';
 import { IDuoOrder, IOrderBook, IOrderStateCancelled } from './types';
@@ -78,13 +73,14 @@ class FirebaseUtil {
 	}
 
 	public async getOrderBook(
-		baseTokenAddress: string,
-		quoteTokenAddress: string
+		baseAssetData: string,
+		quoteAssetData: string,
+		marketId: string
 	): Promise<IOrderBook> {
 		const bids = this.querySnapshotToDuo(
-			await (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference)
-				.where(CST.DB_ORDER_MAKER_ADDR, '==', quoteTokenAddress)
-				.where(CST.DB_ORDER_TAKER_ADDR, '==', baseTokenAddress)
+			await (this.getRef(`/${CST.DB_ORDERS}|${marketId}`) as CollectionReference)
+				.where(CST.DB_ORDER_MAKER_ASSETDATA, '==', quoteAssetData)
+				.where(CST.DB_ORDER_TAKER_ASSETDATA, '==', baseAssetData)
 				.where(CST.DB_ORDER_IS_CANCELLED, '==', false)
 				.where(CST.DB_ORDER_IS_VALID, '==', true)
 				.get()
@@ -92,8 +88,8 @@ class FirebaseUtil {
 
 		const asks = this.querySnapshotToDuo(
 			await (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference)
-				.where(CST.DB_ORDER_MAKER_ADDR, '==', baseTokenAddress)
-				.where(CST.DB_ORDER_TAKER_ADDR, '==', quoteTokenAddress)
+				.where(CST.DB_ORDER_MAKER_ASSETDATA, '==', baseAssetData)
+				.where(CST.DB_ORDER_TAKER_ASSETDATA, '==', quoteAssetData)
 				.where(CST.DB_ORDER_IS_CANCELLED, '==', false)
 				.where(CST.DB_ORDER_IS_VALID, '==', true)
 				.get()
@@ -131,43 +127,39 @@ class FirebaseUtil {
 		);
 	}
 
-	public onOrderQuery(onData: (qs: QuerySnapshot) => any) {
-		return (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference).onSnapshot(onData);
-	}
-
 	public onOrder() {
 		return (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference).onSnapshot(
 			(qs: QuerySnapshot) => {
-				if (!qs.empty) qs.docChanges.map(d => this.parseOrder(d));
+				if (!qs.empty) qs.docs.map(d => d.data() as IDuoOrder);
 			}
 		);
 	}
 
-	public parseOrder(change: DocumentChange): IDuoOrder {
-		const data = change.doc.data();
-		if (!data) throw new Error('change does not exist');
-		return {
-			senderAddress: data.senderAddress,
-			makerAddress: data.makerAddress,
-			takerAddress: data.takerAddress,
-			makerFee: data.makerFee,
-			takerFee: data.takerFee,
-			makerAssetAmount: data.makerAssetAmount,
-			takerAssetAmount: data.takerAssetAmount,
-			makerAssetData: data.makerAssetData,
-			takerAssetData: data.takerAssetData,
-			salt: data.salt,
-			exchangeAddress: data.exchangeAddress,
-			feeRecipientAddress: data.feeRecipientAddress,
-			expirationTimeSeconds: data.expirationTimeSeconds,
-			signature: data.signature,
-			orderHash: data.orderHash,
-			isValid: data.isValid,
-			isCancelled: data.isCancelled,
-			updatedAt: data.updatedAt,
-			orderWatcherState: data.orderRelevantState
-		};
-	}
+	// public parseOrder(change: DocumentChange): IDuoOrder {
+	// 	const data = change.doc.data();
+	// 	if (!data) throw new Error('change does not exist');
+	// 	return {
+	// 		senderAddress: data.senderAddress,
+	// 		makerAddress: data.makerAddress,
+	// 		takerAddress: data.takerAddress,
+	// 		makerFee: data.makerFee,
+	// 		takerFee: data.takerFee,
+	// 		makerAssetAmount: data.makerAssetAmount,
+	// 		takerAssetAmount: data.takerAssetAmount,
+	// 		makerAssetData: data.makerAssetData,
+	// 		takerAssetData: data.takerAssetData,
+	// 		salt: data.salt,
+	// 		exchangeAddress: data.exchangeAddress,
+	// 		feeRecipientAddress: data.feeRecipientAddress,
+	// 		expirationTimeSeconds: data.expirationTimeSeconds,
+	// 		signature: data.signature,
+	// 		orderHash: data.orderHash,
+	// 		isValid: data.isValid,
+	// 		isCancelled: data.isCancelled,
+	// 		updatedAt: data.updatedAt,
+	// 		orderWatcherState: data.orderRelevantState
+	// 	};
+	// }
 }
 
 const firebaseUtil = new FirebaseUtil();

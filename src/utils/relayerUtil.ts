@@ -53,14 +53,25 @@ class RelayerUtil {
 		return isValidSchema && isValidSig;
 	}
 
-	public async aggrOrderBook(baseTokenAddress: string, quoteTokenAddress: string): Promise<any> {
+	public async aggrOrderBook(
+		baseAssetData: string,
+		quoteAssetData: string,
+		marketId: string
+	): Promise<any> {
 		const rawOrderBook: IOrderBook = await firebaseUtil.getOrderBook(
-			baseTokenAddress,
-			quoteTokenAddress
+			baseAssetData,
+			quoteAssetData,
+			marketId
 		);
-		const bidAggr = this.aggrByPrice(rawOrderBook.bids.map(bid => this.parseOrderInfo(bid)));
-		const askAggr = this.aggrByPrice(rawOrderBook.asks.map(ask => this.parseOrderInfo(ask)));
-		return { bidAggr, askAggr };
+		console.log('raworderbook is ', rawOrderBook);
+		const bidAggr = this.aggrByPrice(rawOrderBook.bids.map(bid => this.parseOrderInfo(bid, marketId)));
+		const askAggr = this.aggrByPrice(rawOrderBook.asks.map(ask => this.parseOrderInfo(ask, marketId)));
+		console.log('length of bids is ' + bidAggr.length);
+		console.log('length of asks is ' + askAggr.length);
+		return {
+			bids: bidAggr,
+			asks: askAggr
+		};
 	}
 
 	public aggrByPrice(orderInfo: IOrderInfo[]) {
@@ -72,14 +83,18 @@ class RelayerUtil {
 		}, []);
 	}
 
-	public async handleSnapshot(message: any): Promise<IOrderBookSnapshotWs> {
-		console.log('WS: Received Message: ' + message.type);
-		const baseTokenAddress = message.payload.baseTokenAddress;
-		const quoteTokenAddress = message.payload.quoteTokenAddress;
-		const orderbook = await this.aggrOrderBook(baseTokenAddress, quoteTokenAddress);
+	public async handleSubscribe(message: any): Promise<IOrderBookSnapshotWs> {
+		console.log('Handle Message: ' + message.type);
+		const baseAssetData = message.baseAssetData;
+		const quoteAssetData = message.quoteAssetData;
+		const orderbook = await this.aggrOrderBook(
+			baseAssetData,
+			quoteAssetData,
+			message.channel.marketId
+		);
 		const returnMessage = {
 			type: message.type,
-			channel: message.channel,
+			marketId: message.channel.marketId,
 			requestId: message.requestId,
 			payload: orderbook
 		};
@@ -90,7 +105,7 @@ class RelayerUtil {
 		console.log(message.payload);
 		const order: SignedOrder = message.payload.order;
 		const orderHash = message.payload.orderHash;
-		const parsedOrder = this.parseOrderInfo(order);
+		const parsedOrder = this.parseOrderInfo(order, message.channel.marketId);
 
 		if (await this.validateNewOrder(order, orderHash)) {
 			await firebaseUtil.addOrder(order, orderHash, message.channel.marketId);
@@ -126,19 +141,16 @@ class RelayerUtil {
 		} else return ErrorResponseWs.NoExistOrder;
 	}
 
-	public parseOrderInfo(order: SignedOrder | IDuoOrder): IOrderInfo {
+	public parseOrderInfo(order: SignedOrder | IDuoOrder, marketId: string): IOrderInfo {
 		const makerTokenAddr = assetDataUtils.decodeERC20AssetData(order.makerAssetData);
 		const takerTokenAddr = assetDataUtils.decodeERC20AssetData(order.takerAssetData);
 		const makerToken = CST.TOKEN_MAPPING[makerTokenAddr.tokenAddress];
 		const takerToken = CST.TOKEN_MAPPING[takerTokenAddr.tokenAddress];
 		return {
-			takerTokenName: makerToken,
-			makerTokenName: takerToken,
-			marketId:
-				(makerToken === CST.TOKEN_WETH ? takerToken : CST.TOKEN_WETH) +
-				'-' +
-				CST.TOKEN_WETH,
-			side: makerToken === CST.TOKEN_ZRX ? CST.ORDER_SELL : CST.ORDER_BUY,
+			makerTokenName: makerToken,
+			takerTokenName: takerToken,
+			marketId: marketId,
+			side: makerToken === marketId.split('-')[1] ? CST.ORDER_SELL : CST.ORDER_BUY,
 			amount: order.takerAssetAmount.toString(),
 			price: (Number(order.makerAssetAmount) / Number(order.takerAssetAmount)).toString()
 		};

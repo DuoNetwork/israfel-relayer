@@ -15,7 +15,7 @@ export interface IOrderBook {
 
 export interface IOrderBookSnapshotWs {
 	type: string;
-	channel: string;
+	marketId: string;
 	requestId: number;
 	payload: IOrderBook;
 }
@@ -41,6 +41,16 @@ export interface IUpdateResponseWs {
 	};
 	changes: IOrderBookUpdateWS[];
 }
+
+export interface IUResponseWs {
+	type: string;
+	channel: {
+		name: WsChannelName;
+		marketId: string;
+	};
+	changes: IOrderBookUpdateWS[];
+}
+
 
 export interface ICancelOrderResponseWs {
 	status: string;
