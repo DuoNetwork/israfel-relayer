@@ -94,6 +94,24 @@ class RelayerUtil {
 		return returnMessage;
 	}
 
+	public handleDBChanges(changedOrders: IDuoOrder[], marketId: string) {
+		const bids = changedOrders.filter(order => {
+			const takerTokenName = this.assetDataToTokenName(order.takerAssetData);
+			return takerTokenName === marketId.split('-')[1];
+		});
+
+		const asks = changedOrders.filter(order => {
+			const makerTokenName = this.assetDataToTokenName(order.makerAssetData);
+			return makerTokenName === marketId.split('-')[1];
+		});
+		const changedOrderbook: IOrderBook = {
+			bids: bids,
+			asks: asks
+		};
+
+		return this.aggrOrderBook(changedOrderbook, marketId);
+	}
+
 	public async handleAddorder(message: any): Promise<IUpdateResponseWs | string> {
 		console.log(message.payload);
 		const order: SignedOrder = message.payload.order;
@@ -134,11 +152,14 @@ class RelayerUtil {
 		} else return ErrorResponseWs.NoExistOrder;
 	}
 
+	public assetDataToTokenName(assetData: string): string {
+		const tokenAddr = assetDataUtils.decodeERC20AssetData(assetData);
+		return CST.TOKEN_MAPPING[tokenAddr.tokenAddress];
+	}
+
 	public parseOrderInfo(order: SignedOrder | IDuoOrder, marketId: string): IOrderInfo {
-		const makerTokenAddr = assetDataUtils.decodeERC20AssetData(order.makerAssetData);
-		const takerTokenAddr = assetDataUtils.decodeERC20AssetData(order.takerAssetData);
-		const makerToken = CST.TOKEN_MAPPING[makerTokenAddr.tokenAddress];
-		const takerToken = CST.TOKEN_MAPPING[takerTokenAddr.tokenAddress];
+		const makerToken = this.assetDataToTokenName(order.makerAssetData);
+		const takerToken = this.assetDataToTokenName(order.takerAssetData);
 		return {
 			makerTokenName: makerToken,
 			takerTokenName: takerToken,
