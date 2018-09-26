@@ -39,16 +39,24 @@ wss.on('connection', ws => {
 // Listen to DB and return full snapshot to client
 const orderListener = firebaseUtil.getRef(`/${CST.DB_ORDERS}|ZRX-WETH`);
 (orderListener as CollectionReference).onSnapshot(docs => {
-	const newOrderbook = relayerUtil.handleDBChanges(firebaseUtil.querySnapshotToDuo(docs), 'ZRX-WETH');
-	return {
-			type: CST.ORDERBOOK_UPDATE,
-			channel: {
-				name: WsChannelName.Orderbook,
-				marketId: 'ZRX-WETH'
-			},
-			updateSnapshot: newOrderbook
-
-	}
+	const newOrderbook = relayerUtil.handleDBChanges(
+		firebaseUtil.querySnapshotToDuo(docs),
+		'ZRX-WETH'
+	);
+	const orderBookUpdate = {
+		type: WsChannelMessageTypes.Update,
+		channel: {
+			name: WsChannelName.Orderbook,
+			marketId: 'ZRX-WETH'
+		},
+		updateSnapshot: newOrderbook
+	};
+	wss.clients.forEach(client => {
+		if (client.readyState === WebSocket.OPEN) {
+			client.send(JSON.stringify(orderBookUpdate));
+			console.log('broadcast new order!');
+		}
+	});
 });
 
 // (orderListener as CollectionReference).onSnapshot(docs => {

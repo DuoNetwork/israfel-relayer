@@ -25,7 +25,7 @@ const mainAsync = async () => {
 		type: WsChannelMessageTypes.Cancel,
 		channel: {
 			name: WsChannelName.Orders,
-			marketId: 'ZRX-ETH'
+			marketId: 'ZRX-WETH'
 		},
 		requestId: Date.now(),
 		payload: {

@@ -87,14 +87,15 @@ class RelayerUtil {
 		const orderbook = await this.aggrOrderBook(rawOrderBook, message.channel.marketId);
 		const returnMessage = {
 			type: message.type,
-			marketId: message.channel.marketId,
+			channel: { name: message.channel.name, marketId: message.channel.marketId },
 			requestId: message.requestId,
 			payload: orderbook
 		};
 		return returnMessage;
 	}
 
-	public handleDBChanges(changedOrders: IDuoOrder[], marketId: string) {
+	public async handleDBChanges(changedOrders: IDuoOrder[], marketId: string) {
+		console.log(changedOrders, '###### changed orders');
 		const bids = changedOrders.filter(order => {
 			const takerTokenName = this.assetDataToTokenName(order.takerAssetData);
 			return takerTokenName === marketId.split('-')[1];
@@ -109,7 +110,7 @@ class RelayerUtil {
 			asks: asks
 		};
 
-		return this.aggrOrderBook(changedOrderbook, marketId);
+		return await this.aggrOrderBook(changedOrderbook, marketId);
 	}
 
 	public async handleAddorder(message: any): Promise<IUpdateResponseWs | string> {
@@ -153,8 +154,8 @@ class RelayerUtil {
 	}
 
 	public assetDataToTokenName(assetData: string): string {
-		const tokenAddr = assetDataUtils.decodeERC20AssetData(assetData);
-		return CST.TOKEN_MAPPING[tokenAddr.tokenAddress];
+		const tokenAddr = assetDataUtils.decodeERC20AssetData(assetData).tokenAddress;
+		return CST.TOKEN_MAPPING[tokenAddr];
 	}
 
 	public parseOrderInfo(order: SignedOrder | IDuoOrder, marketId: string): IOrderInfo {
