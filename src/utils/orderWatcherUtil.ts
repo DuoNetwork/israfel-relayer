@@ -18,52 +18,23 @@ class OrderWatcherUtil {
 		this.orderWatcher = new OrderWatcher(providerEngine, CST.NETWORK_ID_LOCAL);
 	}
 
-	// public async subscribeOrderWatcher() {
-	// 	this.orderWatcher.subscribe(async (err, orderState) => {
-	// 		if (err) {
-	// 			console.log(err);
-	// 			return;
-	// 		}
-
-	// 		console.log(Date.now().toString(), 'Subscribed orderstate is %s', orderState);
-	// 		if (orderState !== undefined) await firebaseUtil.updateOrderState(orderState);
-	// 	});
-	// }
-
 	public unsubOrderWatcher() {
 		this.orderWatcher.unsubscribe();
 	}
 
 	//remove orders remaining invalid for 24 hours from DB
-	public async pruneOrders(orders: IDuoOrder[]) {
-		for (const order of orders) {
+	public async pruneOrders(option: IOption) {
+		const marketId = option.token + '-' + CST.TOKEN_WETH;
+		const orders = await firebaseUtil.getOrders(marketId);
+		orders.forEach(order => {
 			const inValidTime = !order.isValid ? Date.now() - order.updatedAt : 0;
-			const signedOrder: SignedOrder = {
-				senderAddress: order.senderAddress,
-				makerAddress: order.makerAddress,
-				takerAddress: order.takerAddress,
-				makerFee: order.makerFee,
-				takerFee: order.takerFee,
-				makerAssetData: order.makerAssetData,
-				takerAssetData: order.takerAssetData,
-				makerAssetAmount: order.makerAssetAmount,
-				takerAssetAmount: order.takerAssetAmount,
-				feeRecipientAddress: order.feeRecipientAddress,
-				salt: order.salt,
-				exchangeAddress: order.exchangeAddress,
-				expirationTimeSeconds: order.expirationTimeSeconds,
-				signature: order.signature
-			};
 			if (inValidTime > CST.PENDING_HOURS * 3600000) {
 				firebaseUtil.deleteOrder(order.orderHash);
-				await this.orderWatcher.removeOrder(order.orderHash);
-				console.log('order removed!');
-			} else {
-				// await this.orderWatcher.removeOrder(order.orderHash);
-				await this.orderWatcher.addOrderAsync(signedOrder);
-				console.log('order added to watcher!');
+				this.orderWatcher.removeOrder(order.orderHash);
+				console.log('remove order!');
 			}
-		}
+		});
+		console.log('length after prune is', orders.length);
 	}
 
 	public parseToSignedOrder(duoOrders: IDuoOrder[]): SignedOrder[] {

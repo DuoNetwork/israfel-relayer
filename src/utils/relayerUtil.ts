@@ -69,11 +69,11 @@ class RelayerUtil {
 	}
 
 	public aggrByPrice(orderInfo: IOrderInfo[]) {
-		return orderInfo.reduce((rv: IOrderInfo[], v) => {
-			const el = rv.find(r => r && r.price === v.price);
-			if (el) el.amount = (Number(el.amount) + Number(v.amount)).toString();
-			else rv.push(v);
-			return rv;
+		return orderInfo.reduce((past: IOrderInfo[], current) => {
+			const same = past.find(r => r && r.price === current.price);
+			if (same) same.amount = (Number(same.amount) + Number(current.amount)).toString();
+			else past.push(current);
+			return past;
 		}, []);
 	}
 

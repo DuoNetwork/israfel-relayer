@@ -16,7 +16,8 @@
 		"actions": "ts-node ./src/actions/index",
 		"orderWatcher": "ts-node ./src/index orderWatcher",
 		"cancel_order": "ts-node ./src/client/cancelOrderRelayer",
-		"modifyState": "ts-node ./src/index modifyState"
+		"modifyState": "ts-node ./src/index modifyState",
+		"pruneOrder": "ts-node ./src/index pruneOrder"
 	},
 	"jest": {
 		"roots": [

@@ -46,3 +46,4 @@ export const PRUNE_INTERVAL = 3600000;
 
 export const MODIFY_STATE = 'modifyState';
 export const ORDER_WATCHER = 'orderWatcher';
+export const ORDER_PRUNE = 'orderPrune';
