@@ -26,7 +26,7 @@ export const RELAYER_WS_URL = 'ws://localhost:8080';
 export const MNEMONIC =
 	'concert load couple harbor equip island argue ramp clarify fence smart topic';
 export const BASE_DERIVATION_PATH = `44'/60'/0'/0`;
-export const PENDING_HOURS = 24;
+export const PENDING_HOURS = 2;
 
 export const WS_CHANNEL_ORDERBOOK = 'orerbook';
 export const WS_TYPE_ORDERBOOK = 'subscribe';
@@ -46,4 +46,4 @@ export const PRUNE_INTERVAL = 3600000;
 
 export const MODIFY_STATE = 'modifyState';
 export const ORDER_WATCHER = 'orderWatcher';
-export const ORDER_PRUNE = 'orderPrune';
+export const ORDER_PRUNE = 'pruneOrder';

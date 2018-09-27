@@ -49,7 +49,7 @@ const orderListener = firebaseUtil.getRef(`/${CST.DB_ORDERS}|ZRX-WETH`);
 			name: WsChannelName.Orderbook,
 			marketId: 'ZRX-WETH'
 		},
-		updateSnapshot: newOrderbook,
+		payload: newOrderbook,
 		timestamp: Date.now()
 	};
 	wss.clients.forEach(client => {
