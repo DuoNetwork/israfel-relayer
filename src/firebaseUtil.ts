@@ -116,11 +116,12 @@ class FirebaseUtil {
 	}
 
 	public async updateOrderState(
-		orderState: OrderStateValid | OrderStateInvalid | IOrderStateCancelled
+		orderState: OrderStateValid | OrderStateInvalid | IOrderStateCancelled,
+		marketId: string
 	) {
 		const { orderHash, ...rest } = orderState;
 		return this.setDoc(
-			`/${CST.DB_ORDERS}/${orderHash}`,
+			`/${CST.DB_ORDERS}|${marketId}/${orderHash}`,
 			Object.assign({}, rest, {
 				[CST.DB_UPDATED_AT]: admin.firestore.FieldValue.serverTimestamp()
 			})

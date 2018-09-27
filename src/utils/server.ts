@@ -25,7 +25,7 @@ wss.on('connection', ws => {
 				ws.send(JSON.stringify(await relayerUtil.handleAddorder(parsedMessage)));
 			} else if (type === WsChannelMessageTypes.Cancel)
 				ws.send(
-					JSON.stringify(await relayerUtil.handleCancel(parsedMessage.payload.orderHash))
+					JSON.stringify(await relayerUtil.handleCancel(parsedMessage.payload.orderHash, parsedMessage.channel.marketId))
 				);
 		// TO DO send new orders based on payload Assetpairs
 		// else if (type === CST.ORDERBOOK_UPDATE)

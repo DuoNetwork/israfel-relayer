@@ -18,17 +18,17 @@ class OrderWatcherUtil {
 		this.orderWatcher = new OrderWatcher(providerEngine, CST.NETWORK_ID_LOCAL);
 	}
 
-	public async subscribeOrderWatcher() {
-		this.orderWatcher.subscribe(async (err, orderState) => {
-			if (err) {
-				console.log(err);
-				return;
-			}
+	// public async subscribeOrderWatcher() {
+	// 	this.orderWatcher.subscribe(async (err, orderState) => {
+	// 		if (err) {
+	// 			console.log(err);
+	// 			return;
+	// 		}
 
-			console.log(Date.now().toString(), 'Subscribed rderstate is %s', orderState);
-			if (orderState !== undefined) await firebaseUtil.updateOrderState(orderState);
-		});
-	}
+	// 		console.log(Date.now().toString(), 'Subscribed orderstate is %s', orderState);
+	// 		if (orderState !== undefined) await firebaseUtil.updateOrderState(orderState);
+	// 	});
+	// }
 
 	public unsubOrderWatcher() {
 		this.orderWatcher.unsubscribe();
@@ -105,7 +105,7 @@ class OrderWatcherUtil {
 			}
 
 			console.log(Date.now().toString(), 'Subscribed rderstate is %s', orderState);
-			if (orderState !== undefined) await firebaseUtil.updateOrderState(orderState);
+			if (orderState !== undefined) await firebaseUtil.updateOrderState(orderState, marketId);
 		});
 	}
 }

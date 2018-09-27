@@ -138,13 +138,14 @@ class RelayerUtil {
 		} else return ErrorResponseWs.InvalidOrder;
 	}
 
-	public async handleCancel(orderHash: string): Promise<ICancelOrderResponseWs | string> {
+	public async handleCancel(orderHash: string, marketId: string): Promise<ICancelOrderResponseWs | string> {
 		if (firebaseUtil.isExistRef(orderHash)) {
 			const cancelledOrderState: IOrderStateCancelled = {
 				isCancelled: true,
 				orderHash: orderHash
 			};
-			await firebaseUtil.updateOrderState(cancelledOrderState);
+			await firebaseUtil.updateOrderState(cancelledOrderState, marketId);
+			console.log('cancelled order');
 			return {
 				status: 'success',
 				orderHash: orderHash
