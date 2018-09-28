@@ -1,8 +1,11 @@
-import { OrderStateInvalid, OrderStateValid, SignedOrder } from '0x.js';
+import {
+	OrderStateInvalid,
+	OrderStateValid
+} from '0x.js';
 import { CollectionReference, DocumentReference, QuerySnapshot } from '@google-cloud/firestore';
 import * as admin from 'firebase-admin';
 import * as CST from './constants';
-import { IDuoOrder, IOrderBook, IOrderStateCancelled } from './types';
+import { IDuoOrder, IDuoSignedOrder, IOrderBook, IOrderStateCancelled } from './types';
 import util from './util';
 
 class FirebaseUtil {
@@ -44,7 +47,7 @@ class FirebaseUtil {
 		return (this.getRef(path) as DocumentReference).delete();
 	}
 
-	public async addOrder(order: SignedOrder, orderHash: string, marketId: string) {
+	public async addOrder(order: IDuoSignedOrder, orderHash: string, marketId: string) {
 		return this.setDoc(
 			`/${CST.DB_ORDERS + '|' + marketId}/${orderHash}`,
 			Object.assign({}, order, {

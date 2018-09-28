@@ -19,7 +19,6 @@ switch (tool) {
 	case CST.ORDER_PRUNE:
 		orderWatcherUtil.pruneOrders(option);
 		break;
-
 	default:
 		break;
 }

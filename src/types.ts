@@ -1,6 +1,6 @@
 import { BigNumber, ExchangeContractErrs, OrderRelevantState, SignedOrder } from '0x.js';
 
-export interface IDuoOrder extends SignedOrder {
+export interface IDuoOrder extends IDuoSignedOrder {
 	orderHash: string;
 	isValid: boolean;
 	isCancelled: boolean;
@@ -53,6 +53,23 @@ export interface ICancelOrderResponseWs {
 export enum ErrorResponseWs {
 	InvalidOrder = 'Invalid order schema or signature!',
 	NoExistOrder = 'Order does not exist in DB!'
+}
+
+export interface IDuoSignedOrder {
+	senderAddress: string;
+	makerAddress: string;
+	takerAddress: string;
+	makerFee: string;
+	takerFee: string;
+	makerAssetAmount: string;
+	takerAssetAmount: string;
+	makerAssetData: string;
+	takerAssetData: string;
+	salt: string;
+	exchangeAddress: string;
+	feeRecipientAddress: string;
+	expirationTimeSeconds: string;
+	signature: string;
 }
 
 export enum WsChannelMessageTypes {

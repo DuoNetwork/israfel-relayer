@@ -14,6 +14,7 @@ import {
 	ErrorResponseWs,
 	ICancelOrderResponseWs,
 	IDuoOrder,
+	IDuoSignedOrder,
 	IOrderBook,
 	IOrderBookSnapshotWs,
 	// IOrderBookUpdateWS,
@@ -113,6 +114,25 @@ class RelayerUtil {
 		return await this.aggrOrderBook(changedOrderbook, marketId);
 	}
 
+	public parseSignedOrder(order: SignedOrder): IDuoSignedOrder {
+		return {
+			signature: order.signature,
+			senderAddress: order.senderAddress,
+			makerAddress: order.makerAddress,
+			takerAddress: order.takerAddress,
+			makerFee: order.makerFee.valueOf(),
+			takerFee: order.takerFee.valueOf(),
+			makerAssetAmount: order.makerAssetAmount.valueOf(),
+			takerAssetAmount: order.takerAssetAmount.valueOf(),
+			makerAssetData: order.makerAssetData,
+			takerAssetData: order.takerAssetData,
+			salt: order.salt.valueOf(),
+			exchangeAddress: order.exchangeAddress,
+			feeRecipientAddress: order.feeRecipientAddress,
+			expirationTimeSeconds: order.expirationTimeSeconds.valueOf()
+		};
+	}
+
 	public async handleAddorder(message: any): Promise<IUpdateResponseWs | string> {
 		console.log(message.payload);
 		const order: SignedOrder = message.payload.order;
@@ -120,7 +140,11 @@ class RelayerUtil {
 		const parsedOrder = this.parseOrderInfo(order, message.channel.marketId);
 
 		if (await this.validateNewOrder(order, orderHash)) {
-			await firebaseUtil.addOrder(order, orderHash, message.channel.marketId);
+			await firebaseUtil.addOrder(
+				this.parseSignedOrder(order),
+				orderHash,
+				message.channel.marketId
+			);
 			return {
 				type: message.type,
 				channel: {
@@ -138,7 +162,10 @@ class RelayerUtil {
 		} else return ErrorResponseWs.InvalidOrder;
 	}
 
-	public async handleCancel(orderHash: string, marketId: string): Promise<ICancelOrderResponseWs | string> {
+	public async handleCancel(
+		orderHash: string,
+		marketId: string
+	): Promise<ICancelOrderResponseWs | string> {
 		if (firebaseUtil.isExistRef(orderHash)) {
 			const cancelledOrderState: IOrderStateCancelled = {
 				isCancelled: true,

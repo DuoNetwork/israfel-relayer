@@ -1,9 +1,17 @@
-import { ContractWrappers, orderHashUtils, OrderWatcher, RPCSubprovider, SignedOrder } from '0x.js';
-// import * as fs from 'fs';
+import {
+	ContractWrappers,
+	orderHashUtils,
+	OrderWatcher,
+	RPCSubprovider,
+	SignedOrder
+} from '0x.js';
 import * as CST from '../constants';
 import firebaseUtil from '../firebaseUtil';
 import { providerEngine } from '../providerEngine';
-import { IDuoOrder, IOption } from '../types';
+import {
+	IDuoOrder,
+	IOption
+} from '../types';
 import util from '../util';
 
 class OrderWatcherUtil {
@@ -49,16 +57,16 @@ class OrderWatcherUtil {
 				senderAddress: order.senderAddress,
 				makerAddress: order.makerAddress,
 				takerAddress: order.takerAddress,
-				makerFee: order.makerFee,
-				takerFee: order.takerFee,
-				makerAssetAmount: order.makerAssetAmount,
-				takerAssetAmount: order.takerAssetAmount,
+				makerFee: util.stringToBN(order.makerFee),
+				takerFee: util.stringToBN(order.takerFee),
+				makerAssetAmount: util.stringToBN(order.makerAssetAmount),
+				takerAssetAmount: util.stringToBN(order.takerAssetAmount),
 				makerAssetData: order.makerAssetData,
 				takerAssetData: order.takerAssetData,
-				salt: order.salt,
+				salt: util.stringToBN(order.salt),
 				exchangeAddress: order.exchangeAddress,
 				feeRecipientAddress: order.feeRecipientAddress,
-				expirationTimeSeconds: order.expirationTimeSeconds
+				expirationTimeSeconds: util.stringToBN(order.expirationTimeSeconds)
 			})
 		);
 		return signedOrder;
@@ -69,7 +77,6 @@ class OrderWatcherUtil {
 		util.log('start order watcher for ' + marketId);
 		firebaseUtil.init();
 		const orders: IDuoOrder[] = await firebaseUtil.getOrders(marketId);
-		// fs.writeFileSync('../orders.json', JSON.parse(JSON.stringify(orders)), {encoding: 'utf8'});
 
 		const signedOrders: SignedOrder[] = this.parseToSignedOrder(orders);
 		console.log('length in DB is ', signedOrders.length);

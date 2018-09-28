@@ -30,6 +30,10 @@ class Util {
 		return new BigNumber(Date.now() + CST.TEN_MINUTES_MS).div(CST.ONE_SECOND_MS).ceil();
 	}
 
+	public stringToBN(value: string): BigNumber {
+		return new BigNumber(value);
+	}
+
 	public defaultOption: IOption = {
 		token: 'ZRX',
 		amount: 1,
