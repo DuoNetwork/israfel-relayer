@@ -1,7 +1,7 @@
 [
 	{
         "type": "snapshot",
-        "version": "hashOrTheOrderSnapshot",
+        "timestamp": 12345,
 		"channel": {
 			"name": "orderbook",
 			"marketId": "ZRX-WETH"
@@ -37,7 +37,8 @@
 	},
 	{
         "type": "update",
-        "baseVersion": "hashOrTheOrderSnapshot",
+		"lastTimestamp": 12345,
+		"currentTimestamp": 12346,
 		"channel": {
 			"name": "orderbook",
 			"marketId": "ZRX-WETH"

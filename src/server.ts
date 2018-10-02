@@ -2,12 +2,20 @@ import { CollectionReference } from '@google-cloud/firestore';
 import WebSocket from 'ws';
 import * as CST from './constants';
 import firebaseUtil from './firebaseUtil';
-import { /*IDuoOrder, IUpdateResponseWs, */ WsChannelMessageTypes, WsChannelName } from './types';
-import util from './util';
 import relayerUtil from './relayerUtil';
+import {
+	// IDuoOrder,
+	IOrderBookSnapshotWs,
+	// IUpdateResponseWs,
+	WsChannelMessageTypes,
+	WsChannelName,
+	WsChannelResposnseTypes
+} from './types';
+import util from './util';
 
 // Global state
 firebaseUtil.init();
+relayerUtil.init();
 
 // WebSocket server
 const wss = new WebSocket.Server({ port: 8080 });
@@ -19,13 +27,18 @@ wss.on('connection', ws => {
 		const type = parsedMessage.type;
 		const channelName = parsedMessage.channel.name;
 		console.log(channelName);
-		if (channelName === WsChannelName.Orders)
+		if (channelName === WsChannelName.Order)
 			if (type === WsChannelMessageTypes.Add) {
 				util.log('add new order');
 				ws.send(JSON.stringify(await relayerUtil.handleAddorder(parsedMessage)));
 			} else if (type === WsChannelMessageTypes.Cancel)
 				ws.send(
-					JSON.stringify(await relayerUtil.handleCancel(parsedMessage.payload.orderHash, parsedMessage.channel.marketId))
+					JSON.stringify(
+						await relayerUtil.handleCancel(
+							parsedMessage.payload.orderHash,
+							parsedMessage.channel.marketId
+						)
+					)
 				);
 		// TO DO send new orders based on payload Assetpairs
 		// else if (type === CST.ORDERBOOK_UPDATE)
@@ -39,22 +52,25 @@ wss.on('connection', ws => {
 // Listen to DB and return full snapshot to client
 const orderListener = firebaseUtil.getRef(`/${CST.DB_ORDERS}|ZRX-WETH`);
 (orderListener as CollectionReference).onSnapshot(async docs => {
-	const newOrderbook = await relayerUtil.handleDBChanges(
+	const newOrderbook = await relayerUtil.aggrOrderBook(
 		firebaseUtil.querySnapshotToDuo(docs),
 		'ZRX-WETH'
 	);
-	const orderBookUpdate = {
-		type: WsChannelMessageTypes.Update,
+	relayerUtil.orderBook = newOrderbook;
+	const orderBookSnapshot: IOrderBookSnapshotWs = {
+		type: WsChannelResposnseTypes.Snapshot,
+		timestamp: Date.now(),
+		requestId: 0,
 		channel: {
 			name: WsChannelName.Orderbook,
 			marketId: 'ZRX-WETH'
 		},
-		payload: newOrderbook,
-		timestamp: Date.now()
+		bids: newOrderbook[0],
+		asks: newOrderbook[1]
 	};
 	wss.clients.forEach(client => {
 		if (client.readyState === WebSocket.OPEN) {
-			client.send(JSON.stringify(orderBookUpdate));
+			client.send(JSON.stringify(orderBookSnapshot));
 			console.log('broadcast new order!');
 		}
 	});
@@ -64,19 +80,17 @@ const orderListener = firebaseUtil.getRef(`/${CST.DB_ORDERS}|ZRX-WETH`);
 // 	// const orders: any[] = [];
 // 	docs.docChanges.forEach(doc => {
 // 		if (doc.type === CST.DB_ORDER_ADDED) {
-// 			util.log('new order added');
-// 			console.log(doc.doc.data());
-// 			const parsedOrder = relayerUtil.parseOrderInfo(doc.doc.data() as IDuoOrder, 'ZRX-WETH');
-// 			let orderBookUpdate: IUpdateResponseWs;
-// 			orderBookUpdate = {
-// 				type: CST.ORDERBOOK_UPDATE,
+// 			util.log('new order added in DB');
+// 			const changedOrder = doc.doc.data() as IDuoOrder;
+// 			const parsedOrder = relayerUtil.parseOrderInfo(changedOrder, 'ZRX-WETH');
+// 			let orderBookUpdate: IUpdateResponseWs = {
+// 				type: WsChannelResposnseTypes.Update,
 // 				channel: {
 // 					name: WsChannelName.Orderbook,
-// 					marketId: parsedOrder.marketId
+// 					marketId: 'ZRX-WETH'
 // 				},
 // 				changes: [
 // 					{
-// 						side: parsedOrder.side,
 // 						price: parsedOrder.price,
 // 						amount: parsedOrder.amount
 // 					}

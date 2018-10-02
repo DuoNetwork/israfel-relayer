@@ -11,7 +11,7 @@ import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import { setInterval } from 'timers';
 // import Web3 from 'web3';
 import WebSocket from 'ws';
-import assetsUtil from '../utils/assetsUtil';
+import assetsUtil from '../common/assetsUtil';
 import * as CST from '../constants';
 import { providerEngine } from '../providerEngine';
 import { WsChannelMessageTypes, WsChannelName } from '../types';
@@ -101,7 +101,7 @@ const mainAsync = async () => {
 		const msg = {
 			type: WsChannelMessageTypes.Add,
 			channel: {
-				name: WsChannelName.Orders,
+				name: WsChannelName.Order,
 				marketId: 'ZRX-WETH'
 			},
 			requestId: Date.now(),

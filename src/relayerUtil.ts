@@ -12,22 +12,22 @@ import firebaseUtil from './firebaseUtil';
 import { providerEngine } from './providerEngine';
 import {
 	ErrorResponseWs,
-	ICancelOrderResponseWs,
 	IDuoOrder,
 	IDuoSignedOrder,
 	// IOrderBook,
 	IOrderBookSnapshotWs,
-	// IOrderBookUpdateWS,
-	IOrderInfo,
+	IOrderBookUpdateWS,
+	IOrderResponseWs,
 	IOrderStateCancelled,
-	IUpdateResponseWs,
-	WsChannelName
+	// IUpdateResponseWs,
+	WsChannelName,
+	WsChannelResposnseTypes
 } from './types';
 
 class RelayerUtil {
 	public contractWrappers: ContractWrappers;
 	public web3Wrapper: Web3Wrapper;
-	public orders: IDuoOrder[] = [];
+	public orderBook: IOrderBookUpdateWS[][] = [];
 	// public returnOrders: IUpdatePayloadWs[] = [];
 
 	constructor() {
@@ -35,6 +35,11 @@ class RelayerUtil {
 		this.contractWrappers = new ContractWrappers(providerEngine, {
 			networkId: CST.NETWORK_ID_LOCAL
 		});
+	}
+
+	public async init() {
+		const rawOrders: IDuoOrder[] = await firebaseUtil.getOrders('ZRX-WETH');
+		this.orderBook =  await this.aggrOrderBook(rawOrders, 'ZRX-WETH');
 	}
 
 	public async validateNewOrder(signedOrder: SignedOrder, orderHash: string): Promise<boolean> {
@@ -54,25 +59,21 @@ class RelayerUtil {
 		return isValidSchema && isValidSig;
 	}
 
-	public async aggrOrderBook(rawOrderBook: IDuoOrder[], marketId: string): Promise<any> {
-		cosnt baseToken = 
-		const bids = rawOrderBook.filter(order => order.makerAssetData )
-		// const bidAggr = this.aggrByPrice(
-		// 	rawOrderBook.bids.map(bid => this.parseOrderInfo(bid, marketId))
-		// );
-		// const askAggr = this.aggrByPrice(
-		// 	rawOrderBook.asks.map(ask => this.parseOrderInfo(ask, marketId))
-		// );
-		// console.log('length of bids is ' + bidAggr.length);
-		// console.log('length of asks is ' + askAggr.length);
-		// return {
-		// 	bids: bidAggr,
-		// 	asks: askAggr
-		// };
+	public aggrOrderBook(rawOrders: IDuoOrder[], marketId: string): IOrderBookUpdateWS[][] {
+		const rawOrderBook = this.getOrderBook(rawOrders, marketId);
+		const bidAggr: IOrderBookUpdateWS[] = this.aggrByPrice(
+			rawOrderBook[0].map(bid => this.parseOrderInfo(bid))
+		);
+		const askAggr: IOrderBookUpdateWS[] = this.aggrByPrice(
+			rawOrderBook[1].map(ask => this.parseOrderInfo(ask))
+		);
+		console.log('length of bids is ' + bidAggr.length);
+		console.log('length of asks is ' + askAggr.length);
+		return [bidAggr, askAggr];
 	}
 
-	public aggrByPrice(orderInfo: IOrderInfo[]) {
-		return orderInfo.reduce((past: IOrderInfo[], current) => {
+	public aggrByPrice(orderInfo: IOrderBookUpdateWS[]) {
+		return orderInfo.reduce((past: IOrderBookUpdateWS[], current) => {
 			const same = past.find(r => r && r.price === current.price);
 			if (same) same.amount = (Number(same.amount) + Number(current.amount)).toString();
 			else past.push(current);
@@ -82,36 +83,30 @@ class RelayerUtil {
 
 	public async handleSubscribe(message: any): Promise<IOrderBookSnapshotWs> {
 		console.log('Handle Message: ' + message.type);
-		const rawOrders: IDuoOrder[] = await firebaseUtil.getOrders(
-			message.channel.marketId
-		);
-		const orderbook = await this.aggrOrderBook(rawOrders, message.channel.marketId);
 		const returnMessage = {
-			type: message.type,
+			type: WsChannelResposnseTypes.Update,
+			timestamp: Date.now(),
 			channel: { name: message.channel.name, marketId: message.channel.marketId },
 			requestId: message.requestId,
-			payload: orderbook
+			bids: this.orderBook[0],
+			asks: this.orderBook[1]
 		};
 		return returnMessage;
 	}
 
-	public async handleDBChanges(changedOrders: IDuoOrder[], marketId: string) {
-		console.log(changedOrders, '###### changed orders');
-		const bids = changedOrders.filter(order => {
+	public getOrderBook(orders: IDuoOrder[], marketId: string): IDuoOrder[][] {
+		const baseToken = marketId.split('-')[1];
+		const bidOrders = orders.filter(order => {
 			const takerTokenName = this.assetDataToTokenName(order.takerAssetData);
-			return takerTokenName === marketId.split('-')[1];
+			return takerTokenName === baseToken;
 		});
 
-		const asks = changedOrders.filter(order => {
+		const askOrders = orders.filter(order => {
 			const makerTokenName = this.assetDataToTokenName(order.makerAssetData);
-			return makerTokenName === marketId.split('-')[1];
+			return makerTokenName === baseToken;
 		});
-		const changedOrderbook: IOrderBook = {
-			bids: bids,
-			asks: asks
-		};
 
-		return await this.aggrOrderBook(changedOrderbook, marketId);
+		return [bidOrders, askOrders];
 	}
 
 	public parseSignedOrder(order: SignedOrder): IDuoSignedOrder {
@@ -133,11 +128,10 @@ class RelayerUtil {
 		};
 	}
 
-	public async handleAddorder(message: any): Promise<IUpdateResponseWs | string> {
+	public async handleAddorder(message: any): Promise<IOrderResponseWs> {
 		console.log(message.payload);
 		const order: SignedOrder = message.payload.order;
 		const orderHash = message.payload.orderHash;
-		const parsedOrder = this.parseOrderInfo(order, message.channel.marketId);
 
 		if (await this.validateNewOrder(order, orderHash)) {
 			await firebaseUtil.addOrder(
@@ -146,26 +140,25 @@ class RelayerUtil {
 				message.channel.marketId
 			);
 			return {
-				type: message.type,
 				channel: {
-					name: WsChannelName.Orderbook,
-					marketId: parsedOrder.marketId
+					name: WsChannelName.Order,
+					marketId: message.channel.marketId
 				},
-				changes: [
-					{
-						side: parsedOrder.side,
-						price: parsedOrder.price,
-						amount: parsedOrder.amount
-					}
-				]
+				status: 'success',
+				failedReason: ''
 			};
-		} else return ErrorResponseWs.InvalidOrder;
+		} else
+			return {
+				channel: {
+					name: WsChannelName.Order,
+					marketId: message.channel.marketId
+				},
+				status: 'failed',
+				failedReason: ErrorResponseWs.InvalidOrder
+			};
 	}
 
-	public async handleCancel(
-		orderHash: string,
-		marketId: string
-	): Promise<ICancelOrderResponseWs | string> {
+	public async handleCancel(orderHash: string, marketId: string): Promise<IOrderResponseWs> {
 		if (firebaseUtil.isExistRef(orderHash)) {
 			const cancelledOrderState: IOrderStateCancelled = {
 				isCancelled: true,
@@ -174,11 +167,22 @@ class RelayerUtil {
 			await firebaseUtil.updateOrderState(cancelledOrderState, marketId);
 			console.log('cancelled order');
 			return {
+				channel: {
+					name: WsChannelName.Order,
+					marketId: marketId
+				},
 				status: 'success',
-				orderHash: orderHash
+				failedReason: ''
 			};
-			// return 'success';
-		} else return ErrorResponseWs.NoExistOrder;
+		} else
+			return {
+				channel: {
+					name: WsChannelName.Order,
+					marketId: marketId
+				},
+				status: 'failed',
+				failedReason: ErrorResponseWs.InvalidOrder
+			};
 	}
 
 	public assetDataToTokenName(assetData: string): string {
@@ -186,14 +190,8 @@ class RelayerUtil {
 		return CST.TOKEN_MAPPING[tokenAddr];
 	}
 
-	public parseOrderInfo(order: SignedOrder | IDuoOrder, marketId: string): IOrderInfo {
-		const makerToken = this.assetDataToTokenName(order.makerAssetData);
-		const takerToken = this.assetDataToTokenName(order.takerAssetData);
+	public parseOrderInfo(order: SignedOrder | IDuoOrder): IOrderBookUpdateWS {
 		return {
-			makerTokenName: makerToken,
-			takerTokenName: takerToken,
-			marketId: marketId,
-			side: makerToken === marketId.split('-')[1] ? CST.ORDER_SELL : CST.ORDER_BUY,
 			amount: order.takerAssetAmount.toString(),
 			price: (Number(order.makerAssetAmount) / Number(order.takerAssetAmount)).toString()
 		};

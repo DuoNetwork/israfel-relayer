@@ -14,13 +14,15 @@ export interface IDuoOrder extends IDuoSignedOrder {
 // }
 
 export interface IOrderBookSnapshotWs {
-	type: WsChannelMessageTypes;
+	type: WsChannelResposnseTypes;
+	timestamp: number;
 	channel: {
 		name: string;
 		marketId: string;
 	};
 	requestId: number;
-	payload: IOrderBook;
+	bids: IOrderBookUpdateWS[];
+	asks: IOrderBookUpdateWS[];
 }
 
 export interface IUpdatePayloadWs {
@@ -31,18 +33,29 @@ export interface IUpdatePayloadWs {
 }
 
 export interface IOrderBookUpdateWS {
-	side: string;
 	price: string;
 	amount: string;
 }
 
 export interface IUpdateResponseWs {
-	type: WsChannelMessageTypes;
+	type: WsChannelResposnseTypes;
+	lastTimestamp: number;
+	currentTimestamp: number;
 	channel: {
 		name: WsChannelName;
 		marketId: string;
 	};
-	changes: IOrderBookUpdateWS[];
+	bids: IOrderBookUpdateWS[];
+	asks: IOrderBookUpdateWS[];
+}
+
+export interface IOrderResponseWs {
+	channel: {
+		name: WsChannelName;
+		marketId: string;
+	};
+	status: string;
+	failedReason: string;
 }
 
 export interface ICancelOrderResponseWs {
@@ -74,23 +87,18 @@ export interface IDuoSignedOrder {
 
 export enum WsChannelMessageTypes {
 	Add = 'add',
-	Update = 'update',
 	Cancel = 'cancel',
 	Subscribe = 'subscribe'
 }
 
-export enum WsChannelName {
-	Orderbook = 'orderbook',
-	Orders = 'orders'
+export enum WsChannelResposnseTypes {
+	Update = 'update',
+	Snapshot = 'snapshot'
 }
 
-export interface IOrderInfo {
-	makerTokenName: string;
-	takerTokenName: string;
-	marketId: string;
-	side: string;
-	amount: string;
-	price: string;
+export enum WsChannelName {
+	Orderbook = 'orderbook',
+	Order = 'order'
 }
 
 export interface IOrderStateCancelled {

@@ -1,0 +1,8 @@
+{
+	"channel": {
+		"name": "order",
+		"marketId": "ZRX-WETH"
+	},
+	"status": "success",
+	"failedReason": ""
+}
