@@ -1,4 +1,4 @@
-import assetsUtil from './assetsUtil';
+import assetsUtil from './utils/assetsUtil';
 import * as CST from './constants';
 import util from './util';
 import orderWatcherUtil from './utils/orderWatcherUtil';

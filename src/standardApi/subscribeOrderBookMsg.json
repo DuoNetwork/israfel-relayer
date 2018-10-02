@@ -1,0 +1,8 @@
+{
+    "type":"subscribe",
+    "channel": { 
+        "name": "orderbook", 
+        "marketId": "ZRX-WETH" 
+    },
+    "requestId": "1538121710153"
+}

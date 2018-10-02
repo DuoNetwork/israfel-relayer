@@ -8,10 +8,10 @@ export interface IDuoOrder extends IDuoSignedOrder {
 	orderWatcherState: OrderRelevantState | ExchangeContractErrs;
 }
 
-export interface IOrderBook {
-	bids: IDuoOrder[];
-	asks: IDuoOrder[];
-}
+// export interface IOrderBook {
+// 	bids: IDuoOrder[];
+// 	asks: IDuoOrder[];
+// }
 
 export interface IOrderBookSnapshotWs {
 	type: WsChannelMessageTypes;

@@ -63,7 +63,7 @@ class FirebaseUtil {
 		return qs.docs.map(doc => doc.data() as IDuoOrder);
 	}
 
-	public async getOrders(marketId: string, address: string = ''): Promise<IDuoOrder[]> {
+	public async getOrders(marketId: string, address ?: string ): Promise<IDuoOrder[]> {
 		let query = (this.getRef(`/${CST.DB_ORDERS}|${marketId}`) as CollectionReference)
 			.where(CST.DB_ORDER_IS_CANCELLED, '==', false)
 			.where(CST.DB_ORDER_IS_VALID, '==', true);
@@ -75,31 +75,19 @@ class FirebaseUtil {
 		return this.querySnapshotToDuo(result);
 	}
 
-	public async getOrderBook(
-		baseAssetData: string,
-		quoteAssetData: string,
-		marketId: string
-	): Promise<IOrderBook> {
-		const bids = this.querySnapshotToDuo(
-			await (this.getRef(`/${CST.DB_ORDERS}|${marketId}`) as CollectionReference)
-				.where(CST.DB_ORDER_MAKER_ASSETDATA, '==', quoteAssetData)
-				.where(CST.DB_ORDER_TAKER_ASSETDATA, '==', baseAssetData)
-				.where(CST.DB_ORDER_IS_CANCELLED, '==', false)
-				.where(CST.DB_ORDER_IS_VALID, '==', true)
-				.get()
-		);
+	// public async getOrderBook(
+	// 	marketId: string
+	// ): Promise<IOrderBook> {
+	// 	return this.querySnapshotToDuo(
+	// 		await (this.getRef(`/${CST.DB_ORDERS}|${marketId}`) as CollectionReference)
+	// 			// .where(CST.DB_ORDER_MAKER_ASSETDATA, '==', quoteAssetData)
+	// 			// .where(CST.DB_ORDER_TAKER_ASSETDATA, '==', baseAssetData)
+	// 			.where(CST.DB_ORDER_IS_CANCELLED, '==', false)
+	// 			.where(CST.DB_ORDER_IS_VALID, '==', true)
+	// 			.get()
+	// 	);
 
-		const asks = this.querySnapshotToDuo(
-			await (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference)
-				.where(CST.DB_ORDER_MAKER_ASSETDATA, '==', baseAssetData)
-				.where(CST.DB_ORDER_TAKER_ASSETDATA, '==', quoteAssetData)
-				.where(CST.DB_ORDER_IS_CANCELLED, '==', false)
-				.where(CST.DB_ORDER_IS_VALID, '==', true)
-				.get()
-		);
-
-		return { bids, asks };
-	}
+	// }
 
 	// public async getOrdersByAddress(address: string): Promise<IDuoOrder[]> {
 	// 	const result = await (this.getRef(`/${CST.DB_ORDERS}`) as CollectionReference)

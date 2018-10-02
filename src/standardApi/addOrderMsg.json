@@ -1,0 +1,26 @@
+{
+    "type": "add",
+    "channel": {
+        "name": "order",
+        "marketId": "ZRX-WETH"
+    },
+    "requestId": 123435,
+    "payload": {
+        "order":  {  
+            "exchangeAddress": "0x48bacb9266a570d521063ef5dd96e61686dbe788",
+            "makerAddress": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
+            "takerAddress": "0x5409ed021d9299bf6814279a6a1411a7e866a631",
+            "senderAddress": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
+            "feeRecipientAddress": "0x5409ed021d9299bf6814279a6a1411a7e866a631",
+            "expirationTimeSeconds": "BigNumber { s\": 1, e\": 9, c\": [ 1538117918 ] }", 
+            "salt":"BigNumber {s\": 1,e\": 76,c\":[ 4819806,21385749514209,88700844036866,26535141779564,49454803591044,15105341483720 ] }",
+            "makerAssetAmount": "BigNumber { s\": 1, e\": 18, c\": [ 63530 ] }",
+            "takerAssetAmount": "BigNumber { s\": 1, e\": 17, c\": [ 8450 ] }",
+            "makerAssetData": "0xf47261b0000000000000000000000000871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c",  
+            "takerAssetData": "0xf47261b00000000000000000000000000b1ba0af832d7c05fd64161e0db78e85978e8082",  
+            "makerFee": "BigNumber { s\": 1, e\": 0, c\": [ 0 ] }",
+            "takerFee": "BigNumber { s\": 1, e\": 0, c\": [ 0 ] }",
+            "signature": "0x1cf331061760e90454b91665420c2d0e7ad72cd649246c56ac8a6a7e2aec99c9ad75f966bef0371ef8c8145c2de3f68d84bd7371c7cd0ab695e1dc098a0c1dbbb503"
+        }
+    }
+}

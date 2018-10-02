@@ -7,22 +7,22 @@ import {
 } from '0x.js';
 import { schemas, SchemaValidator } from '@0xproject/json-schemas';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
-import * as CST from '../constants';
-import firebaseUtil from '../firebaseUtil';
-import { providerEngine } from '../providerEngine';
+import * as CST from './constants';
+import firebaseUtil from './firebaseUtil';
+import { providerEngine } from './providerEngine';
 import {
 	ErrorResponseWs,
 	ICancelOrderResponseWs,
 	IDuoOrder,
 	IDuoSignedOrder,
-	IOrderBook,
+	// IOrderBook,
 	IOrderBookSnapshotWs,
 	// IOrderBookUpdateWS,
 	IOrderInfo,
 	IOrderStateCancelled,
 	IUpdateResponseWs,
 	WsChannelName
-} from '../types';
+} from './types';
 
 class RelayerUtil {
 	public contractWrappers: ContractWrappers;
@@ -54,19 +54,21 @@ class RelayerUtil {
 		return isValidSchema && isValidSig;
 	}
 
-	public async aggrOrderBook(rawOrderBook: IOrderBook, marketId: string): Promise<any> {
-		const bidAggr = this.aggrByPrice(
-			rawOrderBook.bids.map(bid => this.parseOrderInfo(bid, marketId))
-		);
-		const askAggr = this.aggrByPrice(
-			rawOrderBook.asks.map(ask => this.parseOrderInfo(ask, marketId))
-		);
-		console.log('length of bids is ' + bidAggr.length);
-		console.log('length of asks is ' + askAggr.length);
-		return {
-			bids: bidAggr,
-			asks: askAggr
-		};
+	public async aggrOrderBook(rawOrderBook: IDuoOrder[], marketId: string): Promise<any> {
+		cosnt baseToken = 
+		const bids = rawOrderBook.filter(order => order.makerAssetData )
+		// const bidAggr = this.aggrByPrice(
+		// 	rawOrderBook.bids.map(bid => this.parseOrderInfo(bid, marketId))
+		// );
+		// const askAggr = this.aggrByPrice(
+		// 	rawOrderBook.asks.map(ask => this.parseOrderInfo(ask, marketId))
+		// );
+		// console.log('length of bids is ' + bidAggr.length);
+		// console.log('length of asks is ' + askAggr.length);
+		// return {
+		// 	bids: bidAggr,
+		// 	asks: askAggr
+		// };
 	}
 
 	public aggrByPrice(orderInfo: IOrderInfo[]) {
@@ -80,12 +82,10 @@ class RelayerUtil {
 
 	public async handleSubscribe(message: any): Promise<IOrderBookSnapshotWs> {
 		console.log('Handle Message: ' + message.type);
-		const rawOrderBook: IOrderBook = await firebaseUtil.getOrderBook(
-			message.baseAssetData,
-			message.quoteAssetData,
+		const rawOrders: IDuoOrder[] = await firebaseUtil.getOrders(
 			message.channel.marketId
 		);
-		const orderbook = await this.aggrOrderBook(rawOrderBook, message.channel.marketId);
+		const orderbook = await this.aggrOrderBook(rawOrders, message.channel.marketId);
 		const returnMessage = {
 			type: message.type,
 			channel: { name: message.channel.name, marketId: message.channel.marketId },

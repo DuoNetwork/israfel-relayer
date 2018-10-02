@@ -1,0 +1,58 @@
+[
+	{
+        "type": "snapshot",
+        "version": "hashOrTheOrderSnapshot",
+		"channel": {
+			"name": "orderbook",
+			"marketId": "ZRX-WETH"
+		},
+		"bids": [
+			{ "price": "0.007", "amount": "400" },
+			{ "price": "0.00911", "amount": "270" },
+			{ "price": "0.00913", "amount": "190" },
+			{ "price": "0.014412", "amount": "120" },
+			{ "price": "0.014413", "amount": "220" },
+			{ "price": "0.014434", "amount": "130" },
+			{ "price": "0.014438", "amount": "170" },
+			{ "price": "0.014456", "amount": "100" },
+			{ "price": "0.01448", "amount": "200" },
+			{ "price": "0.0145", "amount": "400" }
+		],
+		"asks": [
+			{ "price": "0.01498", "amount": "100" },
+			{ "price": "0.014977", "amount": "130" },
+			{ "price": "0.014971", "amount": "130" },
+			{ "price": "0.014949", "amount": "130" },
+			{ "price": "0.0149", "amount": "0" },
+			{ "price": "0.01489", "amount": "0" },
+			{ "price": "0.014883", "amount": "0" },
+			{ "price": "0.014855", "amount": "146" },
+			{ "price": "0.014848", "amount": "110" },
+			{ "price": "0.014843", "amount": "100" },
+			{ "price": "0.014818", "amount": "100" },
+			{ "price": "0.01481", "amount": "82" },
+			{ "price": "0.0148", "amount": "400" },
+			{ "price": "0.014774", "amount": "100" }
+		]
+	},
+	{
+        "type": "update",
+        "baseVersion": "hashOrTheOrderSnapshot",
+		"channel": {
+			"name": "orderbook",
+			"marketId": "ZRX-WETH"
+		},
+		"bids": [
+			{ "price": "0.007", "amount": "0" },
+			{ "price": "0.014438", "amount": "120" },
+            { "price": "0.01448", "amount": "240" },
+            { "price": "0.01482", "amount": "10" }
+		],
+		"asks": [
+			{ "price": "0.01498", "amount": "0" },
+			{ "price": "0.014977", "amount": "100" },
+            { "price": "0.014971", "amount": "150" },
+            { "price": "0.01485", "amount": "30" }
+		]
+	}
+]

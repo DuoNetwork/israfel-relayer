@@ -1,0 +1,11 @@
+{
+    "type": "cancel",
+    "channel": {
+        "name": "order",
+        "marketId": "ZRX-WETH"
+    },
+    "requestId": 123435,
+    "payload": {
+        "orderHash": "0x83a520ebef6a3a85ece992df4237ca2f995ea24b76c9780a93db998b01cf319e"
+    }
+}

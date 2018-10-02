@@ -1,4 +1,3 @@
-
 import {
 	assetDataUtils,
 	BigNumber,
@@ -12,13 +11,13 @@ import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import { setInterval } from 'timers';
 // import Web3 from 'web3';
 import WebSocket from 'ws';
-import assetsUtil from '../assetsUtil';
+import assetsUtil from '../utils/assetsUtil';
 import * as CST from '../constants';
 import { providerEngine } from '../providerEngine';
 import { WsChannelMessageTypes, WsChannelName } from '../types';
 import util from '../util';
 
-const TAKER_ETH_DEPOSIT = 0.1;
+const TAKER_ETH_DEPOSIT = 0.001;
 // const web3: Web3 = new Web3(new Web3.providers.HttpProvider(CST.PROVIDER_LOCAL));
 
 const mainAsync = async () => {
@@ -34,7 +33,7 @@ const mainAsync = async () => {
 	const takerAssetData = assetDataUtils.encodeERC20AssetData(etherTokenAddress);
 
 	const balance = await assetsUtil.web3Wrapper.getBalanceInWeiAsync(taker);
-	console.log(balance.valueOf());
+	console.log('taker %s, balance %s', taker,  balance.valueOf());
 
 	// Allow the 0x ERC20 Proxy to move WETH on behalf of takerAccount
 	const takerWETHApprovalTxHash = await assetsUtil.contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
@@ -45,7 +44,6 @@ const mainAsync = async () => {
 	util.log('taker WETH approved');
 
 	// Convert ETH into WETH for taker by depositing ETH into the WETH contract
-	
 	// console.log(assetsUtil.web3Wrapper. balance);
 	// console.log(web3.fromWei(balance.valueOf(), 'ether'));
 	const takerWETHDepositTxHash = await assetsUtil.contractWrappers.etherToken.depositAsync(
@@ -57,6 +55,7 @@ const mainAsync = async () => {
 	await assetsUtil.approveAllMakers(zrxTokenAddress);
 
 	// Send signed order to relayer every 5 seconds
+	let isBid = true;
 	setInterval(async () => {
 		const randomExpiration = util.getRandomFutureDateInSeconds();
 		const maker = assetsUtil.getRandomMaker();
@@ -80,10 +79,10 @@ const mainAsync = async () => {
 			feeRecipientAddress: taker,
 			expirationTimeSeconds: randomExpiration,
 			salt: generatePseudoRandomSalt(),
-			makerAssetAmount,
-			takerAssetAmount,
-			makerAssetData,
-			takerAssetData,
+			makerAssetAmount: isBid ? takerAssetAmount : makerAssetAmount,
+			takerAssetAmount: isBid ? makerAssetAmount : takerAssetAmount,
+			makerAssetData: isBid ? makerAssetData : takerAssetData,
+			takerAssetData: isBid ? takerAssetData : makerAssetData,
 			makerFee: new BigNumber(0),
 			takerFee: new BigNumber(0)
 		};
@@ -95,6 +94,7 @@ const mainAsync = async () => {
 			SignerType.Default
 		);
 		const signedOrder = { ...order, signature };
+		isBid = !isBid;
 
 		// Submit order to relayer
 		const ws = new WebSocket(CST.RELAYER_WS_URL);

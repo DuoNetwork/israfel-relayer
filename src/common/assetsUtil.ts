@@ -1,10 +1,10 @@
 import { BigNumber, ContractWrappers } from '0x.js';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import { TransactionReceiptWithDecodedLogs } from 'ethereum-types';
-import * as CST from './constants';
-import { providerEngine } from './providerEngine';
-import { IOption } from './types';
-import util from './util';
+import * as CST from '../constants';
+import { providerEngine } from '../providerEngine';
+import { IOption } from '../types';
+import util from '../util';
 
 class AccountsUtil {
 	public contractWrappers: ContractWrappers;
@@ -90,6 +90,8 @@ class AccountsUtil {
 			})
 		);
 	}
+
+	// TODO add from signedOrder to orderHash function
 }
 const accountsUtil = new AccountsUtil();
 export default accountsUtil;
