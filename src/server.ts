@@ -71,7 +71,7 @@ const orderListener = firebaseUtil.getRef(`/${CST.DB_ORDERS}|ZRX-WETH`);
 	wss.clients.forEach(client => {
 		if (client.readyState === WebSocket.OPEN) {
 			client.send(JSON.stringify(orderBookSnapshot));
-			console.log('broadcast new order!');
+			console.log('broadcast new snapshot!');
 		}
 	});
 });

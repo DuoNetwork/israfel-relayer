@@ -5,7 +5,7 @@ import {
 import { CollectionReference, DocumentReference, QuerySnapshot } from '@google-cloud/firestore';
 import * as admin from 'firebase-admin';
 import * as CST from './constants';
-import { IDuoOrder, IDuoSignedOrder, IOrderBook, IOrderStateCancelled } from './types';
+import { IDuoOrder, IDuoSignedOrder, IOrderStateCancelled } from './types';
 import util from './util';
 
 class FirebaseUtil {
