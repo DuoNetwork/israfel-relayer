@@ -1,7 +1,7 @@
 import {
 	assetDataUtils,
 	ContractWrappers,
-	//  orderHashUtils,
+	// orderHashUtils,
 	signatureUtils,
 	SignedOrder
 } from '0x.js';
@@ -28,6 +28,7 @@ class RelayerUtil {
 	public contractWrappers: ContractWrappers;
 	public web3Wrapper: Web3Wrapper;
 	public orderBook: IOrderBookUpdateWS[][] = [];
+	public now: number;
 	// public returnOrders: IUpdatePayloadWs[] = [];
 
 	constructor() {
@@ -35,11 +36,22 @@ class RelayerUtil {
 		this.contractWrappers = new ContractWrappers(providerEngine, {
 			networkId: CST.NETWORK_ID_LOCAL
 		});
+		this.now = Date.now();
 	}
 
 	public async init() {
 		const rawOrders: IDuoOrder[] = await firebaseUtil.getOrders('ZRX-WETH');
-		this.orderBook =  await this.aggrOrderBook(rawOrders, 'ZRX-WETH');
+		this.orderBook = this.aggrOrderBook(rawOrders, 'ZRX-WETH');
+		console.log('get initial orderbook from DB with size');
+	}
+
+	public applyChangeOrderBook(
+		bidChanges: IOrderBookUpdateWS[],
+		askChanges: IOrderBookUpdateWS[]
+	) {
+		const newBids = [...this.orderBook[0], ...bidChanges];
+		const newAsks = [...this.orderBook[1], ...askChanges];
+		this.orderBook = [this.aggrByPrice(newBids), this.aggrByPrice(newAsks)];
 	}
 
 	public async validateNewOrder(signedOrder: SignedOrder, orderHash: string): Promise<boolean> {
@@ -48,7 +60,13 @@ class RelayerUtil {
 		const validator = new SchemaValidator();
 		const isValidSchema = validator.validate(rest, orderSchema).valid;
 		// const ECSignature = signatureUtils.parseECSignature(signature);
-		// console.log(ECSignature);
+		// console.log(signature);
+		// const isValidSig = await signatureUtils.isValidECSignature(
+		// 	orderHash,
+		// 	ECSignature,
+		// 	rest.makerAddress
+		// );
+
 		const isValidSig = await signatureUtils.isValidSignatureAsync(
 			providerEngine,
 			orderHash,
@@ -81,16 +99,17 @@ class RelayerUtil {
 		}, []);
 	}
 
-	public async handleSubscribe(message: any): Promise<IOrderBookSnapshotWs> {
+	public handleSubscribe(message: any): IOrderBookSnapshotWs {
 		console.log('Handle Message: ' + message.type);
 		const returnMessage = {
 			type: WsChannelResposnseTypes.Update,
-			timestamp: Date.now(),
+			timestamp: this.now,
 			channel: { name: message.channel.name, marketId: message.channel.marketId },
 			requestId: message.requestId,
 			bids: this.orderBook[0],
 			asks: this.orderBook[1]
 		};
+		console.log('return msg is', returnMessage);
 		return returnMessage;
 	}
 

@@ -10,7 +10,7 @@
 		"server": "ts-node ./src/server",
 		"start": "cross-env ganache-cli --gasLimit 10000000 --defaultBalanceEther 100000 --noVMErrorsOnRPCResponse --db 0x_ganache_snapshot --noVMErrorsOnRPCResponse -p 8555 --networkId 50 -m \"concert load couple harbor equip island argue ramp clarify fence smart topic\"",
 		"download_snapshot": "cross-env download --extract --strip 1 --out 0x_ganache_snapshot https://s3.amazonaws.com/testrpc-shapshots/965d6098294beb22292090c461151274ee6f9a26.zip",
-		"sendOrders": "ts-node ./src/client/addOrders",
+		"addOrders": "ts-node ./src/client/addOrders",
 		"orderWatcher": "ts-node ./src/index orderWatcher",
 		"cancelOrders": "ts-node ./src/client/cancelOrders",
 		"modifyState": "ts-node ./src/index modifyState",
