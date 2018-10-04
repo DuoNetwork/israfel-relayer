@@ -116,12 +116,12 @@ class RelayerUtil {
 	public getOrderBook(orders: IDuoOrder[], marketId: string): IDuoOrder[][] {
 		const baseToken = marketId.split('-')[1];
 		const bidOrders = orders.filter(order => {
-			const takerTokenName = this.assetDataToTokenName(order.takerAssetData);
+			const takerTokenName = order.takerAssetData ? this.assetDataToTokenName(order.takerAssetData) : 'null';
 			return takerTokenName === baseToken;
 		});
 
 		const askOrders = orders.filter(order => {
-			const makerTokenName = this.assetDataToTokenName(order.makerAssetData);
+			const makerTokenName = order.makerAssetData ? this.assetDataToTokenName(order.makerAssetData) : 'null';
 			return makerTokenName === baseToken;
 		});
 

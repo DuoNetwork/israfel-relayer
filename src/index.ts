@@ -1,7 +1,7 @@
-import assetsUtil from './utils/assetsUtil';
+import assetsUtil from './common/assetsUtil';
+import orderWatcherUtil from './common/orderWatcherUtil';
 import * as CST from './constants';
 import util from './util';
-import orderWatcherUtil from './utils/orderWatcherUtil';
 
 const tool = process.argv[2];
 
