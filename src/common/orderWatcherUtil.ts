@@ -98,7 +98,7 @@ class OrderWatcherUtil {
 				return;
 			}
 
-			console.log(Date.now().toString(), 'Subscribed orderstate is %s', orderState);
+			console.log(Date.now().toString(), orderState);
 			if (orderState !== undefined) await firebaseUtil.updateOrderState(orderState, marketId);
 		});
 	}

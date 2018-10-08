@@ -17,7 +17,6 @@ import { providerEngine } from '../providerEngine';
 import { WsChannelMessageTypes, WsChannelName } from '../types';
 import util from '../util';
 
-const TAKER_ETH_DEPOSIT = 0.001;
 // const web3: Web3 = new Web3(new Web3.providers.HttpProvider(CST.PROVIDER_LOCAL));
 
 const mainAsync = async () => {
@@ -29,11 +28,11 @@ const mainAsync = async () => {
 
 	if (etherTokenAddress === undefined) throw console.error('undefined etherTokenAddress');
 
-	const makerAssetData = assetDataUtils.encodeERC20AssetData(zrxTokenAddress);
-	const takerAssetData = assetDataUtils.encodeERC20AssetData(etherTokenAddress);
+	const zrxAssetData = assetDataUtils.encodeERC20AssetData(zrxTokenAddress);
+	const wethAssetData = assetDataUtils.encodeERC20AssetData(etherTokenAddress);
 
 	const balance = await assetsUtil.web3Wrapper.getBalanceInWeiAsync(taker);
-	console.log('taker %s, balance %s', taker,  balance.valueOf());
+	console.log('taker %s, balance %s', taker, balance.valueOf());
 
 	// Allow the 0x ERC20 Proxy to move WETH on behalf of takerAccount
 	const takerWETHApprovalTxHash = await assetsUtil.contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
@@ -48,7 +47,7 @@ const mainAsync = async () => {
 	// console.log(web3.fromWei(balance.valueOf(), 'ether'));
 	const takerWETHDepositTxHash = await assetsUtil.contractWrappers.etherToken.depositAsync(
 		etherTokenAddress,
-		Web3Wrapper.toBaseUnitAmount(new BigNumber(TAKER_ETH_DEPOSIT), 18),
+		Web3Wrapper.toBaseUnitAmount(new BigNumber(CST.TAKER_ETH_DEPOSIT), 18),
 		taker
 	);
 	await assetsUtil.web3Wrapper.awaitTransactionSuccessAsync(takerWETHDepositTxHash);
@@ -60,12 +59,12 @@ const mainAsync = async () => {
 		const randomExpiration = util.getRandomFutureDateInSeconds();
 		const maker = assetsUtil.getRandomMaker();
 		// the amount the maker is selling of maker asset
-		const makerAssetAmount = Web3Wrapper.toBaseUnitAmount(
+		const zrxAssetAmount = Web3Wrapper.toBaseUnitAmount(
 			new BigNumber(Number(Math.random() * 10 || 5).toFixed(3)),
 			18
 		);
 		// the amount the maker wants of taker asset
-		const takerAssetAmount = Web3Wrapper.toBaseUnitAmount(
+		const wethAssetAmount = Web3Wrapper.toBaseUnitAmount(
 			new BigNumber(Number(Math.random() || 5).toFixed(3)),
 			18
 		);
@@ -79,10 +78,10 @@ const mainAsync = async () => {
 			feeRecipientAddress: taker,
 			expirationTimeSeconds: randomExpiration,
 			salt: generatePseudoRandomSalt(),
-			makerAssetAmount: isBid ? takerAssetAmount : makerAssetAmount,
-			takerAssetAmount: isBid ? makerAssetAmount : takerAssetAmount,
-			makerAssetData: isBid ? makerAssetData : takerAssetData,
-			takerAssetData: isBid ? takerAssetData : makerAssetData,
+			makerAssetAmount: isBid ? wethAssetAmount : zrxAssetAmount,
+			takerAssetAmount: isBid ? zrxAssetAmount : wethAssetAmount,
+			makerAssetData: isBid ? wethAssetData : zrxAssetData,
+			takerAssetData: isBid ? zrxAssetData : wethAssetData,
 			makerFee: new BigNumber(0),
 			takerFee: new BigNumber(0)
 		};

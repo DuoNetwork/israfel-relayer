@@ -10,7 +10,7 @@ util.log('tool ' + tool);
 const option = util.parseOptions(process.argv);
 
 switch (tool) {
-	case CST.MODIFY_STATE:
+	case CST.SET_ALLOWANCE:
 		assetsUtil.setTokenAllowance(option);
 		break;
 	case CST.ORDER_WATCHER:

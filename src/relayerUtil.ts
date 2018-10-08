@@ -114,14 +114,14 @@ class RelayerUtil {
 	}
 
 	public getOrderBook(orders: IDuoOrder[], marketId: string): IDuoOrder[][] {
-		const baseToken = marketId.split('-')[1];
+		const baseToken = marketId.split('-')[0];
 		const bidOrders = orders.filter(order => {
-			const takerTokenName = order.takerAssetData ? this.assetDataToTokenName(order.takerAssetData) : 'null';
+			const takerTokenName = order.takerAssetData ? this.assetDataToTokenName(order.takerAssetData) : null;
 			return takerTokenName === baseToken;
 		});
 
 		const askOrders = orders.filter(order => {
-			const makerTokenName = order.makerAssetData ? this.assetDataToTokenName(order.makerAssetData) : 'null';
+			const makerTokenName = order.makerAssetData ? this.assetDataToTokenName(order.makerAssetData) : null;
 			return makerTokenName === baseToken;
 		});
 

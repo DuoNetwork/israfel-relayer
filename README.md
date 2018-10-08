@@ -32,3 +32,10 @@ npm run actions
 ```
 npm run orderWatcher token=ZRX
 ```
+
+
+# Convention
+For example, zrx-weth
+zrx is base, weth is quote
+bids - array of signed orders where takerAssetData is equal to baseAssetData
+asks - array of signed orders where makerAssetData is equal to baseAssetData

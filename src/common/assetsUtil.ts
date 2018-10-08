@@ -62,7 +62,9 @@ class AccountsUtil {
 		const TxHash = await this.contractWrappers.erc20Token.setAllowanceAsync(
 			this.getTokenAddressFromName(option.token),
 			this.makers[option.maker],
-			this.makers[option.spender],
+			option.spender
+				? this.makers[option.spender]
+				: this.contractWrappers.exchange.getContractAddress(),
 			Web3Wrapper.toBaseUnitAmount(new BigNumber(option.amount), 18)
 		);
 		return await this.web3Wrapper.awaitTransactionSuccessAsync(TxHash);

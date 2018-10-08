@@ -51,54 +51,29 @@ const mainAsync = async () => {
 		});
 	});
 
-	const orderListener = firebaseUtil.getRef(`/${CST.DB_ORDERS}|ZRX-WETH`);
-	// // Listen to DB and return full snapshot to client
-	// (orderListener as CollectionReference).onSnapshot(async docs => {
-	// 	const newOrderbook = await relayerUtil.aggrOrderBook(
-	// 		firebaseUtil.querySnapshotToDuo(docs),
-	// 		'ZRX-WETH'
-	// 	);
-	// 	relayerUtil.orderBook = newOrderbook;
-	// 	console.log('update relayer orderbook');
-	// 	const orderBookSnapshot: IOrderBookSnapshotWs = {
-	// 		type: WsChannelResposnseTypes.Snapshot,
-	// 		timestamp: relayerUtil.now,
-	// 		requestId: 0,
-	// 		channel: {
-	// 			name: WsChannelName.Orderbook,
-	// 			marketId: 'ZRX-WETH'
-	// 		},
-	// 		bids: relayerUtil.orderBook[0],
-	// 		asks: relayerUtil.orderBook[1]
-	// 	};
-	// 	wss.clients.forEach(client => {
-	// 		if (client.readyState === WebSocket.OPEN) {
-	// 			client.send(JSON.stringify(orderBookSnapshot));
-	// 			console.log('broadcast new snapshot!');
-	// 		}
-	// 	});
-	// });
-
 	// Listen to DB and return updates to client
+	const orderListener = firebaseUtil.getRef(`/${CST.DB_ORDERS}|ZRX-WETH`);
 	(orderListener as CollectionReference).onSnapshot(docs => {
 		console.log('receive DB updates, to generate delta...');
 		const changedOrders = docs.docChanges.map(dc => dc.doc.data() as IDuoOrder);
-		const deltaOrderbook = relayerUtil.aggrOrderBook(changedOrders, 'ZRX-WETH');
-		console.log('snapshot bid changes size is ', deltaOrderbook[0].length);
-		relayerUtil.applyChangeOrderBook(deltaOrderbook[0], deltaOrderbook[1]);
+		const [bidOrderBookDelta, askOrderBookDelta] = relayerUtil.aggrOrderBook(changedOrders, 'ZRX-WETH');
+		console.log('snapshot bid changes size is ', bidOrderBookDelta.length);
+		console.log('snapshot ask changes size is ', askOrderBookDelta.length);
+		relayerUtil.applyChangeOrderBook(bidOrderBookDelta, askOrderBookDelta);
 		console.log('update relayer orderbook');
+		const currentTimestamp = Date.now();
 		const orderBookUpdate: IUpdateResponseWs = {
 			type: WsChannelResposnseTypes.Update,
 			lastTimestamp: relayerUtil.now,
-			currentTimestamp: Date.now(),
+			currentTimestamp: currentTimestamp,
 			channel: {
 				name: WsChannelName.Orderbook,
 				marketId: 'ZRX-WETH'
 			},
-			bids: deltaOrderbook[0],
-			asks: deltaOrderbook[1]
+			bids: bidOrderBookDelta,
+			asks: askOrderBookDelta
 		};
-		relayerUtil.now = Date.now();
+		relayerUtil.now = currentTimestamp;
 		wss.clients.forEach(client => {
 			if (client.readyState === WebSocket.OPEN) {
 				client.send(JSON.stringify(orderBookUpdate));
@@ -106,72 +81,5 @@ const mainAsync = async () => {
 			}
 		});
 	});
-
-	// (orderListener as CollectionReference).onSnapshot(docs => {
-	// 	// const orders: any[] = [];
-	// 	docs.docChanges.forEach(doc => {
-	// 		if (doc.type === CST.DB_ORDER_ADDED) {
-	// 			util.log('new order added in DB');
-	// 			const changedOrder = doc.doc.data() as IDuoOrder;
-	// 			const parsedOrder = relayerUtil.parseOrderInfo(changedOrder, 'ZRX-WETH');
-	// 			let orderBookUpdate: IUpdateResponseWs = {
-	// 				type: WsChannelResposnseTypes.Update,
-	// 				channel: {
-	// 					name: WsChannelName.Orderbook,
-	// 					marketId: 'ZRX-WETH'
-	// 				},
-	// 				changes: [
-	// 					{
-	// 						price: parsedOrder.price,
-	// 						amount: parsedOrder.amount
-	// 					}
-	// 				]
-	// 			};
-	// 			wss.clients.forEach(client => {
-	// 				if (client.readyState === WebSocket.OPEN) {
-	// 					client.send(JSON.stringify(orderBookUpdate));
-	// 					console.log('broadcast new order!');
-	// 				}
-	// 			});
-	// 		}
-	// 	});
-	// });
-
-	// HTTP Server
-	// const app = express();
-	// app.use(bodyParser.json());
-	// app.get('/v0/orderbook', (req, res) => {
-	// 	console.log('HTTP: GET orderbook');
-	// 	const baseTokenAddress = req.param('baseTokenAddress');
-	// 	const quoteTokenAddress = req.param('quoteTokenAddress');
-	// 	res.status(201).send(relayerUtil.renderOrderBook(baseTokenAddress, quoteTokenAddress));
-	// });
-	// app.post('/v0/order', (req, res) => {
-	// 	console.log('HTTP: POST order');
-	// 	const order = req.body;
-	// 	// orders.push(order);
-	// 	if (socketConnection !== undefined) {
-	// 		const message = {
-	// 			type: 'update',
-	// 			channel: 'orderbook',
-	// 			requestId: 1,
-	// 			payload: order
-	// 		};
-	// 		socketConnection.send(JSON.stringify(message));
-	// 	}
-	// 	res.status(201).send({});
-	// });
-	// app.post('/v0/fees', (req, res) => {
-	// 	console.log('HTTP: POST fees');
-	// 	const makerFee = new BigNumber(0).toString();
-	// 	const takerFee = ZeroEx.toBaseUnitAmount(new BigNumber(10), 18).toString();
-	// 	console.log(req);
-	// 	res.status(201).send({
-	// 		feeRecipient: ZeroEx.NULL_ADDRESS,
-	// 		makerFee,
-	// 		takerFee
-	// 	});
-	// });
-	// app.listen(3000, () => console.log('Standard relayer API (HTTP) listening on port 3000!'));
 };
 mainAsync().catch(console.error);

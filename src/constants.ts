@@ -13,6 +13,7 @@ export const ORDER_BUY = 'buy';
 export const ORDER_SELL = 'sell';
 export const ORDERBOOK_UPDATE = 'orderBookUpdate';
 
+export const TAKER_ETH_DEPOSIT = 10;
 export const ONE_SECOND_MS = 1000;
 export const ONE_MINUTE_MS = ONE_SECOND_MS * 60;
 export const TEN_MINUTES_MS = ONE_MINUTE_MS * 10;
@@ -47,3 +48,4 @@ export const PRUNE_INTERVAL = 3600000;
 export const MODIFY_STATE = 'modifyState';
 export const ORDER_WATCHER = 'orderWatcher';
 export const ORDER_PRUNE = 'pruneOrder';
+export const SET_ALLOWANCE = 'setAllowance';
