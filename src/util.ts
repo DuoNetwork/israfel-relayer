@@ -5,8 +5,23 @@ import * as CST from './constants';
 import { IOption } from './types';
 
 class Util {
-	public log(text: any): void {
-		console.log(moment().format('HH:mm:ss.SSS') + ' ' + text);
+	public logLevel: string = CST.LOG_INFO;
+
+	public logInfo(text: any): void {
+		this.log(text, CST.LOG_INFO);
+	}
+
+	public logDebug(text: any): void {
+		this.log(text, CST.LOG_DEBUG);
+	}
+
+	public logError(text: any): void {
+		this.log(text, CST.LOG_ERROR);
+	}
+
+	private log(text: any, level: string): void {
+		if (CST.LOG_RANKING[this.logLevel] >= CST.LOG_RANKING[level])
+			console.log(`${moment().format('HH:mm:ss.SSS')} [${level}]: ` + text);
 	}
 
 	public isNumber(input: any): boolean {

@@ -14,7 +14,7 @@ import {
 	ErrorResponseWs,
 	IDuoOrder,
 	IDuoSignedOrder,
-	// IOrderBook,
+	IOrderBookSnapshot,
 	IOrderBookSnapshotWs,
 	IOrderBookUpdateWS,
 	IOrderResponseWs,
@@ -23,11 +23,12 @@ import {
 	WsChannelName,
 	WsChannelResposnseTypes
 } from './types';
+import util from './util';
 
 class RelayerUtil {
 	public contractWrappers: ContractWrappers;
 	public web3Wrapper: Web3Wrapper;
-	public orderBook: IOrderBookUpdateWS[][] = [];
+	public orderBook: { [key: string]: IOrderBookSnapshot } = {};
 	public now: number;
 	// public returnOrders: IUpdatePayloadWs[] = [];
 
@@ -40,18 +41,27 @@ class RelayerUtil {
 	}
 
 	public async init() {
-		const rawOrders: IDuoOrder[] = await firebaseUtil.getOrders('ZRX-WETH');
-		this.orderBook = this.aggrOrderBook(rawOrders, 'ZRX-WETH');
-		console.log('get initial orderbook from DB with size');
+		for (const marketId of CST.TRADING_PAIRS) {
+			util.logInfo('initializing orderBook for ' + marketId);
+			const rawOrders: IDuoOrder[] = await firebaseUtil.getOrders(marketId);
+			const timestamp = Date.now();
+			this.orderBook[marketId] = this.aggrOrderBook(rawOrders, marketId, timestamp);
+		}
 	}
 
 	public applyChangeOrderBook(
+		marketId: string,
+		timestamp: number,
 		bidChanges: IOrderBookUpdateWS[],
 		askChanges: IOrderBookUpdateWS[]
 	) {
-		const newBids = [...this.orderBook[0], ...bidChanges];
-		const newAsks = [...this.orderBook[1], ...askChanges];
-		this.orderBook = [this.aggrByPrice(newBids), this.aggrByPrice(newAsks)];
+		const newBids = [...this.orderBook[marketId].bids, ...bidChanges];
+		const newAsks = [...this.orderBook[marketId].asks, ...askChanges];
+		this.orderBook[marketId] = {
+			timestamp: timestamp,
+			bids: this.aggrByPrice(newBids),
+			asks: this.aggrByPrice(newAsks)
+		};
 	}
 
 	public async validateNewOrder(signedOrder: SignedOrder, orderHash: string): Promise<boolean> {
@@ -77,7 +87,11 @@ class RelayerUtil {
 		return isValidSchema && isValidSig;
 	}
 
-	public aggrOrderBook(rawOrders: IDuoOrder[], marketId: string): IOrderBookUpdateWS[][] {
+	public aggrOrderBook(
+		rawOrders: IDuoOrder[],
+		marketId: string,
+		timestamp: number
+	): IOrderBookSnapshot {
 		const rawOrderBook = this.getOrderBook(rawOrders, marketId);
 		const bidAggr: IOrderBookUpdateWS[] = this.aggrByPrice(
 			rawOrderBook[0].map(bid => this.parseOrderInfo(bid))
@@ -87,7 +101,11 @@ class RelayerUtil {
 		);
 		console.log('length of bids is ' + bidAggr.length);
 		console.log('length of asks is ' + askAggr.length);
-		return [bidAggr, askAggr];
+		return {
+			timestamp: timestamp,
+			bids: bidAggr,
+			asks: askAggr
+		};
 	}
 
 	public aggrByPrice(orderInfo: IOrderBookUpdateWS[]) {
@@ -106,8 +124,8 @@ class RelayerUtil {
 			timestamp: this.now,
 			channel: { name: message.channel.name, marketId: message.channel.marketId },
 			requestId: message.requestId,
-			bids: this.orderBook[0],
-			asks: this.orderBook[1]
+			bids: this.orderBook[message.channel.marketId].bids,
+			asks: this.orderBook[message.channel.marketId].asks
 		};
 		console.log('return msg is', returnMessage);
 		return returnMessage;
@@ -116,12 +134,16 @@ class RelayerUtil {
 	public getOrderBook(orders: IDuoOrder[], marketId: string): IDuoOrder[][] {
 		const baseToken = marketId.split('-')[0];
 		const bidOrders = orders.filter(order => {
-			const takerTokenName = order.takerAssetData ? this.assetDataToTokenName(order.takerAssetData) : null;
+			const takerTokenName = order.takerAssetData
+				? this.assetDataToTokenName(order.takerAssetData)
+				: null;
 			return takerTokenName === baseToken;
 		});
 
 		const askOrders = orders.filter(order => {
-			const makerTokenName = order.makerAssetData ? this.assetDataToTokenName(order.makerAssetData) : null;
+			const makerTokenName = order.makerAssetData
+				? this.assetDataToTokenName(order.makerAssetData)
+				: null;
 			return makerTokenName === baseToken;
 		});
 

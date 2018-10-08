@@ -43,9 +43,21 @@ export const TOKEN_MAPPING: {[key: string]: string} = {
 	'0x0b1ba0af832d7c05fd64161e0db78e85978e8082': TOKEN_WETH
 };
 
-export const PRUNE_INTERVAL = 3600000;
+export const PAIR_SEPARATOR = '-';
+export const TRADING_PAIRS = [
+	TOKEN_ZRX + PAIR_SEPARATOR + TOKEN_WETH
+]
 
-export const MODIFY_STATE = 'modifyState';
+export const PRUNE_INTERVAL = 3600000;
 export const ORDER_WATCHER = 'orderWatcher';
 export const ORDER_PRUNE = 'pruneOrder';
 export const SET_ALLOWANCE = 'setAllowance';
+
+export const LOG_INFO = 'INFO';
+export const LOG_DEBUG = 'DEBUG';
+export const LOG_ERROR = 'ERROR';
+export const LOG_RANKING: { [level: string]: number } = {
+	[LOG_ERROR]: 0,
+	[LOG_INFO]: 1,
+	[LOG_DEBUG]: 2
+};

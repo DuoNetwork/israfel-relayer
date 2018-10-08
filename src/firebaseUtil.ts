@@ -12,7 +12,7 @@ class FirebaseUtil {
 	private db: admin.firestore.Firestore | null = null;
 
 	public init() {
-		util.log('initialize firebase');
+		util.logInfo('initialize firebase');
 		const serviceAccount = require('./keys/duo-dev-f64ce-firebase-adminsdk-gu930-519c00a624.json');
 		admin.initializeApp({
 			credential: admin.credential.cert(serviceAccount),

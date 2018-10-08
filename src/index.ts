@@ -5,7 +5,7 @@ import util from './util';
 
 const tool = process.argv[2];
 
-util.log('tool ' + tool);
+util.logInfo('tool ' + tool);
 
 const option = util.parseOptions(process.argv);
 

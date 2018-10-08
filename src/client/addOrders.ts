@@ -40,7 +40,7 @@ const mainAsync = async () => {
 		taker
 	);
 	await assetsUtil.web3Wrapper.awaitTransactionSuccessAsync(takerWETHApprovalTxHash);
-	util.log('taker WETH approved');
+	util.logInfo('taker WETH approved');
 
 	// Convert ETH into WETH for taker by depositing ETH into the WETH contract
 	// console.log(assetsUtil.web3Wrapper. balance);

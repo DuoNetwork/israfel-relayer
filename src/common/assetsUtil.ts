@@ -48,12 +48,12 @@ class AccountsUtil {
 			case CST.TOKEN_WETH:
 				const ethTokenAddr = this.contractWrappers.etherToken.getContractAddressIfExists();
 				if (!ethTokenAddr) {
-					util.log('no eth token address');
+					util.logInfo('no eth token address');
 					return '';
 				} else return ethTokenAddr;
 
 			default:
-				util.log('no such token found');
+				util.logInfo('no such token found');
 				return '';
 		}
 	}

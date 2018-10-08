@@ -74,7 +74,7 @@ class OrderWatcherUtil {
 
 	public async startOrderWatcher(option: IOption) {
 		const marketId = option.token + '-' + CST.TOKEN_WETH;
-		util.log('start order watcher for ' + marketId);
+		util.logInfo('start order watcher for ' + marketId);
 		firebaseUtil.init();
 		const orders: IDuoOrder[] = await firebaseUtil.getOrders(marketId);
 

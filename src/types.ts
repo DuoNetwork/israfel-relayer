@@ -13,14 +13,17 @@ export interface IDuoOrder extends IDuoSignedOrder {
 // 	asks: IDuoOrder[];
 // }
 
-export interface IOrderBookSnapshotWs {
+export interface IOrderBookSnapshotWs extends IOrderBookSnapshot {
 	type: WsChannelResposnseTypes;
-	timestamp: number;
 	channel: {
 		name: string;
 		marketId: string;
 	};
 	requestId: number;
+}
+
+export interface IOrderBookSnapshot {
+	timestamp: number;
 	bids: IOrderBookUpdateWS[];
 	asks: IOrderBookUpdateWS[];
 }
