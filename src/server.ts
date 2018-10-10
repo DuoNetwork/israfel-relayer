@@ -57,7 +57,17 @@ const mainAsync = async () => {
 		(orderListener as CollectionReference).onSnapshot(docs => {
 			console.log('receive DB updates, to generate delta...');
 			const timestamp = Date.now();
-			const changedOrders = docs.docChanges.map(dc => dc.doc.data() as IDuoOrder);
+			const changedOrders = docs.docChanges.reduce((result: IDuoOrder[], dc) => {
+				if (dc.type === 'added') result.push(dc.doc.data() as IDuoOrder);
+				// if (dc.type === 'modified')
+				// 	return relayerUtil.onModifiedOrder(dc.doc.data() as IDuoOrder);
+				if (dc.type === 'removed') {
+					const removedOrder = dc.doc.data() as IDuoOrder;
+					if (!removedOrder.isValid || removedOrder.isCancelled)
+						result.push(relayerUtil.onRemovedOrder(removedOrder));
+				}
+				return result
+			}, []);
 			const orderBookDelta = relayerUtil.aggrOrderBook(changedOrders, marketId, timestamp);
 			const bidOrderBookDelta = orderBookDelta.bids;
 			const askOrderBookDelta = orderBookDelta.asks;

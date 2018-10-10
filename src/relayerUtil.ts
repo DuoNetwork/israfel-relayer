@@ -1,6 +1,7 @@
 import {
 	assetDataUtils,
 	ContractWrappers,
+	OrderRelevantState,
 	// orderHashUtils,
 	signatureUtils,
 	SignedOrder
@@ -9,6 +10,7 @@ import { schemas, SchemaValidator } from '@0xproject/json-schemas';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import * as CST from './constants';
 import firebaseUtil from './firebaseUtil';
+import matchOrdersUtil from './matchOrdersUtil';
 import { providerEngine } from './providerEngine';
 import {
 	ErrorResponseWs,
@@ -173,6 +175,7 @@ class RelayerUtil {
 		console.log(message.payload);
 		const order: SignedOrder = message.payload.order;
 		const orderHash = message.payload.orderHash;
+		matchOrdersUtil.matchOrder(order, message.channel.marketId);
 
 		if (await this.validateNewOrder(order, orderHash)) {
 			await firebaseUtil.addOrder(
@@ -236,6 +239,22 @@ class RelayerUtil {
 			amount: order.takerAssetAmount.toString(),
 			price: (Number(order.makerAssetAmount) / Number(order.takerAssetAmount)).toString()
 		};
+	}
+
+	// public onModifiedOrder(modifiedOrder: IDuoOrder): IDuoOrder {}
+
+	public onRemovedOrder(removedOrder: IDuoOrder): IDuoOrder {
+		const { orderRelevantState, ...rest } = removedOrder;
+		const deltaOrderState: OrderRelevantState = {
+			makerBalance: orderRelevantState.makerBalance,
+			makerProxyAllowance: orderRelevantState.makerFeeBalance,
+			makerFeeBalance: orderRelevantState.makerFeeBalance,
+			makerFeeProxyAllowance: orderRelevantState.makerFeeProxyAllowance,
+			filledTakerAssetAmount: orderRelevantState.filledTakerAssetAmount,
+			remainingFillableMakerAssetAmount: orderRelevantState.remainingFillableMakerAssetAmount.neg(),
+			remainingFillableTakerAssetAmount: orderRelevantState.remainingFillableTakerAssetAmount.neg()
+		};
+		return { orderRelevantState: deltaOrderState, ...rest };
 	}
 }
 const relayerUtil = new RelayerUtil();

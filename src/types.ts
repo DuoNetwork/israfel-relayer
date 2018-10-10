@@ -1,11 +1,11 @@
-import { BigNumber, ExchangeContractErrs, OrderRelevantState, SignedOrder } from '0x.js';
+import { BigNumber, OrderRelevantState, SignedOrder } from '0x.js';
 
 export interface IDuoOrder extends IDuoSignedOrder {
 	orderHash: string;
 	isValid: boolean;
 	isCancelled: boolean;
 	updatedAt: number;
-	orderWatcherState: OrderRelevantState | ExchangeContractErrs;
+	orderRelevantState: OrderRelevantState;
 }
 
 // export interface IOrderBook {
