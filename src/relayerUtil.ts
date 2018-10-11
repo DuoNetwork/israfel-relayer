@@ -234,10 +234,10 @@ class RelayerUtil {
 		return CST.TOKEN_MAPPING[tokenAddr];
 	}
 
-	public parseOrderInfo(order: SignedOrder | IDuoOrder): IOrderBookUpdateWS {
+	public parseOrderInfo(order: IDuoOrder): IOrderBookUpdateWS {
 		return {
 			amount: order.takerAssetAmount.toString(),
-			price: (Number(order.makerAssetAmount) / Number(order.takerAssetAmount)).toString()
+			price: (util.stringToBN(order.makerAssetAmount).div(util.stringToBN(order.takerAssetAmount))).toString()
 		};
 	}
 

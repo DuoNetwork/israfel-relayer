@@ -1,17 +1,8 @@
-import {
-	ContractWrappers,
-	orderHashUtils,
-	OrderWatcher,
-	RPCSubprovider,
-	SignedOrder
-} from '0x.js';
+import { ContractWrappers, orderHashUtils, OrderWatcher, RPCSubprovider, SignedOrder } from '0x.js';
 import * as CST from '../constants';
 import firebaseUtil from '../firebaseUtil';
 import { providerEngine } from '../providerEngine';
-import {
-	IDuoOrder,
-	IOption
-} from '../types';
+import { IDuoOrder, IOption } from '../types';
 import util from '../util';
 
 class OrderWatcherUtil {
@@ -49,27 +40,23 @@ class OrderWatcherUtil {
 		console.log('length after prune is', orders.length);
 	}
 
-	public parseToSignedOrder(duoOrders: IDuoOrder[]): SignedOrder[] {
-		const signedOrder: SignedOrder[] = [];
-		duoOrders.forEach(order =>
-			signedOrder.push({
-				signature: order.signature,
-				senderAddress: order.senderAddress,
-				makerAddress: order.makerAddress,
-				takerAddress: order.takerAddress,
-				makerFee: util.stringToBN(order.makerFee),
-				takerFee: util.stringToBN(order.takerFee),
-				makerAssetAmount: util.stringToBN(order.makerAssetAmount),
-				takerAssetAmount: util.stringToBN(order.takerAssetAmount),
-				makerAssetData: order.makerAssetData,
-				takerAssetData: order.takerAssetData,
-				salt: util.stringToBN(order.salt),
-				exchangeAddress: order.exchangeAddress,
-				feeRecipientAddress: order.feeRecipientAddress,
-				expirationTimeSeconds: util.stringToBN(order.expirationTimeSeconds)
-			})
-		);
-		return signedOrder;
+	public parseToSignedOrder(order: IDuoOrder): SignedOrder {
+		return {
+			signature: order.signature,
+			senderAddress: order.senderAddress,
+			makerAddress: order.makerAddress,
+			takerAddress: order.takerAddress,
+			makerFee: util.stringToBN(order.makerFee),
+			takerFee: util.stringToBN(order.takerFee),
+			makerAssetAmount: util.stringToBN(order.makerAssetAmount),
+			takerAssetAmount: util.stringToBN(order.takerAssetAmount),
+			makerAssetData: order.makerAssetData,
+			takerAssetData: order.takerAssetData,
+			salt: util.stringToBN(order.salt),
+			exchangeAddress: order.exchangeAddress,
+			feeRecipientAddress: order.feeRecipientAddress,
+			expirationTimeSeconds: util.stringToBN(order.expirationTimeSeconds)
+		};
 	}
 
 	public async startOrderWatcher(option: IOption) {
@@ -78,7 +65,7 @@ class OrderWatcherUtil {
 		firebaseUtil.init();
 		const orders: IDuoOrder[] = await firebaseUtil.getOrders(marketId);
 
-		const signedOrders: SignedOrder[] = this.parseToSignedOrder(orders);
+		const signedOrders: SignedOrder[] = orders.map(order => this.parseToSignedOrder(order));
 		console.log('length in DB is ', signedOrders.length);
 		let hash: string;
 		for (const order of signedOrders) {
