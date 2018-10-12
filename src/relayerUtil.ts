@@ -57,8 +57,12 @@ class RelayerUtil {
 		bidChanges: IOrderBookUpdateWS[],
 		askChanges: IOrderBookUpdateWS[]
 	) {
-		const newBids = [...this.orderBook[marketId].bids, ...bidChanges];
-		const newAsks = [...this.orderBook[marketId].asks, ...askChanges];
+		const newBids = [...this.orderBook[marketId].bids, ...bidChanges].sort((a, b) => {
+			return a.price > b.price ? 1 : b.price > a.price ? -1 : 0;
+		});
+		const newAsks = [...this.orderBook[marketId].asks, ...askChanges].sort((a, b) => {
+			return a.price > b.price ? -1 : b.price > a.price ? 1 : 0;
+		});
 		this.orderBook[marketId] = {
 			timestamp: timestamp,
 			bids: this.aggrByPrice(newBids),
@@ -237,7 +241,7 @@ class RelayerUtil {
 	public parseOrderInfo(order: IDuoOrder): IOrderBookUpdateWS {
 		return {
 			amount: order.orderRelevantState.remainingFillableTakerAssetAmount.toString(),
-			price: (util.stringToBN(order.makerAssetAmount).div(util.stringToBN(order.takerAssetAmount))).toString()
+			price: order.price.toString()
 		};
 	}
 

@@ -2,6 +2,7 @@ import { BigNumber, OrderRelevantState, SignedOrder } from '0x.js';
 
 export interface IDuoOrder extends IDuoSignedOrder {
 	orderHash: string;
+	price: number;
 	isValid: boolean;
 	isCancelled: boolean;
 	updatedAt: number;

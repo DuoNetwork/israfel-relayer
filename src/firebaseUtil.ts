@@ -49,6 +49,7 @@ class FirebaseUtil {
 			`/${CST.DB_ORDERS + '|' + marketId}/${orderHash}`,
 			Object.assign({}, order, {
 				orderHash: orderHash,
+				price: Number((util.stringToBN(order.makerAssetAmount).div(util.stringToBN(order.takerAssetAmount)))),
 				isValid: true,
 				isCancelled: false,
 				orderRelevantState: {
