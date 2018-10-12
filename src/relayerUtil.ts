@@ -236,7 +236,7 @@ class RelayerUtil {
 
 	public parseOrderInfo(order: IDuoOrder): IOrderBookUpdateWS {
 		return {
-			amount: order.takerAssetAmount.toString(),
+			amount: order.orderRelevantState.remainingFillableTakerAssetAmount.toString(),
 			price: (util.stringToBN(order.makerAssetAmount).div(util.stringToBN(order.takerAssetAmount))).toString()
 		};
 	}

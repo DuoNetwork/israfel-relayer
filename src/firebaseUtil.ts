@@ -1,7 +1,4 @@
-import {
-	OrderStateInvalid,
-	OrderStateValid
-} from '0x.js';
+import { BigNumber, OrderStateInvalid, OrderStateValid } from '0x.js';
 import { CollectionReference, DocumentReference, QuerySnapshot } from '@google-cloud/firestore';
 import * as admin from 'firebase-admin';
 import * as CST from './constants';
@@ -54,6 +51,11 @@ class FirebaseUtil {
 				orderHash: orderHash,
 				isValid: true,
 				isCancelled: false,
+				orderRelevantState: {
+					filledTakerAssetAmount: new BigNumber(0),
+					remainingFillableMakerAssetAmount: new BigNumber(order.makerAssetAmount),
+					remainingFillableTakerAssetAmount: new BigNumber(order.takerAssetAmount)
+				},
 				[CST.DB_UPDATED_AT]: admin.firestore.FieldValue.serverTimestamp()
 			}),
 			false
@@ -63,7 +65,7 @@ class FirebaseUtil {
 		return qs.docs.map(doc => doc.data() as IDuoOrder);
 	}
 
-	public async getOrders(marketId: string, address ?: string ): Promise<IDuoOrder[]> {
+	public async getOrders(marketId: string, address?: string): Promise<IDuoOrder[]> {
 		let query = (this.getRef(`/${CST.DB_ORDERS}|${marketId}`) as CollectionReference)
 			.where(CST.DB_ORDER_IS_CANCELLED, '==', false)
 			.where(CST.DB_ORDER_IS_VALID, '==', true);
