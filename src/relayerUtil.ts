@@ -122,7 +122,7 @@ class RelayerUtil {
 	public handleSubscribe(message: any): IOrderBookSnapshotWs {
 		console.log('Handle Message: ' + message.type);
 		const returnMessage = {
-			type: WsChannelResposnseTypes.Update,
+			type: WsChannelResposnseTypes.Snapshot,
 			timestamp: this.now,
 			channel: { name: message.channel.name, marketId: message.channel.marketId },
 			requestId: message.requestId,

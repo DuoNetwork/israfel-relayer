@@ -4,16 +4,15 @@ import orderWatcherUtil from './common/orderWatcherUtil';
 import firebaseUtil from './firebaseUtil';
 import relayerUtil from './relayerUtil';
 import { IDuoOrder } from './types';
-import util from './util';
+// import util from './util';
 
 class MatchOrdersUtil {
 	public matcherAccount = '0x91c987bf62d25945db517bdaa840a6c661374402';
 
 	public async scanToMatchOrder(oldOrders: IDuoOrder[], newOrder: SignedOrder): Promise<void> {
-		for (const order of oldOrders)
-			{
-				const leftOrder = orderWatcherUtil.parseToSignedOrder(order);
-				if (leftOrder.takerAssetAmount === newOrder.makerAssetAmount) {
+		for (const order of oldOrders) {
+			const leftOrder = orderWatcherUtil.parseToSignedOrder(order);
+			if (leftOrder.takerAssetAmount === newOrder.makerAssetAmount) {
 				const txHash = await assetsUtil.contractWrappers.exchange.matchOrdersAsync(
 					leftOrder,
 					newOrder,
@@ -21,7 +20,8 @@ class MatchOrdersUtil {
 				);
 				console.log('matched two orders ', txHash);
 				break;
-			}}
+			}
+		}
 	}
 
 	public async matchOrder(newOrder: SignedOrder, marketId: string): Promise<void> {
