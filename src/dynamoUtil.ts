@@ -185,6 +185,7 @@ class DynamoUtil {
 			[CST.DB_EXCHANGE_ADDR]: { S: order.exchangeAddress + '' },
 			[CST.DB_FEE_RECIPIENT_ADDR]: { S: order.feeRecipientAddress + '' },
 			[CST.DB_EXPIRATION_TIME_SECONDS]: { S: order.expirationTimeSeconds.valueOf() + '' },
+			[CST.DB_SIGNATURE]: { S: order.signature + '' },
 			[CST.DB_UPDATED_AT]: { N: timestamp + '' }
 		};
 	}
