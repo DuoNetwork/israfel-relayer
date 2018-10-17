@@ -175,9 +175,29 @@ class RelayerUtil {
 		};
 	}
 
+	public toSignedOrder(order: any): SignedOrder {
+		return {
+			signature: order.signature,
+			senderAddress: order.senderAddress,
+			makerAddress: order.makerAddress,
+			takerAddress: order.takerAddress,
+			makerFee: util.stringToBN(order.makerFee),
+			takerFee: util.stringToBN(order.takerFee),
+			makerAssetAmount: util.stringToBN(order.makerAssetAmount),
+			takerAssetAmount: util.stringToBN(order.takerAssetAmount),
+			makerAssetData: order.makerAssetData,
+			takerAssetData: order.takerAssetData,
+			salt: util.stringToBN(order.salt),
+			exchangeAddress: order.exchangeAddress,
+			feeRecipientAddress: order.feeRecipientAddress,
+			expirationTimeSeconds: util.stringToBN(order.expirationTimeSeconds)
+
+		}
+	}
+
 	public async handleAddorder(message: any): Promise<IOrderResponseWs> {
-		console.log(message.payload);
-		const order: SignedOrder = message.payload.order;
+		const order: SignedOrder = this.toSignedOrder(message.payload.order);
+		console.log('### signed order is', order);
 		const orderHash = message.payload.orderHash;
 		matchOrdersUtil.matchOrder(order, message.channel.marketId);
 
@@ -240,7 +260,9 @@ class RelayerUtil {
 
 	public parseOrderInfo(order: IDuoOrder): IOrderBookUpdateWS {
 		return {
-			amount: order.orderRelevantState.remainingFillableTakerAssetAmount.toString(),
+			amount: order.orderRelevantState
+				? order.orderRelevantState.remainingFillableTakerAssetAmount.toString()
+				: order.takerAssetAmount.toString(),
 			price: order.price.toString()
 		};
 	}

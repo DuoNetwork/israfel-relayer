@@ -1,4 +1,4 @@
-import { BigNumber, OrderStateInvalid, OrderStateValid } from '0x.js';
+import { OrderStateInvalid, OrderStateValid } from '0x.js';
 import { CollectionReference, DocumentReference, QuerySnapshot } from '@google-cloud/firestore';
 import * as admin from 'firebase-admin';
 import * as CST from './constants';
@@ -53,9 +53,9 @@ class FirebaseUtil {
 				isValid: true,
 				isCancelled: false,
 				orderRelevantState: {
-					filledTakerAssetAmount: new BigNumber(0),
-					remainingFillableMakerAssetAmount: new BigNumber(order.makerAssetAmount),
-					remainingFillableTakerAssetAmount: new BigNumber(order.takerAssetAmount)
+					filledTakerAssetAmount: '0',
+					remainingFillableMakerAssetAmount: order.makerAssetAmount,
+					remainingFillableTakerAssetAmount: order.takerAssetAmount
 				},
 				[CST.DB_UPDATED_AT]: admin.firestore.FieldValue.serverTimestamp()
 			}),

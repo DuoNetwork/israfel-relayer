@@ -4,6 +4,7 @@ import orderWatcherUtil from './common/orderWatcherUtil';
 import firebaseUtil from './firebaseUtil';
 import relayerUtil from './relayerUtil';
 import { IDuoOrder } from './types';
+import util from './util';
 
 class MatchOrdersUtil {
 	public matcherAccount = '0x91c987bf62d25945db517bdaa840a6c661374402';
@@ -11,15 +12,19 @@ class MatchOrdersUtil {
 	public async scanToMatchOrder(
 		oldOrders: IDuoOrder[],
 		newOrder: SignedOrder,
-		side?: string
+		isAsk?: boolean
 	): Promise<void> {
-		for (const order of oldOrders) {
-			if (side)
+		for (const order of oldOrders)
+			if (isAsk) {
+				console.log(newOrder.takerAssetAmount, '### new order taker amount');
 				if (
 					order.takerAssetAmount === newOrder.makerAssetAmount.toString() &&
-					order.price > Number(newOrder.takerAssetAmount.div(newOrder.makerAssetAmount))
+					order.price > Number(util.stringToBN(newOrder.takerAssetAmount.valueOf()).div(util.stringToBN(newOrder.makerAssetAmount.valueOf())))
 				) {
 					const leftOrder = orderWatcherUtil.parseToSignedOrder(order);
+					console.log('>>>>>>>>>>>>>>>>>>>>> start matching orders ');
+					console.log(leftOrder);
+					console.log(newOrder);
 					const txHash = await assetsUtil.contractWrappers.exchange.matchOrdersAsync(
 						leftOrder,
 						newOrder,
@@ -52,7 +57,8 @@ class MatchOrdersUtil {
 		const newOrderTaker = relayerUtil.assetDataToTokenName(newOrder.takerAssetData);
 		const newOrderMaker = relayerUtil.assetDataToTokenName(newOrder.makerAssetData);
 
-		if (newOrderTaker === baseToken) this.scanToMatchOrder(askOrders, newOrder, 'ask');
+		console.log('look for match');
+		if (newOrderTaker === baseToken) this.scanToMatchOrder(askOrders, newOrder, true);
 		else if (newOrderMaker === baseToken) this.scanToMatchOrder(bidOrders, newOrder);
 	}
 }
