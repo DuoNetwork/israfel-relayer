@@ -95,6 +95,12 @@ export enum WsChannelMessageTypes {
 	Subscribe = 'subscribe'
 }
 
+export enum UserOrderOperation {
+	ADD = 'ADD',
+	CANCEL = 'CANCEL',
+	FILL = 'FILL'
+}
+
 export enum WsChannelResposnseTypes {
 	Update = 'update',
 	Snapshot = 'snapshot'

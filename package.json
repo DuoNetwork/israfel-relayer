@@ -60,6 +60,8 @@
 		"@0xproject/utils": "^1.0.8",
 		"@0xproject/web3-wrapper": "^2.0.2",
 		"@types/web3-provider-engine": "^14.0.0",
+		"aws-cli-js": "^2.0.4",
+		"aws-sdk": "^2.323.0",
 		"bignumber.js": "4.1.0",
 		"cross-env": "^5.1.4",
 		"firebase-admin": "^6.0.0",

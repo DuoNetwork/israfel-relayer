@@ -56,6 +56,10 @@ class Util {
 		spender: 1
 	};
 
+	public getUTCNowTimestamp() {
+		return moment().valueOf();
+	}
+
 	public parseOptions(argv: string[]): IOption {
 		const option: IOption = this.defaultOption;
 

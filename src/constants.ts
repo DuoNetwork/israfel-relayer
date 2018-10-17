@@ -1,8 +1,39 @@
-export const DB_ORDERS = 'orders';
-export const DB_MAKER_ADDR = 'makerAddr';
-export const DB_TIMESTAMP = 'timestamp';
+export const DB_PROJECT = 'israfel';
+export const DB_LIVE_ORDERS = 'liveOrders';
+export const DB_RAW_ORDERS = 'rawOrders';
+export const DB_USER_ORDERS = 'userOrders';
+export const DB_PAIR = 'pair';
+export const DB_ORDER_HASH = 'orderHash';
+export const DB_PRICE = 'price';
+export const DB_ACCOUNT = 'account';
+export const DB_PAIR_ORDERHASH = 'pairOrderHash';
+export const DB_OPERATION = 'operation';
+export const DB_FILLED_TAKER_ASSET_AMT = 'filledTakerAssetAmount';
+export const DB_REMAINING_MAKER_ASSET_AMT = 'remainingFillableMakerAssetAmount';
+export const DB_REMAINING_TAKER_ASSET_AMT = 'remainingFillableTakerAssetAmount';
 export const DB_UPDATED_AT = 'updatedAt';
-export const DB_ORDER_ADDED = 'added';
+
+export const DB_SENDER_ADDR = 'senderAddress';
+
+export const DB_MAKER_FEE = 'makerFee';
+export const DB_TAKER_FEE = 'takerFee';
+export const DB_MAKER_ADDR = 'makerAddress';
+export const DB_TAKER_ADDR = 'takerAddress';
+export const DB_MAKER_ASSET_AMT = 'makerAssetAmount';
+export const DB_TAKER_ASSET_AMT = 'takerAssetAmount';
+export const DB_MAKER_ASSET_DATA = 'makerAssetData';
+export const DB_TAKER_ASSET_DATA = 'takerAssetData';
+export const DB_SALT = 'salt';
+export const DB_EXCHANGE_ADDR = 'exchangeAddress';
+export const DB_FEE_RECIPIENT_ADDR = 'feeRecipientAddress';
+export const DB_EXPIRATION_TIME_SECONDS = 'expirationTimeSeconds';
+
+export const DB_ORDER_OPERATION = {
+	ADD: 'ADD',
+	CANCEL: 'CANCEL',
+	FILL: 'FILL'
+};
+
 export const DB_ORDER_MAKER_ADDR = 'makerAddress';
 export const DB_ORDER_TAKER_ADDR = 'takerAddress';
 export const DB_ORDER_MAKER_ASSETDATA = 'makerAssetData';
@@ -12,6 +43,12 @@ export const DB_ORDER_IS_VALID = 'isValid';
 export const ORDER_BUY = 'buy';
 export const ORDER_SELL = 'sell';
 export const ORDERBOOK_UPDATE = 'orderBookUpdate';
+
+export const DB_ORDER_ADDED = 'added';
+export const DB_ORDERS = 'orders';
+export const DB_TIMESTAMP = 'timestamp';
+
+export const AWS_DYNAMO_API_VERSION = '2012-10-08';
 
 export const TAKER_ETH_DEPOSIT = 10;
 export const ONE_SECOND_MS = 1000;
@@ -38,15 +75,13 @@ export const WS_TYPE_ORDER_CANCEL = 'cancel';
 
 export const TOKEN_ZRX = 'ZRX';
 export const TOKEN_WETH = 'WETH';
-export const TOKEN_MAPPING: {[key: string]: string} = {
+export const TOKEN_MAPPING: { [key: string]: string } = {
 	'0x871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c': TOKEN_ZRX,
 	'0x0b1ba0af832d7c05fd64161e0db78e85978e8082': TOKEN_WETH
 };
 
 export const PAIR_SEPARATOR = '-';
-export const TRADING_PAIRS = [
-	TOKEN_ZRX + PAIR_SEPARATOR + TOKEN_WETH
-]
+export const TRADING_PAIRS = [TOKEN_ZRX + PAIR_SEPARATOR + TOKEN_WETH];
 
 export const PRUNE_INTERVAL = 3600000;
 export const ORDER_WATCHER = 'orderWatcher';
