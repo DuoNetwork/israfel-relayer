@@ -1,4 +1,5 @@
 import { BigNumber, OrderRelevantState, SignedOrder } from '0x.js';
+import * as CST from './constants';
 
 export interface IDuoOrder extends IDuoSignedOrder {
 	orderHash: string;
@@ -117,8 +118,15 @@ export interface IOrderStateCancelled {
 }
 
 export interface IOption {
+	live: boolean;
 	token: string;
 	maker: number;
 	spender: number;
 	amount: number;
+}
+
+export interface ILiveOrders {
+	price: number;
+	amount: number;
+	[CST.DB_SIDE]: string;
 }

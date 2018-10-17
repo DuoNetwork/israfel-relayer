@@ -50,6 +50,7 @@ class Util {
 	}
 
 	public defaultOption: IOption = {
+		live: false,
 		token: 'ZRX',
 		amount: 1,
 		maker: 0,
@@ -64,6 +65,7 @@ class Util {
 		const option: IOption = this.defaultOption;
 
 		for (let i = 3; i < argv.length; i++) {
+			option.live = process.argv.includes('live');
 			const args = argv[i].split('=');
 			switch (args[0]) {
 				case 'token':

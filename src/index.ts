@@ -2,6 +2,7 @@ import assetsUtil from './common/assetsUtil';
 import orderWatcherUtil from './common/orderWatcherUtil';
 import * as CST from './constants';
 import util from './util';
+import wsServer from './wsServer';
 
 const tool = process.argv[2];
 
@@ -18,6 +19,9 @@ switch (tool) {
 		break;
 	case CST.ORDER_PRUNE:
 		orderWatcherUtil.pruneOrders(option);
+		break;
+	case CST.START_RELAYER:
+		wsServer.init(tool, option);
 		break;
 	default:
 		break;

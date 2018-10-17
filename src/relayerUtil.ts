@@ -9,6 +9,7 @@ import {
 import { schemas, SchemaValidator } from '@0xproject/json-schemas';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import * as CST from './constants';
+import dynamoUtil from './dynamoUtil';
 import firebaseUtil from './firebaseUtil';
 import matchOrdersUtil from './matchOrdersUtil';
 import { providerEngine } from './providerEngine';
@@ -16,6 +17,7 @@ import {
 	ErrorResponseWs,
 	IDuoOrder,
 	IDuoSignedOrder,
+	IOption,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotWs,
 	IOrderBookUpdateWS,
@@ -42,7 +44,10 @@ class RelayerUtil {
 		this.now = Date.now();
 	}
 
-	public async init() {
+	public async init(tool: string, option: IOption) {
+		const config = require('../keys/' + (option.live ? 'live' : 'dev') + '/dynamo.json');
+		dynamoUtil.init(config, option.live, tool);
+
 		for (const marketId of CST.TRADING_PAIRS) {
 			util.logInfo('initializing orderBook for ' + marketId);
 			const rawOrders: IDuoOrder[] = await firebaseUtil.getOrders(marketId);
@@ -191,8 +196,7 @@ class RelayerUtil {
 			exchangeAddress: order.exchangeAddress,
 			feeRecipientAddress: order.feeRecipientAddress,
 			expirationTimeSeconds: util.stringToBN(order.expirationTimeSeconds)
-
-		}
+		};
 	}
 
 	public async handleAddorder(message: any): Promise<IOrderResponseWs> {

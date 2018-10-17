@@ -1,29 +1,35 @@
 import { SignedOrder } from '0x.js';
 import AWS from 'aws-sdk';
 import {
+	AttributeMap,
 	DeleteItemInput,
 	PutItemInput,
 	QueryInput,
 	QueryOutput,
 	ScanInput,
-	ScanOutput
+	ScanOutput,
+	UpdateItemInput
 } from 'aws-sdk/clients/dynamodb';
 import * as CST from './constants';
-import { IDuoSignedOrder, UserOrderOperation } from './types';
+import { IDuoSignedOrder, ILiveOrders, UserOrderOperation } from './types';
 import util from './util';
 
 class DynamoUtil {
 	private ddb: undefined | AWS.DynamoDB = undefined;
 	// private process: string = 'UNKNOWN';
 	private live: boolean = false;
+	private hostname: string = 'hostname';
+	private tool: string = 'tool';
 	// private contractUtil: ContractUtil | undefined = undefined;
 	public init(
 		config: object,
-		live: boolean
+		live: boolean,
+		tool: string
 		//  process: string
 	) {
 		this.live = live;
 		// this.process = process;
+		this.tool = tool;
 		AWS.config.update(config);
 		this.ddb = new AWS.DynamoDB({ apiVersion: CST.AWS_DYNAMO_API_VERSION });
 		return Promise.resolve();
@@ -37,18 +43,6 @@ class DynamoUtil {
 					: reject('dynamo db connection is not initialized')
 		);
 	}
-
-	// public batchInsertData(params: BatchWriteItemInput): Promise<BatchWriteItemOutput> {
-	// 	return new Promise(
-	// 		(resolve, reject) =>
-	// 			this.ddb
-	// 				? this.ddb.batchWriteItem(
-	// 						params,
-	// 						(err, data) => (err ? reject(err) : resolve(data))
-	// 				  )
-	// 				: reject('dynamo db connection is not initialized')
-	// 	);
-	// }
 
 	public queryData(params: QueryInput): Promise<QueryOutput> {
 		return new Promise(
@@ -77,10 +71,20 @@ class DynamoUtil {
 		);
 	}
 
+	public updateItem(params: UpdateItemInput): Promise<void> {
+		return new Promise(
+			(resolve, reject) =>
+				this.ddb
+					? this.ddb.updateItem(params, err => (err ? reject(err) : resolve()))
+					: reject('dynamo db connection is not initialized')
+		);
+	}
+
 	public convertDuoSignedOrderToDynamo(
 		order: IDuoSignedOrder,
 		orderHash: string,
-		timestamp: number
+		timestamp: number,
+		side: string
 	) {
 		return {
 			[CST.DB_ORDER_HASH]: { S: orderHash },
@@ -95,18 +99,25 @@ class DynamoUtil {
 			[CST.DB_FILLED_TAKER_ASSET_AMT]: { S: '0' },
 			[CST.DB_REMAINING_MAKER_ASSET_AMT]: { S: order.makerAssetAmount + '' },
 			[CST.DB_REMAINING_TAKER_ASSET_AMT]: { S: order.takerAssetAmount + '' },
+			[CST.DB_SIDE]: { S: side },
 			[CST.DB_UPDATED_AT]: { N: timestamp + '' }
 		};
 	}
 
-	public async addLiveOrder(order: IDuoSignedOrder, orderHash: string, marketId: string) {
+	public async addLiveOrder(
+		order: IDuoSignedOrder,
+		orderHash: string,
+		marketId: string,
+		side: string
+	) {
 		const systemTimestamp = util.getUTCNowTimestamp(); // record down the MTS
-		const data = this.convertDuoSignedOrderToDynamo(order, orderHash, systemTimestamp);
+
+		const data = this.convertDuoSignedOrderToDynamo(order, orderHash, systemTimestamp, side);
 
 		const params = {
 			TableName: this.live
-				? `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.live`
-				: `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.dev`,
+			? `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_LIVE}`
+			: `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_DEV}`,
 			Item: {
 				[CST.DB_PAIR]: {
 					S: marketId
@@ -116,6 +127,47 @@ class DynamoUtil {
 		};
 
 		await this.insertData(params);
+	}
+
+	public async removeLiveOrder(
+		pair: string,
+		orderHash: string
+	): Promise<void> {
+		return this.deleteData({
+			TableName: this.live
+				? `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_LIVE}`
+				: `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_DEV}`,
+			Key: {
+				[CST.DB_PAIR]: {
+					S: pair
+				},
+				[CST.DB_ORDER_HASH]: {
+					S: orderHash
+				}
+			}
+		});
+	}
+
+	public async deleteOrderSignature(
+		orderHash: string
+	): Promise<void> {
+		return this.updateItem({
+			TableName: this.live
+				? `${CST.DB_PROJECT}.${CST.DB_RAW_ORDERS}.${CST.DB_LIVE}`
+				: `${CST.DB_PROJECT}.${CST.DB_RAW_ORDERS}.${CST.DB_DEV}`,
+			Key: {
+				[CST.DB_ORDER_HASH]: {
+					S: orderHash
+				}
+			},
+			ExpressionAttributeNames: {
+				[CST.DB_SIGNATURE]: CST.DB_SIGNATURE
+			},
+			ExpressionAttributeValues: {
+				[':' + CST.DB_SIGNATURE]: { S: '' }
+			},
+			UpdateExpression: `SET ${CST.DB_SIGNATURE} = ${':' + CST.DB_SIGNATURE}`
+		});
 	}
 
 	public convertSignedOrderToDynamo(order: SignedOrder, timestamp: number) {
@@ -156,7 +208,7 @@ class DynamoUtil {
 		await this.insertData(params);
 	}
 
-	public async addUserOrders(
+	public async addUserOrder(
 		account: string,
 		orderHash: string,
 		pair: string,
@@ -166,8 +218,8 @@ class DynamoUtil {
 
 		const params = {
 			TableName: this.live
-				? `${CST.DB_PROJECT}.${CST.DB_USER_ORDERS}.live`
-				: `${CST.DB_PROJECT}.${CST.DB_USER_ORDERS}.dev`,
+				? `${CST.DB_PROJECT}.${CST.DB_USER_ORDERS}.${CST.DB_LIVE}`
+				: `${CST.DB_PROJECT}.${CST.DB_USER_ORDERS}.${CST.DB_DEV}`,
 			Item: {
 				[CST.DB_ACCOUNT]: {
 					S: account
@@ -185,30 +237,54 @@ class DynamoUtil {
 		await this.insertData(params);
 	}
 
-	// public insertHeartbeat(data: object = {}): Promise<void> {
-	// 	return this.insertData({
-	// 		TableName: this.live ? CST.DB_AWS_STATUS_LIVE : CST.DB_AWS_STATUS_DEV,
-	// 		Item: {
-	// 			[CST.DB_ST_PROCESS]: {
-	// 				S: this.process
-	// 			},
-	// 			[CST.DB_ST_TS]: { N: util.getUTCNowTimestamp() + '' },
-	// 			...data
-	// 		}
-	// 	}).catch(error => util.logInfo('Error insert heartbeat: ' + error));
-	// }
+	public parseLiveOrders(data: AttributeMap): ILiveOrders {
+		return {
+			[CST.DB_PRICE]: Number(data[CST.DB_PRICE].S || '0'),
+			[CST.DB_SIDE]: data[CST.DB_SIDE].S || '',
+			[CST.DB_AMT]: Number(data[CST.DB_MAKER_ASSET_AMT].S || '0')
+		};
+	}
 
-	// public insertStatusData(data: object): Promise<void> {
-	// 	return this.insertData({
-	// 		TableName: this.live ? CST.DB_AWS_STATUS_LIVE : CST.DB_AWS_STATUS_DEV,
-	// 		Item: {
-	// 			[CST.DB_ST_PROCESS]: {
-	// 				S: this.process
-	// 			},
-	// 			...data
-	// 		}
-	// 	}).catch(error => util.logInfo('Error insert status: ' + error));
-	// }
+	public async getLiveOrders(pair: string): Promise<ILiveOrders[]> {
+		const params: QueryInput = {
+			TableName: this.live
+				? `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.live`
+				: `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.dev`,
+			KeyConditionExpression: `${CST.DB_PAIR} = :${CST.DB_PAIR}`,
+			ExpressionAttributeValues: {
+				[':' + CST.DB_PAIR]: { S: pair }
+			}
+		};
+
+		const data = await this.queryData(params);
+		if (!data.Items || !data.Items.length) return [];
+
+		const parsedLiveOrders = data.Items.map(ob => this.parseLiveOrders(ob)).sort(
+			(a, b) => b.price - a.price
+		);
+
+		return parsedLiveOrders;
+	}
+
+	public updateStatus(process: string) {
+		const update: AttributeMap = {
+			[CST.DB_STS_PROCESS]: {
+				S: `${this.tool}|${process}|${this.hostname}`
+			},
+			[CST.DB_STS_HOSTNAME]: {
+				S: this.hostname
+			},
+			[CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' }
+		};
+
+		return this.insertData({
+			TableName: `${CST.DB_PROJECT}.${CST.DB_STATUS}.${this.live ? CST.DB_LIVE : CST.DB_DEV}`,
+			Item: update
+		}).catch(error => {
+			util.logError('Error insert status: ' + error);
+			return false;
+		});
+	}
 }
 
 const dynamoUtil = new DynamoUtil();

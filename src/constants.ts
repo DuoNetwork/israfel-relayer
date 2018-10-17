@@ -2,12 +2,19 @@ export const DB_PROJECT = 'israfel';
 export const DB_LIVE_ORDERS = 'liveOrders';
 export const DB_RAW_ORDERS = 'rawOrders';
 export const DB_USER_ORDERS = 'userOrders';
+export const DB_STATUS = 'status';
+export const DB_LIVE = 'live';
+export const DB_DEV = 'dev';
 export const DB_PAIR = 'pair';
 export const DB_ORDER_HASH = 'orderHash';
 export const DB_PRICE = 'price';
 export const DB_ACCOUNT = 'account';
 export const DB_PAIR_ORDERHASH = 'pairOrderHash';
 export const DB_OPERATION = 'operation';
+export const DB_SIDE = 'side';
+export const DB_AMT = 'amount';
+export const DB_SELL = 'sell';
+export const DB_BUY = 'buy';
 export const DB_FILLED_TAKER_ASSET_AMT = 'filledTakerAssetAmount';
 export const DB_REMAINING_MAKER_ASSET_AMT = 'remainingFillableMakerAssetAmount';
 export const DB_REMAINING_TAKER_ASSET_AMT = 'remainingFillableTakerAssetAmount';
@@ -27,6 +34,7 @@ export const DB_SALT = 'salt';
 export const DB_EXCHANGE_ADDR = 'exchangeAddress';
 export const DB_FEE_RECIPIENT_ADDR = 'feeRecipientAddress';
 export const DB_EXPIRATION_TIME_SECONDS = 'expirationTimeSeconds';
+export const DB_SIGNATURE = 'signature';
 
 export const DB_ORDER_OPERATION = {
 	ADD: 'ADD',
@@ -87,6 +95,7 @@ export const PRUNE_INTERVAL = 3600000;
 export const ORDER_WATCHER = 'orderWatcher';
 export const ORDER_PRUNE = 'pruneOrder';
 export const SET_ALLOWANCE = 'setAllowance';
+export const START_RELAYER = 'startRelayer';
 
 export const LOG_INFO = 'INFO';
 export const LOG_DEBUG = 'DEBUG';
@@ -96,3 +105,6 @@ export const LOG_RANKING: { [level: string]: number } = {
 	[LOG_INFO]: 1,
 	[LOG_DEBUG]: 2
 };
+
+export const DB_STS_PROCESS = 'process';
+export const DB_STS_HOSTNAME = 'hostname';
