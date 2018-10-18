@@ -36,7 +36,7 @@ class OrderWatcherUtil {
 			const inValidTime = !order.isValid ? Date.now() - order.updatedAt : 0;
 			console.log(inValidTime);
 			if (inValidTime > CST.PENDING_HOURS * 3600000) {
-				dynamoUtil.deleteLiveOrder(order.orderHash);
+				dynamoUtil.removeLiveOrder(marketId, order.orderHash);
 				this.orderWatcher.removeOrder(order.orderHash);
 				console.log('remove order!');
 			}
