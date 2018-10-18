@@ -11,5 +11,4 @@ dist
 *firebase-adminsdk*.json
 *.txt
 keys
-*package-lock.json
 0x_ganache_snapshot

@@ -1,6 +1,5 @@
 import { SignedOrder } from '0x.js';
-import AWS from 'aws-sdk';
-import {
+import DynamoDB, {
 	AttributeMap,
 	DeleteItemInput,
 	PutItemInput,
@@ -10,12 +9,13 @@ import {
 	ScanOutput,
 	UpdateItemInput
 } from 'aws-sdk/clients/dynamodb';
+import AWS from 'aws-sdk/global';
 import * as CST from './constants';
 import { IDuoSignedOrder, ILiveOrders, UserOrderOperation } from './types';
 import util from './util';
 
 class DynamoUtil {
-	private ddb: undefined | AWS.DynamoDB = undefined;
+	private ddb: undefined | DynamoDB = undefined;
 	// private process: string = 'UNKNOWN';
 	private live: boolean = false;
 	private hostname: string = 'hostname';
@@ -31,7 +31,7 @@ class DynamoUtil {
 		// this.process = process;
 		this.tool = tool;
 		AWS.config.update(config);
-		this.ddb = new AWS.DynamoDB({ apiVersion: CST.AWS_DYNAMO_API_VERSION });
+		this.ddb = new DynamoDB({ apiVersion: CST.AWS_DYNAMO_API_VERSION });
 		return Promise.resolve();
 	}
 

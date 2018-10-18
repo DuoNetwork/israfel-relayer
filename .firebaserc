@@ -1,7 +1,0 @@
-{
-  "projects": {
-    "default": "duo-dev-f64ce",
-    "dev": "duo-dev-f64ce",
-    "live": "duo-live"
-  }
-}
