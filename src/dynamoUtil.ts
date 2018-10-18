@@ -11,7 +11,7 @@ import DynamoDB, {
 } from 'aws-sdk/clients/dynamodb';
 import AWS from 'aws-sdk/global';
 import * as CST from './constants';
-import { IDuoSignedOrder, ILiveOrders, UserOrderOperation } from './types';
+import { ILiveOrders, UserOrderOperation } from './types';
 import util from './util';
 
 class DynamoUtil {
@@ -89,7 +89,11 @@ class DynamoUtil {
 		return {
 			[CST.DB_ORDER_HASH]: { S: orderHash },
 			[CST.DB_PRICE]: {
-				N: order.makerAssetAmount.div(order.takerAssetAmount).valueOf() + ''
+				N:
+					util.keepPrecision(
+						order.makerAssetAmount.div(order.takerAssetAmount).valueOf(),
+						CST.PRICE_PRECISION
+					) + ''
 			},
 			[CST.DB_FILLED_TAKER_ASSET_AMT]: { S: '0' },
 			[CST.DB_REMAINING_MAKER_ASSET_AMT]: { S: order.makerAssetAmount.valueOf() + '' },

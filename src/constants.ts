@@ -108,3 +108,5 @@ export const LOG_RANKING: { [level: string]: number } = {
 
 export const DB_STS_PROCESS = 'process';
 export const DB_STS_HOSTNAME = 'hostname';
+
+export const PRICE_PRECISION = 8;
