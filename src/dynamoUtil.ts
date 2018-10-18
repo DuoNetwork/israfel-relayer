@@ -11,7 +11,7 @@ import DynamoDB, {
 } from 'aws-sdk/clients/dynamodb';
 import AWS from 'aws-sdk/global';
 import * as CST from './constants';
-import { ILiveOrders, IOrderStateCancelled, UserOrderOperation } from './types';
+import { ILiveOrders, UserOrderOperation } from './types';
 import util from './util';
 
 class DynamoUtil {
@@ -316,15 +316,35 @@ class DynamoUtil {
 				},
 				ExpressionAttributeNames: {
 					[CST.DB_ORDER_IS_VALID]: CST.DB_ORDER_IS_VALID,
-					[CST.DB_AMT]: CST.DB_AMT
+					[CST.DB_AMT]: CST.DB_AMT,
+					[CST.DB_FILLED_TAKER_ASSET_AMT]: CST.DB_FILLED_TAKER_ASSET_AMT,
+					[CST.DB_REMAINING_MAKER_ASSET_AMT]: CST.DB_REMAINING_MAKER_ASSET_AMT,
+					[CST.DB_REMAINING_TAKER_ASSET_AMT]: CST.DB_REMAINING_TAKER_ASSET_AMT,
+					[CST.DB_UPDATED_AT]: CST.DB_UPDATED_AT
 				},
 				ExpressionAttributeValues: {
 					[':' + CST.DB_ORDER_IS_VALID]: { S: orderState.isValid.toString() },
 					[':' + CST.DB_AMT]: {
 						S: orderState.orderRelevantState.remainingFillableMakerAssetAmount.toString()
-					}
+					},
+					[':' + CST.DB_FILLED_TAKER_ASSET_AMT]: {
+						S: orderState.orderRelevantState.filledTakerAssetAmount.toString()
+					},
+					[':' + CST.DB_REMAINING_MAKER_ASSET_AMT]: {
+						S: orderState.orderRelevantState.remainingFillableMakerAssetAmount.toString()
+					},
+					[':' + CST.DB_REMAINING_TAKER_ASSET_AMT]: {
+						S: orderState.orderRelevantState.remainingFillableTakerAssetAmount.toString()
+					},
+					[':' + CST.DB_UPDATED_AT]: { S: Date.now().toString() }
 				},
-				UpdateExpression: `SET ${CST.DB_ORDER_IS_VALID} = ${':' + CST.DB_ORDER_IS_VALID}`
+				UpdateExpression: `SET ${CST.DB_ORDER_IS_VALID} = ${':' + CST.DB_ORDER_IS_VALID}, ${
+					CST.DB_AMT
+				} = ${':' + CST.DB_AMT}, ${CST.DB_FILLED_TAKER_ASSET_AMT} = ${':' +
+					CST.DB_FILLED_TAKER_ASSET_AMT}, ${CST.DB_REMAINING_MAKER_ASSET_AMT} = ${':' +
+					CST.DB_REMAINING_MAKER_ASSET_AMT}, ${CST.DB_REMAINING_TAKER_ASSET_AMT} = ${':' +
+					CST.DB_REMAINING_TAKER_ASSET_AMT}, ${CST.DB_UPDATED_AT} = ${':' +
+					CST.DB_UPDATED_AT} `
 			});
 	}
 
