@@ -1,6 +1,5 @@
 import { SignedOrder } from '0x.js';
 import assetsUtil from './common/assetsUtil';
-import orderWatcherUtil from './common/orderWatcherUtil';
 import * as CST from './constants';
 import dynamoUtil from './dynamoUtil';
 import { ILiveOrders } from './types';
@@ -20,7 +19,7 @@ class MatchOrdersUtil {
 					order.amount === Number(newOrder.makerAssetAmount) &&
 					newOrder.takerAssetAmount.div(newOrder.makerAssetAmount).lessThan(order.price)
 				) {
-					const leftOrder = orderWatcherUtil.parseToSignedOrder(order);
+					const leftOrder = await dynamoUtil.getRawOrder(order.orderHash);
 					console.log('>>>>>>>>>>>>>>>>>>>>> start matching orders ');
 					console.log(leftOrder);
 					console.log(newOrder);
@@ -35,7 +34,7 @@ class MatchOrdersUtil {
 					order.amount === Number(newOrder.takerAssetAmount) &&
 					newOrder.takerAssetAmount.div(newOrder.makerAssetAmount).lessThan(order.price)
 				) {
-					const rightOrder = orderWatcherUtil.parseToSignedOrder(order);
+					const rightOrder = await dynamoUtil.getRawOrder(order.orderHash);
 					const txHash = await assetsUtil.contractWrappers.exchange.matchOrdersAsync(
 						newOrder,
 						rightOrder,
