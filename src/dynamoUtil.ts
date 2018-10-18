@@ -35,7 +35,7 @@ class DynamoUtil {
 		return Promise.resolve();
 	}
 
-	public insertData(params: PutItemInput): Promise<void> {
+	public  insertData(params: PutItemInput): Promise<void> {
 		return new Promise(
 			(resolve, reject) =>
 				this.ddb
