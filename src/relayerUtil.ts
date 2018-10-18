@@ -188,7 +188,6 @@ class RelayerUtil {
 
 	public async handleAddorder(message: any): Promise<IOrderResponseWs> {
 		const order: SignedOrder = this.toSignedOrder(message.payload.order);
-		console.log('### signed order is', order);
 		const orderHash = message.payload.orderHash;
 		const marketId = message.channel.marketId;
 
@@ -204,8 +203,8 @@ class RelayerUtil {
 			})
 		);
 
-		matchOrdersUtil.matchOrder(order, marketId);
 		const side = this.determineSide(order, marketId);
+		matchOrdersUtil.matchOrder(order, marketId, side);
 
 		if (await this.validateNewOrder(order, orderHash)) {
 			await dynamoUtil.addLiveOrder(order, orderHash, marketId, side);

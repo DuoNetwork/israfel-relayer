@@ -46,19 +46,15 @@ class MatchOrdersUtil {
 			}
 	}
 
-	public async matchOrder(newOrder: SignedOrder, marketId: string): Promise<void> {
-		const baseToken = marketId.split('-')[0];
+	public async matchOrder(newOrder: SignedOrder, marketId: string, side: string): Promise<void> {
 		const liveOrders = await dynamoUtil.getLiveOrders(marketId);
 		const [bidOrders, askOrders] = [
 			liveOrders.filter(order => order.side === CST.DB_BUY),
 			liveOrders.filter(order => order.side === CST.DB_SELL)
 		];
-		const newOrderTaker = assetsUtil.assetDataToTokenName(newOrder.takerAssetData);
-		const newOrderMaker = assetsUtil.assetDataToTokenName(newOrder.makerAssetData);
-
 		console.log('look for match');
-		if (newOrderTaker === baseToken) this.scanToMatchOrder(askOrders, newOrder, true);
-		else if (newOrderMaker === baseToken) this.scanToMatchOrder(bidOrders, newOrder);
+		if (side === CST.ORDER_BUY) this.scanToMatchOrder(askOrders, newOrder, true);
+		else this.scanToMatchOrder(bidOrders, newOrder);
 	}
 }
 const matchOrdersUtil = new MatchOrdersUtil();
