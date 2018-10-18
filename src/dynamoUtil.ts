@@ -218,26 +218,24 @@ class DynamoUtil {
 		return parsedRawOrders;
 	}
 
-	public parseRawOrders(order: AttributeMap): SignedOrder {
+	public parseRawOrders(data: AttributeMap): SignedOrder {
 		return {
-			signature: order.signature,
-			senderAddress: order.senderAddress,
-			makerAddress: order.makerAddress,
-			takerAddress: order.takerAddress,
-			makerFee: util.stringToBN(order.makerFee),
-			takerFee: util.stringToBN(order.takerFee),
-			makerAssetAmount: util.stringToBN(order.makerAssetAmount),
-			takerAssetAmount: util.stringToBN(order.takerAssetAmount),
-			makerAssetData: order.makerAssetData,
-			takerAssetData: order.takerAssetData,
-			salt: util.stringToBN(order.salt),
-			exchangeAddress: order.exchangeAddress,
-			feeRecipientAddress: order.feeRecipientAddress,
-			expirationTimeSeconds: util.stringToBN(order.expirationTimeSeconds)
+			signature: data[CST.DB_SIGNATURE].S || '',
+			senderAddress: data[CST.DB_SENDER_ADDR].S || '',
+			makerAddress: data[CST.DB_MAKER_ADDR].S || '',
+			takerAddress: data[CST.DB_TAKER_ADDR].S || '',
+			makerFee: util.stringToBN(data[CST.DB_MAKER_FEE].S || '0'),
+			takerFee: util.stringToBN(data[CST.DB_TAKER_FEE].S || '0'),
+			makerAssetAmount: util.stringToBN(data[CST.DB_MAKER_ASSET_AMT].S || '0'),
+			takerAssetAmount: util.stringToBN(data[CST.DB_TAKER_ASSET_AMT].S || '0'),
+			makerAssetData: data[CST.DB_MAKER_ASSET_DATA].S || '',
+			takerAssetData: data[CST.DB_TAKER_ASSET_DATA].S || '',
+			salt: util.stringToBN(data[CST.DB_SALT].S || '0'),
+			exchangeAddress: data[CST.DB_EXCHANGE_ADDR].S || '',
+			feeRecipientAddress: data[CST.DB_FEE_RECIPIENT_ADDR].S || '',
+			expirationTimeSeconds: util.stringToBN(data[CST.DB_EXPIRATION_TIME_SECONDS].S || '0')
 		};
 	}
-
-
 
 	public async addUserOrder(
 		account: string,
