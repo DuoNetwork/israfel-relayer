@@ -66,6 +66,7 @@
 		"cross-env": "^5.1.4",
 		"firebase-admin": "^6.0.0",
 		"ganache-cli": "^6.1.6",
+		"ioredis": "^4.0.2",
 		"moment": "^2.22.2",
 		"ts-node": "^7.0.1",
 		"typescript": "^3.0.1",
