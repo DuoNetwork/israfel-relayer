@@ -47,7 +47,7 @@ class RelayerUtil {
 	}
 
 	public async init(tool: string, option: IOption) {
-		const config = require('../keys/' + (option.live ? 'live' : 'dev') + '/dynamo.json');
+		const config = require('./keys/' + (option.live ? 'live' : 'dev') + '/dynamo.json');
 		dynamoUtil.init(config, option.live, tool);
 
 		for (const marketId of CST.TRADING_PAIRS) {
