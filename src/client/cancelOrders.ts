@@ -1,18 +1,19 @@
 // import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import WebSocket from 'ws';
 import * as CST from '../constants';
-import firebaseUtil from '../firebaseUtil';
+import dynamoUtil from '../dynamoUtil';
 // import { providerEngine } from '../providerEngine';
 import { WsChannelMessageTypes, WsChannelName } from '../types';
 
-firebaseUtil.init();
+const config = require('./keys/' + 'dev' + '/dynamo.json');
+dynamoUtil.init(config, false, 'cancelOrders');
 
 const mainAsync = async () => {
 	// const web3Wrapper = new Web3Wrapper(providerEngine);
 
 	// const [maker] = await web3Wrapper.getAvailableAddressesAsync();
 	const marketId = CST.TOKEN_ZRX + '-' + CST.TOKEN_WETH;
-	const orders = await firebaseUtil.getOrders(marketId, '0x7457d5e02197480db681d3fdf256c7aca21bdc12');
+	const orders = await dynamoUtil.getLiveOrders(marketId);
 	if (orders.length === 0) throw Error('No orders found in DB!');
 	console.log('num of fetched orders' + orders.length);
 
