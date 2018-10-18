@@ -1,9 +1,9 @@
 import { ContractWrappers, OrderWatcher, RPCSubprovider, SignedOrder } from '0x.js';
 import * as CST from '../constants';
-import { providerEngine } from '../providerEngine';
-import { IDuoOrder, IOption, ILiveOrders } from '../types';
-import util from '../util';
 import dynamoUtil from '../dynamoUtil';
+import { providerEngine } from '../providerEngine';
+import { ILiveOrders, IOption } from '../types';
+import util from '../util';
 
 class OrderWatcherUtil {
 	public provider = new RPCSubprovider(CST.PROVIDER_LOCAL);
@@ -11,12 +11,11 @@ class OrderWatcherUtil {
 	public zeroEx: ContractWrappers;
 	public orderWatcher: OrderWatcher;
 
-	constructor(tool: string, option: IOption) {
+	constructor() {
 		// this.providerEngine.addProvider(this.provider);
 		// this.providerEngine.start();
 		this.zeroEx = new ContractWrappers(providerEngine, { networkId: CST.NETWORK_ID_LOCAL });
 		this.orderWatcher = new OrderWatcher(providerEngine, CST.NETWORK_ID_LOCAL);
-		this.init(tool, option);
 	}
 
 	public init(tool: string, option: IOption) {
@@ -37,7 +36,7 @@ class OrderWatcherUtil {
 			const inValidTime = !order.isValid ? Date.now() - order.updatedAt : 0;
 			console.log(inValidTime);
 			if (inValidTime > CST.PENDING_HOURS * 3600000) {
-				firebaseUtil.deleteOrder(order.orderHash);
+				dynamoUtil.deleteLiveOrder(order.orderHash);
 				this.orderWatcher.removeOrder(order.orderHash);
 				console.log('remove order!');
 			}
@@ -68,7 +67,7 @@ class OrderWatcherUtil {
 			}
 
 			console.log(Date.now().toString(), orderState);
-			if (orderState !== undefined) await firebaseUtil.updateOrderState(orderState, marketId);
+			if (orderState !== undefined) await dynamoUtil.updateOrderState(orderState, marketId);
 		});
 	}
 }

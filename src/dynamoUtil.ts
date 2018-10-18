@@ -1,4 +1,4 @@
-import { SignedOrder } from '0x.js';
+import { OrderStateInvalid, OrderStateValid, SignedOrder } from '0x.js';
 import DynamoDB, {
 	AttributeMap,
 	DeleteItemInput,
@@ -11,7 +11,7 @@ import DynamoDB, {
 } from 'aws-sdk/clients/dynamodb';
 import AWS from 'aws-sdk/global';
 import * as CST from './constants';
-import { ILiveOrders, UserOrderOperation } from './types';
+import { ILiveOrders, IOrderStateCancelled, UserOrderOperation } from './types';
 import util from './util';
 
 class DynamoUtil {
@@ -217,8 +217,6 @@ class DynamoUtil {
 
 		const data = await this.queryData(params);
 		if (!data.Items || !data.Items.length) throw console.error('wrong number of order!');
-		;
-
 		const parsedRawOrder = this.parseRawOrders(data.Items[0]);
 
 		return parsedRawOrder;
@@ -277,7 +275,9 @@ class DynamoUtil {
 			[CST.DB_ORDER_HASH]: data[CST.DB_ORDER_HASH].S || '',
 			[CST.DB_PRICE]: Number(data[CST.DB_PRICE].S || '0'),
 			[CST.DB_SIDE]: data[CST.DB_SIDE].S || '',
-			[CST.DB_AMT]: Number(data[CST.DB_REMAINING_MAKER_ASSET_AMT].S || '0')
+			[CST.DB_AMT]: Number(data[CST.DB_REMAINING_MAKER_ASSET_AMT].S || '0'),
+			[CST.DB_ORDER_IS_VALID]: data[CST.DB_REMAINING_MAKER_ASSET_AMT].BOOL || false,
+			[CST.DB_UPDATED_AT]: Date.now()
 		};
 	}
 
@@ -298,6 +298,20 @@ class DynamoUtil {
 		const parsedLiveOrders = data.Items.map(ob => this.parseLiveOrders(ob));
 
 		return parsedLiveOrders;
+	}
+
+	public async updateOrderState(
+		orderState: OrderStateValid | OrderStateInvalid | IOrderStateCancelled,
+		marketId: string
+	) {
+		console.log(orderState, marketId);
+		// const { orderHash, ...rest } = orderState;
+		// return this.setDoc(
+		// 	`/${CST.DB_ORDERS}|${marketId}/${orderHash}`,
+		// 	Object.assign({}, rest, {
+		// 		[CST.DB_UPDATED_AT]: admin.firestore.FieldValue.serverTimestamp()
+		// 	})
+		// );
 	}
 
 	public updateStatus(process: string) {

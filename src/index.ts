@@ -15,9 +15,11 @@ switch (tool) {
 		assetsUtil.setTokenAllowance(option);
 		break;
 	case CST.ORDER_WATCHER:
+		orderWatcherUtil.init(option, tool);
 		orderWatcherUtil.startOrderWatcher(option);
 		break;
 	case CST.ORDER_PRUNE:
+		orderWatcherUtil.init(option, tool);
 		orderWatcherUtil.pruneOrders(option);
 		break;
 	case CST.START_RELAYER:
