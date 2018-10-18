@@ -5,7 +5,7 @@ import dynamoUtil from '../dynamoUtil';
 // import { providerEngine } from '../providerEngine';
 import { WsChannelMessageTypes, WsChannelName } from '../types';
 
-const config = require('./keys/' + 'dev' + '/dynamo.json');
+const config = require('../keys/' + 'dev' + '/dynamo.json');
 dynamoUtil.init(config, false, 'cancelOrders');
 
 const mainAsync = async () => {

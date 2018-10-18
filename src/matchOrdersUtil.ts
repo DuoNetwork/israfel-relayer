@@ -10,10 +10,10 @@ class MatchOrdersUtil {
 	public async scanToMatchOrder(
 		oldOrders: ILiveOrders[],
 		newOrder: SignedOrder,
-		isAsk?: boolean
+		side: string
 	): Promise<void> {
 		for (const order of oldOrders)
-			if (isAsk) {
+			if (side === CST.ORDER_BUY) {
 				console.log(newOrder.takerAssetAmount, '### new order taker amount');
 				if (
 					order.amount === Number(newOrder.makerAssetAmount) &&
@@ -21,8 +21,6 @@ class MatchOrdersUtil {
 				) {
 					const leftOrder = await dynamoUtil.getRawOrder(order.orderHash);
 					console.log('>>>>>>>>>>>>>>>>>>>>> start matching orders ');
-					console.log(leftOrder);
-					console.log(newOrder);
 					const txHash = await assetsUtil.contractWrappers.exchange.matchOrdersAsync(
 						leftOrder,
 						newOrder,
@@ -53,8 +51,7 @@ class MatchOrdersUtil {
 			liveOrders.filter(order => order.side === CST.DB_SELL)
 		];
 		console.log('look for match');
-		if (side === CST.ORDER_BUY) this.scanToMatchOrder(askOrders, newOrder, true);
-		else this.scanToMatchOrder(bidOrders, newOrder);
+		this.scanToMatchOrder(side === CST.ORDER_BUY ? askOrders : bidOrders, newOrder, side);
 	}
 }
 const matchOrdersUtil = new MatchOrdersUtil();
