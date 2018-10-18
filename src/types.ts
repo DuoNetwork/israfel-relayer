@@ -130,4 +130,5 @@ export interface ILiveOrders {
 	price: number;
 	amount: number;
 	[CST.DB_SIDE]: string;
+	isValid: boolean;
 }

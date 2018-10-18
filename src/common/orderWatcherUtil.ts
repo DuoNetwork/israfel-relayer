@@ -1,8 +1,8 @@
 import { ContractWrappers, orderHashUtils, OrderWatcher, RPCSubprovider, SignedOrder } from '0x.js';
 import * as CST from '../constants';
-import firebaseUtil from '../firebaseUtil';
+import dynamoUtil from '../dynamoUtil';
 import { providerEngine } from '../providerEngine';
-import { IDuoOrder, IOption } from '../types';
+import { IDuoOrder, ILiveOrders, IOption } from '../types';
 import util from '../util';
 
 class OrderWatcherUtil {
@@ -20,6 +20,11 @@ class OrderWatcherUtil {
 
 	public unsubOrderWatcher() {
 		this.orderWatcher.unsubscribe();
+	}
+
+	public init(option: IOption, tool: string) {
+		const config = require('./keys/' + (option.live ? 'live' : 'dev') + '/dynamo.json');
+		dynamoUtil.init(config, option.live, tool);
 	}
 
 	//remove orders remaining invalid for 24 hours from DB
@@ -62,17 +67,16 @@ class OrderWatcherUtil {
 	public async startOrderWatcher(option: IOption) {
 		const marketId = option.token + '-' + CST.TOKEN_WETH;
 		util.logInfo('start order watcher for ' + marketId);
-		firebaseUtil.init();
-		const orders: IDuoOrder[] = await firebaseUtil.getOrders(marketId);
 
-		const signedOrders: SignedOrder[] = orders.map(order => this.parseToSignedOrder(order));
-		console.log('length in DB is ', signedOrders.length);
+		const liveOrders: ILiveOrders[] = await dynamoUtil.getLiveOrders(marketId);
+
 		let hash: string;
-		for (const order of signedOrders) {
-			const { signature, ...originalOrder } = order;
-			hash = orderHashUtils.getOrderHashHex(originalOrder);
+		for (const order of liveOrders) {
+			// const { signature, ...originalOrder } = order;
+			const rawOrder: SignedOrder = await dynamoUtil.getRawOrder(order.orderHash);
+			hash = orderHashUtils.getOrderHashHex(rawOrder);
 			try {
-				await this.orderWatcher.addOrderAsync(order);
+				await this.orderWatcher.addOrderAsync(rawOrder);
 				console.log('succsfully added %s', hash);
 			} catch (e) {
 				console.log('failed to add %s', hash, 'error is ' + e);
@@ -86,7 +90,7 @@ class OrderWatcherUtil {
 			}
 
 			console.log(Date.now().toString(), orderState);
-			if (orderState !== undefined) await firebaseUtil.updateOrderState(orderState, marketId);
+			if (orderState !== undefined) await dynamoUtil.updateOrderState(orderState, marketId);
 		});
 	}
 }
