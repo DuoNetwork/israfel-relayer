@@ -204,7 +204,7 @@ class DynamoUtil {
 		await this.insertData(params);
 	}
 
-	public async getRawOrder(orderHash: string): Promise<SignedOrder | {}> {
+	public async getRawOrder(orderHash: string): Promise<SignedOrder> {
 		const params: QueryInput = {
 			TableName: this.live
 				? `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_LIVE}`
@@ -216,11 +216,12 @@ class DynamoUtil {
 		};
 
 		const data = await this.queryData(params);
-		if (!data.Items || !data.Items.length) return {};
+		if (!data.Items || !data.Items.length) throw console.error('wrong number of order!');
+		;
 
-		const parsedRawOrders = data.Items.map(ob => this.parseRawOrders(ob));
+		const parsedRawOrder = this.parseRawOrders(data.Items[0]);
 
-		return parsedRawOrders;
+		return parsedRawOrder;
 	}
 
 	public parseRawOrders(data: AttributeMap): SignedOrder {
@@ -273,6 +274,7 @@ class DynamoUtil {
 
 	public parseLiveOrders(data: AttributeMap): ILiveOrders {
 		return {
+			[CST.DB_ORDER_HASH]: data[CST.DB_ORDER_HASH].S || '',
 			[CST.DB_PRICE]: Number(data[CST.DB_PRICE].S || '0'),
 			[CST.DB_SIDE]: data[CST.DB_SIDE].S || '',
 			[CST.DB_AMT]: Number(data[CST.DB_REMAINING_MAKER_ASSET_AMT].S || '0')

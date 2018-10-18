@@ -126,6 +126,7 @@ export interface IOption {
 }
 
 export interface ILiveOrders {
+	orderHash: string,
 	price: number;
 	amount: number;
 	[CST.DB_SIDE]: string;
