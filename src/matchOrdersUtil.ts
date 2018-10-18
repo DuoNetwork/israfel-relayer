@@ -5,7 +5,7 @@ import dynamoUtil from './dynamoUtil';
 import { ILiveOrders } from './types';
 
 class MatchOrdersUtil {
-	public matcherAccount = '0x91c987bf62d25945db517bdaa840a6c661374402';
+	public matcherAccount = assetsUtil.taker;
 
 	public async scanToMatchOrder(
 		oldOrders: ILiveOrders[],
