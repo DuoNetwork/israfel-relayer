@@ -38,6 +38,7 @@
 		"snapshot_url": "https://s3.amazonaws.com/testrpc-shapshots/965d6098294beb22292090c461151274ee6f9a26.zip"
 	},
 	"devDependencies": {
+		"@types/ioredis": "^4.0.3",
 		"@types/jest": "^23.3.1",
 		"@types/request": "^2.47.1",
 		"@types/ws": "^6.0.0",
