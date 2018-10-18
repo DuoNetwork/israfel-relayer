@@ -109,6 +109,7 @@ class DynamoUtil {
 		marketId: string,
 		side: string
 	) {
+		if (!marketId || !orderHash) throw new Error('invalid order');
 		const systemTimestamp = util.getUTCNowTimestamp(); // record down the MTS
 
 		const data = this.convertDuoSignedOrderToDynamo(order, orderHash, systemTimestamp, side);
@@ -124,7 +125,6 @@ class DynamoUtil {
 				...data
 			}
 		};
-
 		await this.insertData(params);
 	}
 
@@ -185,15 +185,16 @@ class DynamoUtil {
 	}
 
 	public async addRawOrder(order: SignedOrder, orderHash: string) {
+		if (!orderHash) throw new Error('no orderHash provided');
 		const systemTimestamp = util.getUTCNowTimestamp(); // record down the MTS
 		const data = this.convertSignedOrderToDynamo(order, systemTimestamp);
 
 		const params = {
 			TableName: this.live
-				? `${CST.DB_PROJECT}.${CST.DB_RAW_ORDERS}.live`
-				: `${CST.DB_PROJECT}.${CST.DB_RAW_ORDERS}.dev`,
+				? `${CST.DB_PROJECT}.${CST.DB_RAW_ORDERS}.${CST.DB_LIVE}`
+				: `${CST.DB_PROJECT}.${CST.DB_RAW_ORDERS}.${CST.DB_DEV}`,
 			Item: {
-				[CST.DB_PAIR]: {
+				[CST.DB_ORDER_HASH]: {
 					S: orderHash
 				},
 				...data
