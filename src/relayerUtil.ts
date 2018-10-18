@@ -14,6 +14,7 @@ import dynamoUtil from './dynamoUtil';
 // import firebaseUtil from './firebaseUtil';
 import matchOrdersUtil from './matchOrdersUtil';
 import { providerEngine } from './providerEngine';
+import redisUtil from './redisUtil';
 import {
 	ErrorResponseWs,
 	IDuoOrder,
@@ -190,15 +191,24 @@ class RelayerUtil {
 		console.log('### signed order is', order);
 		const orderHash = message.payload.orderHash;
 		const marketId = message.channel.marketId;
+
+		redisUtil.publish(
+			CST.ORDERBOOK_UPDATE,
+			JSON.stringify({
+				marketId: marketId,
+				price: util.keepPrecision(
+					order.makerAssetAmount.div(order.takerAssetAmount).valueOf(),
+					CST.PRICE_PRECISION
+				),
+				amount: order.makerAssetAmount.valueOf()
+			})
+		);
+
 		matchOrdersUtil.matchOrder(order, marketId);
+		const side = this.determineSide(order, marketId);
 
 		if (await this.validateNewOrder(order, orderHash)) {
-			await dynamoUtil.addLiveOrder(
-				order,
-				orderHash,
-				marketId,
-				this.determineSide(order, marketId)
-			);
+			await dynamoUtil.addLiveOrder(order, orderHash, marketId, side);
 
 			await dynamoUtil.addRawOrder(order, orderHash);
 

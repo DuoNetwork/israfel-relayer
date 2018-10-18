@@ -1,4 +1,4 @@
-import { ContractWrappers, OrderWatcher, RPCSubprovider, SignedOrder } from '0x.js';
+import { ContractWrappers, OrderWatcher, RPCSubprovider } from '0x.js';
 import * as CST from '../constants';
 import dynamoUtil from '../dynamoUtil';
 import { providerEngine } from '../providerEngine';

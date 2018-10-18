@@ -43,6 +43,7 @@ export interface IOrderBookUpdateWS {
 }
 
 export interface IOrderBookDelta {
+	marketId: string;
 	price: number;
 	amount: number;
 }
