@@ -300,18 +300,32 @@ class DynamoUtil {
 		return parsedLiveOrders;
 	}
 
-	public async updateOrderState(
-		orderState: OrderStateValid | OrderStateInvalid | IOrderStateCancelled,
-		marketId: string
-	) {
-		console.log(orderState, marketId);
-		// const { orderHash, ...rest } = orderState;
-		// return this.setDoc(
-		// 	`/${CST.DB_ORDERS}|${marketId}/${orderHash}`,
-		// 	Object.assign({}, rest, {
-		// 		[CST.DB_UPDATED_AT]: admin.firestore.FieldValue.serverTimestamp()
-		// 	})
-		// );
+	public async updateOrderState(orderState: OrderStateValid | OrderStateInvalid, pair: string) {
+		if (orderState.isValid === true)
+			return this.updateItem({
+				TableName: this.live
+					? `${CST.DB_PROJECT}.${CST.DB_RAW_ORDERS}.${CST.DB_LIVE}`
+					: `${CST.DB_PROJECT}.${CST.DB_RAW_ORDERS}.${CST.DB_DEV}`,
+				Key: {
+					[CST.DB_PAIR]: {
+						S: pair
+					},
+					[CST.DB_ORDER_HASH]: {
+						S: orderState.orderHash
+					}
+				},
+				ExpressionAttributeNames: {
+					[CST.DB_ORDER_IS_VALID]: CST.DB_ORDER_IS_VALID,
+					[CST.DB_AMT]: CST.DB_AMT
+				},
+				ExpressionAttributeValues: {
+					[':' + CST.DB_ORDER_IS_VALID]: { S: orderState.isValid.toString() },
+					[':' + CST.DB_AMT]: {
+						S: orderState.orderRelevantState.remainingFillableMakerAssetAmount.toString()
+					}
+				},
+				UpdateExpression: `SET ${CST.DB_ORDER_IS_VALID} = ${':' + CST.DB_ORDER_IS_VALID}`
+			});
 	}
 
 	public updateStatus(process: string) {

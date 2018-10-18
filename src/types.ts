@@ -112,11 +112,6 @@ export enum WsChannelName {
 	Order = 'order'
 }
 
-export interface IOrderStateCancelled {
-	isCancelled: boolean;
-	orderHash: string;
-}
-
 export interface IOption {
 	live: boolean;
 	token: string;
