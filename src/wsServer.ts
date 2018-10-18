@@ -19,8 +19,6 @@ import util from './util';
 
 class WsServer {
 	public wss: WebSocket.Server | null = null;
-	// firebaseUtil.init();
-	//
 
 	public init(tool: string, option: IOption) {
 		relayerUtil.init(tool, option);
@@ -31,13 +29,12 @@ class WsServer {
 	public startServer() {
 		if (this.wss)
 			this.wss.on('connection', ws => {
-				console.log('Standard relayer API (WS) listening on port 8080!');
+				util.logInfo('Standard relayer API (WS) listening on port 8080!');
 				ws.on('message', async message => {
-					console.log('received: %s', message);
+					util.logInfo('received: ' + message);
 					const parsedMessage = JSON.parse(message.toString());
 					const type = parsedMessage.type;
 					const channelName = parsedMessage.channel.name;
-					console.log(channelName);
 					if (channelName === WsChannelName.Order)
 						if (type === WsChannelMessageTypes.Add) {
 							util.logInfo('add new order');

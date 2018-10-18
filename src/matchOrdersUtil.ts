@@ -54,8 +54,8 @@ class MatchOrdersUtil {
 			await firebaseUtil.getOrders(marketId),
 			marketId
 		);
-		const newOrderTaker = relayerUtil.assetDataToTokenName(newOrder.takerAssetData);
-		const newOrderMaker = relayerUtil.assetDataToTokenName(newOrder.makerAssetData);
+		const newOrderTaker = assetsUtil.assetDataToTokenName(newOrder.takerAssetData);
+		const newOrderMaker = assetsUtil.assetDataToTokenName(newOrder.makerAssetData);
 
 		console.log('look for match');
 		if (newOrderTaker === baseToken) this.scanToMatchOrder(askOrders, newOrder, true);

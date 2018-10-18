@@ -81,7 +81,7 @@ class DynamoUtil {
 	}
 
 	public convertDuoSignedOrderToDynamo(
-		order: IDuoSignedOrder,
+		order: SignedOrder,
 		orderHash: string,
 		timestamp: number,
 		side: string
@@ -89,23 +89,18 @@ class DynamoUtil {
 		return {
 			[CST.DB_ORDER_HASH]: { S: orderHash },
 			[CST.DB_PRICE]: {
-				N:
-					Number(
-						util
-							.stringToBN(order.makerAssetAmount)
-							.div(util.stringToBN(order.takerAssetAmount))
-					) + ''
+				N: order.makerAssetAmount.div(order.takerAssetAmount).valueOf() + ''
 			},
 			[CST.DB_FILLED_TAKER_ASSET_AMT]: { S: '0' },
-			[CST.DB_REMAINING_MAKER_ASSET_AMT]: { S: order.makerAssetAmount + '' },
-			[CST.DB_REMAINING_TAKER_ASSET_AMT]: { S: order.takerAssetAmount + '' },
+			[CST.DB_REMAINING_MAKER_ASSET_AMT]: { S: order.makerAssetAmount.valueOf() + '' },
+			[CST.DB_REMAINING_TAKER_ASSET_AMT]: { S: order.takerAssetAmount.valueOf() + '' },
 			[CST.DB_SIDE]: { S: side },
 			[CST.DB_UPDATED_AT]: { N: timestamp + '' }
 		};
 	}
 
 	public async addLiveOrder(
-		order: IDuoSignedOrder,
+		order: SignedOrder,
 		orderHash: string,
 		marketId: string,
 		side: string
@@ -116,8 +111,8 @@ class DynamoUtil {
 
 		const params = {
 			TableName: this.live
-			? `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_LIVE}`
-			: `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_DEV}`,
+				? `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_LIVE}`
+				: `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_DEV}`,
 			Item: {
 				[CST.DB_PAIR]: {
 					S: marketId
@@ -129,10 +124,7 @@ class DynamoUtil {
 		await this.insertData(params);
 	}
 
-	public async removeLiveOrder(
-		pair: string,
-		orderHash: string
-	): Promise<void> {
+	public async removeLiveOrder(pair: string, orderHash: string): Promise<void> {
 		return this.deleteData({
 			TableName: this.live
 				? `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_LIVE}`
@@ -148,9 +140,7 @@ class DynamoUtil {
 		});
 	}
 
-	public async deleteOrderSignature(
-		orderHash: string
-	): Promise<void> {
+	public async deleteOrderSignature(orderHash: string): Promise<void> {
 		return this.updateItem({
 			TableName: this.live
 				? `${CST.DB_PROJECT}.${CST.DB_RAW_ORDERS}.${CST.DB_LIVE}`

@@ -1,5 +1,4 @@
 import {
-	assetDataUtils,
 	ContractWrappers,
 	OrderRelevantState,
 	// orderHashUtils,
@@ -8,21 +7,24 @@ import {
 } from '0x.js';
 import { schemas, SchemaValidator } from '@0xproject/json-schemas';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
+import moment from 'moment';
+import assetsUtil from './common/assetsUtil';
 import * as CST from './constants';
 import dynamoUtil from './dynamoUtil';
-import firebaseUtil from './firebaseUtil';
+// import firebaseUtil from './firebaseUtil';
 import matchOrdersUtil from './matchOrdersUtil';
 import { providerEngine } from './providerEngine';
 import {
 	ErrorResponseWs,
 	IDuoOrder,
-	IDuoSignedOrder,
+	// IDuoSignedOrder,
+	ILiveOrders,
 	IOption,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotWs,
 	IOrderBookUpdateWS,
 	IOrderResponseWs,
-	IOrderStateCancelled,
+	// IOrderStateCancelled,
 	// IUpdateResponseWs,
 	WsChannelName,
 	WsChannelResposnseTypes
@@ -50,9 +52,8 @@ class RelayerUtil {
 
 		for (const marketId of CST.TRADING_PAIRS) {
 			util.logInfo('initializing orderBook for ' + marketId);
-			const rawOrders: IDuoOrder[] = await firebaseUtil.getOrders(marketId);
-			const timestamp = Date.now();
-			this.orderBook[marketId] = this.aggrOrderBook(rawOrders, marketId, timestamp);
+			const liveOrders: ILiveOrders[] = await dynamoUtil.getLiveOrders(marketId);
+			this.orderBook[marketId] = this.aggrOrderBook(liveOrders);
 		}
 	}
 
@@ -98,24 +99,21 @@ class RelayerUtil {
 		return isValidSchema && isValidSig;
 	}
 
-	public aggrOrderBook(
-		rawOrders: IDuoOrder[],
-		marketId: string,
-		timestamp: number
-	): IOrderBookSnapshot {
-		const rawOrderBook = this.getOrderBook(rawOrders, marketId);
-		const bidAggr: IOrderBookUpdateWS[] = this.aggrByPrice(
-			rawOrderBook[0].map(bid => this.parseOrderInfo(bid))
-		);
-		const askAggr: IOrderBookUpdateWS[] = this.aggrByPrice(
-			rawOrderBook[1].map(ask => this.parseOrderInfo(ask))
-		);
-		console.log('length of bids is ' + bidAggr.length);
-		console.log('length of asks is ' + askAggr.length);
+	public aggrOrderBook(rawLiveOrders: ILiveOrders[]): IOrderBookSnapshot {
+		// const rawOrderBook = this.getOrderBook(rawOrders, marketId);
+
 		return {
-			timestamp: timestamp,
-			bids: bidAggr,
-			asks: askAggr
+			timestamp: moment.utc().valueOf(),
+			bids: this.aggrByPrice(
+				rawLiveOrders
+					.filter(order => order[CST.DB_SIDE] === CST.DB_BUY)
+					.map(bid => this.parseOrderBookUpdate(bid))
+			),
+			asks: this.aggrByPrice(
+				rawLiveOrders
+					.filter(order => order[CST.DB_SIDE] === CST.DB_SELL)
+					.map(bid => this.parseOrderBookUpdate(bid))
+			)
 		};
 	}
 
@@ -146,38 +144,19 @@ class RelayerUtil {
 		const baseToken = marketId.split('-')[0];
 		const bidOrders = orders.filter(order => {
 			const takerTokenName = order.takerAssetData
-				? this.assetDataToTokenName(order.takerAssetData)
+				? assetsUtil.assetDataToTokenName(order.takerAssetData)
 				: null;
 			return takerTokenName === baseToken;
 		});
 
 		const askOrders = orders.filter(order => {
 			const makerTokenName = order.makerAssetData
-				? this.assetDataToTokenName(order.makerAssetData)
+				? assetsUtil.assetDataToTokenName(order.makerAssetData)
 				: null;
 			return makerTokenName === baseToken;
 		});
 
 		return [bidOrders, askOrders];
-	}
-
-	public parseSignedOrder(order: SignedOrder): IDuoSignedOrder {
-		return {
-			signature: order.signature,
-			senderAddress: order.senderAddress,
-			makerAddress: order.makerAddress,
-			takerAddress: order.takerAddress,
-			makerFee: order.makerFee.valueOf(),
-			takerFee: order.takerFee.valueOf(),
-			makerAssetAmount: order.makerAssetAmount.valueOf(),
-			takerAssetAmount: order.takerAssetAmount.valueOf(),
-			makerAssetData: order.makerAssetData,
-			takerAssetData: order.takerAssetData,
-			salt: order.salt.valueOf(),
-			exchangeAddress: order.exchangeAddress,
-			feeRecipientAddress: order.feeRecipientAddress,
-			expirationTimeSeconds: order.expirationTimeSeconds.valueOf()
-		};
 	}
 
 	public toSignedOrder(order: any): SignedOrder {
@@ -199,22 +178,36 @@ class RelayerUtil {
 		};
 	}
 
+	public determineSide(order: SignedOrder, marketId: string): string {
+		const baseToken = marketId.split('-')[0];
+		return assetsUtil.assetDataToTokenName(order.takerAssetData) === baseToken
+			? CST.DB_BUY
+			: CST.DB_SELL;
+	}
+
 	public async handleAddorder(message: any): Promise<IOrderResponseWs> {
 		const order: SignedOrder = this.toSignedOrder(message.payload.order);
 		console.log('### signed order is', order);
 		const orderHash = message.payload.orderHash;
-		matchOrdersUtil.matchOrder(order, message.channel.marketId);
+		const marketId = message.channel.marketId;
+		matchOrdersUtil.matchOrder(order, marketId);
 
 		if (await this.validateNewOrder(order, orderHash)) {
-			await firebaseUtil.addOrder(
-				this.parseSignedOrder(order),
+			await dynamoUtil.addLiveOrder(
+				order,
 				orderHash,
-				message.channel.marketId
+				marketId,
+				this.determineSide(order, marketId)
 			);
+
+			await dynamoUtil.addRawOrder(order, orderHash);
+
+			//TODO: Publish price delta to redis
+
 			return {
 				channel: {
 					name: WsChannelName.Order,
-					marketId: message.channel.marketId
+					marketId: marketId
 				},
 				status: 'success',
 				failedReason: ''
@@ -223,7 +216,7 @@ class RelayerUtil {
 			return {
 				channel: {
 					name: WsChannelName.Order,
-					marketId: message.channel.marketId
+					marketId: marketId
 				},
 				status: 'failed',
 				failedReason: ErrorResponseWs.InvalidOrder
@@ -231,13 +224,10 @@ class RelayerUtil {
 	}
 
 	public async handleCancel(orderHash: string, marketId: string): Promise<IOrderResponseWs> {
-		if (firebaseUtil.isExistRef(orderHash)) {
-			const cancelledOrderState: IOrderStateCancelled = {
-				isCancelled: true,
-				orderHash: orderHash
-			};
-			await firebaseUtil.updateOrderState(cancelledOrderState, marketId);
-			console.log('cancelled order');
+		try {
+			// Atomic transaction needs to be ensured
+			await dynamoUtil.removeLiveOrder(marketId, orderHash);
+			await dynamoUtil.deleteOrderSignature(orderHash);
 			return {
 				channel: {
 					name: WsChannelName.Order,
@@ -246,7 +236,7 @@ class RelayerUtil {
 				status: 'success',
 				failedReason: ''
 			};
-		} else
+		} catch {
 			return {
 				channel: {
 					name: WsChannelName.Order,
@@ -255,18 +245,12 @@ class RelayerUtil {
 				status: 'failed',
 				failedReason: ErrorResponseWs.InvalidOrder
 			};
+		}
 	}
 
-	public assetDataToTokenName(assetData: string): string {
-		const tokenAddr = assetDataUtils.decodeERC20AssetData(assetData).tokenAddress;
-		return CST.TOKEN_MAPPING[tokenAddr];
-	}
-
-	public parseOrderInfo(order: IDuoOrder): IOrderBookUpdateWS {
+	public parseOrderBookUpdate(order: ILiveOrders): IOrderBookUpdateWS {
 		return {
-			amount: order.orderRelevantState
-				? order.orderRelevantState.remainingFillableTakerAssetAmount.toString()
-				: order.takerAssetAmount.toString(),
+			amount: order.amount.toString(),
 			price: order.price.toString()
 		};
 	}

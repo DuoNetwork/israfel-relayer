@@ -1,4 +1,4 @@
-import { BigNumber, ContractWrappers } from '0x.js';
+import { assetDataUtils, BigNumber, ContractWrappers } from '0x.js';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import { TransactionReceiptWithDecodedLogs } from 'ethereum-types';
 import * as CST from '../constants';
@@ -39,6 +39,11 @@ class AccountsUtil {
 			);
 			await this.web3Wrapper.awaitTransactionSuccessAsync(makerZRXApprovalTxHash);
 		}
+	}
+
+	public assetDataToTokenName(assetData: string): string {
+		const tokenAddr = assetDataUtils.decodeERC20AssetData(assetData).tokenAddress;
+		return CST.TOKEN_MAPPING[tokenAddr];
 	}
 
 	public getTokenAddressFromName(tokenName: string): string {

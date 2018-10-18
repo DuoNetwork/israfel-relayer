@@ -22,6 +22,7 @@ switch (tool) {
 		break;
 	case CST.START_RELAYER:
 		wsServer.init(tool, option);
+		wsServer.startServer();
 		break;
 	default:
 		break;
