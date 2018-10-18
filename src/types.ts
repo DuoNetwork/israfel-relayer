@@ -42,6 +42,11 @@ export interface IOrderBookUpdateWS {
 	amount: string;
 }
 
+export interface IOrderBookDelta {
+	price: number;
+	amount: number;
+}
+
 export interface IUpdateResponseWs {
 	type: WsChannelResposnseTypes;
 	lastTimestamp: number;
