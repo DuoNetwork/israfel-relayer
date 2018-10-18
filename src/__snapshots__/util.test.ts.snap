@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`keepPrecision 1`] = `"12345"`;
+
+exports[`keepPrecision 2`] = `"12345.000"`;
+
+exports[`keepPrecision 3`] = `"12345.1234567"`;
+
+exports[`keepPrecision 4`] = `"12345.12345678"`;
+
+exports[`keepPrecision 5`] = `"0.12345678"`;
+
+exports[`keepPrecision 6`] = `"12345.12345678"`;
