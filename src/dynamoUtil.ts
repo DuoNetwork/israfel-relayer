@@ -199,6 +199,46 @@ class DynamoUtil {
 		await this.insertData(params);
 	}
 
+	public async getRawOrder(orderHash: string): Promise<SignedOrder | {}> {
+		const params: QueryInput = {
+			TableName: this.live
+				? `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_LIVE}`
+				: `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_DEV}`,
+			KeyConditionExpression: `${CST.DB_ORDER_HASH} = :${CST.DB_ORDER_HASH}`,
+			ExpressionAttributeValues: {
+				[':' + CST.DB_ORDER_HASH]: { S: orderHash }
+			}
+		};
+
+		const data = await this.queryData(params);
+		if (!data.Items || !data.Items.length) return {};
+
+		const parsedRawOrders = data.Items.map(ob => this.parseRawOrders(ob));
+
+		return parsedRawOrders;
+	}
+
+	public parseRawOrders(order: AttributeMap): SignedOrder {
+		return {
+			signature: order.signature,
+			senderAddress: order.senderAddress,
+			makerAddress: order.makerAddress,
+			takerAddress: order.takerAddress,
+			makerFee: util.stringToBN(order.makerFee),
+			takerFee: util.stringToBN(order.takerFee),
+			makerAssetAmount: util.stringToBN(order.makerAssetAmount),
+			takerAssetAmount: util.stringToBN(order.takerAssetAmount),
+			makerAssetData: order.makerAssetData,
+			takerAssetData: order.takerAssetData,
+			salt: util.stringToBN(order.salt),
+			exchangeAddress: order.exchangeAddress,
+			feeRecipientAddress: order.feeRecipientAddress,
+			expirationTimeSeconds: util.stringToBN(order.expirationTimeSeconds)
+		};
+	}
+
+
+
 	public async addUserOrder(
 		account: string,
 		orderHash: string,
@@ -232,15 +272,15 @@ class DynamoUtil {
 		return {
 			[CST.DB_PRICE]: Number(data[CST.DB_PRICE].S || '0'),
 			[CST.DB_SIDE]: data[CST.DB_SIDE].S || '',
-			[CST.DB_AMT]: Number(data[CST.DB_MAKER_ASSET_AMT].S || '0')
+			[CST.DB_AMT]: Number(data[CST.DB_REMAINING_MAKER_ASSET_AMT].S || '0')
 		};
 	}
 
 	public async getLiveOrders(pair: string): Promise<ILiveOrders[]> {
 		const params: QueryInput = {
 			TableName: this.live
-				? `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.live`
-				: `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.dev`,
+				? `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_LIVE}`
+				: `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_DEV}`,
 			KeyConditionExpression: `${CST.DB_PAIR} = :${CST.DB_PAIR}`,
 			ExpressionAttributeValues: {
 				[':' + CST.DB_PAIR]: { S: pair }
@@ -250,9 +290,7 @@ class DynamoUtil {
 		const data = await this.queryData(params);
 		if (!data.Items || !data.Items.length) return [];
 
-		const parsedLiveOrders = data.Items.map(ob => this.parseLiveOrders(ob)).sort(
-			(a, b) => b.price - a.price
-		);
+		const parsedLiveOrders = data.Items.map(ob => this.parseLiveOrders(ob));
 
 		return parsedLiveOrders;
 	}
