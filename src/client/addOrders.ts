@@ -59,32 +59,17 @@ const mainAsync = async () => {
 		const randomExpiration = util.getRandomFutureDateInSeconds();
 		const maker = assetsUtil.getRandomMaker();
 		// the amount the maker is selling of maker asset
-		// const zrxAssetAmount = Web3Wrapper.toBaseUnitAmount(
-		// 	new BigNumber(Number(Math.random() * 10 || 5).toFixed(3)),
-		// 	18
-		// );
-		// // the amount the maker wants of taker asset
-		// const wethAssetAmount = Web3Wrapper.toBaseUnitAmount(
-		// 	new BigNumber(Number(Math.random() || 5).toFixed(3)),
-		// 	18
-		// );
+		const zrxAssetAmount = Web3Wrapper.toBaseUnitAmount(
+			new BigNumber(Number(Math.random() * 10 || 5).toFixed(3)),
+			18
+		);
+		// the amount the maker wants of taker asset
+		const wethAssetAmount = Web3Wrapper.toBaseUnitAmount(
+			new BigNumber(Number(Math.random() || 5).toFixed(3)),
+			18
+		);
 
 		// Create the order
-		// const order: Order = {
-		// 	exchangeAddress,
-		// 	makerAddress: maker,
-		// 	takerAddress: taker,
-		// 	senderAddress: maker,
-		// 	feeRecipientAddress: taker,
-		// 	expirationTimeSeconds: randomExpiration,
-		// 	salt: generatePseudoRandomSalt(),
-		// 	makerAssetAmount: isBid ? wethAssetAmount : zrxAssetAmount,
-		// 	takerAssetAmount: isBid ? zrxAssetAmount : wethAssetAmount,
-		// 	makerAssetData: isBid ? wethAssetData : zrxAssetData,
-		// 	takerAssetData: isBid ? zrxAssetData : wethAssetData,
-		// 	makerFee: new BigNumber(0),
-		// 	takerFee: new BigNumber(0)
-		// };
 		const order: Order = {
 			exchangeAddress,
 			makerAddress: maker,
@@ -93,13 +78,28 @@ const mainAsync = async () => {
 			feeRecipientAddress: taker,
 			expirationTimeSeconds: randomExpiration,
 			salt: generatePseudoRandomSalt(),
-			makerAssetAmount: Web3Wrapper.toBaseUnitAmount(new BigNumber(0.478), 18),
-			takerAssetAmount: Web3Wrapper.toBaseUnitAmount(new BigNumber(0.28), 18),
-			makerAssetData: wethAssetData,
-			takerAssetData: zrxAssetData,
+			makerAssetAmount: isBid ? wethAssetAmount : zrxAssetAmount,
+			takerAssetAmount: isBid ? zrxAssetAmount : wethAssetAmount,
+			makerAssetData: isBid ? wethAssetData : zrxAssetData,
+			takerAssetData: isBid ? zrxAssetData : wethAssetData,
 			makerFee: new BigNumber(0),
 			takerFee: new BigNumber(0)
 		};
+		// const order: Order = {
+		// 	exchangeAddress,
+		// 	makerAddress: maker,
+		// 	takerAddress: taker,
+		// 	senderAddress: maker,
+		// 	feeRecipientAddress: taker,
+		// 	expirationTimeSeconds: randomExpiration,
+		// 	salt: generatePseudoRandomSalt(),
+		// 	makerAssetAmount: Web3Wrapper.toBaseUnitAmount(new BigNumber(0.858), 18),
+		// 	takerAssetAmount: Web3Wrapper.toBaseUnitAmount(new BigNumber(0.868), 18),
+		// 	makerAssetData: wethAssetData,
+		// 	takerAssetData: zrxAssetData,
+		// 	makerFee: new BigNumber(0),
+		// 	takerFee: new BigNumber(0)
+		// };
 
 		const orderHashHex = orderHashUtils.getOrderHashHex(order);
 		const signature = await signatureUtils.ecSignOrderHashAsync(

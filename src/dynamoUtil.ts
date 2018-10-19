@@ -89,15 +89,13 @@ class DynamoUtil {
 		return {
 			[CST.DB_ORDER_HASH]: { S: orderHash },
 			[CST.DB_PRICE]: {
-				N:
-					util.round(
-						order.makerAssetAmount.div(order.takerAssetAmount).valueOf()
-					) + ''
+				N: util.round(order.makerAssetAmount.div(order.takerAssetAmount).valueOf()) + ''
 			},
 			[CST.DB_FILLED_TAKER_ASSET_AMT]: { S: '0' },
 			[CST.DB_REMAINING_MAKER_ASSET_AMT]: { S: order.makerAssetAmount.valueOf() + '' },
 			[CST.DB_REMAINING_TAKER_ASSET_AMT]: { S: order.takerAssetAmount.valueOf() + '' },
 			[CST.DB_SIDE]: { S: side },
+			[CST.DB_ORDER_IS_VALID]: { BOOL: true },
 			[CST.DB_UPDATED_AT]: { N: timestamp + '' }
 		};
 	}
@@ -206,8 +204,8 @@ class DynamoUtil {
 	public async getRawOrder(orderHash: string): Promise<SignedOrder> {
 		const params: QueryInput = {
 			TableName: this.live
-				? `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_LIVE}`
-				: `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_DEV}`,
+				? `${CST.DB_PROJECT}.${CST.DB_RAW_ORDERS}.${CST.DB_LIVE}`
+				: `${CST.DB_PROJECT}.${CST.DB_RAW_ORDERS}.${CST.DB_DEV}`,
 			KeyConditionExpression: `${CST.DB_ORDER_HASH} = :${CST.DB_ORDER_HASH}`,
 			ExpressionAttributeValues: {
 				[':' + CST.DB_ORDER_HASH]: { S: orderHash }
@@ -274,7 +272,10 @@ class DynamoUtil {
 			[CST.DB_ORDER_HASH]: data[CST.DB_ORDER_HASH].S || '',
 			[CST.DB_PRICE]: Number(data[CST.DB_PRICE].N || 0),
 			[CST.DB_SIDE]: data[CST.DB_SIDE].S || '',
-			[CST.DB_AMT]: Number(data[CST.DB_REMAINING_MAKER_ASSET_AMT].S || '0'),
+			[CST.DB_AMT]:
+				data[CST.DB_SIDE].S === CST.DB_BUY
+					? Number(data[CST.DB_REMAINING_TAKER_ASSET_AMT].S || '0')
+					: Number(data[CST.DB_REMAINING_MAKER_ASSET_AMT].S || '0'),
 			[CST.DB_ORDER_IS_VALID]: data[CST.DB_REMAINING_MAKER_ASSET_AMT].BOOL || false,
 			[CST.DB_UPDATED_AT]: Date.now()
 		};
@@ -286,8 +287,11 @@ class DynamoUtil {
 				? `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_LIVE}`
 				: `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_DEV}`,
 			KeyConditionExpression: `${CST.DB_PAIR} = :${CST.DB_PAIR}`,
+			FilterExpression: `${CST.DB_ORDER_IS_VALID} = :${CST.DB_ORDER_IS_VALID}`,
+			ExpressionAttributeNames: { [CST.DB_ORDER_IS_VALID]: CST.DB_ORDER_IS_VALID },
 			ExpressionAttributeValues: {
-				[':' + CST.DB_PAIR]: { S: pair }
+				[':' + CST.DB_PAIR]: { S: pair },
+				[':' + CST.DB_ORDER_IS_VALID]: { BOOL: true }
 			}
 		};
 

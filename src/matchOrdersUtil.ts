@@ -4,58 +4,74 @@ import * as CST from './constants';
 import dynamoUtil from './dynamoUtil';
 import orderbookUtil from './orderBookUtil';
 import { ILiveOrders } from './types';
-import util from './util';
 
 class MatchOrdersUtil {
-	public matcherAccount = assetsUtil.taker;
-
 	public async scanToMatchOrder(
 		oldOrders: ILiveOrders[],
 		newOrder: SignedOrder,
 		side: string
 	): Promise<void> {
-		console.log(newOrder.takerAssetAmount, '### new order taker amount');
 		for (const order of oldOrders)
-			if (side === CST.ORDER_BUY)
+			if (side === CST.ORDER_BUY) {
 				if (
-					util.stringToBN(order.amount.toString()) === newOrder.makerAssetAmount &&
 					newOrder.takerAssetAmount.div(newOrder.makerAssetAmount).lessThan(order.price)
 				) {
-					console.log('one order amount is ', order.amount);
-					const leftOrder = await dynamoUtil.getRawOrder(order.orderHash);
-					console.log('>>>>>>>>>>>>>>>>>>>>> start matching orders ');
-					const txHash = await assetsUtil.contractWrappers.exchange.matchOrdersAsync(
-						leftOrder,
-						newOrder,
-						this.matcherAccount
-					);
-					console.log('matched txhash is ', txHash);
-					console.log('matched old order ', order.orderHash);
-					break;
-				} else if (
-					order.amount === Number(newOrder.takerAssetAmount) &&
-					newOrder.takerAssetAmount.div(newOrder.makerAssetAmount).lessThan(order.price)
-				) {
-					const rightOrder = await dynamoUtil.getRawOrder(order.orderHash);
-					const txHash = await assetsUtil.contractWrappers.exchange.matchOrdersAsync(
-						newOrder,
-						rightOrder,
-						this.matcherAccount
-					);
-					console.log('matched two orders ', txHash);
-					break;
+					console.log('### there is profit!');
+					const askToMatch = await dynamoUtil.getRawOrder(order.orderHash);
+					console.log('#### look for askToMatch!', askToMatch);
+					if (askToMatch.takerAssetAmount.equals(newOrder.makerAssetAmount)) {
+						console.log('>>>>>>>>>>>>>>>>>>>>> start matching orders ');
+						const txHash = await assetsUtil.contractWrappers.exchange.matchOrdersAsync(
+							askToMatch,
+							newOrder,
+							assetsUtil.taker
+						);
+						console.log('matched txhash is ', txHash);
+						console.log('matched old order ', order.orderHash);
+						break;
+					} else if (askToMatch.makerAssetAmount.equals(newOrder.takerAssetAmount)) {
+						const txHash = await assetsUtil.contractWrappers.exchange.matchOrdersAsync(
+							newOrder,
+							askToMatch,
+							assetsUtil.taker
+						);
+						console.log('matched txhash is ', txHash);
+						console.log('matched old order ', order.orderHash);
+						break;
+					}
 				}
+			}
 	}
 
 	public async matchOrder(newOrder: SignedOrder, marketId: string, side: string): Promise<void> {
+		await assetsUtil.init();
+
 		const liveOrders = await dynamoUtil.getLiveOrders(marketId);
 		const [bidOrders, askOrders] = [
-			orderbookUtil.sortByPrice(liveOrders.filter(order => order.side === CST.DB_BUY), 1),
-			orderbookUtil.sortByPrice(liveOrders.filter(order => order.side === CST.DB_SELL), 1)
+			orderbookUtil.sortByPriceTime(
+				liveOrders.filter(order => order.side === CST.DB_BUY),
+				true
+			),
+			orderbookUtil.sortByPriceTime(
+				liveOrders.filter(order => order.side === CST.DB_SELL),
+				false
+			)
 		];
-		console.log('look for match');
+		console.log(
+			'matcher ZRX balance BEFORE match',
+			await assetsUtil.contractWrappers.erc20Token.getBalanceAsync(
+				assetsUtil.getTokenAddressFromName(CST.TOKEN_ZRX),
+				assetsUtil.taker
+			)
+		);
 		this.scanToMatchOrder(side === CST.ORDER_BUY ? askOrders : bidOrders, newOrder, side);
-		console.log('finish matching');
+		console.log(
+			'matcher ZRX balance AFTER match',
+			await assetsUtil.contractWrappers.erc20Token.getBalanceAsync(
+				assetsUtil.getTokenAddressFromName(CST.TOKEN_ZRX),
+				assetsUtil.taker
+			)
+		);
 	}
 }
 const matchOrdersUtil = new MatchOrdersUtil();

@@ -22,11 +22,11 @@ class OrderBookUtil {
 		}
 	}
 
-	public sortByPrice(liveOrders: ILiveOrders[], isDescending: boolean): ILiveOrders[] {
+	public sortByPriceTime(liveOrders: ILiveOrders[], isDescending: boolean): ILiveOrders[] {
 		liveOrders.sort((a, b) => {
-			return isDescending ? b.price - a.price : a.price - b.price;
+			if (isDescending) return b.price - a.price || a.updatedAt - b.updatedAt;
+			else return a.price - b.price || a.updatedAt - b.updatedAt;
 		});
-		console.log('### after sortByPrice: ', liveOrders);
 		return liveOrders;
 	}
 
@@ -36,13 +36,13 @@ class OrderBookUtil {
 		return {
 			timestamp: moment.utc().valueOf(),
 			bids: this.aggrByPrice(
-				this.sortByPrice(
+				this.sortByPriceTime(
 					rawLiveOrders.filter(order => order[CST.DB_SIDE] === CST.DB_BUY),
 					true
 				).map(bid => this.parseOrderBookUpdate(bid))
 			),
 			asks: this.aggrByPrice(
-				this.sortByPrice(
+				this.sortByPriceTime(
 					rawLiveOrders.filter(order => order[CST.DB_SIDE] === CST.DB_SELL),
 					false
 				).map(ask => this.parseOrderBookUpdate(ask))
@@ -73,10 +73,10 @@ class OrderBookUtil {
 		askChanges: IOrderBookUpdateWS[]
 	) {
 		const newBids = [...this.orderBook[marketId].bids, ...bidChanges].sort((a, b) => {
-			return a.price > b.price ? 1 : b.price > a.price ? -1 : 0;
+			return Number(b.price) - Number(a.price);
 		});
 		const newAsks = [...this.orderBook[marketId].asks, ...askChanges].sort((a, b) => {
-			return a.price > b.price ? -1 : b.price > a.price ? 1 : 0;
+			return Number(a.price) - Number(b.price);
 		});
 		this.orderBook[marketId] = {
 			timestamp: timestamp,

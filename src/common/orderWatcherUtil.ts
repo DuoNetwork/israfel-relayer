@@ -19,7 +19,7 @@ class OrderWatcherUtil {
 	}
 
 	public init(tool: string, option: IOption) {
-		const config = require('./keys/' + (option.live ? 'live' : 'dev') + '/dynamo.json');
+		const config = require('../keys/' + (option.live ? 'live' : 'dev') + '/dynamo.json');
 		dynamoUtil.init(config, option.live, tool);
 	}
 
