@@ -273,7 +273,7 @@ class DynamoUtil {
 	public parseLiveOrders(data: AttributeMap): ILiveOrders {
 		return {
 			[CST.DB_ORDER_HASH]: data[CST.DB_ORDER_HASH].S || '',
-			[CST.DB_PRICE]: Number(data[CST.DB_PRICE].S || '0'),
+			[CST.DB_PRICE]: Number(data[CST.DB_PRICE].N || 0),
 			[CST.DB_SIDE]: data[CST.DB_SIDE].S || '',
 			[CST.DB_AMT]: Number(data[CST.DB_REMAINING_MAKER_ASSET_AMT].S || '0'),
 			[CST.DB_ORDER_IS_VALID]: data[CST.DB_REMAINING_MAKER_ASSET_AMT].BOOL || false,

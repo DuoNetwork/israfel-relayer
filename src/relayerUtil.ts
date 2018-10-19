@@ -64,19 +64,25 @@ class RelayerUtil {
 		bidChanges: IOrderBookUpdateWS[],
 		askChanges: IOrderBookUpdateWS[]
 	) {
-		const newBids = [...this.orderBook[marketId].bids, ...bidChanges];
-		const newAsks = [...this.orderBook[marketId].asks, ...askChanges];
+		const newBids = [...this.orderBook[marketId].bids, ...bidChanges].sort((a, b) => {
+			return a.price > b.price ? 1 : b.price > a.price ? -1 : 0;
+		});
+		const newAsks = [...this.orderBook[marketId].asks, ...askChanges].sort((a, b) => {
+			return a.price > b.price ? -1 : b.price > a.price ? 1 : 0;
+		});
 		this.orderBook[marketId] = {
 			timestamp: timestamp,
-			bids: this.sortByPrice(this.aggrByPrice(newBids), 1),
-			asks: this.sortByPrice(this.aggrByPrice(newAsks), -1)
+			bids: this.aggrByPrice(newBids),
+			asks: this.aggrByPrice(newAsks)
 		};
 	}
 
-	public sortByPrice(orderInfo: IOrderBookUpdateWS[], isDescending: number): IOrderBookUpdateWS[] {
-		return orderInfo.sort((a, b) => {
-			return a.price > b.price ? isDescending : b.price > a.price ? isDescending *= -1 : 0;
+	public sortByPrice(liveOrders: ILiveOrders[], isDescending: number): ILiveOrders[] {
+		console.log('### before sortByPrice: ', liveOrders);
+		liveOrders.sort((a, b) => {
+			return a.price > b.price ? isDescending : b.price > a.price ? (isDescending *= -1) : 0;
 		});
+		return liveOrders;
 	}
 
 	public async validateNewOrder(signedOrder: SignedOrder, orderHash: string): Promise<boolean> {
@@ -107,20 +113,23 @@ class RelayerUtil {
 
 		return {
 			timestamp: moment.utc().valueOf(),
-			bids: this.sortByPrice(this.aggrByPrice(
-				rawLiveOrders
-					.filter(order => order[CST.DB_SIDE] === CST.DB_BUY)
-					.map(bid => this.parseOrderBookUpdate(bid))
-			), 1),
-			asks: this.sortByPrice(this.aggrByPrice(
-				rawLiveOrders
-					.filter(order => order[CST.DB_SIDE] === CST.DB_SELL)
-					.map(bid => this.parseOrderBookUpdate(bid))
-			), -1),
+			bids: this.aggrByPrice(
+				this.sortByPrice(
+					rawLiveOrders.filter(order => order[CST.DB_SIDE] === CST.DB_BUY),
+					1
+				).map(bid => this.parseOrderBookUpdate(bid))
+			),
+			asks: this.aggrByPrice(
+				this.sortByPrice(
+					rawLiveOrders.filter(order => order[CST.DB_SIDE] === CST.DB_SELL),
+					-1
+				).map(ask => this.parseOrderBookUpdate(ask))
+			)
 		};
 	}
 
 	public aggrByPrice(orderInfo: IOrderBookUpdateWS[]) {
+		console.log('### before aggrByPrice: ', orderInfo);
 		return orderInfo.reduce((past: IOrderBookUpdateWS[], current) => {
 			const same = past.find(r => r && r.price === current.price);
 			if (same) same.amount = (Number(same.amount) + Number(current.amount)).toString();
@@ -260,6 +269,7 @@ class RelayerUtil {
 	}
 
 	public parseOrderBookUpdate(order: ILiveOrders): IOrderBookUpdateWS {
+		console.log('### before parse to update : ', order);
 		return {
 			amount: order.amount.toString(),
 			price: order.price.toString()

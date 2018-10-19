@@ -4,6 +4,7 @@ import * as CST from './constants';
 import dynamoUtil from './dynamoUtil';
 import { ILiveOrders } from './types';
 import util from './util';
+import relayerUtil from './relayerUtil';
 
 class MatchOrdersUtil {
 	public matcherAccount = assetsUtil.taker;
@@ -50,8 +51,8 @@ class MatchOrdersUtil {
 	public async matchOrder(newOrder: SignedOrder, marketId: string, side: string): Promise<void> {
 		const liveOrders = await dynamoUtil.getLiveOrders(marketId);
 		const [bidOrders, askOrders] = [
-			liveOrders.filter(order => order.side === CST.DB_BUY),
-			liveOrders.filter(order => order.side === CST.DB_SELL)
+			relayerUtil.sortByPrice(liveOrders.filter(order => order.side === CST.DB_BUY), 1),
+			relayerUtil.sortByPrice(liveOrders.filter(order => order.side === CST.DB_SELL), 1)
 		];
 		console.log('look for match');
 		this.scanToMatchOrder(side === CST.ORDER_BUY ? askOrders : bidOrders, newOrder, side);
