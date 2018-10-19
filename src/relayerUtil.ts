@@ -64,17 +64,19 @@ class RelayerUtil {
 		bidChanges: IOrderBookUpdateWS[],
 		askChanges: IOrderBookUpdateWS[]
 	) {
-		const newBids = [...this.orderBook[marketId].bids, ...bidChanges].sort((a, b) => {
-			return a.price > b.price ? 1 : b.price > a.price ? -1 : 0;
-		});
-		const newAsks = [...this.orderBook[marketId].asks, ...askChanges].sort((a, b) => {
-			return a.price > b.price ? -1 : b.price > a.price ? 1 : 0;
-		});
+		const newBids = [...this.orderBook[marketId].bids, ...bidChanges];
+		const newAsks = [...this.orderBook[marketId].asks, ...askChanges];
 		this.orderBook[marketId] = {
 			timestamp: timestamp,
-			bids: this.aggrByPrice(newBids),
-			asks: this.aggrByPrice(newAsks)
+			bids: this.sortByPrice(this.aggrByPrice(newBids), 1),
+			asks: this.sortByPrice(this.aggrByPrice(newAsks), -1)
 		};
+	}
+
+	public sortByPrice(orderInfo: IOrderBookUpdateWS[], isDescending: number): IOrderBookUpdateWS[] {
+		return orderInfo.sort((a, b) => {
+			return a.price > b.price ? isDescending : b.price > a.price ? isDescending *= -1 : 0;
+		});
 	}
 
 	public async validateNewOrder(signedOrder: SignedOrder, orderHash: string): Promise<boolean> {
@@ -105,16 +107,16 @@ class RelayerUtil {
 
 		return {
 			timestamp: moment.utc().valueOf(),
-			bids: this.aggrByPrice(
+			bids: this.sortByPrice(this.aggrByPrice(
 				rawLiveOrders
 					.filter(order => order[CST.DB_SIDE] === CST.DB_BUY)
 					.map(bid => this.parseOrderBookUpdate(bid))
-			),
-			asks: this.aggrByPrice(
+			), 1),
+			asks: this.sortByPrice(this.aggrByPrice(
 				rawLiveOrders
 					.filter(order => order[CST.DB_SIDE] === CST.DB_SELL)
 					.map(bid => this.parseOrderBookUpdate(bid))
-			)
+			), -1),
 		};
 	}
 

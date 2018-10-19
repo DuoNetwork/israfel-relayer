@@ -3,6 +3,7 @@ import assetsUtil from './common/assetsUtil';
 import * as CST from './constants';
 import dynamoUtil from './dynamoUtil';
 import { ILiveOrders } from './types';
+import util from './util';
 
 class MatchOrdersUtil {
 	public matcherAccount = assetsUtil.taker;
@@ -12,13 +13,14 @@ class MatchOrdersUtil {
 		newOrder: SignedOrder,
 		side: string
 	): Promise<void> {
+		console.log(newOrder.takerAssetAmount, '### new order taker amount');
 		for (const order of oldOrders)
 			if (side === CST.ORDER_BUY) {
-				console.log(newOrder.takerAssetAmount, '### new order taker amount');
 				if (
-					order.amount === Number(newOrder.makerAssetAmount) &&
+					util.stringToBN(order.amount.toString()) === newOrder.makerAssetAmount &&
 					newOrder.takerAssetAmount.div(newOrder.makerAssetAmount).lessThan(order.price)
 				) {
+					console.log('one order amount is ', order.amount);
 					const leftOrder = await dynamoUtil.getRawOrder(order.orderHash);
 					console.log('>>>>>>>>>>>>>>>>>>>>> start matching orders ');
 					const txHash = await assetsUtil.contractWrappers.exchange.matchOrdersAsync(
@@ -26,7 +28,8 @@ class MatchOrdersUtil {
 						newOrder,
 						this.matcherAccount
 					);
-					console.log('matched two orders ', txHash);
+					console.log('matched txhash is ', txHash);
+					console.log('matched old order ', order.orderHash);
 					break;
 				} else if (
 					order.amount === Number(newOrder.takerAssetAmount) &&
@@ -52,6 +55,7 @@ class MatchOrdersUtil {
 		];
 		console.log('look for match');
 		this.scanToMatchOrder(side === CST.ORDER_BUY ? askOrders : bidOrders, newOrder, side);
+		console.log('finish matching');
 	}
 }
 const matchOrdersUtil = new MatchOrdersUtil();
