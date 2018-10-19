@@ -15,7 +15,7 @@ class MatchOrdersUtil {
 	): Promise<void> {
 		console.log(newOrder.takerAssetAmount, '### new order taker amount');
 		for (const order of oldOrders)
-			if (side === CST.ORDER_BUY) {
+			if (side === CST.ORDER_BUY)
 				if (
 					util.stringToBN(order.amount.toString()) === newOrder.makerAssetAmount &&
 					newOrder.takerAssetAmount.div(newOrder.makerAssetAmount).lessThan(order.price)
@@ -44,7 +44,6 @@ class MatchOrdersUtil {
 					console.log('matched two orders ', txHash);
 					break;
 				}
-			}
 	}
 
 	public async matchOrder(newOrder: SignedOrder, marketId: string, side: string): Promise<void> {

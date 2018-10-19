@@ -7,23 +7,24 @@ import {
 } from '0x.js';
 import { schemas, SchemaValidator } from '@0xproject/json-schemas';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
-import moment from 'moment';
+// import moment from 'moment';
 import assetsUtil from './common/assetsUtil';
 import * as CST from './constants';
 import dynamoUtil from './dynamoUtil';
 // import firebaseUtil from './firebaseUtil';
 import matchOrdersUtil from './matchOrdersUtil';
+import orderBookUtil from './orderBookUtil';
 import { providerEngine } from './providerEngine';
 import redisUtil from './redisUtil';
 import {
 	ErrorResponseWs,
 	IDuoOrder,
 	// IDuoSignedOrder,
-	ILiveOrders,
+	// ILiveOrders,
 	IOption,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotWs,
-	IOrderBookUpdateWS,
+	// IOrderBookUpdateWS,
 	IOrderResponseWs,
 	// IOrderStateCancelled,
 	// IUpdateResponseWs,
@@ -51,32 +52,8 @@ class RelayerUtil {
 		const config = require('./keys/' + (option.live ? 'live' : 'dev') + '/dynamo.json');
 		dynamoUtil.init(config, option.live, tool);
 
-		for (const marketId of CST.TRADING_PAIRS) {
-			util.logInfo('initializing orderBook for ' + marketId);
-			const liveOrders: ILiveOrders[] = await dynamoUtil.getLiveOrders(marketId);
-			this.orderBook[marketId] = this.aggrOrderBook(liveOrders);
-		}
-	}
-
-	public applyChangeOrderBook(
-		marketId: string,
-		timestamp: number,
-		bidChanges: IOrderBookUpdateWS[],
-		askChanges: IOrderBookUpdateWS[]
-	) {
-		const newBids = [...this.orderBook[marketId].bids, ...bidChanges];
-		const newAsks = [...this.orderBook[marketId].asks, ...askChanges];
-		this.orderBook[marketId] = {
-			timestamp: timestamp,
-			bids: this.sortByPrice(this.aggrByPrice(newBids), 1),
-			asks: this.sortByPrice(this.aggrByPrice(newAsks), -1)
-		};
-	}
-
-	public sortByPrice(orderInfo: IOrderBookUpdateWS[], isDescending: number): IOrderBookUpdateWS[] {
-		return orderInfo.sort((a, b) => {
-			return a.price > b.price ? isDescending : b.price > a.price ? isDescending *= -1 : 0;
-		});
+		orderBookUtil.calculateOrderBookSnapshot();
+		this.orderBook = orderBookUtil.orderBook;
 	}
 
 	public async validateNewOrder(signedOrder: SignedOrder, orderHash: string): Promise<boolean> {
@@ -102,33 +79,6 @@ class RelayerUtil {
 		return isValidSchema && isValidSig;
 	}
 
-	public aggrOrderBook(rawLiveOrders: ILiveOrders[]): IOrderBookSnapshot {
-		// const rawOrderBook = this.getOrderBook(rawOrders, marketId);
-
-		return {
-			timestamp: moment.utc().valueOf(),
-			bids: this.sortByPrice(this.aggrByPrice(
-				rawLiveOrders
-					.filter(order => order[CST.DB_SIDE] === CST.DB_BUY)
-					.map(bid => this.parseOrderBookUpdate(bid))
-			), 1),
-			asks: this.sortByPrice(this.aggrByPrice(
-				rawLiveOrders
-					.filter(order => order[CST.DB_SIDE] === CST.DB_SELL)
-					.map(bid => this.parseOrderBookUpdate(bid))
-			), -1),
-		};
-	}
-
-	public aggrByPrice(orderInfo: IOrderBookUpdateWS[]) {
-		return orderInfo.reduce((past: IOrderBookUpdateWS[], current) => {
-			const same = past.find(r => r && r.price === current.price);
-			if (same) same.amount = (Number(same.amount) + Number(current.amount)).toString();
-			else past.push(current);
-			return past;
-		}, []);
-	}
-
 	public handleSubscribe(message: any): IOrderBookSnapshotWs {
 		console.log('Handle Message: ' + message.type);
 		const returnMessage = {
@@ -141,25 +91,6 @@ class RelayerUtil {
 		};
 		console.log('return msg is', returnMessage);
 		return returnMessage;
-	}
-
-	public getOrderBook(orders: IDuoOrder[], marketId: string): IDuoOrder[][] {
-		const baseToken = marketId.split('-')[0];
-		const bidOrders = orders.filter(order => {
-			const takerTokenName = order.takerAssetData
-				? assetsUtil.assetDataToTokenName(order.takerAssetData)
-				: null;
-			return takerTokenName === baseToken;
-		});
-
-		const askOrders = orders.filter(order => {
-			const makerTokenName = order.makerAssetData
-				? assetsUtil.assetDataToTokenName(order.makerAssetData)
-				: null;
-			return makerTokenName === baseToken;
-		});
-
-		return [bidOrders, askOrders];
 	}
 
 	public toSignedOrder(order: any): SignedOrder {
@@ -197,9 +128,8 @@ class RelayerUtil {
 			CST.ORDERBOOK_UPDATE,
 			JSON.stringify({
 				marketId: marketId,
-				price: util.keepPrecision(
-					order.makerAssetAmount.div(order.takerAssetAmount).valueOf(),
-					CST.PRICE_PRECISION
+				price: util.round(
+					order.makerAssetAmount.div(order.takerAssetAmount).valueOf()
 				),
 				amount: order.makerAssetAmount.valueOf()
 			})
@@ -257,13 +187,6 @@ class RelayerUtil {
 				failedReason: ErrorResponseWs.InvalidOrder
 			};
 		}
-	}
-
-	public parseOrderBookUpdate(order: ILiveOrders): IOrderBookUpdateWS {
-		return {
-			amount: order.amount.toString(),
-			price: order.price.toString()
-		};
 	}
 
 	// public onModifiedOrder(modifiedOrder: IDuoOrder): IDuoOrder {}

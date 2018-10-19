@@ -88,13 +88,10 @@ class Util {
 		return option;
 	}
 
-	public keepPrecision(input: string, precision: number): string {
-		let intPart: string;
-		let floatPart: string;
-		[intPart, floatPart] = input.split('.');
-		if (!floatPart) return intPart;
-		else return intPart + '.' + floatPart.slice(0, precision);
+	public round(num: string | number) {
+		return +(Math.floor((num + 'e+8') as any) + 'e-8');
 	}
+
 }
 
 const util = new Util();

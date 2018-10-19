@@ -37,11 +37,11 @@ test('{test: true} is not empty', () => {
 	expect(util.isEmptyObject({ test: true })).toBe(false);
 });
 
-test('keepPrecision', () => {
-	expect(util.keepPrecision('12345', 8)).toMatchSnapshot();
-	expect(util.keepPrecision('12345.000', 8)).toMatchSnapshot();
-	expect(util.keepPrecision('12345.1234567', 8)).toMatchSnapshot();
-	expect(util.keepPrecision('12345.123456789', 8)).toMatchSnapshot();
-	expect(util.keepPrecision('0.123456789123456789', 8)).toMatchSnapshot();
-	expect(util.keepPrecision('12345.123456789123456789', 8)).toMatchSnapshot();
+test('round', () => {
+	expect(util.round('12345')).toMatchSnapshot();
+	expect(util.round('12345.000')).toMatchSnapshot();
+	expect(util.round('12345.1234567')).toMatchSnapshot();
+	expect(util.round('12345.123456789')).toMatchSnapshot();
+	expect(util.round('0.123456789123456789')).toMatchSnapshot();
+	expect(util.round('12345.123456789123456789')).toMatchSnapshot();
 });
