@@ -90,9 +90,8 @@ class DynamoUtil {
 			[CST.DB_ORDER_HASH]: { S: orderHash },
 			[CST.DB_PRICE]: {
 				N:
-					util.keepPrecision(
-						order.makerAssetAmount.div(order.takerAssetAmount).valueOf(),
-						CST.PRICE_PRECISION
+					util.round(
+						order.makerAssetAmount.div(order.takerAssetAmount).valueOf()
 					) + ''
 			},
 			[CST.DB_FILLED_TAKER_ASSET_AMT]: { S: '0' },

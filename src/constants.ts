@@ -51,6 +51,7 @@ export const DB_ORDER_IS_VALID = 'isValid';
 export const ORDER_BUY = 'buy';
 export const ORDER_SELL = 'sell';
 export const ORDERBOOK_UPDATE = 'orderBookUpdate';
+export const ORDERBOOK_SNAPSHOT = 'orderBookSnapshot';
 
 export const DB_ORDER_ADDED = 'added';
 export const DB_ORDERS = 'orders';
