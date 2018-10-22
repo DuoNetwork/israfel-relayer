@@ -1,7 +1,7 @@
 import assetsUtil from './common/assetsUtil';
 import orderWatcherUtil from './common/orderWatcherUtil';
 import * as CST from './constants';
-import identityUtil from './identityUtil';
+import dynamoUtil from './dynamoUtil';
 import redisUtil from './redisUtil';
 import util from './util';
 import wsServer from './wsServer';
@@ -13,6 +13,9 @@ redisUtil.init(redisConfig);
 const tool = process.argv[2];
 
 util.logInfo('tool ' + tool);
+
+const config = require('./keys/' + (option.live ? 'live' : 'dev') + '/dynamo.json');
+dynamoUtil.init(config, option.live, tool);
 
 switch (tool) {
 	case CST.SET_ALLOWANCE:
@@ -30,10 +33,6 @@ switch (tool) {
 		wsServer.init(tool, option);
 		wsServer.startServer();
 		break;
-	case "currentId":
-		identityUtil.init(tool, option);
-		identityUtil.getCurrentId();
-		// wsServer.startServer();
 		break;
 	default:
 		break;

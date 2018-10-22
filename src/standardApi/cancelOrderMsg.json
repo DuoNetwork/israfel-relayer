@@ -2,7 +2,7 @@
     "type": "cancel",
     "channel": {
         "name": "order",
-        "marketId": "ZRX-WETH"
+        "pair": "ZRX-WETH"
     },
     "requestId": 123435,
     "payload": {

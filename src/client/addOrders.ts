@@ -117,7 +117,7 @@ const mainAsync = async () => {
 			type: WsChannelMessageTypes.Add,
 			channel: {
 				name: WsChannelName.Order,
-				marketId: 'ZRX-WETH'
+				pair: 'ZRX-WETH'
 			},
 			requestId: Date.now(),
 			payload: {

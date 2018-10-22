@@ -12,7 +12,7 @@ class MatchOrdersUtil {
 		side: string
 	): Promise<void> {
 		for (const order of oldOrders)
-			if (side === CST.ORDER_BUY) {
+			if (side === CST.ORDER_BUY)
 				if (
 					newOrder.takerAssetAmount.div(newOrder.makerAssetAmount).lessThan(order.price)
 				) {
@@ -40,13 +40,12 @@ class MatchOrdersUtil {
 						break;
 					}
 				}
-			}
 	}
 
-	public async matchOrder(newOrder: SignedOrder, marketId: string, side: string): Promise<void> {
+	public async matchOrder(newOrder: SignedOrder, pair: string, side: string): Promise<void> {
 		await assetsUtil.init();
 
-		const liveOrders = await dynamoUtil.getLiveOrders(marketId);
+		const liveOrders = await dynamoUtil.getLiveOrders(pair);
 		const [bidOrders, askOrders] = [
 			orderbookUtil.sortByPriceTime(
 				liveOrders.filter(order => order.side === CST.DB_BUY),

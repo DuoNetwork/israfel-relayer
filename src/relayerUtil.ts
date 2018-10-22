@@ -84,10 +84,10 @@ class RelayerUtil {
 		const returnMessage = {
 			type: WsChannelResposnseTypes.Snapshot,
 			timestamp: this.now,
-			channel: { name: message.channel.name, marketId: message.channel.marketId },
+			channel: { name: message.channel.name, pair: message.channel.pair },
 			requestId: message.requestId,
-			bids: this.orderBook[message.channel.marketId].bids,
-			asks: this.orderBook[message.channel.marketId].asks
+			bids: this.orderBook[message.channel.pair].bids,
+			asks: this.orderBook[message.channel.pair].asks
 		};
 		console.log('return msg is', returnMessage);
 		return returnMessage;
@@ -112,8 +112,8 @@ class RelayerUtil {
 		};
 	}
 
-	public determineSide(order: SignedOrder, marketId: string): string {
-		const baseToken = marketId.split('-')[0];
+	public determineSide(order: SignedOrder, pair: string): string {
+		const baseToken = pair.split('-')[0];
 		return assetsUtil.assetDataToTokenName(order.takerAssetData) === baseToken
 			? CST.DB_BUY
 			: CST.DB_SELL;
@@ -122,12 +122,12 @@ class RelayerUtil {
 	public async handleAddorder(message: any): Promise<IOrderResponseWs> {
 		const order: SignedOrder = this.toSignedOrder(message.payload.order);
 		const orderHash = message.payload.orderHash;
-		const marketId = message.channel.marketId;
+		const pair = message.channel.pair;
 
 		redisUtil.publish(
 			CST.ORDERBOOK_UPDATE,
 			JSON.stringify({
-				marketId: marketId,
+				pair: pair,
 				price: util.round(
 					order.makerAssetAmount.div(order.takerAssetAmount).valueOf()
 				),
@@ -135,20 +135,23 @@ class RelayerUtil {
 			})
 		);
 
-		const side = this.determineSide(order, marketId);
-		matchOrdersUtil.matchOrder(order, marketId, side);
+		const side = this.determineSide(order, pair);
+		matchOrdersUtil.matchOrder(order, pair, side);
 
 		if (await this.validateNewOrder(order, orderHash)) {
-			await dynamoUtil.addLiveOrder(order, orderHash, marketId, side);
-
-			await dynamoUtil.addRawOrder(order, orderHash);
+			redisUtil.push(CST.DB_ORDERS, JSON.stringify({
+				order,
+				orderHash,
+				pair,
+				side
+			}));
 
 			//TODO: Publish price delta to redis
 
 			return {
 				channel: {
 					name: WsChannelName.Order,
-					marketId: marketId
+					pair: pair
 				},
 				status: 'success',
 				failedReason: ''
@@ -157,22 +160,22 @@ class RelayerUtil {
 			return {
 				channel: {
 					name: WsChannelName.Order,
-					marketId: marketId
+					pair: pair
 				},
 				status: 'failed',
 				failedReason: ErrorResponseWs.InvalidOrder
 			};
 	}
 
-	public async handleCancel(orderHash: string, marketId: string): Promise<IOrderResponseWs> {
+	public async handleCancel(orderHash: string, pair: string): Promise<IOrderResponseWs> {
 		try {
 			// Atomic transaction needs to be ensured
-			await dynamoUtil.removeLiveOrder(marketId, orderHash);
+			await dynamoUtil.removeLiveOrder(pair, orderHash);
 			await dynamoUtil.deleteOrderSignature(orderHash);
 			return {
 				channel: {
 					name: WsChannelName.Order,
-					marketId: marketId
+					pair: pair
 				},
 				status: 'success',
 				failedReason: ''
@@ -181,7 +184,7 @@ class RelayerUtil {
 			return {
 				channel: {
 					name: WsChannelName.Order,
-					marketId: marketId
+					pair: pair
 				},
 				status: 'failed',
 				failedReason: ErrorResponseWs.InvalidOrder

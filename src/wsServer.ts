@@ -46,7 +46,7 @@ class WsServer {
 								JSON.stringify(
 									await relayerUtil.handleCancel(
 										parsedMessage.payload.orderHash,
-										parsedMessage.channel.marketId
+										parsedMessage.channel.pair
 									)
 								)
 							);
@@ -64,8 +64,8 @@ class WsServer {
 	}
 
 	// Listen to DB and return updates to client
-	// for (const marketId of CST.TRADING_PAIRS) {
-	// 	const orderListener = firebaseUtil.getRef(`/${CST.DB_ORDERS}|${marketId}`);
+	// for (const pair of CST.TRADING_PAIRS) {
+	// 	const orderListener = firebaseUtil.getRef(`/${CST.DB_ORDERS}|${pair}`);
 	// 	(orderListener as CollectionReference).onSnapshot(docs => {
 	// 		console.log('receive DB updates, to generate delta...');
 	// 		const timestamp = Date.now();
@@ -80,14 +80,14 @@ class WsServer {
 	// 			}
 	// 			return result
 	// 		}, []);
-	// 		const orderBookDelta = relayerUtil.aggrOrderBook(changedOrders, marketId, timestamp);
+	// 		const orderBookDelta = relayerUtil.aggrOrderBook(changedOrders, pair, timestamp);
 	// 		const bidOrderBookDelta = orderBookDelta.bids;
 	// 		const askOrderBookDelta = orderBookDelta.asks;
 	// 		console.log('snapshot bid changes size is ', bidOrderBookDelta.length);
 	// 		console.log('snapshot ask changes size is ', askOrderBookDelta.length);
 
 	// 		relayerUtil.applyChangeOrderBook(
-	// 			marketId,
+	// 			pair,
 	// 			timestamp,
 	// 			bidOrderBookDelta,
 	// 			askOrderBookDelta
@@ -100,7 +100,7 @@ class WsServer {
 	// 			currentTimestamp: timestamp,
 	// 			channel: {
 	// 				name: WsChannelName.Orderbook,
-	// 				marketId: 'ZRX-WETH'
+	// 				pair: 'ZRX-WETH'
 	// 			},
 	// 			bids: bidOrderBookDelta,
 	// 			asks: askOrderBookDelta

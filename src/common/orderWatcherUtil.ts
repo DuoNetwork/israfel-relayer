@@ -29,14 +29,14 @@ class OrderWatcherUtil {
 
 	//remove orders remaining invalid for 24 hours from DB
 	public async pruneOrders(option: IOption) {
-		const marketId = option.token + '-' + CST.TOKEN_WETH;
-		const orders = await dynamoUtil.getLiveOrders(marketId);
+		const pair = option.token + '-' + CST.TOKEN_WETH;
+		const orders = await dynamoUtil.getLiveOrders(pair);
 		console.log('length before prune is', orders.length);
 		orders.forEach(order => {
 			const inValidTime = !order.isValid ? Date.now() - order.updatedAt : 0;
 			console.log(inValidTime);
 			if (inValidTime > CST.PENDING_HOURS * 3600000) {
-				dynamoUtil.removeLiveOrder(marketId, order.orderHash);
+				dynamoUtil.removeLiveOrder(pair, order.orderHash);
 				this.orderWatcher.removeOrder(order.orderHash);
 				console.log('remove order!');
 			}
@@ -45,9 +45,9 @@ class OrderWatcherUtil {
 	}
 
 	public async startOrderWatcher(option: IOption) {
-		const marketId = option.token + '-' + CST.TOKEN_WETH;
-		util.logInfo('start order watcher for ' + marketId);
-		const liveOrders: ILiveOrders[] = await dynamoUtil.getLiveOrders(marketId);
+		const pair = option.token + '-' + CST.TOKEN_WETH;
+		util.logInfo('start order watcher for ' + pair);
+		const liveOrders: ILiveOrders[] = await dynamoUtil.getLiveOrders(pair);
 
 		console.log('length in DB is ', liveOrders.length);
 		for (const order of liveOrders)
@@ -67,7 +67,7 @@ class OrderWatcherUtil {
 			}
 
 			console.log(Date.now().toString(), orderState);
-			if (orderState !== undefined) await dynamoUtil.updateOrderState(orderState, marketId);
+			if (orderState !== undefined) await dynamoUtil.updateOrderState(orderState, pair);
 		});
 	}
 }

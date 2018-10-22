@@ -4,7 +4,7 @@
         "timestamp": 12345,
 		"channel": {
 			"name": "orderbook",
-			"marketId": "ZRX-WETH"
+			"pair": "ZRX-WETH"
 		},
 		"bids": [
 			{ "price": "0.007", "amount": "400" },
@@ -41,7 +41,7 @@
 		"currentTimestamp": 12346,
 		"channel": {
 			"name": "orderbook",
-			"marketId": "ZRX-WETH"
+			"pair": "ZRX-WETH"
 		},
 		"bids": [
 			{ "price": "0.007", "amount": "0" },

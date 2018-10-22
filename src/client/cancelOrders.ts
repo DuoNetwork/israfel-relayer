@@ -12,8 +12,8 @@ const mainAsync = async () => {
 	// const web3Wrapper = new Web3Wrapper(providerEngine);
 
 	// const [maker] = await web3Wrapper.getAvailableAddressesAsync();
-	const marketId = CST.TOKEN_ZRX + '-' + CST.TOKEN_WETH;
-	const orders = await dynamoUtil.getLiveOrders(marketId);
+	const pair = CST.TOKEN_ZRX + '-' + CST.TOKEN_WETH;
+	const orders = await dynamoUtil.getLiveOrders(pair);
 	if (orders.length === 0) throw Error('No orders found in DB!');
 	console.log('num of fetched orders' + orders.length);
 
@@ -26,7 +26,7 @@ const mainAsync = async () => {
 		type: WsChannelMessageTypes.Cancel,
 		channel: {
 			name: WsChannelName.Order,
-			marketId: 'ZRX-WETH'
+			pair: 'ZRX-WETH'
 		},
 		requestId: Date.now(),
 		payload: {

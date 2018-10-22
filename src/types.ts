@@ -19,7 +19,7 @@ export interface IOrderBookSnapshotWs extends IOrderBookSnapshot {
 	type: WsChannelResposnseTypes;
 	channel: {
 		name: string;
-		marketId: string;
+		pair: string;
 	};
 	requestId: number;
 }
@@ -43,7 +43,7 @@ export interface IOrderBookUpdateWS {
 }
 
 export interface IOrderBookDelta {
-	marketId: string;
+	pair: string;
 	price: number;
 	amount: number;
 }
@@ -54,7 +54,7 @@ export interface IUpdateResponseWs {
 	currentTimestamp: number;
 	channel: {
 		name: WsChannelName;
-		marketId: string;
+		pair: string;
 	};
 	bids: IOrderBookUpdateWS[];
 	asks: IOrderBookUpdateWS[];
@@ -63,7 +63,7 @@ export interface IUpdateResponseWs {
 export interface IOrderResponseWs {
 	channel: {
 		name: WsChannelName;
-		marketId: string;
+		pair: string;
 	};
 	status: string;
 	failedReason: string;
@@ -133,4 +133,11 @@ export interface ILiveOrders {
 	[CST.DB_SIDE]: string;
 	isValid: boolean,
 	updatedAt: number
+}
+
+export interface IOrderQueue {
+	order: SignedOrder;
+	orderHash: string;
+	side: string;
+	pair: string;
 }

@@ -8,14 +8,14 @@ class IdentityUtil {
 		dynamoUtil.init(config, option.live, tool);
 	}
 
-	public async getCurrentId() {
-		const res = await dynamoUtil.getCurrentId('ZRX-WETH');
-		// console.log(res);
+	public async getCurrentId(pair: string): Promise<string> {
+		const res = await dynamoUtil.getCurrentId(pair);
 		try {
-			await dynamoUtil.conditionalPutIdentity('ZRX-WETH', res, Number(res) + 1 + '');
+			await dynamoUtil.conditionalPutIdentity(pair, res, Number(res) + 1 + '');
+
 			return res;
 		} catch (err) {
-			console.log('failed');
+			console.log('failed, please retry');
 			return '';
 		}
 	}

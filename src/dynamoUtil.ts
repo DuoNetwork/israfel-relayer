@@ -84,7 +84,8 @@ class DynamoUtil {
 		order: SignedOrder,
 		orderHash: string,
 		timestamp: number,
-		side: string
+		side: string,
+		id: string
 	) {
 		return {
 			[CST.DB_ORDER_HASH]: { S: orderHash },
@@ -96,6 +97,7 @@ class DynamoUtil {
 			[CST.DB_REMAINING_TAKER_ASSET_AMT]: { S: order.takerAssetAmount.valueOf() + '' },
 			[CST.DB_SIDE]: { S: side },
 			[CST.DB_ORDER_IS_VALID]: { BOOL: true },
+			[CST.DB_ID]: { S: id },
 			[CST.DB_UPDATED_AT]: { N: timestamp + '' }
 		};
 	}
@@ -103,13 +105,20 @@ class DynamoUtil {
 	public async addLiveOrder(
 		order: SignedOrder,
 		orderHash: string,
-		marketId: string,
-		side: string
-	) {
-		if (!marketId || !orderHash) throw new Error('invalid order');
+		pair: string,
+		side: string,
+		id: string
+	): Promise<boolean> {
+		if (!pair || !orderHash) throw new Error('invalid order');
 		const systemTimestamp = util.getUTCNowTimestamp(); // record down the MTS
 
-		const data = this.convertDuoSignedOrderToDynamo(order, orderHash, systemTimestamp, side);
+		const data = this.convertDuoSignedOrderToDynamo(
+			order,
+			orderHash,
+			systemTimestamp,
+			side,
+			id
+		);
 
 		const params = {
 			TableName: this.live
@@ -117,12 +126,13 @@ class DynamoUtil {
 				: `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_DEV}`,
 			Item: {
 				[CST.DB_PAIR]: {
-					S: marketId
+					S: pair
 				},
 				...data
 			}
 		};
 		await this.insertData(params);
+		return true;
 	}
 
 	public async removeLiveOrder(pair: string, orderHash: string): Promise<void> {
@@ -142,7 +152,6 @@ class DynamoUtil {
 	}
 
 	public async getCurrentId(pair: string) {
-
 		const params: QueryInput = {
 			TableName: this.live
 				? `${CST.DB_PROJECT}.${CST.DB_IDENTITY}.${CST.DB_LIVE}`
@@ -158,7 +167,6 @@ class DynamoUtil {
 		// const id = this.parseRawOrders();
 
 		return data.Items[0].id.N || '0';
-
 	}
 
 	public async conditionalPutIdentity(pair: string, oldId: string, newId: string) {
@@ -187,7 +195,6 @@ class DynamoUtil {
 		};
 
 		await this.insertData(params);
-
 	}
 
 	// public async getSequenceId() {
@@ -234,7 +241,7 @@ class DynamoUtil {
 		};
 	}
 
-	public async addRawOrder(order: SignedOrder, orderHash: string) {
+	public async addRawOrder(order: SignedOrder, orderHash: string): Promise<boolean> {
 		if (!orderHash) throw new Error('no orderHash provided');
 		const systemTimestamp = util.getUTCNowTimestamp(); // record down the MTS
 		const data = this.convertSignedOrderToDynamo(order, systemTimestamp);
@@ -252,6 +259,7 @@ class DynamoUtil {
 		};
 
 		await this.insertData(params);
+		return true;
 	}
 
 	public async getRawOrder(orderHash: string): Promise<SignedOrder> {

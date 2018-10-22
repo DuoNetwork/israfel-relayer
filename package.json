@@ -14,8 +14,7 @@
 		"orderWatcher": "ts-node ./src/index orderWatcher",
 		"cancelOrders": "ts-node ./src/client/cancelOrders",
 		"pruneOrder": "ts-node ./src/index pruneOrder",
-		"setAllowance": "ts-node ./src/index setAllowance",
-		"currentId": "ts-node ./src/index currentId"
+		"setAllowance": "ts-node ./src/index setAllowance"
 	},
 	"jest": {
 		"roots": [

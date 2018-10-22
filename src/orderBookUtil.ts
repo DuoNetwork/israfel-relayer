@@ -15,10 +15,10 @@ class OrderBookUtil {
 	}
 
 	public async calculateOrderBookSnapshot() {
-		for (const marketId of CST.TRADING_PAIRS) {
-			const liveOrders: ILiveOrders[] = await dynamoUtil.getLiveOrders(marketId);
-			this.orderBook[marketId] = this.aggrOrderBook(liveOrders);
-			console.log('### current orerbook ', this.orderBook[marketId]);
+		for (const pair of CST.TRADING_PAIRS) {
+			const liveOrders: ILiveOrders[] = await dynamoUtil.getLiveOrders(pair);
+			this.orderBook[pair] = this.aggrOrderBook(liveOrders);
+			console.log('### current orerbook ', this.orderBook[pair]);
 		}
 	}
 
@@ -31,7 +31,7 @@ class OrderBookUtil {
 	}
 
 	public aggrOrderBook(rawLiveOrders: ILiveOrders[]): IOrderBookSnapshot {
-		// const rawOrderBook = this.getOrderBook(rawOrders, marketId);
+		// const rawOrderBook = this.getOrderBook(rawOrders, pair);
 
 		return {
 			timestamp: moment.utc().valueOf(),
@@ -67,26 +67,26 @@ class OrderBookUtil {
 	}
 
 	public applyChangeOrderBook(
-		marketId: string,
+		pair: string,
 		timestamp: number,
 		bidChanges: IOrderBookUpdateWS[],
 		askChanges: IOrderBookUpdateWS[]
 	) {
-		const newBids = [...this.orderBook[marketId].bids, ...bidChanges].sort((a, b) => {
+		const newBids = [...this.orderBook[pair].bids, ...bidChanges].sort((a, b) => {
 			return Number(b.price) - Number(a.price);
 		});
-		const newAsks = [...this.orderBook[marketId].asks, ...askChanges].sort((a, b) => {
+		const newAsks = [...this.orderBook[pair].asks, ...askChanges].sort((a, b) => {
 			return Number(a.price) - Number(b.price);
 		});
-		this.orderBook[marketId] = {
+		this.orderBook[pair] = {
 			timestamp: timestamp,
 			bids: this.aggrByPrice(newBids),
 			asks: this.aggrByPrice(newAsks)
 		};
 	}
 
-	public getOrderBook(orders: IDuoOrder[], marketId: string): IDuoOrder[][] {
-		const baseToken = marketId.split('-')[0];
+	public getOrderBook(orders: IDuoOrder[], pair: string): IDuoOrder[][] {
+		const baseToken = pair.split('-')[0];
 		const bidOrders = orders.filter(order => {
 			const takerTokenName = order.takerAssetData
 				? assetsUtil.assetDataToTokenName(order.takerAssetData)
@@ -107,10 +107,10 @@ class OrderBookUtil {
 	public scheduleSumamrizer() {
 		setInterval(async () => {
 			await this.calculateOrderBookSnapshot();
-			for (const marketId in this.orderBook)
+			for (const pair in this.orderBook)
 				redisUtil.publish(
-					`${CST.ORDERBOOK_SNAPSHOT}|${marketId}`,
-					JSON.stringify(this.orderBook[marketId])
+					`${CST.ORDERBOOK_SNAPSHOT}|${pair}`,
+					JSON.stringify(this.orderBook[pair])
 				);
 		}, 30000);
 	}
