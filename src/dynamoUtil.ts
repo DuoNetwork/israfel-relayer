@@ -141,6 +141,59 @@ class DynamoUtil {
 		});
 	}
 
+	public async getCurrentId(pair: string) {
+
+		const params: QueryInput = {
+			TableName: this.live
+				? `${CST.DB_PROJECT}.${CST.DB_IDENTITY}.${CST.DB_LIVE}`
+				: `${CST.DB_PROJECT}.${CST.DB_IDENTITY}.${CST.DB_DEV}`,
+			KeyConditionExpression: `${CST.DB_PAIR} = :${CST.DB_PAIR}`,
+			ExpressionAttributeValues: {
+				[':' + CST.DB_PAIR]: { S: pair }
+			}
+		};
+
+		const data = await this.queryData(params);
+		if (!data.Items || !data.Items.length) throw console.error('wrong number of id!');
+		// const id = this.parseRawOrders();
+
+		return data.Items[0].id.N || '0';
+
+	}
+
+	public async conditionalPutIdentity(pair: string, oldId: string, newId: string) {
+		const params = {
+			TableName: this.live
+				? `${CST.DB_PROJECT}.${CST.DB_IDENTITY}.${CST.DB_LIVE}`
+				: `${CST.DB_PROJECT}.${CST.DB_IDENTITY}.${CST.DB_DEV}`,
+			Item: {
+				[CST.DB_ID]: {
+					N: newId
+				},
+				[CST.DB_PAIR]: {
+					S: pair
+				}
+			},
+			Expected: {
+				[CST.DB_ID]: {
+					AttributeValueList: [
+						{
+							N: oldId
+						}
+					],
+					ComparisonOperator: 'EQ'
+				}
+			}
+		};
+
+		await this.insertData(params);
+
+	}
+
+	// public async getSequenceId() {
+
+	// }
+
 	public async deleteOrderSignature(orderHash: string): Promise<void> {
 		return this.updateItem({
 			TableName: this.live

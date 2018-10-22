@@ -1,6 +1,7 @@
 import assetsUtil from './common/assetsUtil';
 import orderWatcherUtil from './common/orderWatcherUtil';
 import * as CST from './constants';
+import identityUtil from './identityUtil';
 import redisUtil from './redisUtil';
 import util from './util';
 import wsServer from './wsServer';
@@ -28,6 +29,11 @@ switch (tool) {
 	case CST.START_RELAYER:
 		wsServer.init(tool, option);
 		wsServer.startServer();
+		break;
+	case "currentId":
+		identityUtil.init(tool, option);
+		identityUtil.getCurrentId();
+		// wsServer.startServer();
 		break;
 	default:
 		break;

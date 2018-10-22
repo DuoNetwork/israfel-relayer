@@ -2,10 +2,12 @@ export const DB_PROJECT = 'israfel';
 export const DB_LIVE_ORDERS = 'liveOrders';
 export const DB_RAW_ORDERS = 'rawOrders';
 export const DB_USER_ORDERS = 'userOrders';
+export const DB_IDENTITY = 'identity';
 export const DB_STATUS = 'status';
 export const DB_LIVE = 'live';
 export const DB_DEV = 'dev';
 export const DB_PAIR = 'pair';
+export const DB_ID = 'id';
 export const DB_ORDER_HASH = 'orderHash';
 export const DB_PRICE = 'price';
 export const DB_ACCOUNT = 'account';
@@ -19,6 +21,7 @@ export const DB_FILLED_TAKER_ASSET_AMT = 'filledTakerAssetAmount';
 export const DB_REMAINING_MAKER_ASSET_AMT = 'remainingFillableMakerAssetAmount';
 export const DB_REMAINING_TAKER_ASSET_AMT = 'remainingFillableTakerAssetAmount';
 export const DB_UPDATED_AT = 'updatedAt';
+export const DB_ORDER_SEQUENCE = 'sequence';
 
 export const DB_SENDER_ADDR = 'senderAddress';
 
