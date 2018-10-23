@@ -33,7 +33,6 @@ import {
 	WsChannelName,
 	WsChannelResposnseTypes
 } from './types';
-// import util from './util';
 
 class RelayerUtil {
 	public contractWrappers: ContractWrappers;

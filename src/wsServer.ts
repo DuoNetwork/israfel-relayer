@@ -69,6 +69,7 @@ class WsServer {
 						message: ''
 					})
 				);
+				this.isWaitingId = false;
 			}
 		});
 

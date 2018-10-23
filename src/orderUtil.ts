@@ -1,4 +1,4 @@
-import { orderHashUtils, signatureUtils, SignedOrder } from '0x.js';
+import { signatureUtils, SignedOrder } from '0x.js';
 import { schemas, SchemaValidator } from '@0xproject/json-schemas';
 import * as CST from './constants';
 import dynamoUtil from './dynamoUtil';
