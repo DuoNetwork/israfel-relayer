@@ -11,7 +11,7 @@ import DynamoDB, {
 } from 'aws-sdk/clients/dynamodb';
 import AWS from 'aws-sdk/global';
 import * as CST from './constants';
-import { ILiveOrders, UserOrderOperation } from './types';
+import { ILiveOrder } from './types';
 import util from './util';
 
 class DynamoUtil {
@@ -92,11 +92,11 @@ class DynamoUtil {
 			[CST.DB_PRICE]: {
 				N: util.round(order.makerAssetAmount.div(order.takerAssetAmount).valueOf()) + ''
 			},
-			[CST.DB_FILLED_TAKER_ASSET_AMT]: { S: '0' },
-			[CST.DB_REMAINING_MAKER_ASSET_AMT]: { S: order.makerAssetAmount.valueOf() + '' },
-			[CST.DB_REMAINING_TAKER_ASSET_AMT]: { S: order.takerAssetAmount.valueOf() + '' },
-			[CST.DB_SIDE]: { S: side },
-			[CST.DB_ORDER_IS_VALID]: { BOOL: true },
+			// [CST.DB_FILLED_TAKER_ASSET_AMT]: { S: '0' },
+			[CST.DB_LO_BALANCE]: { S: order.makerAssetAmount.valueOf() + '' },
+			// [CST.DB_REMAINING_TAKER_ASSET_AMT]: { S: order.takerAssetAmount.valueOf() + '' },
+			[CST.DB_LO_SIDE]: { S: side },
+			// [CST.DB_ORDER_IS_VALID]: { BOOL: true },
 			[CST.DB_ID]: { S: id },
 			[CST.DB_UPDATED_AT]: { N: timestamp + '' }
 		};
@@ -197,10 +197,6 @@ class DynamoUtil {
 		await this.insertData(params);
 	}
 
-	// public async getSequenceId() {
-
-	// }
-
 	public async deleteOrderSignature(orderHash: string): Promise<void> {
 		return this.updateItem({
 			TableName: this.live
@@ -212,31 +208,31 @@ class DynamoUtil {
 				}
 			},
 			ExpressionAttributeNames: {
-				[CST.DB_SIGNATURE]: CST.DB_SIGNATURE
+				[CST.DB_0X_SIGNATURE]: CST.DB_0X_SIGNATURE
 			},
 			ExpressionAttributeValues: {
-				[':' + CST.DB_SIGNATURE]: { S: '' }
+				[':' + CST.DB_0X_SIGNATURE]: { S: '' }
 			},
-			UpdateExpression: `SET ${CST.DB_SIGNATURE} = ${':' + CST.DB_SIGNATURE}`
+			UpdateExpression: `SET ${CST.DB_0X_SIGNATURE} = ${':' + CST.DB_0X_SIGNATURE}`
 		});
 	}
 
 	public convertSignedOrderToDynamo(order: SignedOrder, timestamp: number) {
 		return {
-			[CST.DB_SENDER_ADDR]: { S: order.senderAddress + '' },
-			[CST.DB_MAKER_ADDR]: { S: order.makerAddress + '' },
-			[CST.DB_TAKER_ADDR]: { S: order.takerAddress + '' },
-			[CST.DB_MAKER_FEE]: { S: order.makerFee.valueOf() + '' },
-			[CST.DB_TAKER_FEE]: { S: order.takerFee.valueOf() + '' },
-			[CST.DB_MAKER_ASSET_AMT]: { S: order.makerAssetAmount.valueOf() + '' },
-			[CST.DB_TAKER_ASSET_AMT]: { S: order.takerAssetAmount.valueOf() + '' },
-			[CST.DB_MAKER_ASSET_DATA]: { S: order.makerAssetData + '' },
-			[CST.DB_TAKER_ASSET_DATA]: { S: order.takerAssetData + '' },
-			[CST.DB_SALT]: { S: order.salt.valueOf() + '' },
-			[CST.DB_EXCHANGE_ADDR]: { S: order.exchangeAddress + '' },
-			[CST.DB_FEE_RECIPIENT_ADDR]: { S: order.feeRecipientAddress + '' },
-			[CST.DB_EXPIRATION_TIME_SECONDS]: { S: order.expirationTimeSeconds.valueOf() + '' },
-			[CST.DB_SIGNATURE]: { S: order.signature + '' },
+			// [CST.DB_SENDER_ADDR]: { S: order.senderAddress + '' },
+			[CST.DB_0X_MAKER_ADDR]: { S: order.makerAddress + '' },
+			[CST.DB_0X_TAKER_ADDR]: { S: order.takerAddress + '' },
+			[CST.DB_0X_MAKER_FEE]: { S: order.makerFee.valueOf() + '' },
+			[CST.DB_0X_TAKER_FEE]: { S: order.takerFee.valueOf() + '' },
+			[CST.DB_0X_MAKER_ASSET_AMT]: { S: order.makerAssetAmount.valueOf() + '' },
+			[CST.DB_0X_TAKER_ASSET_AMT]: { S: order.takerAssetAmount.valueOf() + '' },
+			[CST.DB_0X_MAKER_ASSET_DATA]: { S: order.makerAssetData + '' },
+			[CST.DB_0X_TAKER_ASSET_DATA]: { S: order.takerAssetData + '' },
+			[CST.DB_0X_SALT]: { S: order.salt.valueOf() + '' },
+			[CST.DB_0X_EXCHANGE_ADDR]: { S: order.exchangeAddress + '' },
+			[CST.DB_0X_FEE_RECIPIENT_ADDR]: { S: order.feeRecipientAddress + '' },
+			[CST.DB_0X_EXPIRATION_TIME_SECONDS]: { S: order.expirationTimeSeconds.valueOf() + '' },
+			[CST.DB_0X_SIGNATURE]: { S: order.signature + '' },
 			[CST.DB_UPDATED_AT]: { N: timestamp + '' }
 		};
 	}
@@ -282,20 +278,20 @@ class DynamoUtil {
 
 	public parseRawOrders(data: AttributeMap): SignedOrder {
 		return {
-			signature: data[CST.DB_SIGNATURE].S || '',
-			senderAddress: data[CST.DB_SENDER_ADDR].S || '',
-			makerAddress: data[CST.DB_MAKER_ADDR].S || '',
-			takerAddress: data[CST.DB_TAKER_ADDR].S || '',
-			makerFee: util.stringToBN(data[CST.DB_MAKER_FEE].S || '0'),
-			takerFee: util.stringToBN(data[CST.DB_TAKER_FEE].S || '0'),
-			makerAssetAmount: util.stringToBN(data[CST.DB_MAKER_ASSET_AMT].S || '0'),
-			takerAssetAmount: util.stringToBN(data[CST.DB_TAKER_ASSET_AMT].S || '0'),
-			makerAssetData: data[CST.DB_MAKER_ASSET_DATA].S || '',
-			takerAssetData: data[CST.DB_TAKER_ASSET_DATA].S || '',
-			salt: util.stringToBN(data[CST.DB_SALT].S || '0'),
-			exchangeAddress: data[CST.DB_EXCHANGE_ADDR].S || '',
-			feeRecipientAddress: data[CST.DB_FEE_RECIPIENT_ADDR].S || '',
-			expirationTimeSeconds: util.stringToBN(data[CST.DB_EXPIRATION_TIME_SECONDS].S || '0')
+			signature: data[CST.DB_0X_SIGNATURE].S || '',
+			senderAddress: data[CST.DB_0X_MAKER_ADDR].S || '',
+			makerAddress: data[CST.DB_0X_MAKER_ADDR].S || '',
+			takerAddress: data[CST.DB_0X_TAKER_ADDR].S || '',
+			makerFee: util.stringToBN(data[CST.DB_0X_MAKER_FEE].S || '0'),
+			takerFee: util.stringToBN(data[CST.DB_0X_TAKER_FEE].S || '0'),
+			makerAssetAmount: util.stringToBN(data[CST.DB_0X_MAKER_ASSET_AMT].S || '0'),
+			takerAssetAmount: util.stringToBN(data[CST.DB_0X_TAKER_ASSET_AMT].S || '0'),
+			makerAssetData: data[CST.DB_0X_MAKER_ASSET_DATA].S || '',
+			takerAssetData: data[CST.DB_0X_TAKER_ASSET_DATA].S || '',
+			salt: util.stringToBN(data[CST.DB_0X_SALT].S || '0'),
+			exchangeAddress: data[CST.DB_0X_EXCHANGE_ADDR].S || '',
+			feeRecipientAddress: data[CST.DB_0X_FEE_RECIPIENT_ADDR].S || '',
+			expirationTimeSeconds: util.stringToBN(data[CST.DB_0X_EXPIRATION_TIME_SECONDS].S || '0')
 		};
 	}
 
@@ -303,7 +299,7 @@ class DynamoUtil {
 		account: string,
 		orderHash: string,
 		pair: string,
-		operation: UserOrderOperation
+		type: string
 	) {
 		const systemTimestamp = util.getUTCNowTimestamp(); // record down the MTS
 
@@ -318,8 +314,8 @@ class DynamoUtil {
 				[CST.DB_PAIR_ORDERHASH]: {
 					S: `${pair}|${orderHash}`
 				},
-				[CST.DB_OPERATION]: {
-					S: operation
+				[CST.DB_TYPE]: {
+					S: type
 				},
 				[CST.DB_UPDATED_AT]: { N: systemTimestamp + '' }
 			}
@@ -328,31 +324,29 @@ class DynamoUtil {
 		await this.insertData(params);
 	}
 
-	public parseLiveOrders(data: AttributeMap): ILiveOrders {
+	public parseLiveOrders(data: AttributeMap): ILiveOrder {
 		return {
 			[CST.DB_ORDER_HASH]: data[CST.DB_ORDER_HASH].S || '',
 			[CST.DB_PRICE]: Number(data[CST.DB_PRICE].N || 0),
-			[CST.DB_SIDE]: data[CST.DB_SIDE].S || '',
-			[CST.DB_AMT]:
-				data[CST.DB_SIDE].S === CST.DB_BUY
-					? Number(data[CST.DB_REMAINING_TAKER_ASSET_AMT].S || '0')
-					: Number(data[CST.DB_REMAINING_MAKER_ASSET_AMT].S || '0'),
-			[CST.DB_ORDER_IS_VALID]: data[CST.DB_REMAINING_MAKER_ASSET_AMT].BOOL || false,
-			[CST.DB_UPDATED_AT]: Date.now()
+			[CST.DB_LO_SIDE]: data[CST.DB_LO_SIDE].S || '',
+			[CST.DB_LO_AMT]: Number(data[CST.DB_LO_BALANCE].S || '0'),
+			// [CST.DB_ORDER_IS_VALID]: data[CST.DB_REMAINING_MAKER_ASSET_AMT].BOOL || false,
+			[CST.DB_UPDATED_AT]: Number(data[CST.DB_UPDATED_AT].N),
+			[CST.DB_ID]: Number(data[CST.DB_ID].N)
 		};
 	}
 
-	public async getLiveOrders(pair: string): Promise<ILiveOrders[]> {
+	public async getLiveOrders(pair: string): Promise<ILiveOrder[]> {
 		const params: QueryInput = {
 			TableName: this.live
 				? `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_LIVE}`
 				: `${CST.DB_PROJECT}.${CST.DB_LIVE_ORDERS}.${CST.DB_DEV}`,
 			KeyConditionExpression: `${CST.DB_PAIR} = :${CST.DB_PAIR}`,
-			FilterExpression: `${CST.DB_ORDER_IS_VALID} = :${CST.DB_ORDER_IS_VALID}`,
-			ExpressionAttributeNames: { [CST.DB_ORDER_IS_VALID]: CST.DB_ORDER_IS_VALID },
+			// FilterExpression: `${CST.DB_ORDER_IS_VALID} = :${CST.DB_ORDER_IS_VALID}`,
+			// ExpressionAttributeNames: { [CST.DB_ORDER_IS_VALID]: CST.DB_ORDER_IS_VALID },
 			ExpressionAttributeValues: {
-				[':' + CST.DB_PAIR]: { S: pair },
-				[':' + CST.DB_ORDER_IS_VALID]: { BOOL: true }
+				[':' + CST.DB_PAIR]: { S: pair }
+				// [':' + CST.DB_ORDER_IS_VALID]: { BOOL: true }
 			}
 		};
 
@@ -379,35 +373,32 @@ class DynamoUtil {
 					}
 				},
 				ExpressionAttributeNames: {
-					[CST.DB_ORDER_IS_VALID]: CST.DB_ORDER_IS_VALID,
-					[CST.DB_AMT]: CST.DB_AMT,
-					[CST.DB_FILLED_TAKER_ASSET_AMT]: CST.DB_FILLED_TAKER_ASSET_AMT,
-					[CST.DB_REMAINING_MAKER_ASSET_AMT]: CST.DB_REMAINING_MAKER_ASSET_AMT,
-					[CST.DB_REMAINING_TAKER_ASSET_AMT]: CST.DB_REMAINING_TAKER_ASSET_AMT,
+					// [CST.DB_ORDER_IS_VALID]: CST.DB_ORDER_IS_VALID,
+					[CST.DB_LO_BALANCE]: CST.DB_LO_BALANCE,
+					// [CST.DB_FILLED_TAKER_ASSET_AMT]: CST.DB_FILLED_TAKER_ASSET_AMT,
+					// [CST.DB_REMAINING_MAKER_ASSET_AMT]: CST.DB_REMAINING_MAKER_ASSET_AMT,
+					// [CST.DB_REMAINING_TAKER_ASSET_AMT]: CST.DB_REMAINING_TAKER_ASSET_AMT,
 					[CST.DB_UPDATED_AT]: CST.DB_UPDATED_AT
 				},
 				ExpressionAttributeValues: {
-					[':' + CST.DB_ORDER_IS_VALID]: { S: orderState.isValid.toString() },
-					[':' + CST.DB_AMT]: {
+					// [':' + CST.DB_ORDER_IS_VALID]: { S: orderState.isValid.toString() },
+					[':' + CST.DB_LO_BALANCE]: {
 						S: orderState.orderRelevantState.remainingFillableMakerAssetAmount.toString()
 					},
-					[':' + CST.DB_FILLED_TAKER_ASSET_AMT]: {
-						S: orderState.orderRelevantState.filledTakerAssetAmount.toString()
-					},
-					[':' + CST.DB_REMAINING_MAKER_ASSET_AMT]: {
-						S: orderState.orderRelevantState.remainingFillableMakerAssetAmount.toString()
-					},
-					[':' + CST.DB_REMAINING_TAKER_ASSET_AMT]: {
-						S: orderState.orderRelevantState.remainingFillableTakerAssetAmount.toString()
-					},
+					// [':' + CST.DB_FILLED_TAKER_ASSET_AMT]: {
+					// 	S: orderState.orderRelevantState.filledTakerAssetAmount.toString()
+					// },
+					// [':' + CST.DB_REMAINING_MAKER_ASSET_AMT]: {
+					// 	S: orderState.orderRelevantState.remainingFillableMakerAssetAmount.toString()
+					// },
+					// [':' + CST.DB_REMAINING_TAKER_ASSET_AMT]: {
+					// 	S: orderState.orderRelevantState.remainingFillableTakerAssetAmount.toString()
+					// },
 					[':' + CST.DB_UPDATED_AT]: { S: Date.now().toString() }
 				},
-				UpdateExpression: `SET ${CST.DB_ORDER_IS_VALID} = ${':' + CST.DB_ORDER_IS_VALID}, ${
-					CST.DB_AMT
-				} = ${':' + CST.DB_AMT}, ${CST.DB_FILLED_TAKER_ASSET_AMT} = ${':' +
-					CST.DB_FILLED_TAKER_ASSET_AMT}, ${CST.DB_REMAINING_MAKER_ASSET_AMT} = ${':' +
-					CST.DB_REMAINING_MAKER_ASSET_AMT}, ${CST.DB_REMAINING_TAKER_ASSET_AMT} = ${':' +
-					CST.DB_REMAINING_TAKER_ASSET_AMT}, ${CST.DB_UPDATED_AT} = ${':' +
+				UpdateExpression: `SET ${
+					CST.DB_LO_BALANCE
+				} = ${':' + CST.DB_LO_BALANCE}, ${CST.DB_UPDATED_AT} = ${':' +
 					CST.DB_UPDATED_AT} `
 			});
 	}

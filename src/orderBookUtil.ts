@@ -1,9 +1,8 @@
-import moment from 'moment';
-import assetsUtil from './common/assetsUtil';
+// import assetsUtil from './common/assetsUtil';
 import * as CST from './constants';
 import dynamoUtil from './dynamoUtil';
 import redisUtil from './redisUtil';
-import { IDuoOrder, ILiveOrders, IOption, IOrderBookSnapshot, IOrderBookUpdateWS } from './types';
+import { ILiveOrder, IOption, IOrderBookSnapshot, IOrderBookUpdateWS } from './types';
 // import util from './util';
 
 class OrderBookUtil {
@@ -16,13 +15,13 @@ class OrderBookUtil {
 
 	public async calculateOrderBookSnapshot() {
 		for (const pair of CST.TRADING_PAIRS) {
-			const liveOrders: ILiveOrders[] = await dynamoUtil.getLiveOrders(pair);
+			const liveOrders: ILiveOrder[] = await dynamoUtil.getLiveOrders(pair);
 			this.orderBook[pair] = this.aggrOrderBook(liveOrders);
 			console.log('### current orerbook ', this.orderBook[pair]);
 		}
 	}
 
-	public sortByPriceTime(liveOrders: ILiveOrders[], isDescending: boolean): ILiveOrders[] {
+	public sortByPriceTime(liveOrders: ILiveOrder[], isDescending: boolean): ILiveOrder[] {
 		liveOrders.sort((a, b) => {
 			if (isDescending) return b.price - a.price || a.updatedAt - b.updatedAt;
 			else return a.price - b.price || a.updatedAt - b.updatedAt;
@@ -30,20 +29,19 @@ class OrderBookUtil {
 		return liveOrders;
 	}
 
-	public aggrOrderBook(rawLiveOrders: ILiveOrders[]): IOrderBookSnapshot {
-		// const rawOrderBook = this.getOrderBook(rawOrders, pair);
+	public aggrOrderBook(rawLiveOrders: ILiveOrder[]): IOrderBookSnapshot {
 
 		return {
-			timestamp: moment.utc().valueOf(),
+			id: Math.max(...rawLiveOrders.map(order => order.id)),
 			bids: this.aggrByPrice(
 				this.sortByPriceTime(
-					rawLiveOrders.filter(order => order[CST.DB_SIDE] === CST.DB_BUY),
+					rawLiveOrders.filter(order => order[CST.DB_LO_SIDE] === CST.DB_LO_BID),
 					true
 				).map(bid => this.parseOrderBookUpdate(bid))
 			),
 			asks: this.aggrByPrice(
 				this.sortByPriceTime(
-					rawLiveOrders.filter(order => order[CST.DB_SIDE] === CST.DB_SELL),
+					rawLiveOrders.filter(order => order[CST.DB_LO_SIDE] === CST.DB_LO_ASK),
 					false
 				).map(ask => this.parseOrderBookUpdate(ask))
 			)
@@ -59,7 +57,7 @@ class OrderBookUtil {
 		}, []);
 	}
 
-	public parseOrderBookUpdate(order: ILiveOrders): IOrderBookUpdateWS {
+	public parseOrderBookUpdate(order: ILiveOrder): IOrderBookUpdateWS {
 		return {
 			amount: order.amount.toString(),
 			price: order.price.toString()
@@ -68,7 +66,7 @@ class OrderBookUtil {
 
 	public applyChangeOrderBook(
 		pair: string,
-		timestamp: number,
+		id: number,
 		bidChanges: IOrderBookUpdateWS[],
 		askChanges: IOrderBookUpdateWS[]
 	) {
@@ -79,30 +77,30 @@ class OrderBookUtil {
 			return Number(a.price) - Number(b.price);
 		});
 		this.orderBook[pair] = {
-			timestamp: timestamp,
+			id: id,
 			bids: this.aggrByPrice(newBids),
 			asks: this.aggrByPrice(newAsks)
 		};
 	}
 
-	public getOrderBook(orders: IDuoOrder[], pair: string): IDuoOrder[][] {
-		const baseToken = pair.split('-')[0];
-		const bidOrders = orders.filter(order => {
-			const takerTokenName = order.takerAssetData
-				? assetsUtil.assetDataToTokenName(order.takerAssetData)
-				: null;
-			return takerTokenName === baseToken;
-		});
+	// public getOrderBook(orders: IDuoOrder[], pair: string): IDuoOrder[][] {
+	// 	const baseToken = pair.split('-')[0];
+	// 	const bidOrders = orders.filter(order => {
+	// 		const takerTokenName = order.takerAssetData
+	// 			? assetsUtil.assetDataToTokenName(order.takerAssetData)
+	// 			: null;
+	// 		return takerTokenName === baseToken;
+	// 	});
 
-		const askOrders = orders.filter(order => {
-			const makerTokenName = order.makerAssetData
-				? assetsUtil.assetDataToTokenName(order.makerAssetData)
-				: null;
-			return makerTokenName === baseToken;
-		});
+	// 	const askOrders = orders.filter(order => {
+	// 		const makerTokenName = order.makerAssetData
+	// 			? assetsUtil.assetDataToTokenName(order.makerAssetData)
+	// 			: null;
+	// 		return makerTokenName === baseToken;
+	// 	});
 
-		return [bidOrders, askOrders];
-	}
+	// 	return [bidOrders, askOrders];
+	// }
 
 	public scheduleSumamrizer() {
 		setInterval(async () => {

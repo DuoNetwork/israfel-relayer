@@ -12,57 +12,41 @@ export const DB_ORDER_HASH = 'orderHash';
 export const DB_PRICE = 'price';
 export const DB_ACCOUNT = 'account';
 export const DB_PAIR_ORDERHASH = 'pairOrderHash';
-export const DB_OPERATION = 'operation';
-export const DB_SIDE = 'side';
-export const DB_AMT = 'amount';
-export const DB_SELL = 'sell';
-export const DB_BUY = 'buy';
-export const DB_FILLED_TAKER_ASSET_AMT = 'filledTakerAssetAmount';
-export const DB_REMAINING_MAKER_ASSET_AMT = 'remainingFillableMakerAssetAmount';
-export const DB_REMAINING_TAKER_ASSET_AMT = 'remainingFillableTakerAssetAmount';
+export const DB_TYPE = 'type';
+export const DB_TP_ADD = 'add';
+export const DB_TP_CANCEL = 'cancel';
+export const DB_TP_FILL = 'fill';
+
+export const DB_LO_AMT = 'amount';
+export const DB_LO_SIDE = 'side';
+export const DB_LO_ASK = 'ask';
+export const DB_LO_BID = 'bid';
+export const DB_LO_BALANCE = 'balance';
 export const DB_UPDATED_AT = 'updatedAt';
-export const DB_ORDER_SEQUENCE = 'sequence';
 
-export const DB_SENDER_ADDR = 'senderAddress';
+// export const DB_SENDER_ADDR = 'senderAddress';
+export const DB_0X_MAKER_FEE = 'makerFee';
+export const DB_0X_TAKER_FEE = 'takerFee';
+export const DB_0X_MAKER_ADDR = 'makerAddress';
+export const DB_0X_TAKER_ADDR = 'takerAddress';
+export const DB_0X_MAKER_ASSET_AMT = 'makerAssetAmount';
+export const DB_0X_TAKER_ASSET_AMT = 'takerAssetAmount';
+export const DB_0X_MAKER_ASSET_DATA = 'makerAssetData';
+export const DB_0X_TAKER_ASSET_DATA = 'takerAssetData';
+export const DB_0X_SALT = 'salt';
+export const DB_0X_EXCHANGE_ADDR = 'exchangeAddress';
+export const DB_0X_FEE_RECIPIENT_ADDR = 'feeRecipientAddress';
+export const DB_0X_EXPIRATION_TIME_SECONDS = 'expirationTimeSeconds';
+export const DB_0X_SIGNATURE = 'signature';
 
-export const DB_MAKER_FEE = 'makerFee';
-export const DB_TAKER_FEE = 'takerFee';
-export const DB_MAKER_ADDR = 'makerAddress';
-export const DB_TAKER_ADDR = 'takerAddress';
-export const DB_MAKER_ASSET_AMT = 'makerAssetAmount';
-export const DB_TAKER_ASSET_AMT = 'takerAssetAmount';
-export const DB_MAKER_ASSET_DATA = 'makerAssetData';
-export const DB_TAKER_ASSET_DATA = 'takerAssetData';
-export const DB_SALT = 'salt';
-export const DB_EXCHANGE_ADDR = 'exchangeAddress';
-export const DB_FEE_RECIPIENT_ADDR = 'feeRecipientAddress';
-export const DB_EXPIRATION_TIME_SECONDS = 'expirationTimeSeconds';
-export const DB_SIGNATURE = 'signature';
-
-export const DB_ORDER_OPERATION = {
-	ADD: 'ADD',
-	CANCEL: 'CANCEL',
-	FILL: 'FILL'
-};
-
-export const DB_ORDER_MAKER_ADDR = 'makerAddress';
-export const DB_ORDER_TAKER_ADDR = 'takerAddress';
-export const DB_ORDER_MAKER_ASSETDATA = 'makerAssetData';
-export const DB_ORDER_TAKER_ASSETDATA = 'takerAssetData';
-export const DB_ORDER_IS_CANCELLED = 'isCancelled';
-export const DB_ORDER_IS_VALID = 'isValid';
-export const ORDER_BUY = 'buy';
-export const ORDER_SELL = 'sell';
 export const ORDERBOOK_UPDATE = 'orderBookUpdate';
 export const ORDERBOOK_SNAPSHOT = 'orderBookSnapshot';
 
-export const DB_ORDER_ADDED = 'added';
 export const DB_ORDERS = 'orders';
-export const DB_TIMESTAMP = 'timestamp';
 
 export const AWS_DYNAMO_API_VERSION = '2012-10-08';
 
-export const TAKER_ETH_DEPOSIT = 10;
+export const TAKER_ETH_DEPOSIT = 10; // for development only
 export const ONE_SECOND_MS = 1000;
 export const ONE_MINUTE_MS = ONE_SECOND_MS * 60;
 export const TEN_MINUTES_MS = ONE_MINUTE_MS * 10;
@@ -78,7 +62,7 @@ export const MNEMONIC =
 export const BASE_DERIVATION_PATH = `44'/60'/0'/0`;
 export const PENDING_HOURS = 24;
 
-export const WS_CHANNEL_ORDERBOOK = 'orerbook';
+export const WS_CHANNEL_ORDERBOOK = 'orderbook';
 export const WS_TYPE_ORDERBOOK = 'subscribe';
 export const WS_CHANNEL_ORDER = 'order';
 export const WS_TYPE_ORDER_UPDATE = 'update';

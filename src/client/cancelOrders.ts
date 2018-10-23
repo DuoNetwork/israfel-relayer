@@ -3,7 +3,7 @@ import WebSocket from 'ws';
 import * as CST from '../constants';
 import dynamoUtil from '../dynamoUtil';
 // import { providerEngine } from '../providerEngine';
-import { WsChannelMessageTypes, WsChannelName } from '../types';
+import { ICanceleOrderRequest, WsChannelMessageTypes, WsChannelName } from '../types';
 
 const config = require('../keys/' + 'dev' + '/dynamo.json');
 dynamoUtil.init(config, false, 'cancelOrders');
@@ -22,16 +22,10 @@ const mainAsync = async () => {
 
 	// Send cancel order request
 	const ws = new WebSocket(CST.RELAYER_WS_URL);
-	const cancelReq = {
-		type: WsChannelMessageTypes.Cancel,
-		channel: {
-			name: WsChannelName.Order,
-			pair: 'ZRX-WETH'
-		},
-		requestId: Date.now(),
-		payload: {
-			orderHash: orderHashHex
-		}
+	const cancelReq: ICanceleOrderRequest = {
+		method: WsChannelMessageTypes.Cancel,
+		channel: `${WsChannelName.Order}|${pair}`,
+		orderHash: orderHashHex
 	};
 
 	ws.on('open', () => {

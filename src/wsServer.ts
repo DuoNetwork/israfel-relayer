@@ -8,7 +8,7 @@ import {
 	// IDuoOrder,
 	// IOrderBookSnapshotWs,
 	// IUpdateResponseWs,
-	IOption,
+	// IOption,
 	WsChannelMessageTypes,
 	WsChannelName
 	// WsChannelResposnseTypes
@@ -20,13 +20,14 @@ import util from './util';
 class WsServer {
 	public wss: WebSocket.Server | null = null;
 
-	public init(tool: string, option: IOption) {
-		relayerUtil.init(tool, option);
+	public init() {
+		relayerUtil.init();
 		const port = 8080;
 		this.wss = new WebSocket.Server({ port: port });
 	}
 
 	public startServer() {
+
 		if (this.wss)
 			this.wss.on('connection', ws => {
 				util.logInfo('Standard relayer API (WS) listening on port 8080!');

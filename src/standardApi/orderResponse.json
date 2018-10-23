@@ -1,0 +1,7 @@
+{
+	"method": "cancel or add",
+	"channel": "order|pair",
+	"status": "failed or pending or live",
+	"orderHash": "0xxxxxxx",
+	"message": ""
+}

@@ -1,19 +1,20 @@
 import { BigNumber, OrderRelevantState, SignedOrder } from '0x.js';
-import * as CST from './constants';
 
-export interface IDuoOrder extends IDuoSignedOrder {
+export interface IOrderInfo {
 	orderHash: string;
 	price: number;
-	isValid: boolean;
-	isCancelled: boolean;
 	updatedAt: number;
 	orderRelevantState: OrderRelevantState;
 }
 
-// export interface IOrderBook {
-// 	bids: IDuoOrder[];
-// 	asks: IDuoOrder[];
-// }
+export interface ILiveOrder {
+	orderHash: string;
+	price: number;
+	amount: number;
+	side: string;
+	updatedAt: number;
+	id: number;
+}
 
 export interface IOrderBookSnapshotWs extends IOrderBookSnapshot {
 	type: WsChannelResposnseTypes;
@@ -25,7 +26,7 @@ export interface IOrderBookSnapshotWs extends IOrderBookSnapshot {
 }
 
 export interface IOrderBookSnapshot {
-	timestamp: number;
+	id: number;
 	bids: IOrderBookUpdateWS[];
 	asks: IOrderBookUpdateWS[];
 }
@@ -42,10 +43,36 @@ export interface IOrderBookUpdateWS {
 	amount: string;
 }
 
-export interface IOrderBookDelta {
+export interface IOrderBookUpdate {
+	id: number;
 	pair: string;
 	price: number;
 	amount: number;
+}
+
+export interface IAddOrderRequest {
+	method: string;
+	channel: string;
+	order: SignedOrder;
+}
+
+export interface ICanceleOrderRequest {
+	method: string;
+	channel: string;
+	orderHash: string;
+}
+
+export interface IOrderResponse {
+	method: string;
+	channel: string;
+	status: string;
+	orderHash: string;
+	message: string;
+}
+
+export interface ISubscribeOrderBookRequest {
+	method: string;
+	channel: string;
 }
 
 export interface IUpdateResponseWs {
@@ -69,17 +96,12 @@ export interface IOrderResponseWs {
 	failedReason: string;
 }
 
-export interface ICancelOrderResponseWs {
-	status: string;
-	orderHash: string;
-}
-
 export enum ErrorResponseWs {
 	InvalidOrder = 'Invalid order schema or signature!',
 	NoExistOrder = 'Order does not exist in DB!'
 }
 
-export interface IDuoSignedOrder {
+export interface IDynamoSignedOrder {
 	senderAddress: string;
 	makerAddress: string;
 	takerAddress: string;
@@ -103,9 +125,9 @@ export enum WsChannelMessageTypes {
 }
 
 export enum UserOrderOperation {
-	ADD = 'ADD',
-	CANCEL = 'CANCEL',
-	FILL = 'FILL'
+	ADD = 'add',
+	CANCEL = 'cancel',
+	FILL = 'fill'
 }
 
 export enum WsChannelResposnseTypes {
@@ -124,15 +146,6 @@ export interface IOption {
 	maker: number;
 	spender: number;
 	amount: number;
-}
-
-export interface ILiveOrders {
-	orderHash: string,
-	price: number;
-	amount: number;
-	[CST.DB_SIDE]: string;
-	isValid: boolean,
-	updatedAt: number
 }
 
 export interface IOrderQueue {

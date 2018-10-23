@@ -1,13 +1,13 @@
 import Redis from 'ioredis';
 import * as CST from './constants';
-import { IOrderBookDelta } from './types';
+import { IOrderBookUpdate } from './types';
 import util from './util';
 
 export class RedisUtil {
 	private redisPub: Redis.Redis | null = null;
 	private redisSub: Redis.Redis | null = null;
-	private handleOrderBooksUpdate:
-		| ((channel: string, orderBookDelta: IOrderBookDelta) => any)
+	private handleOrderBookUpdate:
+		| ((channel: string, orderBookUpdate: IOrderBookUpdate) => any)
 		| null = null;
 
 	public init(redisKey: { host: string; password: string; servername: string }) {
@@ -27,10 +27,11 @@ export class RedisUtil {
 
 	public onMessage(channel: string, message: string, pattern: string = '') {
 		util.logDebug(pattern + channel);
-		switch (channel) {
+		const type = channel.split('|')[0];
+		switch (type) {
 			case CST.ORDERBOOK_UPDATE:
-				if (this.handleOrderBooksUpdate)
-					this.handleOrderBooksUpdate(channel, JSON.parse(message));
+				if (this.handleOrderBookUpdate)
+					this.handleOrderBookUpdate(channel, JSON.parse(message));
 				break;
 			default:
 				break;
@@ -38,9 +39,9 @@ export class RedisUtil {
 	}
 
 	public onOrderBooks(
-		handleOrderBooksUpdate: (channel: string, orderBooks: IOrderBookDelta) => any
+		handleOrderBookUpdate: (channel: string, orderBookUpdate: IOrderBookUpdate) => any
 	) {
-		this.handleOrderBooksUpdate = handleOrderBooksUpdate;
+		this.handleOrderBookUpdate = handleOrderBookUpdate;
 	}
 
 	public publish(channel: string, msg: string): void {

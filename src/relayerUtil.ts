@@ -1,6 +1,6 @@
 import {
 	ContractWrappers,
-	OrderRelevantState,
+	// OrderRelevantState,
 	// orderHashUtils,
 	signatureUtils,
 	SignedOrder
@@ -18,14 +18,15 @@ import { providerEngine } from './providerEngine';
 import redisUtil from './redisUtil';
 import {
 	ErrorResponseWs,
-	IDuoOrder,
+	// IDuoOrder,
 	// IDuoSignedOrder,
 	// ILiveOrders,
-	IOption,
+	// IOption,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotWs,
-	// IOrderBookUpdateWS,
-	IOrderResponseWs,
+	IOrderBookUpdate,
+	IOrderResponse,
+	// IOrderResponseWs,
 	// IOrderStateCancelled,
 	// IUpdateResponseWs,
 	WsChannelName,
@@ -48,13 +49,22 @@ class RelayerUtil {
 		this.now = Date.now();
 	}
 
-	public async init(tool: string, option: IOption) {
-		const config = require('./keys/' + (option.live ? 'live' : 'dev') + '/dynamo.json');
-		dynamoUtil.init(config, option.live, tool);
-
+	public async init() {
 		orderBookUtil.calculateOrderBookSnapshot();
 		this.orderBook = orderBookUtil.orderBook;
+		redisUtil.patternSubscribe(`${CST.ORDERBOOK_UPDATE}|*`);
+
+		redisUtil.onOrderBooks((channel, orderBookUpdate) =>
+			this.handleOrderBookUpdate(channel, orderBookUpdate)
+		);
 	}
+
+	public handleOrderBookUpdate = (channel: string, orderBookUpdate: IOrderBookUpdate) => {
+		if (orderBookUpdate.id > this.orderBook[orderBookUpdate.pair].id) {
+			// TODO: apply orderBook update
+
+		}
+	};
 
 	public async validateNewOrder(signedOrder: SignedOrder, orderHash: string): Promise<boolean> {
 		const { orderSchema } = schemas;
@@ -83,7 +93,7 @@ class RelayerUtil {
 		console.log('Handle Message: ' + message.type);
 		const returnMessage = {
 			type: WsChannelResposnseTypes.Snapshot,
-			timestamp: this.now,
+			id: this.orderBook[message.channel.pair].id,
 			channel: { name: message.channel.name, pair: message.channel.pair },
 			requestId: message.requestId,
 			bids: this.orderBook[message.channel.pair].bids,
@@ -115,98 +125,84 @@ class RelayerUtil {
 	public determineSide(order: SignedOrder, pair: string): string {
 		const baseToken = pair.split('-')[0];
 		return assetsUtil.assetDataToTokenName(order.takerAssetData) === baseToken
-			? CST.DB_BUY
-			: CST.DB_SELL;
+			? CST.DB_LO_BID
+			: CST.DB_LO_ASK;
 	}
 
-	public async handleAddorder(message: any): Promise<IOrderResponseWs> {
+	public async handleAddorder(message: any): Promise<IOrderResponse> {
 		const order: SignedOrder = this.toSignedOrder(message.payload.order);
 		const orderHash = message.payload.orderHash;
 		const pair = message.channel.pair;
-
-		redisUtil.publish(
-			CST.ORDERBOOK_UPDATE,
-			JSON.stringify({
-				pair: pair,
-				price: util.round(
-					order.makerAssetAmount.div(order.takerAssetAmount).valueOf()
-				),
-				amount: order.makerAssetAmount.valueOf()
-			})
-		);
 
 		const side = this.determineSide(order, pair);
 		matchOrdersUtil.matchOrder(order, pair, side);
 
 		if (await this.validateNewOrder(order, orderHash)) {
-			redisUtil.push(CST.DB_ORDERS, JSON.stringify({
-				order,
-				orderHash,
-				pair,
-				side
-			}));
-
-			//TODO: Publish price delta to redis
+			redisUtil.push(
+				CST.DB_ORDERS,
+				JSON.stringify({
+					order,
+					orderHash,
+					pair,
+					side
+				})
+			);
 
 			return {
-				channel: {
-					name: WsChannelName.Order,
-					pair: pair
-				},
+				method: CST.DB_TP_ADD,
+				channel: `${WsChannelName.Order}| ${pair}`,
 				status: 'success',
-				failedReason: ''
+				orderHash: orderHash,
+				message: ''
 			};
 		} else
 			return {
-				channel: {
-					name: WsChannelName.Order,
-					pair: pair
-				},
+				method: CST.DB_TP_ADD,
+				channel: `${WsChannelName.Order}| ${pair}`,
 				status: 'failed',
-				failedReason: ErrorResponseWs.InvalidOrder
+				orderHash: orderHash,
+				message: ErrorResponseWs.InvalidOrder
 			};
 	}
 
-	public async handleCancel(orderHash: string, pair: string): Promise<IOrderResponseWs> {
+	public async handleCancel(orderHash: string, pair: string): Promise<IOrderResponse> {
 		try {
 			// Atomic transaction needs to be ensured
 			await dynamoUtil.removeLiveOrder(pair, orderHash);
 			await dynamoUtil.deleteOrderSignature(orderHash);
 			return {
-				channel: {
-					name: WsChannelName.Order,
-					pair: pair
-				},
+				method: CST.DB_TP_CANCEL,
+				channel: `${WsChannelName.Order}| ${pair}`,
 				status: 'success',
-				failedReason: ''
+				orderHash: orderHash,
+				message: ''
 			};
 		} catch {
 			return {
-				channel: {
-					name: WsChannelName.Order,
-					pair: pair
-				},
+				method: CST.DB_TP_CANCEL,
+				channel: `${WsChannelName.Order}| ${pair}`,
 				status: 'failed',
-				failedReason: ErrorResponseWs.InvalidOrder
+				orderHash: orderHash,
+				message: ErrorResponseWs.InvalidOrder
 			};
 		}
 	}
 
 	// public onModifiedOrder(modifiedOrder: IDuoOrder): IDuoOrder {}
 
-	public onRemovedOrder(removedOrder: IDuoOrder): IDuoOrder {
-		const { orderRelevantState, ...rest } = removedOrder;
-		const deltaOrderState: OrderRelevantState = {
-			makerBalance: orderRelevantState.makerBalance,
-			makerProxyAllowance: orderRelevantState.makerFeeBalance,
-			makerFeeBalance: orderRelevantState.makerFeeBalance,
-			makerFeeProxyAllowance: orderRelevantState.makerFeeProxyAllowance,
-			filledTakerAssetAmount: orderRelevantState.filledTakerAssetAmount,
-			remainingFillableMakerAssetAmount: orderRelevantState.remainingFillableMakerAssetAmount.neg(),
-			remainingFillableTakerAssetAmount: orderRelevantState.remainingFillableTakerAssetAmount.neg()
-		};
-		return { orderRelevantState: deltaOrderState, ...rest };
-	}
+	// public onRemovedOrder(removedOrder: IDuoOrder): IDuoOrder {
+	// 	const { orderRelevantState, ...rest } = removedOrder;
+	// 	const deltaOrderState: OrderRelevantState = {
+	// 		makerBalance: orderRelevantState.makerBalance,
+	// 		makerProxyAllowance: orderRelevantState.makerFeeBalance,
+	// 		makerFeeBalance: orderRelevantState.makerFeeBalance,
+	// 		makerFeeProxyAllowance: orderRelevantState.makerFeeProxyAllowance,
+	// 		filledTakerAssetAmount: orderRelevantState.filledTakerAssetAmount,
+	// 		remainingFillableMakerAssetAmount: orderRelevantState.remainingFillableMakerAssetAmount.neg(),
+	// 		remainingFillableTakerAssetAmount: orderRelevantState.remainingFillableTakerAssetAmount.neg()
+	// 	};
+	// 	return { orderRelevantState: deltaOrderState, ...rest };
+	// }
 }
 const relayerUtil = new RelayerUtil();
 export default relayerUtil;

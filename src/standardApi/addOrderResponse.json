@@ -1,8 +1,0 @@
-{
-	"channel": {
-		"name": "order",
-		"pair": "ZRX-WETH"
-	},
-	"status": "success",
-	"failedReason": ""
-}

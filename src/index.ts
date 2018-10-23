@@ -25,14 +25,13 @@ switch (tool) {
 		orderWatcherUtil.init(tool, option);
 		orderWatcherUtil.startOrderWatcher(option);
 		break;
-	case CST.ORDER_PRUNE:
-		orderWatcherUtil.init(tool, option);
-		orderWatcherUtil.pruneOrders(option);
-		break;
+	// case CST.ORDER_PRUNE:
+	// 	orderWatcherUtil.init(tool, option);
+	// 	orderWatcherUtil.pruneOrders(option);
+	// 	break;
 	case CST.START_RELAYER:
-		wsServer.init(tool, option);
+		wsServer.init();
 		wsServer.startServer();
-		break;
 		break;
 	default:
 		break;

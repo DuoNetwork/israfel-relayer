@@ -1,8 +1,4 @@
 {
-    "type":"subscribe",
-    "channel": { 
-        "name": "orderbook", 
-        "pair": "ZRX-WETH" 
-    },
-    "requestId": "1538121710153"
+    "method":"subscribe",
+    "channel":"orderBook|pair"
 }

@@ -14,7 +14,7 @@ import WebSocket from 'ws';
 import assetsUtil from '../common/assetsUtil';
 import * as CST from '../constants';
 import { providerEngine } from '../providerEngine';
-import { WsChannelMessageTypes, WsChannelName } from '../types';
+import {IAddOrderRequest, WsChannelMessageTypes, WsChannelName } from '../types';
 import util from '../util';
 
 // const web3: Web3 = new Web3(new Web3.providers.HttpProvider(CST.PROVIDER_LOCAL));
@@ -113,17 +113,11 @@ const mainAsync = async () => {
 
 		// Submit order to relayer
 		const ws = new WebSocket(CST.RELAYER_WS_URL);
-		const msg = {
-			type: WsChannelMessageTypes.Add,
-			channel: {
-				name: WsChannelName.Order,
-				pair: 'ZRX-WETH'
-			},
-			requestId: Date.now(),
-			payload: {
-				order: signedOrder,
-				orderHash: orderHashHex
-			}
+		const pair = 'ZRX-WETH';
+		const msg: IAddOrderRequest = {
+			method: WsChannelMessageTypes.Add,
+			channel: `${WsChannelName.Order}|${pair}`,
+			order: signedOrder
 		};
 		// console.log(msg);
 

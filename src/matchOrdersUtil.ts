@@ -3,16 +3,16 @@ import assetsUtil from './common/assetsUtil';
 import * as CST from './constants';
 import dynamoUtil from './dynamoUtil';
 import orderbookUtil from './orderBookUtil';
-import { ILiveOrders } from './types';
+import { ILiveOrder } from './types';
 
 class MatchOrdersUtil {
 	public async scanToMatchOrder(
-		oldOrders: ILiveOrders[],
+		oldOrders: ILiveOrder[],
 		newOrder: SignedOrder,
 		side: string
 	): Promise<void> {
 		for (const order of oldOrders)
-			if (side === CST.ORDER_BUY)
+			if (side === CST.DB_LO_BID)
 				if (
 					newOrder.takerAssetAmount.div(newOrder.makerAssetAmount).lessThan(order.price)
 				) {
@@ -48,11 +48,11 @@ class MatchOrdersUtil {
 		const liveOrders = await dynamoUtil.getLiveOrders(pair);
 		const [bidOrders, askOrders] = [
 			orderbookUtil.sortByPriceTime(
-				liveOrders.filter(order => order.side === CST.DB_BUY),
+				liveOrders.filter(order => order.side === CST.DB_LO_BID),
 				true
 			),
 			orderbookUtil.sortByPriceTime(
-				liveOrders.filter(order => order.side === CST.DB_SELL),
+				liveOrders.filter(order => order.side === CST.DB_LO_ASK),
 				false
 			)
 		];
@@ -63,7 +63,7 @@ class MatchOrdersUtil {
 				assetsUtil.taker
 			)
 		);
-		this.scanToMatchOrder(side === CST.ORDER_BUY ? askOrders : bidOrders, newOrder, side);
+		this.scanToMatchOrder(side === CST.DB_LO_BID ? askOrders : bidOrders, newOrder, side);
 		console.log(
 			'matcher ZRX balance AFTER match',
 			await assetsUtil.contractWrappers.erc20Token.getBalanceAsync(
