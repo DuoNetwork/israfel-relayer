@@ -1,4 +1,5 @@
 import { BigNumber, OrderRelevantState, SignedOrder } from '0x.js';
+import WebSocket from 'ws';
 
 export interface IOrderInfo {
 	orderHash: string;
@@ -163,4 +164,11 @@ export interface IRequestId {
 
 export interface IResponseId {
 	id: string;
+}
+export interface IQueueOrder {
+	ws: WebSocket;
+	pair: string;
+	orderHash: string;
+	signedOrder: SignedOrder;
+
 }

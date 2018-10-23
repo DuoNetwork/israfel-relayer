@@ -1,18 +1,18 @@
 import {
 	ContractWrappers,
 	// OrderRelevantState,
-	orderHashUtils,
-	signatureUtils,
+	// signatureUtils,
 	SignedOrder
 } from '0x.js';
-import { schemas, SchemaValidator } from '@0xproject/json-schemas';
+// import { schemas, SchemaValidator } from '@0xproject/json-schemas';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 // import moment from 'moment';
 import assetsUtil from './common/assetsUtil';
 import * as CST from './constants';
 import dynamoUtil from './dynamoUtil';
 // import firebaseUtil from './firebaseUtil';
-import matchOrdersUtil from './matchOrdersUtil';
+// import matchOrdersUtil from './matchOrdersUtil';
+
 import orderBookUtil from './orderBookUtil';
 import { providerEngine } from './providerEngine';
 import redisUtil from './redisUtil';
@@ -22,7 +22,7 @@ import {
 	// IDuoSignedOrder,
 	// ILiveOrders,
 	// IOption,
-	IAddOrderRequest,
+	// IAddOrderRequest,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotWs,
 	IOrderBookUpdate,
@@ -33,7 +33,7 @@ import {
 	WsChannelName,
 	WsChannelResposnseTypes
 } from './types';
-import util from './util';
+// import util from './util';
 
 class RelayerUtil {
 	public contractWrappers: ContractWrappers;
@@ -66,29 +66,6 @@ class RelayerUtil {
 		}
 	};
 
-	public async validateNewOrder(signedOrder: SignedOrder, orderHash: string): Promise<boolean> {
-		const { orderSchema } = schemas;
-		const { signature, ...rest } = signedOrder;
-		const validator = new SchemaValidator();
-		const isValidSchema = validator.validate(rest, orderSchema).valid;
-		// const ECSignature = signatureUtils.parseECSignature(signature);
-		// console.log(signature);
-		// const isValidSig = await signatureUtils.isValidECSignature(
-		// 	orderHash,
-		// 	ECSignature,
-		// 	rest.makerAddress
-		// );
-
-		const isValidSig = await signatureUtils.isValidSignatureAsync(
-			providerEngine,
-			orderHash,
-			signature,
-			rest.makerAddress
-		);
-		console.log('schema is %s and signature is %s', isValidSchema, isValidSig);
-		return isValidSchema && isValidSig;
-	}
-
 	public handleSubscribe(message: any): IOrderBookSnapshotWs {
 		console.log('Handle Message: ' + message.type);
 		const returnMessage = {
@@ -103,25 +80,6 @@ class RelayerUtil {
 		return returnMessage;
 	}
 
-	public toSignedOrder(order: any): SignedOrder {
-		return {
-			signature: order.signature,
-			senderAddress: order.senderAddress,
-			makerAddress: order.makerAddress,
-			takerAddress: order.takerAddress,
-			makerFee: util.stringToBN(order.makerFee),
-			takerFee: util.stringToBN(order.takerFee),
-			makerAssetAmount: util.stringToBN(order.makerAssetAmount),
-			takerAssetAmount: util.stringToBN(order.takerAssetAmount),
-			makerAssetData: order.makerAssetData,
-			takerAssetData: order.takerAssetData,
-			salt: util.stringToBN(order.salt),
-			exchangeAddress: order.exchangeAddress,
-			feeRecipientAddress: order.feeRecipientAddress,
-			expirationTimeSeconds: util.stringToBN(order.expirationTimeSeconds)
-		};
-	}
-
 	public determineSide(order: SignedOrder, pair: string): string {
 		const baseToken = pair.split('-')[0];
 		return assetsUtil.assetDataToTokenName(order.takerAssetData) === baseToken
@@ -129,46 +87,24 @@ class RelayerUtil {
 			: CST.DB_LO_ASK;
 	}
 
-	public async handleAddorder(
+	public handleAddOrder(
+		id: string,
 		pair: string,
-		stringifiedSignedOrder: any
-	): Promise<IOrderResponse> {
-		const signedOrder: SignedOrder = this.toSignedOrder(stringifiedSignedOrder);
-		const { signature, ...order } = signedOrder;
-
-		const orderHash = orderHashUtils.getOrderHashHex(order);
-		// const orderHash = message.payload.orderHash;
-		// const pair = message.channel.split('|')[1];
-
+		orderHash: string,
+		signedOrder: SignedOrder
+	): void {
 		const side = this.determineSide(signedOrder, pair);
-		matchOrdersUtil.matchOrder(signedOrder, pair, side);
-
-		if (await this.validateNewOrder(signedOrder, orderHash)) {
-			redisUtil.push(
-				CST.DB_ORDERS,
-				JSON.stringify({
-					signedOrder,
-					orderHash,
-					pair,
-					side
-				})
-			);
-
-			return {
-				method: CST.DB_TP_ADD,
-				channel: `${WsChannelName.Order}| ${pair}`,
-				status: 'success',
-				orderHash: orderHash,
-				message: ''
-			};
-		} else
-			return {
-				method: CST.DB_TP_ADD,
-				channel: `${WsChannelName.Order}| ${pair}`,
-				status: 'failed',
-				orderHash: orderHash,
-				message: ErrorResponseWs.InvalidOrder
-			};
+		// matchOrdersUtil.matchOrder(signedOrder, pair, side);
+		redisUtil.push(
+			CST.DB_ORDERS,
+			JSON.stringify({
+				id,
+				signedOrder,
+				orderHash,
+				pair,
+				side
+			})
+		);
 	}
 
 	public async handleCancel(orderHash: string, pair: string): Promise<IOrderResponse> {

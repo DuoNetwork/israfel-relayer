@@ -59,6 +59,8 @@ export const PROVIDER_LOCAL = 'http://localhost:8555';
 export const NETWORK_ID_LOCAL = 50;
 export const RELAYER_HTTP_URL = 'http://localhost:3000/v0';
 export const RELAYER_WS_URL = 'ws://localhost:8080';
+export const ID_SERVICE_URL = 'ws://localhsot';
+export const ID_SERVICE_PORT = 8000;
 export const MNEMONIC =
 	'concert load couple harbor equip island argue ramp clarify fence smart topic';
 export const BASE_DERIVATION_PATH = `44'/60'/0'/0`;
@@ -86,6 +88,7 @@ export const ORDER_WATCHER = 'orderWatcher';
 export const ORDER_PRUNE = 'pruneOrder';
 export const SET_ALLOWANCE = 'setAllowance';
 export const START_RELAYER = 'startRelayer';
+export const START_ID_SERVICE = 'startIdService';
 
 export const LOG_INFO = 'INFO';
 export const LOG_DEBUG = 'DEBUG';

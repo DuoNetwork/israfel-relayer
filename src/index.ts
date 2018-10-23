@@ -2,6 +2,7 @@ import assetsUtil from './common/assetsUtil';
 import orderWatcherUtil from './common/orderWatcherUtil';
 import * as CST from './constants';
 import dynamoUtil from './dynamoUtil';
+import identityUtil from './identityUtil';
 import redisUtil from './redisUtil';
 import util from './util';
 import wsServer from './wsServer';
@@ -25,10 +26,9 @@ switch (tool) {
 		orderWatcherUtil.init(tool, option);
 		orderWatcherUtil.startOrderWatcher(option);
 		break;
-	// case CST.ORDER_PRUNE:
-	// 	orderWatcherUtil.init(tool, option);
-	// 	orderWatcherUtil.pruneOrders(option);
-	// 	break;
+	case CST.START_ID_SERVICE:
+		identityUtil.startServer();
+		break;
 	case CST.START_RELAYER:
 		wsServer.init();
 		wsServer.startServer();

@@ -10,8 +10,7 @@ class IdentityUtil {
 	public wss: WebSocket.Server | null = null;
 
 	public init() {
-		const port = 8000;
-		this.wss = new WebSocket.Server({ port: port });
+		this.wss = new WebSocket.Server({ port: CST.ID_SERVICE_PORT });
 	}
 
 	public async startServer() {
