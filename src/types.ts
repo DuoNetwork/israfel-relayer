@@ -1,20 +1,37 @@
-import { BigNumber, OrderRelevantState, SignedOrder } from '0x.js';
+import { BigNumber, SignedOrder } from '0x.js';
 import WebSocket from 'ws';
 
-export interface IOrderInfo {
-	orderHash: string;
-	price: number;
-	updatedAt: number;
-	orderRelevantState: OrderRelevantState;
-}
-
 export interface ILiveOrder {
+	pair: string;
 	orderHash: string;
 	price: number;
 	amount: number;
 	side: string;
+	createdAt?: number;
+	updatedAt?: number;
+	initialSequence: number;
+	currentSequence: number;
+}
+
+export interface IRawOrder {
+	orderHash: string;
+	signedOrder: SignedOrder;
+	createdAt?: number;
+	updatedAt?: number;
+}
+
+export interface IUserOrder {
+	account: string;
+	pair: string;
+	type: string;
+	orderHash: string;
+	price: number;
+	amount: number;
+	side: string;
+	sequence: number;
+	createdAt: number;
 	updatedAt: number;
-	id: number;
+	updatedBy: string;
 }
 
 export interface IOrderBookSnapshotWs extends IOrderBookSnapshot {

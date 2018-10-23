@@ -1,32 +1,33 @@
-export const DB_PROJECT = 'israfel';
+export const DB_ISRAFEL = 'israfel';
 export const DB_LIVE_ORDERS = 'liveOrders';
 export const DB_RAW_ORDERS = 'rawOrders';
 export const DB_USER_ORDERS = 'userOrders';
-export const DB_IDENTITY = 'identity';
+export const DB_SEQUENCE = 'sequence';
 export const DB_STATUS = 'status';
 export const DB_LIVE = 'live';
 export const DB_DEV = 'dev';
 export const DB_PAIR = 'pair';
-export const DB_ID = 'id';
+export const DB_INITIAL_SEQ = 'initialSequence';
+export const DB_CURRENT_SEQ = 'currentSequence';
 export const DB_ORDER_HASH = 'orderHash';
 export const DB_PRICE = 'price';
 export const DB_ACCOUNT = 'account';
-export const DB_PAIR_ORDERHASH = 'pairOrderHash';
+export const DB_ACCOUNT_YM = 'accountYearMonth';
+export const DB_PAIR_SEQ = 'pairSequence';
 export const DB_TYPE = 'type';
 export const DB_TP_ADD = 'add';
 export const DB_TP_CANCEL = 'cancel';
 export const DB_TP_FILL = 'fill';
 
-export const DB_LO_AMT = 'amount';
-export const DB_LO_SIDE = 'side';
-export const DB_LO_ASK = 'ask';
-export const DB_LO_BID = 'bid';
-export const DB_LO_BALANCE = 'balance';
+export const DB_SIDE = 'side';
+export const DB_ASK = 'ask';
+export const DB_BID = 'bid';
+export const DB_BALANCE = 'balance';
+export const DB_CREATED_AT = 'createdAt';
 export const DB_UPDATED_AT = 'updatedAt';
+export const DB_UPDATED_BY = 'updatedBy';
 
-export const ORDER_CURRENT_ID = 'currentId';
-
-// export const DB_SENDER_ADDR = 'senderAddress';
+export const DB_0X_SENDER_ADDR = 'senderAddress';
 export const DB_0X_MAKER_FEE = 'makerFee';
 export const DB_0X_TAKER_FEE = 'takerFee';
 export const DB_0X_MAKER_ADDR = 'makerAddress';
