@@ -8,6 +8,7 @@ node_modules
 *.tmp
 *~
 dist
+coverage
 *firebase-adminsdk*.json
 *.txt
 keys

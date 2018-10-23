@@ -1,6 +1,5 @@
 import { BigNumber } from '0x.js';
 import moment from 'moment';
-import * as os from 'os';
 import * as CST from '../common/constants';
 import { IOption } from '../common/types';
 
@@ -35,10 +34,6 @@ class Util {
 		for (const prop in obj) if (obj.hasOwnProperty(prop)) return false;
 
 		return true;
-	}
-
-	public getHostName() {
-		return os.hostname();
 	}
 
 	public getRandomFutureDateInSeconds() {

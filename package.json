@@ -41,21 +41,21 @@
 	"devDependencies": {
 		"@types/ioredis": "^4.0.3",
 		"@types/jest": "^23.3.1",
-		"@types/request": "^2.47.1",
 		"@types/ws": "^6.0.0",
 		"cross-env": "^5.1.4",
 		"download-cli": "^1.1.1",
 		"ganache-cli": "^6.1.6",
 		"jest": "^23.5.0",
+		"pre-commit": "^1.2.2",
 		"ts-jest": "^23.1.4",
 		"tslint": "^5.11.0"
 	},
 	"dependencies": {
-		"0x.js": "^1.0.1",
 		"@0xproject/json-schemas": "^1.0.1",
 		"@0xproject/subproviders": "^2.0.5",
 		"@0xproject/types": "^1.0.1",
 		"@0xproject/web3-wrapper": "^2.0.2",
+		"0x.js": "^1.0.1",
 		"aws-sdk": "^2.323.0",
 		"ioredis": "^4.2.0",
 		"moment": "^2.22.2",

@@ -187,5 +187,11 @@ export interface IQueueOrder {
 	pair: string;
 	orderHash: string;
 	signedOrder: SignedOrder;
+}
 
+export interface IStatus {
+	hostname: string;
+	updatedAt: number;
+	pair: string;
+	tool: string;
 }

@@ -1,0 +1,455 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`addLiveOrder 1`] = `
+Array [
+  Array [
+    Object {
+      "Item": Object {
+        "balance": Object {
+          "N": "456",
+        },
+        "createdAt": Object {
+          "N": "1234567890",
+        },
+        "currentSequence": Object {
+          "N": "1",
+        },
+        "initialSequence": Object {
+          "N": "1",
+        },
+        "orderHash": Object {
+          "S": "0xOrderHash",
+        },
+        "pair": Object {
+          "S": "pair",
+        },
+        "price": Object {
+          "N": "0.12345678",
+        },
+        "side": Object {
+          "S": "bid",
+        },
+        "updatedAt": Object {
+          "N": "1234567890",
+        },
+      },
+      "TableName": "israfel.liveOrders.dev",
+    },
+  ],
+]
+`;
+
+exports[`addRawOrder 1`] = `
+Array [
+  Array [
+    Object {
+      "Item": Object {
+        "createdAt": Object {
+          "N": "1234567890",
+        },
+        "exchangeAddress": Object {
+          "S": "exchangeAddress",
+        },
+        "expirationTimeSeconds": Object {
+          "S": "1234567890",
+        },
+        "feeRecipientAddress": Object {
+          "S": "feeRecipientAddress",
+        },
+        "makerAddress": Object {
+          "S": "makerAddress",
+        },
+        "makerAssetAmount": Object {
+          "S": "123",
+        },
+        "makerAssetData": Object {
+          "S": "makerAssetData",
+        },
+        "makerFee": Object {
+          "S": "0",
+        },
+        "orderHash": Object {
+          "S": "0xOrderHash",
+        },
+        "salt": Object {
+          "S": "789",
+        },
+        "senderAddress": Object {
+          "S": "senderAddress",
+        },
+        "signature": Object {
+          "S": "signature",
+        },
+        "takerAddress": Object {
+          "S": "takerAddress",
+        },
+        "takerAssetAmount": Object {
+          "S": "456",
+        },
+        "takerAssetData": Object {
+          "S": "takerAssetData",
+        },
+        "takerFee": Object {
+          "S": "0",
+        },
+        "updatedAt": Object {
+          "N": "1234567890",
+        },
+      },
+      "TableName": "israfel.rawOrders.dev",
+    },
+  ],
+]
+`;
+
+exports[`addUserOrder 1`] = `
+Array [
+  Array [
+    Object {
+      "Item": Object {
+        "accountYearMonth": Object {
+          "S": "0xAccount|1970-01",
+        },
+        "balance": Object {
+          "N": "456",
+        },
+        "createdAt": Object {
+          "N": "1234560000",
+        },
+        "orderHash": Object {
+          "S": "0xOrderHash",
+        },
+        "pairSequence": Object {
+          "S": "pair|1",
+        },
+        "price": Object {
+          "N": "0.12345678",
+        },
+        "side": Object {
+          "S": "side",
+        },
+        "type": Object {
+          "S": "type",
+        },
+        "updatedAt": Object {
+          "N": "1234567890",
+        },
+        "updatedBy": Object {
+          "S": "updatedBy",
+        },
+      },
+      "TableName": "israfel.userOrders.dev",
+    },
+  ],
+]
+`;
+
+exports[`deleteLiveOrder 1`] = `
+Array [
+  Array [
+    Object {
+      "Key": Object {
+        "orderHash": Object {
+          "S": "0xOrderHash",
+        },
+        "pair": Object {
+          "S": "pair",
+        },
+      },
+      "TableName": "israfel.liveOrders.dev",
+    },
+  ],
+]
+`;
+
+exports[`deleteRawOrderSignature 1`] = `
+Array [
+  Array [
+    Object {
+      "ExpressionAttributeNames": Object {
+        "signature": "signature",
+        "updatedAt": "updatedAt",
+      },
+      "ExpressionAttributeValues": Object {
+        ":signature": Object {
+          "S": "",
+        },
+        ":updatedAt": Object {
+          "N": "1234567890",
+        },
+      },
+      "Key": Object {
+        "orderHash": Object {
+          "S": "0xOrderHash",
+        },
+      },
+      "TableName": "israfel.rawOrders.dev",
+      "UpdateExpression": "SET signature = :signature, updatedAt = :updatedAt",
+    },
+  ],
+]
+`;
+
+exports[`getLiveOrders 1`] = `Array []`;
+
+exports[`getLiveOrders 2`] = `
+Array [
+  Array [
+    Object {
+      "ExpressionAttributeValues": Object {
+        ":pair": Object {
+          "S": "pair",
+        },
+      },
+      "KeyConditionExpression": "pair = :pair",
+      "TableName": "israfel.liveOrders.dev",
+    },
+  ],
+]
+`;
+
+exports[`getLiveOrders 3`] = `
+Array [
+  Object {
+    "amount": 456,
+    "createdAt": 1234560000,
+    "currentSequence": 2,
+    "initialSequence": 1,
+    "orderHash": "0xOrderHash",
+    "pair": "pair",
+    "price": 123,
+    "side": "side",
+    "updatedAt": 1234567890,
+  },
+]
+`;
+
+exports[`getRawOrder 1`] = `
+Array [
+  Array [
+    Object {
+      "ExpressionAttributeValues": Object {
+        ":orderHash": Object {
+          "S": "0xOrderHash",
+        },
+      },
+      "KeyConditionExpression": "orderHash = :orderHash",
+      "TableName": "israfel.rawOrders.dev",
+    },
+  ],
+]
+`;
+
+exports[`getRawOrder 2`] = `
+Object {
+  "createdAt": 1234567890,
+  "orderHash": "0xOrderHash",
+  "signedOrder": Object {
+    "exchangeAddress": "exchangeAddress",
+    "expirationTimeSeconds": "1234567890",
+    "feeRecipientAddress": "feeRecipientAddress",
+    "makerAddress": "makerAddress",
+    "makerAssetAmount": "123",
+    "makerAssetData": "makerAssetData",
+    "makerFee": "0",
+    "salt": "789",
+    "senderAddress": "makerAddress",
+    "signature": "signature",
+    "takerAddress": "takerAddress",
+    "takerAssetAmount": "456",
+    "takerAssetData": "takerAssetData",
+    "takerFee": "0",
+  },
+  "updatedAt": 1234567890,
+}
+`;
+
+exports[`getRawOrder 3`] = `[Error: multiple record for order hash 0xOrderHash]`;
+
+exports[`getUserOrders 1`] = `
+Array [
+  Array [
+    "0xAccount",
+    "1970-01",
+    "",
+  ],
+  Array [
+    "0xAccount",
+    "1970-02",
+    "",
+  ],
+  Array [
+    "0xAccount",
+    "1970-03",
+    "",
+  ],
+  Array [
+    "0xAccount",
+    "1970-04",
+    "",
+  ],
+]
+`;
+
+exports[`getUserOrdersForMonth 1`] = `Array []`;
+
+exports[`getUserOrdersForMonth 2`] = `
+Array [
+  Object {
+    "account": "0xAccount",
+    "amount": 456,
+    "createdAt": 1234560000,
+    "orderHash": "0xOrderHash",
+    "pair": "pair",
+    "price": 123,
+    "sequence": 1,
+    "side": "side",
+    "type": "type",
+    "updatedAt": 1234567890,
+    "updatedBy": "updatedBy",
+  },
+]
+`;
+
+exports[`getUserOrdersForMonth 3`] = `
+Array [
+  Array [
+    Object {
+      "ExpressionAttributeValues": Object {
+        ":accountYearMonth": Object {
+          "S": "0xAccount|1234-56",
+        },
+        ":end": Object {
+          "S": "pair|z",
+        },
+        ":start": Object {
+          "S": "pair|",
+        },
+      },
+      "KeyConditionExpression": "accountYearMonth = :accountYearMonth AND pairSequence BETWEEN :start AND :end",
+      "TableName": "israfel.userOrders.dev",
+    },
+  ],
+]
+`;
+
+exports[`scanSequence 1`] = `Object {}`;
+
+exports[`scanSequence 2`] = `
+Array [
+  Array [
+    Object {
+      "TableName": "israfel.sequence.dev",
+    },
+  ],
+]
+`;
+
+exports[`scanSequence 3`] = `
+Object {
+  "pair": 123,
+}
+`;
+
+exports[`scanStatus 1`] = `Array []`;
+
+exports[`scanStatus 2`] = `
+Array [
+  Array [
+    Object {
+      "TableName": "israfel.status.dev",
+    },
+  ],
+]
+`;
+
+exports[`scanStatus 3`] = `
+Array [
+  Object {
+    "hostname": "hostname",
+    "pair": "pair",
+    "tool": "tool",
+    "updatedAt": 1234567890,
+  },
+  Object {
+    "hostname": "hostname",
+    "pair": "",
+    "tool": "tool",
+    "updatedAt": 1234567890,
+  },
+]
+`;
+
+exports[`updateLiveOrder 1`] = `
+Array [
+  Array [
+    Object {
+      "ExpressionAttributeNames": Object {
+        "balance": "balance",
+        "currentSequence": "currentSequence",
+        "updatedAt": "updatedAt",
+      },
+      "ExpressionAttributeValues": Object {
+        ":balance": Object {
+          "N": "456",
+        },
+        ":currentSequence": Object {
+          "N": "2",
+        },
+        ":updatedAt": Object {
+          "N": "1234567890",
+        },
+      },
+      "Key": Object {
+        "orderHash": Object {
+          "S": "0xOrderHash",
+        },
+        "pair": Object {
+          "S": "pair",
+        },
+      },
+      "TableName": "israfel.liveOrders.dev",
+      "UpdateExpression": "SET balance = :balance, updatedAt = :updatedAt, currentSequence = :currentSequence ",
+    },
+  ],
+]
+`;
+
+exports[`updateSequence 1`] = `
+Array [
+  Array [
+    Object {
+      "Item": Object {
+        "pair": Object {
+          "S": "pair",
+        },
+        "sequence": Object {
+          "N": "123",
+        },
+      },
+      "TableName": "israfel.sequence.dev",
+    },
+  ],
+]
+`;
+
+exports[`updateStatus 1`] = `
+Array [
+  Array [
+    Object {
+      "Item": Object {
+        "hostname": Object {
+          "S": "hostname",
+        },
+        "process": Object {
+          "S": "tool|someProcess|hostname",
+        },
+        "updatedAt": Object {
+          "N": "1234567890",
+        },
+      },
+      "TableName": "israfel.status.dev",
+    },
+  ],
+]
+`;

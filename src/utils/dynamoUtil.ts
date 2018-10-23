@@ -9,9 +9,9 @@ import DynamoDB, {
 	UpdateItemInput
 } from 'aws-sdk/clients/dynamodb';
 import AWS from 'aws-sdk/global';
-import moment = require('moment');
+import moment from 'moment';
 import * as CST from '../common/constants';
-import { ILiveOrder, IRawOrder, IUserOrder } from '../common/types';
+import { ILiveOrder, IRawOrder, IStatus, IUserOrder } from '../common/types';
 import util from './util';
 
 class DynamoUtil {
@@ -76,6 +76,56 @@ class DynamoUtil {
 					? this.ddb.deleteItem(params, err => (err ? reject(err) : resolve()))
 					: reject('dynamo db connection is not initialized')
 		);
+	}
+
+	public updateStatus(process: string) {
+		return this.putData({
+			TableName: `${CST.DB_ISRAFEL}.${CST.DB_STATUS}.${this.live ? CST.DB_LIVE : CST.DB_DEV}`,
+			Item: {
+				[CST.DB_STS_PROCESS]: {
+					S: `${this.tool}|${process}|${this.hostname}`
+				},
+				[CST.DB_STS_HOSTNAME]: {
+					S: this.hostname
+				},
+				[CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' }
+			}
+		}).catch(error => util.logError('Error insert status: ' + error));
+	}
+
+	public parseStatus(data: AttributeMap): IStatus {
+		const [tool, pair] = (data[CST.DB_STS_PROCESS].S || '').split('|');
+		return {
+			tool: tool,
+			pair: pair || '',
+			hostname: data[CST.DB_STS_HOSTNAME].S || '',
+			updatedAt: Number(data[CST.DB_UPDATED_AT].N)
+		};
+	}
+
+	public async scanStatus(): Promise<IStatus[]> {
+		const data = await this.scanData({
+			TableName: `${CST.DB_ISRAFEL}.${CST.DB_STATUS}.${this.live ? CST.DB_LIVE : CST.DB_DEV}`
+		});
+		if (!data.Items || !data.Items.length) return [];
+
+		return data.Items.map(ob => this.parseStatus(ob));
+	}
+
+	public updateSequence(pair: string, seq: number) {
+		return this.putData({
+			TableName: `${CST.DB_ISRAFEL}.${CST.DB_SEQUENCE}.${
+				this.live ? CST.DB_LIVE : CST.DB_DEV
+			}`,
+			Item: {
+				[CST.DB_PAIR]: {
+					S: pair
+				},
+				[CST.DB_SEQUENCE]: {
+					N: seq + ''
+				}
+			}
+		});
 	}
 
 	public parseSequence(items: AttributeMap[]): { [pair: string]: number } {
@@ -145,7 +195,7 @@ class DynamoUtil {
 				[':' + CST.DB_BALANCE]: {
 					N: liveOrder.amount + ''
 				},
-				[':' + CST.DB_UPDATED_AT]: { S: util.getUTCNowTimestamp() + '' },
+				[':' + CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' },
 				[':' + CST.DB_CURRENT_SEQ]: { N: liveOrder.currentSequence + '' }
 			},
 			UpdateExpression: `SET ${CST.DB_BALANCE} = ${':' + CST.DB_BALANCE}, ${
@@ -201,7 +251,7 @@ class DynamoUtil {
 		return data.Items.map(ob => this.parseLiveOrder(ob));
 	}
 
-	public deleteOrderSignature(orderHash: string) {
+	public deleteRawOrderSignature(orderHash: string) {
 		return this.updateData({
 			TableName: `${CST.DB_ISRAFEL}.${CST.DB_RAW_ORDERS}.${
 				this.live ? CST.DB_LIVE : CST.DB_DEV
@@ -212,12 +262,16 @@ class DynamoUtil {
 				}
 			},
 			ExpressionAttributeNames: {
-				[CST.DB_0X_SIGNATURE]: CST.DB_0X_SIGNATURE
+				[CST.DB_0X_SIGNATURE]: CST.DB_0X_SIGNATURE,
+				[CST.DB_UPDATED_AT]: CST.DB_UPDATED_AT
 			},
 			ExpressionAttributeValues: {
-				[':' + CST.DB_0X_SIGNATURE]: { S: '' }
+				[':' + CST.DB_0X_SIGNATURE]: { S: '' },
+				[':' + CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' }
 			},
-			UpdateExpression: `SET ${CST.DB_0X_SIGNATURE} = ${':' + CST.DB_0X_SIGNATURE}`
+			UpdateExpression: `SET ${CST.DB_0X_SIGNATURE} = ${':' + CST.DB_0X_SIGNATURE}, ${
+				CST.DB_UPDATED_AT
+			} = ${':' + CST.DB_UPDATED_AT}`
 		});
 	}
 
@@ -388,21 +442,6 @@ class DynamoUtil {
 		if (!data.Items || !data.Items.length) return [];
 
 		return data.Items.map(uo => this.parseUserOrder(uo));
-	}
-
-	public updateStatus(process: string) {
-		return this.putData({
-			TableName: `${CST.DB_ISRAFEL}.${CST.DB_STATUS}.${this.live ? CST.DB_LIVE : CST.DB_DEV}`,
-			Item: {
-				[CST.DB_STS_PROCESS]: {
-					S: `${this.tool}|${process}|${this.hostname}`
-				},
-				[CST.DB_STS_HOSTNAME]: {
-					S: this.hostname
-				},
-				[CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' }
-			}
-		}).catch(error => util.logError('Error insert status: ' + error));
 	}
 }
 
