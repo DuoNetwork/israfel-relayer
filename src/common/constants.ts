@@ -81,6 +81,10 @@ export const TOKEN_MAPPING: { [key: string]: string } = {
 	'0x0b1ba0af832d7c05fd64161e0db78e85978e8082': TOKEN_WETH
 };
 
+export const SUPPORTED_PAIRS = [
+	TOKEN_ZRX + '-' + TOKEN_WETH
+]
+
 export const PAIR_SEPARATOR = '-';
 export const TRADING_PAIRS = [TOKEN_ZRX + PAIR_SEPARATOR + TOKEN_WETH];
 

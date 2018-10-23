@@ -12,27 +12,33 @@ class MatchOrdersUtil {
 		side: string
 	): Promise<void> {
 		for (const order of oldOrders)
-			if (side === CST.DB_LO_BID)
+			if (side === CST.DB_BID)
 				if (
 					newOrder.takerAssetAmount.div(newOrder.makerAssetAmount).lessThan(order.price)
 				) {
 					console.log('### there is profit!');
 					const askToMatch = await dynamoUtil.getRawOrder(order.orderHash);
 					console.log('#### look for askToMatch!', askToMatch);
-					if (askToMatch.takerAssetAmount.equals(newOrder.makerAssetAmount)) {
+					if (
+						askToMatch &&
+						askToMatch.signedOrder.takerAssetAmount.equals(newOrder.makerAssetAmount)
+					) {
 						console.log('>>>>>>>>>>>>>>>>>>>>> start matching orders ');
 						const txHash = await assetsUtil.contractWrappers.exchange.matchOrdersAsync(
-							askToMatch,
+							askToMatch.signedOrder,
 							newOrder,
 							assetsUtil.taker
 						);
 						console.log('matched txhash is ', txHash);
 						console.log('matched old order ', order.orderHash);
 						break;
-					} else if (askToMatch.makerAssetAmount.equals(newOrder.takerAssetAmount)) {
+					} else if (
+						askToMatch &&
+						askToMatch.signedOrder.makerAssetAmount.equals(newOrder.takerAssetAmount)
+					) {
 						const txHash = await assetsUtil.contractWrappers.exchange.matchOrdersAsync(
 							newOrder,
-							askToMatch,
+							askToMatch.signedOrder,
 							assetsUtil.taker
 						);
 						console.log('matched txhash is ', txHash);
@@ -48,11 +54,11 @@ class MatchOrdersUtil {
 		const liveOrders = await dynamoUtil.getLiveOrders(pair);
 		const [bidOrders, askOrders] = [
 			orderbookUtil.sortByPriceTime(
-				liveOrders.filter(order => order.side === CST.DB_LO_BID),
+				liveOrders.filter(order => order.side === CST.DB_BID),
 				true
 			),
 			orderbookUtil.sortByPriceTime(
-				liveOrders.filter(order => order.side === CST.DB_LO_ASK),
+				liveOrders.filter(order => order.side === CST.DB_ASK),
 				false
 			)
 		];
@@ -63,7 +69,7 @@ class MatchOrdersUtil {
 				assetsUtil.taker
 			)
 		);
-		this.scanToMatchOrder(side === CST.DB_LO_BID ? askOrders : bidOrders, newOrder, side);
+		this.scanToMatchOrder(side === CST.DB_BID ? askOrders : bidOrders, newOrder, side);
 		console.log(
 			'matcher ZRX balance AFTER match',
 			await assetsUtil.contractWrappers.erc20Token.getBalanceAsync(

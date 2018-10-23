@@ -23,25 +23,24 @@ class OrderBookUtil {
 
 	public sortByPriceTime(liveOrders: ILiveOrder[], isDescending: boolean): ILiveOrder[] {
 		liveOrders.sort((a, b) => {
-			if (isDescending) return b.price - a.price || a.updatedAt - b.updatedAt;
-			else return a.price - b.price || a.updatedAt - b.updatedAt;
+			if (isDescending) return b.price - a.price || (a.updatedAt || 0) - (b.updatedAt || 0);
+			else return a.price - b.price || (a.updatedAt || 0) - (b.updatedAt || 0);
 		});
 		return liveOrders;
 	}
 
 	public aggrOrderBook(rawLiveOrders: ILiveOrder[]): IOrderBookSnapshot {
-
 		return {
-			id: Math.max(...rawLiveOrders.map(order => order.id)),
+			id: Math.max(...rawLiveOrders.map(order => order.initialSequence)),
 			bids: this.aggrByPrice(
 				this.sortByPriceTime(
-					rawLiveOrders.filter(order => order[CST.DB_LO_SIDE] === CST.DB_LO_BID),
+					rawLiveOrders.filter(order => order[CST.DB_SIDE] === CST.DB_BID),
 					true
 				).map(bid => this.parseOrderBookUpdate(bid))
 			),
 			asks: this.aggrByPrice(
 				this.sortByPriceTime(
-					rawLiveOrders.filter(order => order[CST.DB_LO_SIDE] === CST.DB_LO_ASK),
+					rawLiveOrders.filter(order => order[CST.DB_SIDE] === CST.DB_ASK),
 					false
 				).map(ask => this.parseOrderBookUpdate(ask))
 			)

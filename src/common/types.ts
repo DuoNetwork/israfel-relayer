@@ -177,6 +177,7 @@ export interface IOrderQueue {
 
 export interface IRequestId {
 	ip: string;
+	pair: string;
 }
 
 export interface IResponseId {

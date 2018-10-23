@@ -5,7 +5,7 @@ import redisUtil from './redisUtil';
 import util from './util';
 
 class IdentityUtil {
-	public id: number = 0;
+	public id: { [key: string]: number } = {};
 
 	public wss: WebSocket.Server | null = null;
 
@@ -14,20 +14,23 @@ class IdentityUtil {
 	}
 
 	public async startServer() {
-		this.id = Number(await redisUtil.get(CST.ORDER_CURRENT_ID));
+		for (const pair of CST.SUPPORTED_PAIRS)
+			this.id[pair] = Number(await redisUtil.get(`${pair}|${CST.DB_SEQUENCE}`));
+
 		if (this.wss)
 			this.wss.on('connection', ws => {
 				util.logInfo('Standard order id service on port 8000!');
 				ws.on('message', async message => {
 					util.logInfo('received: ' + message);
 					const parsedMessage: IRequestId = JSON.parse(message.toString());
+					const pair = parsedMessage.pair;
 					// const type = parsedMessage.type;
 					util.logInfo('received request from ip ' + parsedMessage.ip);
 
-					ws.send(JSON.stringify({id: this.id + 1}));
+					ws.send(JSON.stringify({ id: this.id[pair] + 1 }));
 
-					this.id ++;
-					redisUtil.set(CST.ORDER_CURRENT_ID, this.id + '');
+					this.id[pair] = this.id[pair]  + 1;
+					redisUtil.set(`${pair}|${CST.DB_SEQUENCE}`, this.id[pair] + '');
 				});
 			});
 	}
