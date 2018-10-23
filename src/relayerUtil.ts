@@ -1,7 +1,7 @@
 import {
 	ContractWrappers,
 	// OrderRelevantState,
-	// orderHashUtils,
+	orderHashUtils,
 	signatureUtils,
 	SignedOrder
 } from '0x.js';
@@ -22,6 +22,7 @@ import {
 	// IDuoSignedOrder,
 	// ILiveOrders,
 	// IOption,
+	IAddOrderRequest,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotWs,
 	IOrderBookUpdate,
@@ -62,7 +63,6 @@ class RelayerUtil {
 	public handleOrderBookUpdate = (channel: string, orderBookUpdate: IOrderBookUpdate) => {
 		if (orderBookUpdate.id > this.orderBook[orderBookUpdate.pair].id) {
 			// TODO: apply orderBook update
-
 		}
 	};
 
@@ -129,19 +129,25 @@ class RelayerUtil {
 			: CST.DB_LO_ASK;
 	}
 
-	public async handleAddorder(message: any): Promise<IOrderResponse> {
-		const order: SignedOrder = this.toSignedOrder(message.payload.order);
-		const orderHash = message.payload.orderHash;
-		const pair = message.channel.pair;
+	public async handleAddorder(
+		pair: string,
+		stringifiedSignedOrder: any
+	): Promise<IOrderResponse> {
+		const signedOrder: SignedOrder = this.toSignedOrder(stringifiedSignedOrder);
+		const { signature, ...order } = signedOrder;
 
-		const side = this.determineSide(order, pair);
-		matchOrdersUtil.matchOrder(order, pair, side);
+		const orderHash = orderHashUtils.getOrderHashHex(order);
+		// const orderHash = message.payload.orderHash;
+		// const pair = message.channel.split('|')[1];
 
-		if (await this.validateNewOrder(order, orderHash)) {
+		const side = this.determineSide(signedOrder, pair);
+		matchOrdersUtil.matchOrder(signedOrder, pair, side);
+
+		if (await this.validateNewOrder(signedOrder, orderHash)) {
 			redisUtil.push(
 				CST.DB_ORDERS,
 				JSON.stringify({
-					order,
+					signedOrder,
 					orderHash,
 					pair,
 					side

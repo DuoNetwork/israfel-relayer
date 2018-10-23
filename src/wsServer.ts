@@ -10,7 +10,10 @@ import {
 	// IUpdateResponseWs,
 	// IOption,
 	WsChannelMessageTypes,
-	WsChannelName
+	WsChannelName,
+	// IAddOrderRequest,
+	// IBaseRequest,
+	// ICanceleOrderRequest
 	// WsChannelResposnseTypes
 } from './types';
 import util from './util';
@@ -27,28 +30,26 @@ class WsServer {
 	}
 
 	public startServer() {
-
 		if (this.wss)
 			this.wss.on('connection', ws => {
 				util.logInfo('Standard relayer API (WS) listening on port 8080!');
 				ws.on('message', async message => {
 					util.logInfo('received: ' + message);
-					const parsedMessage = JSON.parse(message.toString());
-					const type = parsedMessage.type;
-					const channelName = parsedMessage.channel.name;
+					const parsedMessage: any = JSON.parse(
+						message.toString()
+					);
+					// const type = parsedMessage.type;
+					const [channelName, pair] = parsedMessage.channel.split('|');
 					if (channelName === WsChannelName.Order)
-						if (type === WsChannelMessageTypes.Add) {
+						if (parsedMessage.method === WsChannelMessageTypes.Add) {
 							util.logInfo('add new order');
 							ws.send(
-								JSON.stringify(await relayerUtil.handleAddorder(parsedMessage))
+								JSON.stringify(await relayerUtil.handleAddorder(pair, parsedMessage))
 							);
-						} else if (type === WsChannelMessageTypes.Cancel)
+						} else if (parsedMessage.method === WsChannelMessageTypes.Cancel)
 							ws.send(
 								JSON.stringify(
-									await relayerUtil.handleCancel(
-										parsedMessage.payload.orderHash,
-										parsedMessage.channel.pair
-									)
+									await relayerUtil.handleCancel(parsedMessage.orderHash, pair)
 								)
 							);
 					// TO DO send new orders based on payload Assetpairs

@@ -50,15 +50,16 @@ export interface IOrderBookUpdate {
 	amount: number;
 }
 
-export interface IAddOrderRequest {
+export interface IBaseRequest {
 	method: string;
 	channel: string;
+}
+
+export interface IAddOrderRequest extends IBaseRequest {
 	order: SignedOrder;
 }
 
-export interface ICanceleOrderRequest {
-	method: string;
-	channel: string;
+export interface ICanceleOrderRequest extends IBaseRequest {
 	orderHash: string;
 }
 
