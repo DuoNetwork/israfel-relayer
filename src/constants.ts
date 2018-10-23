@@ -24,6 +24,8 @@ export const DB_LO_BID = 'bid';
 export const DB_LO_BALANCE = 'balance';
 export const DB_UPDATED_AT = 'updatedAt';
 
+export const ORDER_CURRENT_ID = 'currentId';
+
 // export const DB_SENDER_ADDR = 'senderAddress';
 export const DB_0X_MAKER_FEE = 'makerFee';
 export const DB_0X_TAKER_FEE = 'takerFee';

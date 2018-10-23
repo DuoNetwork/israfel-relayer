@@ -1,6 +1,5 @@
 import * as CST from './constants';
 import dynamoUtil from './dynamoUtil';
-import identidyUtil from './identityUtil';
 import redisUtil from './redisUtil';
 import { IOrderQueue } from './types';
 import util from './util';
@@ -20,7 +19,8 @@ class OrderUtil {
 
 		if (res) {
 			const orderQueue: IOrderQueue = JSON.parse(res);
-			const id = await identidyUtil.getCurrentId(orderQueue.pair);
+			// const id = await identidyUtil.getCurrentId(orderQueue.pair);
+			const id = orderQueue.id;
 
 			if (
 				!id ||

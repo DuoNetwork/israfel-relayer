@@ -48,6 +48,14 @@ export class RedisUtil {
 		if (this.redisPub) this.redisPub.publish(channel, msg);
 	}
 
+	public set(key: string, value: string): void {
+		if (this.redisSub) this.redisSub.set(key, value);
+	}
+
+	public get(key: string): void {
+		if (this.redisSub) this.redisSub.get(key);
+	}
+
 	public subscribe(channel: string): void {
 		if (this.redisSub) this.redisSub.subscribe(channel);
 	}

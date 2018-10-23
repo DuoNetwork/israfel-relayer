@@ -154,4 +154,13 @@ export interface IOrderQueue {
 	orderHash: string;
 	side: string;
 	pair: string;
+	id: string;
+}
+
+export interface IRequestId {
+	ip: string;
+}
+
+export interface IResponseId {
+	id: string;
 }

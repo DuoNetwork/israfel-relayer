@@ -1,23 +1,36 @@
-import dynamoUtil from './dynamoUtil';
-
-import { IOption } from './types';
+import WebSocket from 'ws';
+import * as CST from './constants';
+import redisUtil from './redisUtil';
+import { IRequestId } from './types';
+import util from './util';
 
 class IdentityUtil {
-	public async init(tool: string, option: IOption) {
-		const config = require('./keys/' + (option.live ? 'live' : 'dev') + '/dynamo.json');
-		dynamoUtil.init(config, option.live, tool);
+	public id: number = 0;
+
+	public wss: WebSocket.Server | null = null;
+
+	public init() {
+		const port = 8000;
+		this.wss = new WebSocket.Server({ port: port });
 	}
 
-	public async getCurrentId(pair: string): Promise<string> {
-		const res = await dynamoUtil.getCurrentId(pair);
-		try {
-			await dynamoUtil.conditionalPutIdentity(pair, res, Number(res) + 1 + '');
+	public async startServer() {
+		this.id = Number(await redisUtil.get(CST.ORDER_CURRENT_ID));
+		if (this.wss)
+			this.wss.on('connection', ws => {
+				util.logInfo('Standard order id service on port 8000!');
+				ws.on('message', async message => {
+					util.logInfo('received: ' + message);
+					const parsedMessage: IRequestId = JSON.parse(message.toString());
+					// const type = parsedMessage.type;
+					util.logInfo('received request from ip ' + parsedMessage.ip);
 
-			return res;
-		} catch (err) {
-			console.log('failed, please retry');
-			return '';
-		}
+					ws.send(JSON.stringify({id: this.id + 1}));
+
+					this.id ++;
+					redisUtil.set(CST.ORDER_CURRENT_ID, this.id + '');
+				});
+			});
 	}
 }
 const identityUtil = new IdentityUtil();
