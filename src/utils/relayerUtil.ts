@@ -7,15 +7,8 @@ import {
 // import { schemas, SchemaValidator } from '@0xproject/json-schemas';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 // import moment from 'moment';
-import assetsUtil from './common/assetsUtil';
-import * as CST from './constants';
-import dynamoUtil from './dynamoUtil';
-// import firebaseUtil from './firebaseUtil';
-// import matchOrdersUtil from './matchOrdersUtil';
+import * as CST from '../common/constants';
 
-import orderBookUtil from './orderBookUtil';
-import { providerEngine } from './providerEngine';
-import redisUtil from './redisUtil';
 import {
 	ErrorResponseWs,
 	// IDuoOrder,
@@ -32,7 +25,13 @@ import {
 	// IUpdateResponseWs,
 	WsChannelName,
 	WsChannelResposnseTypes
-} from './types';
+} from '../common/types';
+import { providerEngine } from '../providerEngine';
+import assetsUtil from './assetsUtil';
+import dynamoUtil from './dynamoUtil';
+// import matchOrdersUtil from './matchOrdersUtil';
+import orderBookUtil from './orderBookUtil';
+import redisUtil from './redisUtil';
 
 class RelayerUtil {
 	public contractWrappers: ContractWrappers;
@@ -82,8 +81,8 @@ class RelayerUtil {
 	public determineSide(order: SignedOrder, pair: string): string {
 		const baseToken = pair.split('-')[0];
 		return assetsUtil.assetDataToTokenName(order.takerAssetData) === baseToken
-			? CST.DB_LO_BID
-			: CST.DB_LO_ASK;
+			? CST.DB_BID
+			: CST.DB_ASK;
 	}
 
 	public handleAddOrder(

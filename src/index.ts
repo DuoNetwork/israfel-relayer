@@ -1,10 +1,10 @@
-import assetsUtil from './common/assetsUtil';
-import orderWatcherUtil from './common/orderWatcherUtil';
-import * as CST from './constants';
-import dynamoUtil from './dynamoUtil';
-import identityUtil from './identityUtil';
-import redisUtil from './redisUtil';
-import util from './util';
+import * as CST from './common/constants';
+import assetsUtil from './utils/assetsUtil';
+import dynamoUtil from './utils/dynamoUtil';
+import identityUtil from './utils/identityUtil';
+import orderWatcherUtil from './utils/orderWatcherUtil';
+import redisUtil from './utils/redisUtil';
+import util from './utils/util';
 import wsServer from './wsServer';
 
 const option = util.parseOptions(process.argv);

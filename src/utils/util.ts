@@ -1,8 +1,8 @@
 import { BigNumber } from '0x.js';
 import moment from 'moment';
 import * as os from 'os';
-import * as CST from './constants';
-import { IOption } from './types';
+import * as CST from '../common/constants';
+import { IOption } from '../common/types';
 
 class Util {
 	public logLevel: string = CST.LOG_INFO;

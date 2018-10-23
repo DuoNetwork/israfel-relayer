@@ -1,9 +1,9 @@
 // import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import WebSocket from 'ws';
-import * as CST from '../constants';
-import dynamoUtil from '../dynamoUtil';
+import * as CST from '../common/constants';
+import { ICanceleOrderRequest, WsChannelMessageTypes, WsChannelName } from '../common/types';
+import dynamoUtil from '../utils/dynamoUtil';
 // import { providerEngine } from '../providerEngine';
-import { ICanceleOrderRequest, WsChannelMessageTypes, WsChannelName } from '../types';
 
 const config = require('../keys/' + 'dev' + '/dynamo.json');
 dynamoUtil.init(config, false, 'cancelOrders');

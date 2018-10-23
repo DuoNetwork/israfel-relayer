@@ -11,11 +11,11 @@ import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import { setInterval } from 'timers';
 // import Web3 from 'web3';
 import WebSocket from 'ws';
-import assetsUtil from '../common/assetsUtil';
-import * as CST from '../constants';
+import * as CST from '../common/constants';
+import {IAddOrderRequest, WsChannelMessageTypes, WsChannelName } from '../common/types';
 import { providerEngine } from '../providerEngine';
-import {IAddOrderRequest, WsChannelMessageTypes, WsChannelName } from '../types';
-import util from '../util';
+import assetsUtil from '../utils/assetsUtil';
+import util from '../utils/util';
 
 // const web3: Web3 = new Web3(new Web3.providers.HttpProvider(CST.PROVIDER_LOCAL));
 

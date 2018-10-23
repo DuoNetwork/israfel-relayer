@@ -1,9 +1,9 @@
 import { SignedOrder } from '0x.js';
-import assetsUtil from './common/assetsUtil';
-import * as CST from './constants';
+import * as CST from '../common/constants';
+import { ILiveOrder } from '../common/types';
+import assetsUtil from './assetsUtil';
 import dynamoUtil from './dynamoUtil';
 import orderbookUtil from './orderBookUtil';
-import { ILiveOrder } from './types';
 
 class MatchOrdersUtil {
 	public async scanToMatchOrder(

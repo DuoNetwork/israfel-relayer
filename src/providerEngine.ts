@@ -1,7 +1,6 @@
 import { RPCSubprovider, Web3ProviderEngine } from '0x.js';
 import { MnemonicWalletSubprovider } from '@0xproject/subproviders';
-
-import * as CST from './constants';
+import * as CST from './common/constants';
 // import { BASE_DERIVATION_PATH, MNEMONIC, NETWORK_CONFIGS } from '';
 
 export const mnemonicWallet = new MnemonicWalletSubprovider({

@@ -1,11 +1,6 @@
 import { orderHashUtils, SignedOrder } from '0x.js';
 import WebSocket from 'ws';
-// import * as CST from './constants';
-// import firebaseUtil from './firebaseUtil';
-import * as CST from './constants';
-import dynamoUtil from './dynamoUtil';
-import orderUtil from './orderUtil';
-import relayerUtil from './relayerUtil';
+import * as CST from './common/constants';
 import {
 	ErrorResponseWs,
 	IQueueOrder,
@@ -19,8 +14,11 @@ import {
 	// IBaseRequest,
 	// ICanceleOrderRequest
 	// WsChannelResposnseTypes
-} from './types';
-import util from './util';
+} from './common/types';
+import dynamoUtil from './utils/dynamoUtil';
+import orderUtil from './utils/orderUtil';
+import relayerUtil from './utils/relayerUtil';
+import util from './utils/util';
 
 // Global state
 

@@ -1,10 +1,10 @@
 import { assetDataUtils, BigNumber, ContractWrappers } from '0x.js';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import { TransactionReceiptWithDecodedLogs } from 'ethereum-types';
-import * as CST from '../constants';
+import * as CST from '../common/constants';
+import { IOption } from '../common/types';
 import { providerEngine } from '../providerEngine';
-import { IOption } from '../types';
-import util from '../util';
+import util from './util';
 
 class AccountsUtil {
 	public contractWrappers: ContractWrappers;

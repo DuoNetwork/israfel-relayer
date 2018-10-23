@@ -1,8 +1,8 @@
 // import assetsUtil from './common/assetsUtil';
-import * as CST from './constants';
+import * as CST from '../common/constants';
+import { ILiveOrder, IOption, IOrderBookSnapshot, IOrderBookUpdateWS } from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import redisUtil from './redisUtil';
-import { ILiveOrder, IOption, IOrderBookSnapshot, IOrderBookUpdateWS } from './types';
 // import util from './util';
 
 class OrderBookUtil {

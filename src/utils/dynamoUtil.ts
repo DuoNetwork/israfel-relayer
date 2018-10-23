@@ -10,8 +10,8 @@ import DynamoDB, {
 } from 'aws-sdk/clients/dynamodb';
 import AWS from 'aws-sdk/global';
 import moment = require('moment');
-import * as CST from './constants';
-import { ILiveOrder, IRawOrder, IUserOrder } from './types';
+import * as CST from '../common/constants';
+import { ILiveOrder, IRawOrder, IUserOrder } from '../common/types';
 import util from './util';
 
 class DynamoUtil {

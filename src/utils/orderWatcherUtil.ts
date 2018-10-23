@@ -1,9 +1,9 @@
 import { ContractWrappers, OrderWatcher, RPCSubprovider } from '0x.js';
-import * as CST from '../constants';
-import dynamoUtil from '../dynamoUtil';
+import * as CST from '../common/constants';
+import { ILiveOrder, IOption } from '../common/types';
 import { providerEngine } from '../providerEngine';
-import { ILiveOrder, IOption } from '../types';
-import util from '../util';
+import dynamoUtil from './dynamoUtil';
+import util from './util';
 
 class OrderWatcherUtil {
 	public provider = new RPCSubprovider(CST.PROVIDER_LOCAL);

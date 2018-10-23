@@ -1,10 +1,10 @@
 import { signatureUtils, SignedOrder } from '0x.js';
 import { schemas, SchemaValidator } from '@0xproject/json-schemas';
-import * as CST from './constants';
+import * as CST from '../common/constants';
+import { IOrderQueue } from '../common/types';
+import { providerEngine } from '../providerEngine';
 import dynamoUtil from './dynamoUtil';
-import { providerEngine } from './providerEngine';
 import redisUtil from './redisUtil';
-import { IOrderQueue } from './types';
 import util from './util';
 
 class OrderUtil {

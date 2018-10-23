@@ -1,7 +1,7 @@
 import WebSocket from 'ws';
-import * as CST from './constants';
+import * as CST from '../common/constants';
+import { IRequestId } from '../common/types';
 import redisUtil from './redisUtil';
-import { IRequestId } from './types';
 import util from './util';
 
 class IdentityUtil {

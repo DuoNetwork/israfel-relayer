@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
-import * as CST from './constants';
-import { IOrderBookUpdate } from './types';
+import * as CST from '../common/constants';
+import { IOrderBookUpdate } from '../common/types';
 import util from './util';
 
 export class RedisUtil {
