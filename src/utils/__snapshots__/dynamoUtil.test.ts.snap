@@ -372,24 +372,6 @@ Array [
 ]
 `;
 
-exports[`scanSequence 1`] = `Object {}`;
-
-exports[`scanSequence 2`] = `
-Array [
-  Array [
-    Object {
-      "TableName": "israfel.sequence.dev",
-    },
-  ],
-]
-`;
-
-exports[`scanSequence 3`] = `
-Object {
-  "pair": 123,
-}
-`;
-
 exports[`scanStatus 1`] = `Array []`;
 
 exports[`scanStatus 2`] = `
@@ -407,6 +389,7 @@ Array [
   Object {
     "hostname": "hostname",
     "pair": "pair",
+    "sequence": 123,
     "tool": "tool",
     "updatedAt": 1234567890,
   },
@@ -454,24 +437,6 @@ Array [
 ]
 `;
 
-exports[`updateSequence 1`] = `
-Array [
-  Array [
-    Object {
-      "Item": Object {
-        "pair": Object {
-          "S": "pair",
-        },
-        "sequence": Object {
-          "N": "123",
-        },
-      },
-      "TableName": "israfel.sequence.dev",
-    },
-  ],
-]
-`;
-
 exports[`updateStatus 1`] = `
 Array [
   Array [
@@ -482,6 +447,25 @@ Array [
         },
         "process": Object {
           "S": "tool|someProcess|hostname",
+        },
+        "updatedAt": Object {
+          "N": "1234567890",
+        },
+      },
+      "TableName": "israfel.status.dev",
+    },
+  ],
+  Array [
+    Object {
+      "Item": Object {
+        "hostname": Object {
+          "S": "hostname",
+        },
+        "process": Object {
+          "S": "tool|someProcess|hostname",
+        },
+        "sequence": Object {
+          "N": "123",
         },
         "updatedAt": Object {
           "N": "1234567890",

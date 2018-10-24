@@ -203,4 +203,5 @@ export interface IStatus {
 	updatedAt: number;
 	pair: string;
 	tool: string;
+	sequence?: number;
 }

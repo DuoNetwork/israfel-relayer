@@ -78,8 +78,8 @@ class DynamoUtil {
 		);
 	}
 
-	public updateStatus(process: string) {
-		return this.putData({
+	public updateStatus(process: string, sequence: number = 0) {
+		const params: PutItemInput = {
 			TableName: `${CST.DB_ISRAFEL}.${CST.DB_STATUS}.${this.live ? CST.DB_LIVE : CST.DB_DEV}`,
 			Item: {
 				[CST.DB_STS_PROCESS]: {
@@ -90,17 +90,24 @@ class DynamoUtil {
 				},
 				[CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' }
 			}
-		}).catch(error => util.logError('Error insert status: ' + error));
+		};
+		if (sequence) params.Item[CST.DB_SEQUENCE] = { N: sequence + '' };
+		return this.putData(params).catch(error => util.logError('Error insert status: ' + error));
 	}
 
 	public parseStatus(data: AttributeMap): IStatus {
 		const [tool, pair] = (data[CST.DB_STS_PROCESS].S || '').split('|');
-		return {
+		const status: IStatus = {
 			tool: tool,
 			pair: pair || '',
 			hostname: data[CST.DB_STS_HOSTNAME].S || '',
 			updatedAt: Number(data[CST.DB_UPDATED_AT].N)
 		};
+		const sequence = data[CST.DB_SEQUENCE] ? Number(data[CST.DB_SEQUENCE].N) : 0;
+		if (sequence)
+			status.sequence = sequence;
+
+		return status;
 	}
 
 	public async scanStatus(): Promise<IStatus[]> {
@@ -110,41 +117,6 @@ class DynamoUtil {
 		if (!data.Items || !data.Items.length) return [];
 
 		return data.Items.map(ob => this.parseStatus(ob));
-	}
-
-	public updateSequence(pair: string, seq: number) {
-		return this.putData({
-			TableName: `${CST.DB_ISRAFEL}.${CST.DB_SEQUENCE}.${
-				this.live ? CST.DB_LIVE : CST.DB_DEV
-			}`,
-			Item: {
-				[CST.DB_PAIR]: {
-					S: pair
-				},
-				[CST.DB_SEQUENCE]: {
-					N: seq + ''
-				}
-			}
-		});
-	}
-
-	public parseSequence(items: AttributeMap[]): { [pair: string]: number } {
-		const seq: { [pair: string]: number } = {};
-		items.forEach(data => (seq[data[CST.DB_PAIR].S || ''] = Number(data[CST.DB_SEQUENCE].N)));
-
-		return seq;
-	}
-
-	public async scanSequence(): Promise<{ [pair: string]: number }> {
-		const data = await this.scanData({
-			TableName: `${CST.DB_ISRAFEL}.${CST.DB_SEQUENCE}.${
-				this.live ? CST.DB_LIVE : CST.DB_DEV
-			}`
-		});
-
-		if (!data.Items || !data.Items.length) return {};
-
-		return this.parseSequence(data.Items);
 	}
 
 	public convertLiveOrderToDynamo(liveOrder: ILiveOrder): AttributeMap {

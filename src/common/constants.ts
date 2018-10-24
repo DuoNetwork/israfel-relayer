@@ -95,7 +95,6 @@ export const ORDER_WATCHER = 'orderWatcher';
 export const ORDER_PRUNE = 'pruneOrder';
 export const SET_ALLOWANCE = 'setAllowance';
 export const START_RELAYER = 'startRelayer';
-export const START_ID_SERVICE = 'startIdService';
 
 export const LOG_INFO = 'INFO';
 export const LOG_DEBUG = 'DEBUG';

@@ -6,6 +6,7 @@ test('updateStatus', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
 	await dynamoUtil.updateStatus('someProcess');
+	await dynamoUtil.updateStatus('someProcess', 123);
 	expect((dynamoUtil.putData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
 });
 
@@ -21,7 +22,8 @@ test('scanStatus', async () => {
 			{
 				[CST.DB_STS_PROCESS]: { S: 'tool|pair' },
 				[CST.DB_UPDATED_AT]: { N: '1234567890' },
-				[CST.DB_STS_HOSTNAME]: { S: 'hostname' }
+				[CST.DB_STS_HOSTNAME]: { S: 'hostname' },
+				[CST.DB_SEQUENCE]: { N: '123' }
 			},
 			{
 				[CST.DB_STS_PROCESS]: { S: 'tool|' },
@@ -32,31 +34,6 @@ test('scanStatus', async () => {
 	};
 	dynamoUtil.scanData = jest.fn(() => Promise.resolve(scanOutput));
 	expect(await dynamoUtil.scanStatus()).toMatchSnapshot();
-});
-
-test('updateSequence', async () => {
-	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
-	await dynamoUtil.updateSequence('pair', 123);
-	expect((dynamoUtil.putData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
-});
-
-test('scanSequence', async () => {
-	let scanOutput: { [key: string]: any } = {
-		Items: []
-	};
-	dynamoUtil.scanData = jest.fn(() => Promise.resolve(scanOutput));
-	expect(await dynamoUtil.scanSequence()).toMatchSnapshot();
-	expect((dynamoUtil.scanData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
-	scanOutput = {
-		Items: [
-			{
-				[CST.DB_PAIR]: { S: 'pair' },
-				[CST.DB_SEQUENCE]: { N: '123' }
-			}
-		]
-	};
-	dynamoUtil.scanData = jest.fn(() => Promise.resolve(scanOutput));
-	expect(await dynamoUtil.scanSequence()).toMatchSnapshot();
 });
 
 test('addLiveOrder', async () => {
