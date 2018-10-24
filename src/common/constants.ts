@@ -27,6 +27,10 @@ export const DB_CREATED_AT = 'createdAt';
 export const DB_UPDATED_AT = 'updatedAt';
 export const DB_UPDATED_BY = 'updatedBy';
 
+export const DB_STS_PROCESS = 'process';
+export const DB_STS_HOSTNAME = 'hostname';
+export const DB_STS_CONNECTION = 'connection';
+
 export const DB_0X_SENDER_ADDR = 'senderAddress';
 export const DB_0X_MAKER_FEE = 'makerFee';
 export const DB_0X_TAKER_FEE = 'takerFee';
@@ -111,8 +115,5 @@ export const LOG_RANKING: { [level: string]: number } = {
 	[LOG_INFO]: 1,
 	[LOG_DEBUG]: 2
 };
-
-export const DB_STS_PROCESS = 'process';
-export const DB_STS_HOSTNAME = 'hostname';
 
 export const PRICE_PRECISION = 8;

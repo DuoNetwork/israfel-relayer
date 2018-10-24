@@ -6,9 +6,9 @@ import redisUtil from '../utils/redisUtil';
 import util from '../utils/util';
 
 class SequenceServer {
+	private wss: WebSocket.Server | null = null;
+	private connectionCount: number = 0;
 	public sequence: { [pair: string]: number } = {};
-
-	public wss: WebSocket.Server | null = null;
 
 	public handleMessage(ws: WebSocket, m: string) {
 		util.logDebug('received: ' + m);
@@ -44,23 +44,27 @@ class SequenceServer {
 	}
 
 	public async startServer() {
-		this.wss = new WebSocket.Server({ port: CST.ID_SERVICE_PORT });
-
 		for (const pair of CST.SUPPORTED_PAIRS) {
 			const seq = Number(await redisUtil.get(`${CST.DB_SEQUENCE}|${pair}`));
-			dynamoUtil.updateStatus(pair, seq);
+			dynamoUtil.updateStatus(pair, 0, seq);
 			this.sequence[pair] = seq;
 		}
 
 		setInterval(async () => {
 			for (const pair in this.sequence)
-				await dynamoUtil.updateStatus(pair, this.sequence[pair]);
+				await dynamoUtil.updateStatus(pair, this.connectionCount, this.sequence[pair]);
 		}, 15000);
 
+		this.wss = new WebSocket.Server({ port: CST.ID_SERVICE_PORT });
 		if (this.wss)
 			this.wss.on('connection', ws => {
 				util.logInfo('new connection');
+				this.connectionCount++;
 				ws.on('message', message => this.handleMessage(ws, message.toString()));
+				ws.on('close', () => {
+					util.logInfo('connection close');
+					this.connectionCount = Math.max(this.connectionCount - 1, 0);
+				})
 			});
 	}
 }

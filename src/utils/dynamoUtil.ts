@@ -78,7 +78,7 @@ class DynamoUtil {
 		);
 	}
 
-	public updateStatus(process: string, sequence: number = 0) {
+	public updateStatus(process: string, connection: number = 0, sequence: number = 0) {
 		const params: PutItemInput = {
 			TableName: `${CST.DB_ISRAFEL}.${CST.DB_STATUS}.${this.live ? CST.DB_LIVE : CST.DB_DEV}`,
 			Item: {
@@ -91,6 +91,7 @@ class DynamoUtil {
 				[CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' }
 			}
 		};
+		if (connection) params.Item[CST.DB_STS_CONNECTION] = { N: connection + '' };
 		if (sequence) params.Item[CST.DB_SEQUENCE] = { N: sequence + '' };
 		return this.putData(params).catch(error => util.logError('Error insert status: ' + error));
 	}
@@ -103,6 +104,9 @@ class DynamoUtil {
 			hostname: data[CST.DB_STS_HOSTNAME].S || '',
 			updatedAt: Number(data[CST.DB_UPDATED_AT].N)
 		};
+		const connection = data[CST.DB_STS_CONNECTION] ? Number(data[CST.DB_STS_CONNECTION].N) : 0;
+		if (connection)
+			status.connection = connection;
 		const sequence = data[CST.DB_SEQUENCE] ? Number(data[CST.DB_SEQUENCE].N) : 0;
 		if (sequence)
 			status.sequence = sequence;

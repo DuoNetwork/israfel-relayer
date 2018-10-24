@@ -387,9 +387,10 @@ Array [
 exports[`scanStatus 3`] = `
 Array [
   Object {
+    "connection": 123,
     "hostname": "hostname",
     "pair": "pair",
-    "sequence": 123,
+    "sequence": 456,
     "tool": "tool",
     "updatedAt": 1234567890,
   },
@@ -458,6 +459,28 @@ Array [
   Array [
     Object {
       "Item": Object {
+        "connection": Object {
+          "N": "123",
+        },
+        "hostname": Object {
+          "S": "hostname",
+        },
+        "process": Object {
+          "S": "tool|someProcess|hostname",
+        },
+        "updatedAt": Object {
+          "N": "1234567890",
+        },
+      },
+      "TableName": "israfel.status.dev",
+    },
+  ],
+  Array [
+    Object {
+      "Item": Object {
+        "connection": Object {
+          "N": "123",
+        },
         "hostname": Object {
           "S": "hostname",
         },
@@ -465,7 +488,7 @@ Array [
           "S": "tool|someProcess|hostname",
         },
         "sequence": Object {
-          "N": "123",
+          "N": "456",
         },
         "updatedAt": Object {
           "N": "1234567890",

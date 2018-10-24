@@ -192,5 +192,6 @@ export interface IStatus {
 	updatedAt: number;
 	pair: string;
 	tool: string;
+	connection?: number;
 	sequence?: number;
 }

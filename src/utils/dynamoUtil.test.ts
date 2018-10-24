@@ -7,6 +7,7 @@ test('updateStatus', async () => {
 	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
 	await dynamoUtil.updateStatus('someProcess');
 	await dynamoUtil.updateStatus('someProcess', 123);
+	await dynamoUtil.updateStatus('someProcess', 123, 456);
 	expect((dynamoUtil.putData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
 });
 
@@ -23,7 +24,8 @@ test('scanStatus', async () => {
 				[CST.DB_STS_PROCESS]: { S: 'tool|pair' },
 				[CST.DB_UPDATED_AT]: { N: '1234567890' },
 				[CST.DB_STS_HOSTNAME]: { S: 'hostname' },
-				[CST.DB_SEQUENCE]: { N: '123' }
+				[CST.DB_STS_CONNECTION]: { N: '123' },
+				[CST.DB_SEQUENCE]: { N: '456' }
 			},
 			{
 				[CST.DB_STS_PROCESS]: { S: 'tool|' },
