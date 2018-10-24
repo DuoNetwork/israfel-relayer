@@ -1,9 +1,9 @@
 import * as CST from './common/constants';
 import assetsUtil from './utils/assetsUtil';
 import dynamoUtil from './utils/dynamoUtil';
-import identityUtil from './utils/identityUtil';
 import orderWatcherUtil from './utils/orderWatcherUtil';
 import redisUtil from './utils/redisUtil';
+import identityUtil from './utils/sequenceUtil';
 import util from './utils/util';
 import wsServer from './wsServer';
 

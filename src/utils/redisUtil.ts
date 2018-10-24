@@ -44,50 +44,53 @@ export class RedisUtil {
 		this.handleOrderBookUpdate = handleOrderBookUpdate;
 	}
 
-	public publish(channel: string, msg: string): void {
-		if (this.redisPub) this.redisPub.publish(channel, msg);
+	public publish(channel: string, msg: string) {
+		if (this.redisPub) return this.redisPub.publish(channel, msg);
+		return Promise.resolve(0);
 	}
 
-	public set(key: string, value: string): void {
-		if (this.redisSub) this.redisSub.set(key, value);
+	public set(key: string, value: string) {
+		if (this.redisSub) return this.redisSub.set(key, value);
+		return Promise.resolve('');
 	}
 
-	public get(key: string): void {
-		if (this.redisSub) this.redisSub.get(key);
+	public get(key: string) {
+		if (this.redisSub) return this.redisSub.get(key);
+		return Promise.resolve('');
 	}
 
-	public subscribe(channel: string): void {
+	public subscribe(channel: string) {
 		if (this.redisSub) this.redisSub.subscribe(channel);
 	}
 
-	public patternSubscribe(pattern: string): void {
+	public patternSubscribe(pattern: string) {
 		if (this.redisSub) this.redisSub.psubscribe(pattern);
 	}
 
-	public unsubscribe(channel: string): void {
+	public unsubscribe(channel: string) {
 		if (this.redisSub) this.redisSub.unsubscribe(channel);
 	}
 
-	public patternUnsubscribe(pattern: string): void {
+	public patternUnsubscribe(pattern: string) {
 		if (this.redisSub) this.redisSub.punsubscribe(pattern);
 	}
 
-	public push(key: string, ...values: string[]): void {
+	public push(key: string, ...values: string[]) {
 		if (this.redisSub) this.redisSub.lpush(key, values);
 	}
 
-	public putBack(key: string, ...values: string[]): void {
+	public putBack(key: string, ...values: string[]) {
 		if (this.redisSub) this.redisSub.rpush(key, values);
 	}
 
-	public async pop(key: string): Promise<string> {
-		if (this.redisSub) return await this.redisSub.rpop(key);
-		return '';
+	public pop(key: string) {
+		if (this.redisSub) return this.redisSub.rpop(key);
+		return  Promise.resolve('');
 	}
 
-	public async getQueueLength(key: string): Promise<number> {
+	public getQueueLength(key: string) {
 		if (this.redisSub) return this.redisSub.llen(key);
-		return 0;
+		return Promise.resolve(0);
 	}
 }
 

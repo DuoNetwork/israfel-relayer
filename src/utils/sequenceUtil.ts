@@ -4,7 +4,7 @@ import { IRequestId } from '../common/types';
 import redisUtil from './redisUtil';
 import util from './util';
 
-class IdentityUtil {
+class SequenceUtil {
 	public id: { [key: string]: number } = {};
 
 	public wss: WebSocket.Server | null = null;
@@ -35,5 +35,6 @@ class IdentityUtil {
 			});
 	}
 }
-const identityUtil = new IdentityUtil();
-export default identityUtil;
+
+const sequenceUtil = new SequenceUtil();
+export default sequenceUtil;
