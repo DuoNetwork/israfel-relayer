@@ -136,6 +136,46 @@ test('getLiveOrders', async () => {
 	expect(await dynamoUtil.getLiveOrders('pair')).toMatchSnapshot();
 });
 
+test('getLiveOrders with orderHash', async () => {
+	let queryOutput: { [key: string]: any } = {
+		Items: []
+	};
+	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
+	expect(await dynamoUtil.getLiveOrders('pair', 'orderHash')).toMatchSnapshot();
+	expect((dynamoUtil.queryData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+
+	queryOutput = {
+		Items: [
+			{
+				[CST.DB_PAIR]: { S: 'pair' },
+				[CST.DB_ORDER_HASH]: { S: '0xOrderHash' },
+				[CST.DB_PRICE]: {
+					N: '123'
+				},
+				[CST.DB_BALANCE]: { N: '456' },
+				[CST.DB_SIDE]: { S: 'side' },
+				[CST.DB_INITIAL_SEQ]: { N: '1' },
+				[CST.DB_CURRENT_SEQ]: { N: '2' },
+				[CST.DB_CREATED_AT]: { N: '1234560000' },
+				[CST.DB_UPDATED_AT]: { N: '1234567890' }
+			}
+		]
+	};
+	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
+	expect(await dynamoUtil.getLiveOrders('pair', 'orderHash')).toMatchSnapshot();
+
+	queryOutput = {
+		Items: [{}, {}]
+	};
+	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
+
+	try {
+		await dynamoUtil.getLiveOrders('pair', 'orderHash');
+	} catch (error) {
+		expect(error).toMatchSnapshot();
+	}
+});
+
 test('deleteRawOrderSignature', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.updateData = jest.fn(() => Promise.resolve({}));
@@ -268,7 +308,9 @@ test('getUserOrdersForMonth', async () => {
 		]
 	};
 	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
-	expect(await dynamoUtil.getUserOrdersForMonth('0xAccount', '1234-56', 'pair')).toMatchSnapshot();
+	expect(
+		await dynamoUtil.getUserOrdersForMonth('0xAccount', '1234-56', 'pair')
+	).toMatchSnapshot();
 	expect((dynamoUtil.queryData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
 });
 
@@ -276,5 +318,7 @@ test('getUserOrders', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 9876543210);
 	dynamoUtil.getUserOrdersForMonth = jest.fn(() => Promise.resolve([]));
 	await dynamoUtil.getUserOrders('0xAccount', 1000000000);
-	expect((dynamoUtil.getUserOrdersForMonth as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect(
+		(dynamoUtil.getUserOrdersForMonth as jest.Mock<Promise<void>>).mock.calls
+	).toMatchSnapshot();
 });

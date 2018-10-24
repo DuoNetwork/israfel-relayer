@@ -234,7 +234,7 @@ class DynamoUtil {
 		};
 	}
 
-	public async getLiveOrders(pair: string): Promise<ILiveOrder[]> {
+	public async getLiveOrders(pair: string, orderHash: string = ''): Promise<ILiveOrder[]> {
 		const params: QueryInput = {
 			TableName: `${CST.DB_ISRAFEL}.${CST.DB_LIVE_ORDERS}.${
 				this.live ? CST.DB_LIVE : CST.DB_DEV
@@ -245,8 +245,17 @@ class DynamoUtil {
 			}
 		};
 
+		if (orderHash) {
+			params.KeyConditionExpression += ` AND ${CST.DB_ORDER_HASH} = :${CST.DB_ORDER_HASH}`;
+			if (params.ExpressionAttributeValues)
+				params.ExpressionAttributeValues[':' + CST.DB_ORDER_HASH] = { S: orderHash };
+		}
+
 		const data = await this.queryData(params);
 		if (!data.Items || !data.Items.length) return [];
+
+		if (orderHash && data.Items.length > 1)
+			throw new Error('multiple record for order hash ' + orderHash);
 
 		return data.Items.map(ob => this.parseLiveOrder(ob));
 	}

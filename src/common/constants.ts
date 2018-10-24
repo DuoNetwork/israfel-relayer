@@ -46,6 +46,8 @@ export const ORDERBOOK_UPDATE = 'orderBookUpdate';
 export const ORDERBOOK_SNAPSHOT = 'orderBookSnapshot';
 
 export const DB_ORDERS = 'orders';
+export const DB_ADD_ORDER_QUEUE = 'addOrderQueue';
+export const DB_CANCEL_ORDER_QUEUE = 'cancelOrderQueue';
 
 export const AWS_DYNAMO_API_VERSION = '2012-10-08';
 

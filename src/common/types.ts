@@ -178,6 +178,7 @@ export interface IOrderQueue {
 export interface IRequestId {
 	ip: string;
 	pair: string;
+	requestId: string;
 }
 
 export interface IResponseId {
@@ -186,8 +187,9 @@ export interface IResponseId {
 export interface IQueueOrder {
 	ws: WebSocket;
 	pair: string;
+	method: string;
 	orderHash: string;
-	signedOrder: SignedOrder;
+	signedOrder: SignedOrder | null;
 }
 
 export interface IStatus {

@@ -27,7 +27,7 @@ class IdentityUtil {
 					// const type = parsedMessage.type;
 					util.logInfo('received request from ip ' + parsedMessage.ip);
 
-					ws.send(JSON.stringify({ id: this.id[pair] + 1 }));
+					ws.send(JSON.stringify({ id: this.id[pair] + 1, requestId: parsedMessage.requestId }));
 
 					this.id[pair] = this.id[pair]  + 1;
 					redisUtil.set(`${pair}|${CST.DB_SEQUENCE}`, this.id[pair] + '');

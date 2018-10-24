@@ -224,6 +224,45 @@ Array [
 ]
 `;
 
+exports[`getLiveOrders with orderHash 1`] = `Array []`;
+
+exports[`getLiveOrders with orderHash 2`] = `
+Array [
+  Array [
+    Object {
+      "ExpressionAttributeValues": Object {
+        ":orderHash": Object {
+          "S": "orderHash",
+        },
+        ":pair": Object {
+          "S": "pair",
+        },
+      },
+      "KeyConditionExpression": "pair = :pair AND orderHash = :orderHash",
+      "TableName": "israfel.liveOrders.dev",
+    },
+  ],
+]
+`;
+
+exports[`getLiveOrders with orderHash 3`] = `
+Array [
+  Object {
+    "amount": 456,
+    "createdAt": 1234560000,
+    "currentSequence": 2,
+    "initialSequence": 1,
+    "orderHash": "0xOrderHash",
+    "pair": "pair",
+    "price": 123,
+    "side": "side",
+    "updatedAt": 1234567890,
+  },
+]
+`;
+
+exports[`getLiveOrders with orderHash 4`] = `[Error: multiple record for order hash orderHash]`;
+
 exports[`getRawOrder 1`] = `
 Array [
   Array [

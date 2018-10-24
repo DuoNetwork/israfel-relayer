@@ -28,7 +28,8 @@ class WsServer {
 	public ip: string = '';
 
 	public isWaitingId: boolean = false;
-	public processingQueue: IQueueOrder[] = [];
+	// public processingQueue: IQueueOrder[] = [];
+	public pendingRequest: { [key: string]: IQueueOrder } = {};
 
 	public init() {
 		relayerUtil.init();
@@ -47,16 +48,17 @@ class WsServer {
 		});
 
 		this.ws.on('message', m => {
-			if (this.isWaitingId) {
-				const receivedMsg = JSON.parse(m.toString());
-				const id = receivedMsg.id;
-				const orderObj = this.processingQueue[0];
-				delete this.processingQueue[0];
+			const receivedMsg = JSON.parse(m.toString());
+			const id = receivedMsg.id;
+			const requestId = receivedMsg.requestId;
+			const orderObj = this.pendingRequest[requestId];
+			delete this.pendingRequest[requestId];
+			if (orderObj.method === WsChannelMessageTypes.Add) {
 				relayerUtil.handleAddOrder(
 					id,
 					orderObj.pair,
 					orderObj.orderHash,
-					orderObj.signedOrder
+					orderObj.signedOrder as SignedOrder
 				);
 				orderObj.ws.send(
 					JSON.stringify({
@@ -67,7 +69,18 @@ class WsServer {
 						message: ''
 					})
 				);
-				this.isWaitingId = false;
+			} else if (orderObj.method === WsChannelMessageTypes.Cancel) {
+				relayerUtil.handleCancel(id, orderObj.orderHash, orderObj.pair);
+
+				orderObj.ws.send(
+					JSON.stringify({
+						method: CST.DB_TP_CANCEL,
+						channel: `${WsChannelName.Order}| ${orderObj.pair}`,
+						status: 'success',
+						orderHash: orderObj.orderHash,
+						message: ''
+					})
+				);
 			}
 		});
 
@@ -88,7 +101,13 @@ class WsServer {
 					// const type = parsedMessage.type;
 					const [channelName, pair] = parsedMessage.channel.split('|');
 					if (channelName === WsChannelName.Order)
-						if (parsedMessage.method === WsChannelMessageTypes.Add) {
+						if (!this.ws)
+							ws.send(
+								JSON.stringify({
+									message: 'id service not available'
+								})
+							);
+						else if (parsedMessage.method === WsChannelMessageTypes.Add) {
 							util.logInfo('add new order');
 
 							const signedOrder: SignedOrder = orderUtil.toSignedOrder(parsedMessage);
@@ -97,16 +116,23 @@ class WsServer {
 							const orderHash = orderHashUtils.getOrderHashHex(order);
 
 							if (await orderUtil.validateNewOrder(signedOrder, orderHash)) {
-								if (this.ws && !this.isWaitingId) {
-									this.ws.send(JSON.stringify({ ip: this.ip }));
-									this.isWaitingId = true;
-									this.processingQueue.push({
-										ws,
-										pair,
-										orderHash,
-										signedOrder
-									});
-								}
+								const requestId = orderHash + '|' + channelName;
+
+								this.ws.send(
+									JSON.stringify({
+										ip: this.ip,
+										pair: pair,
+										requestId: requestId
+									})
+								);
+
+								this.pendingRequest[requestId] = {
+									ws: ws,
+									pair: pair,
+									method: channelName,
+									orderHash: orderHash,
+									signedOrder: signedOrder
+								};
 							} else
 								ws.send(
 									JSON.stringify({
@@ -117,12 +143,26 @@ class WsServer {
 										message: ErrorResponseWs.InvalidOrder
 									})
 								);
-						} else if (parsedMessage.method === WsChannelMessageTypes.Cancel)
-							ws.send(
-								JSON.stringify(
-									await relayerUtil.handleCancel(parsedMessage.orderHash, pair)
-								)
+						} else if (parsedMessage.method === WsChannelMessageTypes.Cancel) {
+							const orderHash = parsedMessage.orderHash;
+							const requestId = orderHash + '|' + channelName;
+
+							this.ws.send(
+								JSON.stringify({
+									ip: this.ip,
+									pair: pair,
+									requestId: requestId
+								})
 							);
+
+							this.pendingRequest[requestId] = {
+								ws: ws,
+								pair: pair,
+								method: channelName,
+								orderHash: orderHash,
+								signedOrder: null
+							};
+						}
 					// TO DO send new orders based on payload Assetpairs
 					// else if (type === CST.ORDERBOOK_UPDATE)
 					// 	const returnMsg = await relayerUtil.handleUpdate(parsedMessage);

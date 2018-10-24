@@ -94,7 +94,7 @@ class RelayerUtil {
 		const side = this.determineSide(signedOrder, pair);
 		// matchOrdersUtil.matchOrder(signedOrder, pair, side);
 		redisUtil.push(
-			CST.DB_ORDERS,
+			CST.DB_ADD_ORDER_QUEUE,
 			JSON.stringify({
 				id,
 				signedOrder,
@@ -105,27 +105,19 @@ class RelayerUtil {
 		);
 	}
 
-	public async handleCancel(orderHash: string, pair: string): Promise<IOrderResponse> {
-		try {
-			// Atomic transaction needs to be ensured
-			await dynamoUtil.removeLiveOrder(pair, orderHash);
-			await dynamoUtil.deleteOrderSignature(orderHash);
-			return {
-				method: CST.DB_TP_CANCEL,
-				channel: `${WsChannelName.Order}| ${pair}`,
-				status: 'success',
-				orderHash: orderHash,
-				message: ''
-			};
-		} catch {
-			return {
-				method: CST.DB_TP_CANCEL,
-				channel: `${WsChannelName.Order}| ${pair}`,
-				status: 'failed',
-				orderHash: orderHash,
-				message: ErrorResponseWs.InvalidOrder
-			};
-		}
+	public handleCancel(id: string, orderHash: string, pair: string): void {
+		redisUtil.push(
+			CST.DB_CANCEL_ORDER_QUEUE,
+			JSON.stringify({
+				id,
+				orderHash,
+				pair
+			})
+		);
+
+		// Atomic transaction needs to be ensured
+		// await dynamoUtil.deleteLiveOrder(pair, orderHash);
+		// await dynamoUtil.deleteOrderSignature(orderHash);
 	}
 
 	// public onModifiedOrder(modifiedOrder: IDuoOrder): IDuoOrder {}
