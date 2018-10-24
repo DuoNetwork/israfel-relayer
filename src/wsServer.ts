@@ -5,6 +5,7 @@ import {
 	ErrorResponseWs,
 	ILiveOrder,
 	IQueueOrder,
+	IWsRequest,
 	WsChannelMessageTypes,
 	WsChannelName
 } from './common/types';
@@ -17,7 +18,7 @@ class WsServer {
 	public wss: WebSocket.Server | null = null;
 	public ws: WebSocket | null = null;
 	public ip: string = '';
-	public pendingRequest: { [key: string]: IQueueOrder } = {};
+	public pendingRequest: IQueueOrder[] = [];
 
 	public init() {
 		relayerUtil.init();
@@ -35,9 +36,8 @@ class WsServer {
 		this.ws.on('message', m => {
 			const receivedMsg = JSON.parse(m.toString());
 			const id = receivedMsg.id;
-			const requestId = receivedMsg.requestId;
-			const orderObj = this.pendingRequest[requestId];
-			delete this.pendingRequest[requestId];
+			const orderObj = this.pendingRequest[0];
+			delete this.pendingRequest[0];
 			if (orderObj.method === WsChannelMessageTypes.Add) {
 				relayerUtil.handleAddOrder(
 					id,
@@ -101,23 +101,19 @@ class WsServer {
 							const orderHash = orderHashUtils.getOrderHashHex(order);
 
 							if (await orderUtil.validateNewOrder(signedOrder, orderHash)) {
-								const requestId = orderHash + '|' + channelName;
+								const requestSequence: IWsRequest = {
+									method: pair,
+									channel: CST.DB_SEQUENCE
+								};
+								this.ws.send(JSON.stringify(requestSequence));
 
-								this.ws.send(
-									JSON.stringify({
-										ip: this.ip,
-										pair: pair,
-										requestId: requestId
-									})
-								);
-
-								this.pendingRequest[requestId] = {
+								this.pendingRequest.push({
 									ws: ws,
 									pair: pair,
 									method: channelName,
 									orderHash: orderHash,
 									order: signedOrder
-								};
+								});
 							} else
 								ws.send(
 									JSON.stringify({
@@ -130,7 +126,6 @@ class WsServer {
 								);
 						} else if (parsedMessage.method === WsChannelMessageTypes.Cancel) {
 							const orderHash = parsedMessage.orderHash;
-							const requestId = orderHash + '|' + channelName;
 							let liveOrders: ILiveOrder[] = [];
 							try {
 								liveOrders = await dynamoUtil.getLiveOrders(pair, orderHash);
@@ -149,20 +144,19 @@ class WsServer {
 									})
 								);
 							else {
-								this.ws.send(
-									JSON.stringify({
-										ip: this.ip,
-										pair: pair,
-										requestId: requestId
-									})
-								);
-								this.pendingRequest[requestId] = {
+								const requestSequence: IWsRequest = {
+									method: pair,
+									channel: CST.DB_SEQUENCE
+								};
+
+								this.ws.send(JSON.stringify(requestSequence));
+								this.pendingRequest.push({
 									ws: ws,
 									pair: pair,
 									method: channelName,
 									orderHash: orderHash,
 									order: liveOrders[0]
-								};
+								});
 							}
 						}
 					// TO DO send new orders based on payload Assetpairs
