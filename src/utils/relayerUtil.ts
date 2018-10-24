@@ -25,8 +25,7 @@ import {
 	// IOrderStateCancelled,
 	// IUpdateResponseWs,
 	// WsChannelName,
-	WsChannelResposnseTypes,
-
+	WsChannelResposnseTypes
 } from '../common/types';
 import { providerEngine } from '../providerEngine';
 
@@ -35,6 +34,7 @@ import { providerEngine } from '../providerEngine';
 import orderBookUtil from './orderBookUtil';
 import orderUtil from './orderUtil';
 import redisUtil from './redisUtil';
+import util from './util';
 
 class RelayerUtil {
 	public contractWrappers: ContractWrappers;
@@ -99,6 +99,17 @@ class RelayerUtil {
 				side
 			})
 		);
+
+		const orderBookUpdate: IOrderBookUpdate = {
+			pair: pair,
+			price: util.round(
+				signedOrder.makerAssetAmount.div(signedOrder.takerAssetAmount).valueOf()
+			),
+			amount: Number(signedOrder.makerAssetAmount.valueOf()),
+			id: Number(id)
+		};
+
+		redisUtil.publish(CST.ORDERBOOK_UPDATE + '|' + pair, JSON.stringify(orderBookUpdate));
 	}
 
 	public handleCancel(id: string, liveOrder: ILiveOrder): void {
@@ -110,33 +121,18 @@ class RelayerUtil {
 			})
 		);
 
-		// redisUtil.publish(
-		// 	CST.ORDERBOOK_UPDATE + '|' + liveOrder.pair,
-		// 	JSON.stringify(
+		const orderBookUpdate: IOrderBookUpdate = {
+			pair: liveOrder.pair,
+			price: liveOrder.price,
+			amount: -liveOrder.amount,
+			id: Number(id)
+		};
 
-		// 	);
-		// )
-
-		// Atomic transaction needs to be ensured
-		// await dynamoUtil.deleteLiveOrder(pair, orderHash);
-		// await dynamoUtil.deleteOrderSignature(orderHash);
+		redisUtil.publish(
+			CST.ORDERBOOK_UPDATE + '|' + liveOrder.pair,
+			JSON.stringify(orderBookUpdate)
+		);
 	}
-
-	// public onModifiedOrder(modifiedOrder: IDuoOrder): IDuoOrder {}
-
-	// public onRemovedOrder(removedOrder: IDuoOrder): IDuoOrder {
-	// 	const { orderRelevantState, ...rest } = removedOrder;
-	// 	const deltaOrderState: OrderRelevantState = {
-	// 		makerBalance: orderRelevantState.makerBalance,
-	// 		makerProxyAllowance: orderRelevantState.makerFeeBalance,
-	// 		makerFeeBalance: orderRelevantState.makerFeeBalance,
-	// 		makerFeeProxyAllowance: orderRelevantState.makerFeeProxyAllowance,
-	// 		filledTakerAssetAmount: orderRelevantState.filledTakerAssetAmount,
-	// 		remainingFillableMakerAssetAmount: orderRelevantState.remainingFillableMakerAssetAmount.neg(),
-	// 		remainingFillableTakerAssetAmount: orderRelevantState.remainingFillableTakerAssetAmount.neg()
-	// 	};
-	// 	return { orderRelevantState: deltaOrderState, ...rest };
-	// }
 }
 const relayerUtil = new RelayerUtil();
 export default relayerUtil;

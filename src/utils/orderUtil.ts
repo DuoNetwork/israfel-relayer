@@ -48,19 +48,6 @@ class OrderUtil {
 				return false;
 			}
 
-			redisUtil.publish(
-				`${CST.ORDERBOOK_UPDATE}|${orderQueue.pair}`,
-				JSON.stringify({
-					id: id,
-					pair: orderQueue.pair,
-					price: util.round(
-						orderQueue.order.makerAssetAmount
-							.div(orderQueue.order.takerAssetAmount)
-							.valueOf()
-					),
-					amount: orderQueue.order.makerAssetAmount.valueOf()
-				})
-			);
 			return true;
 		}
 		return false;
