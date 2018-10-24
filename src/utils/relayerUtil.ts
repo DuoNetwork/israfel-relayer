@@ -1,4 +1,4 @@
-import { ContractWrappers, SignedOrder } from '0x.js';
+import { ContractWrappers, OrderState, SignedOrder } from '0x.js';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import * as CST from '../common/constants';
 import {
@@ -136,6 +136,11 @@ class RelayerUtil {
 			CST.ORDERBOOK_UPDATE + '|' + liveOrder.pair,
 			JSON.stringify(orderBookUpdate)
 		);
+	}
+
+	public handleUpdateOrder(id: string, pair: string, orderState: OrderState) {
+		// TODO
+
 	}
 }
 const relayerUtil = new RelayerUtil();

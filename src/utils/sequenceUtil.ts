@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
 import * as CST from '../common/constants';
-import { IRequestId } from '../common/types';
+import { IRequestId, IResponseId } from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import redisUtil from './redisUtil';
 import util from './util';
@@ -33,12 +33,11 @@ class SequenceUtil {
 					const pair = parsedMessage.pair;
 					util.logInfo('received request from ip ' + parsedMessage.ip);
 
-					ws.send(
-						JSON.stringify({
-							id: ++this.sequence[pair],
-							requestId: parsedMessage.requestId
-						})
-					);
+					const response: IResponseId = {
+						id: (++this.sequence[pair]) + '',
+						requestId: parsedMessage.requestId
+					};
+					ws.send(JSON.stringify(response));
 
 					redisUtil.set(`${pair}|${CST.DB_SEQUENCE}`, this.sequence[pair] + '');
 				});

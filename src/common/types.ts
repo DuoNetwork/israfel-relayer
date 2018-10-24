@@ -188,6 +188,7 @@ export interface IRequestId {
 
 export interface IResponseId {
 	id: string;
+	requestId: string;
 }
 export interface IQueueOrder {
 	ws: WebSocket;

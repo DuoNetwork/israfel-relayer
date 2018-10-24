@@ -1,8 +1,10 @@
-import { ContractWrappers, OrderWatcher, RPCSubprovider } from '0x.js';
+import { ContractWrappers, OrderState, OrderWatcher, RPCSubprovider } from '0x.js';
+import WebSocket from 'ws';
 import * as CST from '../common/constants';
-import { ILiveOrder, IOption } from '../common/types';
+import { ILiveOrder, IOption, IRawOrder, IResponseId } from '../common/types';
 import { providerEngine } from '../providerEngine';
 import dynamoUtil from './dynamoUtil';
+import relayerUtil from './relayerUtil';
 import util from './util';
 
 class OrderWatcherUtil {
@@ -10,6 +12,9 @@ class OrderWatcherUtil {
 	// public providerEngine = new Web3ProviderEngine();
 	public zeroEx: ContractWrappers;
 	public orderWatcher: OrderWatcher;
+	public ws: WebSocket | null = null;
+	public ip: string = '';
+	public pendingRequest: { [key: string]: {pair: string, orderState: OrderState} } = {};
 
 	constructor() {
 		// this.providerEngine.addProvider(this.provider);
@@ -21,10 +26,39 @@ class OrderWatcherUtil {
 	public init(tool: string, option: IOption) {
 		const config = require('../keys/' + (option.live ? 'live' : 'dev') + '/dynamo.json');
 		dynamoUtil.init(config, option.live, tool);
+		this.connectToIdService();
 	}
 
 	public unsubOrderWatcher() {
 		this.orderWatcher.unsubscribe();
+	}
+
+	public connectToIdService() {
+		this.ws = new WebSocket(`${CST.ID_SERVICE_URL}:${CST.ID_SERVICE_PORT}`);
+
+		this.ws.on('open', () => {
+			console.log('client connected!');
+		});
+
+		this.ws.on('message', m => {
+			const receivedMsg: IResponseId = JSON.parse(m.toString());
+			const {id, requestId} = receivedMsg;
+
+			const orderObj = this.pendingRequest[requestId];
+			delete this.pendingRequest[requestId];
+
+			relayerUtil.handleUpdateOrder(
+				id,
+				orderObj.pair,
+				orderObj.orderState
+			);
+		});
+
+		this.ws.on('error', (error: Error) => {
+			console.log('client got error! %s', error);
+		});
+
+		this.ws.on('close', () => console.log('connection closed!'));
 	}
 
 	//remove orders remaining invalid for 24 hours from DB
@@ -52,9 +86,9 @@ class OrderWatcherUtil {
 		console.log('length in DB is ', liveOrders.length);
 		for (const order of liveOrders)
 			try {
-				await this.orderWatcher.addOrderAsync(
-					await dynamoUtil.getRawOrder(order.orderHash)
-				);
+				const rawOrder: IRawOrder | null = await dynamoUtil.getRawOrder(order.orderHash);
+				if (rawOrder) await this.orderWatcher.addOrderAsync(rawOrder.signedOrder);
+
 				console.log('succsfully added %s', order.orderHash);
 			} catch (e) {
 				console.log('failed to add %s', order.orderHash, 'error is ' + e);
@@ -67,7 +101,22 @@ class OrderWatcherUtil {
 			}
 
 			console.log(Date.now().toString(), orderState);
-			if (orderState !== undefined) await dynamoUtil.updateOrderState(orderState, pair);
+			if (orderState !== undefined) {
+				if (!this.ws) throw new Error('sequence service is unavailable');
+				const requestId = orderState.orderHash + '|' + CST.WS_TYPE_ORDER_UPDATE;
+				this.ws.send(
+					JSON.stringify({
+						ip: this.ip,
+						pair: pair,
+						requestId: requestId
+					})
+				);
+				this.pendingRequest[requestId] = {
+					pair: pair,
+					orderState: orderState
+				};
+				// await dynamoUtil.updateOrderState(orderState, pair);
+			}
 		});
 	}
 }
