@@ -59,6 +59,16 @@ export class RedisUtil {
 		return Promise.resolve('');
 	}
 
+	public hashSet(key: string, field: string, value: string) {
+		if (this.redisSub) return this.redisSub.hset(key, field, value);
+		return Promise.resolve(0);
+	}
+
+	public async hashGet(key: string, field: string): Promise<string | null> {
+		if (this.redisSub) return this.redisSub.hget(key, field);
+		return null;
+	}
+
 	public subscribe(channel: string) {
 		if (this.redisSub) this.redisSub.subscribe(channel);
 	}

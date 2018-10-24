@@ -3,6 +3,7 @@ import { schemas, SchemaValidator } from '@0xproject/json-schemas';
 import * as CST from '../common/constants';
 import { IOrderQueue } from '../common/types';
 import { providerEngine } from '../providerEngine';
+import assetsUtil from './assetsUtil';
 import dynamoUtil from './dynamoUtil';
 import redisUtil from './redisUtil';
 import util from './util';
@@ -15,6 +16,61 @@ class OrderUtil {
 			});
 
 		tradeLoop();
+	}
+
+	public async addOrderToDB() {
+		const res = await redisUtil.pop(CST.DB_ADD_ORDER_QUEUE);
+
+		if (res) {
+			const orderQueue: IOrderQueue = JSON.parse(res);
+			// const id = await identidyUtil.getCurrentId(orderQueue.pair);
+			const signedOrder: SignedOrder = orderQueue.order;
+			const id = orderQueue.id;
+
+			if (
+				!id ||
+				!(
+					(await dynamoUtil.addLiveOrder({
+						pair: orderQueue.pair,
+						orderHash: orderQueue.orderHash,
+						price: util.round(signedOrder.takerAssetAmount.div(signedOrder.makerAssetAmount).valueOf()),
+						amount: signedOrder.takerAssetAmount.valueOf(),
+						side: this.determineSide(signedOrder, orderQueue.pair),
+						createdAt: 0,
+						updatedAt: 0,
+						initialSequence: Number(id),
+						currentSequence: Number(id)
+
+					})) && (await dynamoUtil.addRawOrder(orderQueue.order, orderQueue.orderHash))
+				)
+			) {
+				redisUtil.putBack(res);
+				return false;
+			}
+
+			redisUtil.publish(
+				`${CST.ORDERBOOK_UPDATE}|${orderQueue.pair}`,
+				JSON.stringify({
+					id: id,
+					pair: orderQueue.pair,
+					price: util.round(
+						orderQueue.order.makerAssetAmount
+							.div(orderQueue.order.takerAssetAmount)
+							.valueOf()
+					),
+					amount: orderQueue.order.makerAssetAmount.valueOf()
+				})
+			);
+			return true;
+		}
+		return false;
+	}
+
+	public determineSide(order: SignedOrder, pair: string): string {
+		const baseToken = pair.split('-')[0];
+		return assetsUtil.assetDataToTokenName(order.takerAssetData) === baseToken
+			? CST.DB_BID
+			: CST.DB_ASK;
 	}
 
 	public toSignedOrder(order: any): SignedOrder {
@@ -60,48 +116,6 @@ class OrderUtil {
 
 	// public async validateOrder(stringifiedSignedOrder: any): Promise<boolean> {
 	// }
-
-	public async addOrderToDB() {
-		const res = await redisUtil.pop(CST.DB_ORDERS);
-
-		if (res) {
-			const orderQueue: IOrderQueue = JSON.parse(res);
-			// const id = await identidyUtil.getCurrentId(orderQueue.pair);
-			const id = orderQueue.id;
-
-			if (
-				!id ||
-				!(
-					(await dynamoUtil.addLiveOrder(
-						orderQueue.order,
-						orderQueue.orderHash,
-						orderQueue.pair,
-						orderQueue.side,
-						id
-					)) && (await dynamoUtil.addRawOrder(orderQueue.order, orderQueue.orderHash))
-				)
-			) {
-				redisUtil.putBack(res);
-				return false;
-			}
-
-			redisUtil.publish(
-				`${CST.ORDERBOOK_UPDATE}|${orderQueue.pair}`,
-				JSON.stringify({
-					id: id,
-					pair: orderQueue.pair,
-					price: util.round(
-						orderQueue.order.makerAssetAmount
-							.div(orderQueue.order.takerAssetAmount)
-							.valueOf()
-					),
-					amount: orderQueue.order.makerAssetAmount.valueOf()
-				})
-			);
-			return true;
-		}
-		return false;
-	}
 }
 const orderUtil = new OrderUtil();
 export default orderUtil;

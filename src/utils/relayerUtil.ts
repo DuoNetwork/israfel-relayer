@@ -10,7 +10,7 @@ import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import * as CST from '../common/constants';
 
 import {
-	ErrorResponseWs,
+	// ErrorResponseWs,
 	// IDuoOrder,
 	// IDuoSignedOrder,
 	// ILiveOrders,
@@ -19,18 +19,19 @@ import {
 	IOrderBookSnapshot,
 	IOrderBookSnapshotWs,
 	IOrderBookUpdate,
-	IOrderResponse,
+	// IOrderResponse,
 	// IOrderResponseWs,
 	// IOrderStateCancelled,
 	// IUpdateResponseWs,
-	WsChannelName,
+	// WsChannelName,
 	WsChannelResposnseTypes
 } from '../common/types';
 import { providerEngine } from '../providerEngine';
-import assetsUtil from './assetsUtil';
-import dynamoUtil from './dynamoUtil';
+
+// import dynamoUtil from './dynamoUtil';
 // import matchOrdersUtil from './matchOrdersUtil';
 import orderBookUtil from './orderBookUtil';
+import orderUtil from './orderUtil';
 import redisUtil from './redisUtil';
 
 class RelayerUtil {
@@ -78,20 +79,13 @@ class RelayerUtil {
 		return returnMessage;
 	}
 
-	public determineSide(order: SignedOrder, pair: string): string {
-		const baseToken = pair.split('-')[0];
-		return assetsUtil.assetDataToTokenName(order.takerAssetData) === baseToken
-			? CST.DB_BID
-			: CST.DB_ASK;
-	}
-
 	public handleAddOrder(
 		id: string,
 		pair: string,
 		orderHash: string,
 		signedOrder: SignedOrder
 	): void {
-		const side = this.determineSide(signedOrder, pair);
+		const side = orderUtil.determineSide(signedOrder, pair);
 		// matchOrdersUtil.matchOrder(signedOrder, pair, side);
 		redisUtil.push(
 			CST.DB_ADD_ORDER_QUEUE,

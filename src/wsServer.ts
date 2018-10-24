@@ -3,13 +3,14 @@ import WebSocket from 'ws';
 import * as CST from './common/constants';
 import {
 	ErrorResponseWs,
+	ILiveOrder,
 	IQueueOrder,
 	// IDuoOrder,
 	// IOrderBookSnapshotWs,
 	// IUpdateResponseWs,
 	// IOption,
 	WsChannelMessageTypes,
-	WsChannelName
+	WsChannelName,
 	// IAddOrderRequest,
 	// IBaseRequest,
 	// ICanceleOrderRequest
@@ -146,22 +147,39 @@ class WsServer {
 						} else if (parsedMessage.method === WsChannelMessageTypes.Cancel) {
 							const orderHash = parsedMessage.orderHash;
 							const requestId = orderHash + '|' + channelName;
+							let liveOrders: ILiveOrder[] = [];
+							try {
+								liveOrders = await dynamoUtil.getLiveOrders(pair, orderHash);
+							} catch (err) {
+								console.log(err);
+							}
 
-							this.ws.send(
-								JSON.stringify({
-									ip: this.ip,
+							if (liveOrders.length < 1)
+								ws.send(
+									JSON.stringify({
+										method: CST.DB_TP_CANCEL,
+										channel: `${WsChannelName.Order}| ${pair}`,
+										status: 'fail',
+										orderHash: orderHash,
+										message: 'order does not exist'
+									})
+								);
+							else {
+								this.ws.send(
+									JSON.stringify({
+										ip: this.ip,
+										pair: pair,
+										requestId: requestId
+									})
+								);
+								this.pendingRequest[requestId] = {
+									ws: ws,
 									pair: pair,
-									requestId: requestId
-								})
-							);
-
-							this.pendingRequest[requestId] = {
-								ws: ws,
-								pair: pair,
-								method: channelName,
-								orderHash: orderHash,
-								signedOrder: null
-							};
+									method: channelName,
+									orderHash: orderHash,
+									signedOrder: null
+								};
+							}
 						}
 					// TO DO send new orders based on payload Assetpairs
 					// else if (type === CST.ORDERBOOK_UPDATE)
@@ -175,58 +193,6 @@ class WsServer {
 
 		setInterval(() => dynamoUtil.updateStatus('WS_SERVER'), 10000);
 	}
-
-	// Listen to DB and return updates to client
-	// for (const pair of CST.TRADING_PAIRS) {
-	// 	const orderListener = firebaseUtil.getRef(`/${CST.DB_ORDERS}|${pair}`);
-	// 	(orderListener as CollectionReference).onSnapshot(docs => {
-	// 		console.log('receive DB updates, to generate delta...');
-	// 		const timestamp = Date.now();
-	// 		const changedOrders = docs.docChanges.reduce((result: IDuoOrder[], dc) => {
-	// 			if (dc.type === 'added') result.push(dc.doc.data() as IDuoOrder);
-	// 			// if (dc.type === 'modified')
-	// 			// 	return relayerUtil.onModifiedOrder(dc.doc.data() as IDuoOrder);
-	// 			if (dc.type === 'removed') {
-	// 				const removedOrder = dc.doc.data() as IDuoOrder;
-	// 				if (!removedOrder.isValid || removedOrder.isCancelled)
-	// 					result.push(relayerUtil.onRemovedOrder(removedOrder));
-	// 			}
-	// 			return result
-	// 		}, []);
-	// 		const orderBookDelta = relayerUtil.aggrOrderBook(changedOrders, pair, timestamp);
-	// 		const bidOrderBookDelta = orderBookDelta.bids;
-	// 		const askOrderBookDelta = orderBookDelta.asks;
-	// 		console.log('snapshot bid changes size is ', bidOrderBookDelta.length);
-	// 		console.log('snapshot ask changes size is ', askOrderBookDelta.length);
-
-	// 		relayerUtil.applyChangeOrderBook(
-	// 			pair,
-	// 			timestamp,
-	// 			bidOrderBookDelta,
-	// 			askOrderBookDelta
-	// 		);
-	// 		console.log('update relayer orderbook');
-
-	// 		const orderBookUpdate: IUpdateResponseWs = {
-	// 			type: WsChannelResposnseTypes.Update,
-	// 			lastTimestamp: relayerUtil.now,
-	// 			currentTimestamp: timestamp,
-	// 			channel: {
-	// 				name: WsChannelName.Orderbook,
-	// 				pair: 'ZRX-WETH'
-	// 			},
-	// 			bids: bidOrderBookDelta,
-	// 			asks: askOrderBookDelta
-	// 		};
-	// 		relayerUtil.now = timestamp;
-	// 		wss.clients.forEach(client => {
-	// 			if (client.readyState === WebSocket.OPEN) {
-	// 				client.send(JSON.stringify(orderBookUpdate));
-	// 				console.log('broadcast new updates!');
-	// 			}
-	// 		});
-	// 	});
-	// }
 }
 
 const wsServer = new WsServer();
