@@ -1,10 +1,10 @@
 import * as CST from './common/constants';
+import sequenceServer from './server/sequenceServer';
 import assetsUtil from './utils/assetsUtil';
 import dynamoUtil from './utils/dynamoUtil';
 import orderWatcherUtil from './utils/orderWatcherUtil';
 import osUtil from './utils/osUtil';
 import redisUtil from './utils/redisUtil';
-import sequenceUtil from './utils/sequenceUtil';
 import util from './utils/util';
 import wsServer from './wsServer';
 
@@ -32,7 +32,7 @@ switch (tool) {
 		wsServer.startServer();
 		break;
 	case CST.DB_SEQUENCE:
-		sequenceUtil.startServer();
+		sequenceServer.startServer();
 		break;
 	default:
 		break;

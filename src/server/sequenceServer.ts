@@ -1,11 +1,11 @@
 import WebSocket from 'ws';
 import * as CST from '../common/constants';
 import { IWsRequest, IWsResponse, IWsSequenceResponse } from '../common/types';
-import dynamoUtil from './dynamoUtil';
-import redisUtil from './redisUtil';
-import util from './util';
+import dynamoUtil from '../utils/dynamoUtil';
+import redisUtil from '../utils/redisUtil';
+import util from '../utils/util';
 
-class SequenceUtil {
+class SequenceServer {
 	public sequence: { [pair: string]: number } = {};
 
 	public wss: WebSocket.Server | null = null;
@@ -65,5 +65,5 @@ class SequenceUtil {
 	}
 }
 
-const sequenceUtil = new SequenceUtil();
-export default sequenceUtil;
+const sequenceServer = new SequenceServer();
+export default sequenceServer;
