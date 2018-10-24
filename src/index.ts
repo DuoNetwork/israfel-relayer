@@ -8,13 +8,14 @@ import sequenceUtil from './utils/sequenceUtil';
 import util from './utils/util';
 import wsServer from './wsServer';
 
+const tool = process.argv[2];
+util.logInfo('tool ' + tool);
 const option = util.parseOptions(process.argv);
+if (option.debug) util.logLevel = CST.LOG_DEBUG;
+
 const redisConfig = require(`./keys/${option.live ? CST.DB_LIVE : CST.DB_DEV}/redis.json`);
 redisUtil.init(redisConfig);
 
-const tool = process.argv[2];
-
-util.logInfo('tool ' + tool);
 const config = require('./keys/' + (option.live ? 'live' : 'dev') + '/dynamo.json');
 dynamoUtil.init(config, option.live, tool, osUtil.getHostName());
 

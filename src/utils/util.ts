@@ -49,7 +49,8 @@ class Util {
 		token: 'ZRX',
 		amount: 1,
 		maker: 0,
-		spender: 1
+		spender: 1,
+		debug: false
 	};
 
 	public getUTCNowTimestamp() {
@@ -58,9 +59,9 @@ class Util {
 
 	public parseOptions(argv: string[]): IOption {
 		const option: IOption = this.defaultOption;
-
+		option.live = argv.includes('live');
+		option.debug = argv.includes('debug');
 		for (let i = 3; i < argv.length; i++) {
-			option.live = process.argv.includes('live');
 			const args = argv[i].split('=');
 			switch (args[0]) {
 				case 'token':
@@ -73,7 +74,7 @@ class Util {
 					option.maker = Number(args[1]) || option.maker;
 					break;
 				case 'spender':
-					option.maker = Number(args[1]) || option.spender;
+					option.spender = Number(args[1]) || option.spender;
 					break;
 				default:
 					break;

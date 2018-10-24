@@ -69,6 +69,13 @@ export const MNEMONIC =
 export const BASE_DERIVATION_PATH = `44'/60'/0'/0`;
 export const PENDING_HOURS = 24;
 
+export const WS_SUB = 'subscribe';
+export const WS_UNSUB = 'unsubscribe';
+export const WS_CHANNEL = 'channel';
+export const WS_METHOD = 'method';
+export const WS_INVALID_REQ = 'invalid request';
+export const WS_OK = 'ok';
+
 export const WS_CHANNEL_ORDERBOOK = 'orderbook';
 export const WS_TYPE_ORDERBOOK = 'subscribe';
 export const WS_CHANNEL_ORDER = 'order';

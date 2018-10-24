@@ -1,20 +1,53 @@
 import WebSocket from 'ws';
 import * as CST from '../common/constants';
-import { IRequestId, IResponseId } from '../common/types';
+import { IWsRequest, IWsResponse, IWsSequenceResponse } from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import redisUtil from './redisUtil';
 import util from './util';
 
 class SequenceUtil {
-	private sequence: { [pair: string]: number } = {};
+	public sequence: { [pair: string]: number } = {};
 
 	public wss: WebSocket.Server | null = null;
+
+	public handleMessage(ws: WebSocket, m: string) {
+		util.logDebug('received: ' + m);
+		const req: IWsRequest = JSON.parse(m);
+		const res: IWsResponse = {
+			status: CST.WS_INVALID_REQ,
+			channel: req.channel || ''
+		};
+		if (
+			!req.channel ||
+			!req.method ||
+			req.channel !== CST.DB_SEQUENCE ||
+			!CST.SUPPORTED_PAIRS.includes(req.method)
+		) {
+			try {
+				ws.send(JSON.stringify(res));
+			} catch (error) {
+				util.logDebug(error);
+			}
+
+			return;
+		}
+
+		const pair = req.method;
+		const seqRes: IWsSequenceResponse = {
+			channel: CST.DB_SEQUENCE,
+			status: CST.WS_OK,
+			pair: pair,
+			sequence: ++this.sequence[pair]
+		};
+		redisUtil.set(`${CST.DB_SEQUENCE}|${pair}`, this.sequence[pair] + '');
+		ws.send(JSON.stringify(seqRes));
+	}
 
 	public async startServer() {
 		this.wss = new WebSocket.Server({ port: CST.ID_SERVICE_PORT });
 
 		for (const pair of CST.SUPPORTED_PAIRS) {
-			const seq = Number(await redisUtil.get(`${pair}|${CST.DB_SEQUENCE}`));
+			const seq = Number(await redisUtil.get(`${CST.DB_SEQUENCE}|${pair}`));
 			dynamoUtil.updateStatus(pair, seq);
 			this.sequence[pair] = seq;
 		}
@@ -26,21 +59,8 @@ class SequenceUtil {
 
 		if (this.wss)
 			this.wss.on('connection', ws => {
-				util.logInfo(`Standard order sequence service on port ${CST.ID_SERVICE_PORT}!`);
-				ws.on('message', message => {
-					util.logInfo('received: ' + message);
-					const parsedMessage: IRequestId = JSON.parse(message.toString());
-					const pair = parsedMessage.pair;
-					util.logInfo('received request from ip ' + parsedMessage.ip);
-
-					const response: IResponseId = {
-						id: (++this.sequence[pair]) + '',
-						requestId: parsedMessage.requestId
-					};
-					ws.send(JSON.stringify(response));
-
-					redisUtil.set(`${pair}|${CST.DB_SEQUENCE}`, this.sequence[pair] + '');
-				});
+				util.logInfo('new connection');
+				ws.on('message', message => this.handleMessage(ws, message.toString()));
 			});
 	}
 }

@@ -68,16 +68,26 @@ export interface IOrderBookUpdate {
 	amount: number;
 }
 
-export interface IBaseRequest {
+export interface IWsRequest {
 	method: string;
 	channel: string;
 }
 
-export interface IAddOrderRequest extends IBaseRequest {
+export interface IWsResponse {
+	status: string;
+	channel: string;
+}
+
+export interface IWsSequenceResponse extends IWsResponse {
+	pair: string;
+	sequence: number;
+}
+
+export interface IAddOrderRequest extends IWsRequest {
 	order: SignedOrder;
 }
 
-export interface ICanceleOrderRequest extends IBaseRequest {
+export interface ICanceleOrderRequest extends IWsRequest {
 	orderHash: string;
 }
 
@@ -120,23 +130,6 @@ export enum ErrorResponseWs {
 	NoExistOrder = 'Order does not exist in DB!'
 }
 
-export interface IDynamoSignedOrder {
-	senderAddress: string;
-	makerAddress: string;
-	takerAddress: string;
-	makerFee: string;
-	takerFee: string;
-	makerAssetAmount: string;
-	takerAssetAmount: string;
-	makerAssetData: string;
-	takerAssetData: string;
-	salt: string;
-	exchangeAddress: string;
-	feeRecipientAddress: string;
-	expirationTimeSeconds: string;
-	signature: string;
-}
-
 export enum WsChannelMessageTypes {
 	Add = 'add',
 	Cancel = 'cancel',
@@ -165,6 +158,7 @@ export interface IOption {
 	maker: number;
 	spender: number;
 	amount: number;
+	debug: boolean;
 }
 
 export interface IAddOrderQueue {
@@ -180,23 +174,12 @@ export interface ICancelOrderQueue {
 	liveOrder: ILiveOrder;
 }
 
-export interface IRequestId {
-	ip: string;
-	pair: string;
-	requestId: string;
-}
-
-export interface IResponseId {
-	id: string;
-	requestId: string;
-}
 export interface IQueueOrder {
 	ws: WebSocket;
 	pair: string;
 	method: string;
 	orderHash: string;
 	order: SignedOrder | ILiveOrder;
-
 }
 
 // export enum IOrderAction {

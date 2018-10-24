@@ -45,3 +45,19 @@ test('round', () => {
 	expect(util.round('0.123456789123456789')).toMatchSnapshot();
 	expect(util.round('12345.123456789123456789')).toMatchSnapshot();
 });
+
+test('parseOptions', () => {
+	const command = [
+		'npm',
+		'run',
+		'tool',
+		'live',
+		'debug',
+		'token=token',
+		'amount=123',
+		'maker=456',
+		'spender=789',
+		'dummy=dummy'
+	];
+	expect(util.parseOptions(command)).toMatchSnapshot();
+});

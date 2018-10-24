@@ -1,5 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`parseOptions 1`] = `
+Object {
+  "amount": 123,
+  "debug": true,
+  "live": true,
+  "maker": 456,
+  "spender": 789,
+  "token": "token",
+}
+`;
+
 exports[`round 1`] = `12345`;
 
 exports[`round 2`] = `12345`;
