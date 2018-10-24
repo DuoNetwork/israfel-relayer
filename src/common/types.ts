@@ -189,8 +189,14 @@ export interface IQueueOrder {
 	pair: string;
 	method: string;
 	orderHash: string;
-	signedOrder: SignedOrder | null;
+	order: SignedOrder | ILiveOrder;
+
 }
+
+// export enum IOrderAction {
+// 	InvalidOrder = 'Invalid order schema or signature!',
+// 	NoExistOrder = 'Order does not exist in DB!'
+// }
 
 export interface IStatus {
 	hostname: string;

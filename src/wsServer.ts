@@ -10,7 +10,7 @@ import {
 	// IUpdateResponseWs,
 	// IOption,
 	WsChannelMessageTypes,
-	WsChannelName,
+	WsChannelName
 	// IAddOrderRequest,
 	// IBaseRequest,
 	// ICanceleOrderRequest
@@ -27,9 +27,6 @@ class WsServer {
 	public wss: WebSocket.Server | null = null;
 	public ws: WebSocket | null = null;
 	public ip: string = '';
-
-	public isWaitingId: boolean = false;
-	// public processingQueue: IQueueOrder[] = [];
 	public pendingRequest: { [key: string]: IQueueOrder } = {};
 
 	public init() {
@@ -59,7 +56,7 @@ class WsServer {
 					id,
 					orderObj.pair,
 					orderObj.orderHash,
-					orderObj.signedOrder as SignedOrder
+					orderObj.order as SignedOrder
 				);
 				orderObj.ws.send(
 					JSON.stringify({
@@ -71,7 +68,7 @@ class WsServer {
 					})
 				);
 			} else if (orderObj.method === WsChannelMessageTypes.Cancel) {
-				relayerUtil.handleCancel(id, orderObj.orderHash, orderObj.pair);
+				relayerUtil.handleCancel(id, orderObj.order as ILiveOrder);
 
 				orderObj.ws.send(
 					JSON.stringify({
@@ -132,7 +129,7 @@ class WsServer {
 									pair: pair,
 									method: channelName,
 									orderHash: orderHash,
-									signedOrder: signedOrder
+									order: signedOrder
 								};
 							} else
 								ws.send(
@@ -177,7 +174,7 @@ class WsServer {
 									pair: pair,
 									method: channelName,
 									orderHash: orderHash,
-									signedOrder: null
+									order: liveOrders[0]
 								};
 							}
 						}

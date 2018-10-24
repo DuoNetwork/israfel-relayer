@@ -16,6 +16,7 @@ import {
 	// ILiveOrders,
 	// IOption,
 	// IAddOrderRequest,
+	ILiveOrder,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotWs,
 	IOrderBookUpdate,
@@ -24,7 +25,8 @@ import {
 	// IOrderStateCancelled,
 	// IUpdateResponseWs,
 	// WsChannelName,
-	WsChannelResposnseTypes
+	WsChannelResposnseTypes,
+
 } from '../common/types';
 import { providerEngine } from '../providerEngine';
 
@@ -99,15 +101,21 @@ class RelayerUtil {
 		);
 	}
 
-	public handleCancel(id: string, orderHash: string, pair: string): void {
+	public handleCancel(id: string, liveOrder: ILiveOrder): void {
 		redisUtil.push(
 			CST.DB_CANCEL_ORDER_QUEUE,
 			JSON.stringify({
 				id,
-				orderHash,
-				pair
+				liveOrder
 			})
 		);
+
+		// redisUtil.publish(
+		// 	CST.ORDERBOOK_UPDATE + '|' + liveOrder.pair,
+		// 	JSON.stringify(
+
+		// 	);
+		// )
 
 		// Atomic transaction needs to be ensured
 		// await dynamoUtil.deleteLiveOrder(pair, orderHash);
