@@ -50,7 +50,7 @@ class OrderBookUtil {
 	public aggrByPrice(orderInfo: IOrderBookUpdateWS[]) {
 		return orderInfo.reduce((past: IOrderBookUpdateWS[], current) => {
 			const same = past.find(r => r && r.price === current.price);
-			if (same) same.amount = (Number(same.amount) + Number(current.amount)).toString();
+			if (same) same.amount = (Number(same.amount) + Number(current.amount));
 			else past.push(current);
 			return past;
 		}, []);
@@ -58,8 +58,8 @@ class OrderBookUtil {
 
 	public parseOrderBookUpdate(order: ILiveOrder): IOrderBookUpdateWS {
 		return {
-			amount: order.amount.toString(),
-			price: order.price.toString()
+			amount: order.amount,
+			price: order.price
 		};
 	}
 
@@ -81,25 +81,6 @@ class OrderBookUtil {
 			asks: this.aggrByPrice(newAsks)
 		};
 	}
-
-	// public getOrderBook(orders: IDuoOrder[], pair: string): IDuoOrder[][] {
-	// 	const baseToken = pair.split('-')[0];
-	// 	const bidOrders = orders.filter(order => {
-	// 		const takerTokenName = order.takerAssetData
-	// 			? assetsUtil.assetDataToTokenName(order.takerAssetData)
-	// 			: null;
-	// 		return takerTokenName === baseToken;
-	// 	});
-
-	// 	const askOrders = orders.filter(order => {
-	// 		const makerTokenName = order.makerAssetData
-	// 			? assetsUtil.assetDataToTokenName(order.makerAssetData)
-	// 			: null;
-	// 		return makerTokenName === baseToken;
-	// 	});
-
-	// 	return [bidOrders, askOrders];
-	// }
 
 	public scheduleSumamrizer() {
 		setInterval(async () => {

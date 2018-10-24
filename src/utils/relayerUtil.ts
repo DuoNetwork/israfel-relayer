@@ -1,36 +1,13 @@
-import {
-	ContractWrappers,
-	// OrderRelevantState,
-	// signatureUtils,
-	SignedOrder
-} from '0x.js';
-// import { schemas, SchemaValidator } from '@0xproject/json-schemas';
+import { ContractWrappers, SignedOrder } from '0x.js';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
-// import moment from 'moment';
 import * as CST from '../common/constants';
-
 import {
-	// ErrorResponseWs,
-	// IDuoOrder,
-	// IDuoSignedOrder,
-	// ILiveOrders,
-	// IOption,
-	// IAddOrderRequest,
 	ILiveOrder,
-	IOrderBookSnapshot,
 	IOrderBookSnapshotWs,
 	IOrderBookUpdate,
-	// IOrderResponse,
-	// IOrderResponseWs,
-	// IOrderStateCancelled,
-	// IUpdateResponseWs,
-	// WsChannelName,
 	WsChannelResposnseTypes
 } from '../common/types';
 import { providerEngine } from '../providerEngine';
-
-// import dynamoUtil from './dynamoUtil';
-// import matchOrdersUtil from './matchOrdersUtil';
 import orderBookUtil from './orderBookUtil';
 import orderUtil from './orderUtil';
 import redisUtil from './redisUtil';
@@ -39,7 +16,7 @@ import util from './util';
 class RelayerUtil {
 	public contractWrappers: ContractWrappers;
 	public web3Wrapper: Web3Wrapper;
-	public orderBook: { [key: string]: IOrderBookSnapshot } = {};
+	public orderBookUpdateCache: { [key: string]: IOrderBookUpdate[] } = {};
 	public now: number;
 	// public returnOrders: IUpdatePayloadWs[] = [];
 
@@ -53,7 +30,7 @@ class RelayerUtil {
 
 	public async init() {
 		orderBookUtil.calculateOrderBookSnapshot();
-		this.orderBook = orderBookUtil.orderBook;
+		// this.orderBook = orderBookUtil.orderBook;
 		redisUtil.patternSubscribe(`${CST.ORDERBOOK_UPDATE}|*`);
 
 		redisUtil.onOrderBooks((channel, orderBookUpdate) =>
@@ -62,20 +39,47 @@ class RelayerUtil {
 	}
 
 	public handleOrderBookUpdate = (channel: string, orderBookUpdate: IOrderBookUpdate) => {
-		if (orderBookUpdate.id > this.orderBook[orderBookUpdate.pair].id) {
-			// TODO: apply orderBook update
+		const pair = channel.split('|')[1];
+		if (pair !== orderBookUpdate.pair) throw new Error('wrong channel update');
+
+		if (orderBookUpdate.id - orderBookUtil.orderBook[orderBookUpdate.pair].id === 1) {
+			const { id, price, amount } = orderBookUpdate;
+			// apply orderBook directly
+			if (amount > 0) orderBookUtil.applyChangeOrderBook(pair, id, [{ price, amount }], []);
+			if (amount < 0) orderBookUtil.applyChangeOrderBook(pair, id, [], [{ price, amount }]);
+
+			while (
+				this.orderBookUpdateCache[pair].length &&
+				this.orderBookUpdateCache[pair][0].id - orderBookUpdate.id === 1
+			)
+				this.applyCatchedUpdate(pair);
+		} else {
+			this.orderBookUpdateCache[pair].push(orderBookUpdate);
+			this.orderBookUpdateCache[pair] = this.orderBookUpdateCache[pair].sort(
+				(a, b) => a.id - b.id
+			);
+
+			if (this.orderBookUpdateCache[pair].length > 5) this.applyCatchedUpdate(pair);
 		}
 	};
+
+	public applyCatchedUpdate(pair: string) {
+		const update: IOrderBookUpdate = this.orderBookUpdateCache[pair][0];
+		const { id, price, amount } = update;
+		if (amount > 0) orderBookUtil.applyChangeOrderBook(pair, id, [{ price, amount }], []);
+		if (amount < 0) orderBookUtil.applyChangeOrderBook(pair, id, [], [{ price, amount }]);
+		delete this.orderBookUpdateCache[pair][0];
+	}
 
 	public handleSubscribe(message: any): IOrderBookSnapshotWs {
 		console.log('Handle Message: ' + message.type);
 		const returnMessage = {
 			type: WsChannelResposnseTypes.Snapshot,
-			id: this.orderBook[message.channel.pair].id,
+			id: orderBookUtil.orderBook[message.channel.pair].id,
 			channel: { name: message.channel.name, pair: message.channel.pair },
 			requestId: message.requestId,
-			bids: this.orderBook[message.channel.pair].bids,
-			asks: this.orderBook[message.channel.pair].asks
+			bids: orderBookUtil.orderBook[message.channel.pair].bids,
+			asks: orderBookUtil.orderBook[message.channel.pair].asks
 		};
 		console.log('return msg is', returnMessage);
 		return returnMessage;

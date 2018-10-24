@@ -5,23 +5,13 @@ import {
 	ErrorResponseWs,
 	ILiveOrder,
 	IQueueOrder,
-	// IDuoOrder,
-	// IOrderBookSnapshotWs,
-	// IUpdateResponseWs,
-	// IOption,
 	WsChannelMessageTypes,
 	WsChannelName
-	// IAddOrderRequest,
-	// IBaseRequest,
-	// ICanceleOrderRequest
-	// WsChannelResposnseTypes
 } from './common/types';
 import dynamoUtil from './utils/dynamoUtil';
 import orderUtil from './utils/orderUtil';
 import relayerUtil from './utils/relayerUtil';
 import util from './utils/util';
-
-// Global state
 
 class WsServer {
 	public wss: WebSocket.Server | null = null;
@@ -38,11 +28,8 @@ class WsServer {
 	public connectToIdService() {
 		this.ws = new WebSocket(`${CST.ID_SERVICE_URL}:${CST.ID_SERVICE_PORT}`);
 
-		// console.log(msg);
-
 		this.ws.on('open', () => {
 			console.log('client connected!');
-			// numberOfOrdersSent++;
 		});
 
 		this.ws.on('message', m => {

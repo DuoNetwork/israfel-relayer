@@ -57,8 +57,8 @@ export interface IUpdatePayloadWs {
 }
 
 export interface IOrderBookUpdateWS {
-	price: string;
-	amount: string;
+	price: number;
+	amount: number;
 }
 
 export interface IOrderBookUpdate {
