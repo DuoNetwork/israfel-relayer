@@ -167,12 +167,17 @@ export interface IOption {
 	amount: number;
 }
 
-export interface IOrderQueue {
-	order: SignedOrder;
-	orderHash: string;
-	side: string;
-	pair: string;
+export interface IAddOrderQueue {
 	id: string;
+	pair: string;
+	side: string;
+	orderHash: string;
+	order: SignedOrder;
+}
+
+export interface ICancelOrderQueue {
+	id: string;
+	liveOrder: ILiveOrder;
 }
 
 export interface IRequestId {

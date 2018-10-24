@@ -1,9 +1,7 @@
-// import assetsUtil from './common/assetsUtil';
 import * as CST from '../common/constants';
 import { ILiveOrder, IOption, IOrderBookSnapshot, IOrderBookUpdateWS } from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import redisUtil from './redisUtil';
-// import util from './util';
 
 class OrderBookUtil {
 	public orderBook: { [key: string]: IOrderBookSnapshot } = {};
