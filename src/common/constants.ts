@@ -24,6 +24,7 @@ export const DB_CONFIRMED = 'confirmed';
 export const DB_USER = 'user';
 export const DB_ORDER_PROCESSOR = 'orderProcessor';
 export const DB_ORDER_WATCHER = 'orderWatcher';
+export const DB_RELAYER = 'relayer';
 
 export const DB_SIDE = 'side';
 export const DB_ASK = 'ask';
@@ -56,6 +57,7 @@ export const ORDERBOOK_UPDATE = 'orderBookUpdate';
 export const ORDERBOOK_SNAPSHOT = 'orderBookSnapshot';
 
 export const DB_ORDERS = 'orders';
+export const DB_ORDER_BOOKS = 'orderBooks';
 
 export const AWS_DYNAMO_API_VERSION = '2012-10-08';
 
@@ -70,11 +72,9 @@ export const PROVIDER_LOCAL = 'http://localhost:8555';
 export const NETWORK_ID_LOCAL = 50;
 export const RELAYER_HTTP_URL = 'http://localhost:3000/v0';
 export const RELAYER_WS_URL = 'ws://localhost:8080';
-export const ID_SERVICE_URL = 'ws://localhsot';
-export const ID_SERVICE_PORT = 8000;
-export const MNEMONIC =
-	'concert load couple harbor equip island argue ramp clarify fence smart topic';
-export const BASE_DERIVATION_PATH = `44'/60'/0'/0`;
+export const SEQUENCE_URL_DEV = 'ws://localhsot';
+export const SEQUENCE_URL_LIVE = 'ws://localhsot';
+export const SEQUENCE_PORT = 8000;
 export const PENDING_HOURS = 24;
 
 export const WS_SUB = 'subscribe';
@@ -83,6 +83,7 @@ export const WS_CHANNEL = 'channel';
 export const WS_METHOD = 'method';
 export const WS_INVALID_REQ = 'invalid request';
 export const WS_OK = 'ok';
+export const WS_SERVICE_NA = 'service not available';
 
 export const WS_CHANNEL_ORDERBOOK = 'orderbook';
 export const WS_TYPE_ORDERBOOK = 'subscribe';

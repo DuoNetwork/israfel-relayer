@@ -1,5 +1,6 @@
 import * as CST from './common/constants';
 import orderWatcherServer from './server/orderWatcherServer';
+import relayerServer from './server/relayerServer';
 import sequenceServer from './server/sequenceServer';
 import assetsUtil from './utils/assetUtil';
 import dynamoUtil from './utils/dynamoUtil';
@@ -7,7 +8,7 @@ import orderUtil from './utils/orderUtil';
 import osUtil from './utils/osUtil';
 import redisUtil from './utils/redisUtil';
 import util from './utils/util';
-import wsServer from './wsServer';
+import Web3Util from './utils/web3Util';
 
 const tool = process.argv[2];
 util.logInfo('tool ' + tool);
@@ -20,6 +21,8 @@ redisUtil.init(redisConfig);
 const config = require('./keys/' + (option.live ? 'live' : 'dev') + '/dynamo.json');
 dynamoUtil.init(config, option.live, tool, osUtil.getHostName());
 
+const web3Util = new Web3Util();
+
 switch (tool) {
 	case CST.SET_ALLOWANCE:
 		assetsUtil.setTokenAllowance(option);
@@ -28,9 +31,9 @@ switch (tool) {
 		orderWatcherServer.init(tool, option);
 		orderWatcherServer.startOrderWatcher(option);
 		break;
-	case CST.START_RELAYER:
-		wsServer.init();
-		wsServer.startServer();
+	case CST.DB_RELAYER:
+		relayerServer.init(web3Util, option.live);
+		relayerServer.startServer();
 		break;
 	case CST.DB_SEQUENCE:
 		sequenceServer.startServer();

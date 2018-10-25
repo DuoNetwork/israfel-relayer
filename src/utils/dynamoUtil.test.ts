@@ -171,16 +171,16 @@ test('addRawOrder', async () => {
 			senderAddress: 'senderAddress',
 			makerAddress: 'makerAddress',
 			takerAddress: 'takerAddress',
-			makerFee: util.stringToBN('0'),
-			takerFee: util.stringToBN('0'),
-			makerAssetAmount: util.stringToBN('123'),
-			takerAssetAmount: util.stringToBN('456'),
+			makerFee: '0',
+			takerFee: '0',
+			makerAssetAmount: '123',
+			takerAssetAmount: '456',
 			makerAssetData: 'makerAssetData',
 			takerAssetData: 'takerAssetData',
-			salt: util.stringToBN('789'),
+			salt: '789',
 			exchangeAddress: 'exchangeAddress',
 			feeRecipientAddress: 'feeRecipientAddress',
-			expirationTimeSeconds: util.stringToBN('1234567890'),
+			expirationTimeSeconds: '1234567890',
 			signature: 'signature'
 		}
 	});

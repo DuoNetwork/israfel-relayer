@@ -1,6 +1,4 @@
-import { signatureUtils, SignedOrder } from '0x.js';
-import { schemas, SchemaValidator } from '@0xproject/json-schemas';
-import Web3 from 'web3';
+import { SignedOrder } from '0x.js';
 import * as CST from '../common/constants';
 import {
 	ICancelOrderQueueItem,
@@ -10,7 +8,6 @@ import {
 	IStringSignedOrder,
 	IUserOrder
 } from '../common/types';
-import infura from '../keys/infura.json';
 import dynamoUtil from './dynamoUtil';
 import redisUtil from './redisUtil';
 import util from './util';
@@ -98,29 +95,6 @@ class OrderUtil {
 			feeRecipientAddress: order.feeRecipientAddress,
 			expirationTimeSeconds: util.stringToBN(order.expirationTimeSeconds)
 		};
-	}
-
-	public async validateOrder(signedOrder: SignedOrder, orderHash: string): Promise<boolean> {
-		const { orderSchema } = schemas;
-		const { signature, ...rest } = signedOrder;
-		const validator = new SchemaValidator();
-		if (!validator.validate(rest, orderSchema).valid) {
-			util.logDebug('invalid schema ' + orderHash);
-			return false;
-		}
-
-		const isValidSig = await signatureUtils.isValidSignatureAsync(
-			new Web3.providers.HttpProvider(CST.PROVIDER_INFURA_KOVAN + '/' + infura.token),
-			orderHash,
-			signature,
-			rest.makerAddress
-		);
-		if (!isValidSig) {
-			util.logDebug('invalid signature ' + orderHash);
-			return false;
-		}
-
-		return true;
 	}
 
 	public async startProcessing(option: IOption) {

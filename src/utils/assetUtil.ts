@@ -1,26 +1,19 @@
-import { assetDataUtils, BigNumber, ContractWrappers, SignedOrder } from '0x.js';
+import { assetDataUtils, BigNumber, SignedOrder } from '0x.js';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import { TransactionReceiptWithDecodedLogs } from 'ethereum-types';
 import * as CST from '../common/constants';
-import { IOption } from '../common/types';
-import { providerEngine } from '../providerEngine';
+import { IOption, IStringSignedOrder } from '../common/types';
 import util from './util';
+import Web3Util from './web3Util';
 
 class AssetUtil {
-	public contractWrappers: ContractWrappers;
-	public web3Wrapper: Web3Wrapper;
+	private web3Util: Web3Util | null = null;
 	public makers: string[] = [];
 	public taker: string = '';
 
-	constructor() {
-		this.web3Wrapper = new Web3Wrapper(providerEngine);
-		this.contractWrappers = new ContractWrappers(providerEngine, {
-			networkId: CST.NETWORK_ID_LOCAL
-		});
-	}
-
-	public async init() {
-		const [taker, ...makers] = await this.web3Wrapper.getAvailableAddressesAsync();
+	public async init(web3Util: Web3Util) {
+		this.web3Util = web3Util;
+		const [taker, ...makers] = await this.web3Util.web3Wrapper.getAvailableAddressesAsync();
 		this.taker = taker;
 		this.makers = makers;
 	}
@@ -31,13 +24,14 @@ class AssetUtil {
 	}
 
 	public async approveAllMakers(tokenAddress: string) {
+		if (!this.web3Util) return;
 		// Allow the 0x ERC20 Proxy to move erc20 token on behalf of makerAccount
 		for (const maker of this.makers) {
-			const makerZRXApprovalTxHash = await this.contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
+			const makerZRXApprovalTxHash = await this.web3Util.contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
 				tokenAddress,
 				maker
 			);
-			await this.web3Wrapper.awaitTransactionSuccessAsync(makerZRXApprovalTxHash);
+			await this.web3Util.web3Wrapper.awaitTransactionSuccessAsync(makerZRXApprovalTxHash);
 		}
 	}
 
@@ -46,18 +40,19 @@ class AssetUtil {
 		return CST.TOKEN_MAPPING[tokenAddr];
 	}
 
-	public getSideFromSignedOrder(order: SignedOrder, pair: string): string {
+	public getSideFromSignedOrder(order: SignedOrder | IStringSignedOrder, pair: string): string {
 		return this.assetDataToTokenName(order.takerAssetData) === pair.split('-')[0]
 			? CST.DB_BID
 			: CST.DB_ASK;
 	}
 
 	public getTokenAddressFromName(tokenName: string): string {
+		if (!this.web3Util) return '';
 		switch (tokenName) {
 			case CST.TOKEN_ZRX:
-				return this.contractWrappers.exchange.getZRXTokenAddress();
+				return this.web3Util.contractWrappers.exchange.getZRXTokenAddress();
 			case CST.TOKEN_WETH:
-				const ethTokenAddr = this.contractWrappers.etherToken.getContractAddressIfExists();
+				const ethTokenAddr = this.web3Util.contractWrappers.etherToken.getContractAddressIfExists();
 				if (!ethTokenAddr) {
 					util.logInfo('no eth token address');
 					return '';
@@ -70,20 +65,27 @@ class AssetUtil {
 	}
 
 	public async setTokenAllowance(option: IOption): Promise<TransactionReceiptWithDecodedLogs> {
-		const TxHash = await this.contractWrappers.erc20Token.setAllowanceAsync(
+		if (!this.web3Util) throw new Error('error');
+		const TxHash = await this.web3Util.contractWrappers.erc20Token.setAllowanceAsync(
 			this.getTokenAddressFromName(option.token),
 			this.makers[option.maker],
 			option.spender
 				? this.makers[option.spender]
-				: this.contractWrappers.exchange.getContractAddress(),
+				: this.web3Util.contractWrappers.exchange.getContractAddress(),
 			Web3Wrapper.toBaseUnitAmount(new BigNumber(option.amount), 18)
 		);
-		return await this.web3Wrapper.awaitTransactionSuccessAsync(TxHash);
+		return await this.web3Util.web3Wrapper.awaitTransactionSuccessAsync(TxHash);
 	}
 
 	public setAllUnlimitedAllowance(tokenAddr: string, addrs: string[]): Array<Promise<string>> {
-		return addrs.map(address =>
-			this.contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(tokenAddr, address)
+		return addrs.map(
+			address =>
+				this.web3Util
+					? this.web3Util.contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
+							tokenAddr,
+							address
+					)
+					: Promise.reject()
 		);
 	}
 
@@ -98,9 +100,12 @@ class AssetUtil {
 			)
 		);
 		await Promise.all(
-			responses.map(tx => {
-				return this.web3Wrapper.awaitTransactionSuccessAsync(tx);
-			})
+			responses.map(
+				tx =>
+					this.web3Util
+						? this.web3Util.web3Wrapper.awaitTransactionSuccessAsync(tx)
+						: Promise.reject()
+			)
 		);
 	}
 

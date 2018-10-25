@@ -1,6 +1,6 @@
 {
     "method": "add",
-    "channel": "order|pair",
+    "channel": "orders|pair",
 	"order": {
 		"exchangeAddress": "0x48bacb9266a570d521063ef5dd96e61686dbe788",
 		"makerAddress": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",

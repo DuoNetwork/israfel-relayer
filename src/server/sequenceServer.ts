@@ -55,7 +55,7 @@ class SequenceServer {
 				await dynamoUtil.updateStatus(pair, this.connectionCount, this.sequence[pair]);
 		}, 15000);
 
-		this.wss = new WebSocket.Server({ port: CST.ID_SERVICE_PORT });
+		this.wss = new WebSocket.Server({ port: CST.SEQUENCE_PORT });
 		if (this.wss)
 			this.wss.on('connection', ws => {
 				util.logInfo('new connection');

@@ -1,4 +1,3 @@
-import { BigNumber, SignedOrder } from '0x.js';
 import WebSocket from 'ws';
 
 export interface ILiveOrder {
@@ -15,7 +14,7 @@ export interface ILiveOrder {
 
 export interface IRawOrder {
 	orderHash: string;
-	signedOrder: SignedOrder;
+	signedOrder: IStringSignedOrder;
 	createdAt?: number;
 	updatedAt?: number;
 }
@@ -61,14 +60,14 @@ export interface IUserOrder {
 	updatedBy: string;
 }
 
-export interface IOrderBookSnapshotWs extends IOrderBookSnapshot {
-	type: WsChannelResposnseTypes;
-	channel: {
-		name: string;
-		pair: string;
-	};
-	requestId: number;
-}
+// export interface IOrderBookSnapshotWs extends IOrderBookSnapshot {
+// 	type: WsChannelResposnseTypes;
+// 	channel: {
+// 		name: string;
+// 		pair: string;
+// 	};
+// 	requestId: number;
+// }
 
 export interface IOrderBookSnapshot {
 	sequence: number;
@@ -77,9 +76,9 @@ export interface IOrderBookSnapshot {
 }
 
 export interface IUpdatePayloadWs {
-	order: SignedOrder;
+	order: IStringSignedOrder;
 	metaData: {
-		remainingTakerAssetAmount: BigNumber;
+		remainingTakerAssetAmount: string;
 	};
 }
 
@@ -110,20 +109,24 @@ export interface IWsSequenceResponse extends IWsResponse {
 	sequence: number;
 }
 
-export interface IAddOrderRequest extends IWsRequest {
+export interface IWsAddOrderRequest extends IWsRequest {
+	pair: string;
 	order: IStringSignedOrder;
 }
 
-export interface ICanceleOrderRequest extends IWsRequest {
+export interface IWsAddOrderResponse extends IWsResponse {
+	pair: string;
+	userOrder: IUserOrder;
+}
+
+export interface IWsCanceleOrderRequest extends IWsRequest {
+	pair: string;
 	orderHash: string;
 }
 
-export interface IOrderResponse {
-	method: string;
-	channel: string;
-	status: string;
-	orderHash: string;
-	message: string;
+export interface IWsCancelOrderResponse extends IWsResponse {
+	pair: string;
+	userOrder: IUserOrder;
 }
 
 export interface ISubscribeOrderBookRequest {
@@ -131,53 +134,26 @@ export interface ISubscribeOrderBookRequest {
 	channel: string;
 }
 
-export interface IUpdateResponseWs {
-	type: WsChannelResposnseTypes;
-	lastTimestamp: number;
-	currentTimestamp: number;
-	channel: {
-		name: WsChannelName;
-		pair: string;
-	};
-	bids: IOrderBookUpdateWS[];
-	asks: IOrderBookUpdateWS[];
-}
+// export interface IUpdateResponseWs {
+// 	type: WsChannelResposnseTypes;
+// 	lastTimestamp: number;
+// 	currentTimestamp: number;
+// 	channel: {
+// 		name: WsChannelName;
+// 		pair: string;
+// 	};
+// 	bids: IOrderBookUpdateWS[];
+// 	asks: IOrderBookUpdateWS[];
+// }
 
-export interface IOrderResponseWs {
-	channel: {
-		name: WsChannelName;
-		pair: string;
-	};
-	status: string;
-	failedReason: string;
-}
-
-export enum ErrorResponseWs {
-	InvalidOrder = 'Invalid order schema or signature!',
-	NoExistOrder = 'Order does not exist in DB!'
-}
-
-export enum WsChannelMessageTypes {
-	Add = 'add',
-	Cancel = 'cancel',
-	Subscribe = 'subscribe'
-}
-
-export enum UserOrderOperation {
-	ADD = 'add',
-	CANCEL = 'cancel',
-	FILL = 'fill'
-}
-
-export enum WsChannelResposnseTypes {
-	Update = 'update',
-	Snapshot = 'snapshot'
-}
-
-export enum WsChannelName {
-	Orderbook = 'orderbook',
-	Order = 'order'
-}
+// export interface IOrderResponseWs {
+// 	channel: {
+// 		name: WsChannelName;
+// 		pair: string;
+// 	};
+// 	status: string;
+// 	failedReason: string;
+// }
 
 export interface IOption {
 	live: boolean;
@@ -189,18 +165,13 @@ export interface IOption {
 	type: string;
 }
 
-export interface IQueueOrder {
+export interface IRelayerQueueItem {
 	ws: WebSocket;
 	pair: string;
 	method: string;
 	orderHash: string;
-	order: SignedOrder | ILiveOrder;
+	order: IStringSignedOrder | ILiveOrder;
 }
-
-// export enum IOrderAction {
-// 	InvalidOrder = 'Invalid order schema or signature!',
-// 	NoExistOrder = 'Order does not exist in DB!'
-// }
 
 export interface IStatus {
 	hostname: string;

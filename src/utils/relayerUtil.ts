@@ -1,40 +1,25 @@
-import { ContractWrappers, OrderState, OrderStateValid, SignedOrder } from '0x.js';
-import { Web3Wrapper } from '@0xproject/web3-wrapper';
+import { OrderState, OrderStateValid } from '0x.js';
 import * as CST from '../common/constants';
 import {
 	ILiveOrder,
-	IOrderBookSnapshotWs,
+	// IOrderBookSnapshotWs,
 	IOrderBookUpdate,
-	WsChannelResposnseTypes
+	IStringSignedOrder,
+	// WsChannelResposnseTypes
 } from '../common/types';
-import { providerEngine } from '../providerEngine';
 import assetUtil from './assetUtil';
 import dynamoUtil from './dynamoUtil';
 import orderBookUtil from './orderBookUtil';
-import orderUtil from './orderUtil';
 import redisUtil from './redisUtil';
 import util from './util';
 
 class RelayerUtil {
-	public contractWrappers: ContractWrappers;
-	public web3Wrapper: Web3Wrapper;
 	public orderBookUpdateCache: { [key: string]: IOrderBookUpdate[] } = {};
-	public now: number;
-	// public returnOrders: IUpdatePayloadWs[] = [];
-
-	constructor() {
-		this.web3Wrapper = new Web3Wrapper(providerEngine);
-		this.contractWrappers = new ContractWrappers(providerEngine, {
-			networkId: CST.NETWORK_ID_LOCAL
-		});
-		this.now = Date.now();
-	}
 
 	public async init() {
 		orderBookUtil.calculateOrderBookSnapshot();
 		// this.orderBook = orderBookUtil.orderBook;
 		redisUtil.patternSubscribe(`${CST.ORDERBOOK_UPDATE}|*`);
-
 		redisUtil.onOrderBooks((channel, orderBookUpdate) =>
 			this.handleOrderBookUpdate(channel, orderBookUpdate)
 		);
@@ -96,10 +81,9 @@ class RelayerUtil {
 		sequence: string,
 		pair: string,
 		orderHash: string,
-		signedOrder: SignedOrder
+		signedOrder: IStringSignedOrder
 	): void {
 		const side = assetUtil.getSideFromSignedOrder(signedOrder, pair);
-		// matchOrdersUtil.matchOrder(signedOrder, pair, side);
 		redisUtil.push(
 			`${CST.DB_ORDERS}|${CST.DB_ADD}`,
 			JSON.stringify({
@@ -114,7 +98,10 @@ class RelayerUtil {
 		const orderBookUpdate: IOrderBookUpdate = {
 			pair: pair,
 			price: util.round(
-				signedOrder.makerAssetAmount.div(signedOrder.takerAssetAmount).valueOf()
+				util
+					.stringToBN(signedOrder.makerAssetAmount)
+					.div(signedOrder.takerAssetAmount)
+					.valueOf()
 			),
 			amount: Number(signedOrder.makerAssetAmount.valueOf()),
 			sequence: Number(sequence)
@@ -175,7 +162,7 @@ class RelayerUtil {
 					? 0
 					: Number(
 							(orderState as OrderStateValid).orderRelevantState.remainingFillableMakerAssetAmount.valueOf()
-					)
+					  )
 			})
 		);
 		redisUtil.publish(CST.ORDERBOOK_UPDATE + '|' + pair, JSON.stringify(orderBookUpdate));

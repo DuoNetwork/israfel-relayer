@@ -304,18 +304,16 @@ class DynamoUtil {
 				senderAddress: data[CST.DB_0X_MAKER_ADDR].S || '',
 				makerAddress: data[CST.DB_0X_MAKER_ADDR].S || '',
 				takerAddress: data[CST.DB_0X_TAKER_ADDR].S || '',
-				makerFee: util.stringToBN(data[CST.DB_0X_MAKER_FEE].S || '0'),
-				takerFee: util.stringToBN(data[CST.DB_0X_TAKER_FEE].S || '0'),
-				makerAssetAmount: util.stringToBN(data[CST.DB_0X_MAKER_ASSET_AMT].S || '0'),
-				takerAssetAmount: util.stringToBN(data[CST.DB_0X_TAKER_ASSET_AMT].S || '0'),
+				makerFee: data[CST.DB_0X_MAKER_FEE].S || '0',
+				takerFee: data[CST.DB_0X_TAKER_FEE].S || '0',
+				makerAssetAmount: data[CST.DB_0X_MAKER_ASSET_AMT].S || '0',
+				takerAssetAmount: data[CST.DB_0X_TAKER_ASSET_AMT].S || '0',
 				makerAssetData: data[CST.DB_0X_MAKER_ASSET_DATA].S || '',
 				takerAssetData: data[CST.DB_0X_TAKER_ASSET_DATA].S || '',
-				salt: util.stringToBN(data[CST.DB_0X_SALT].S || '0'),
+				salt: data[CST.DB_0X_SALT].S || '0',
 				exchangeAddress: data[CST.DB_0X_EXCHANGE_ADDR].S || '',
 				feeRecipientAddress: data[CST.DB_0X_FEE_RECIPIENT_ADDR].S || '',
-				expirationTimeSeconds: util.stringToBN(
-					data[CST.DB_0X_EXPIRATION_TIME_SECONDS].S || '0'
-				)
+				expirationTimeSeconds: data[CST.DB_0X_EXPIRATION_TIME_SECONDS].S || '0'
 			},
 			createdAt: Number(data[CST.DB_CREATED_AT].N),
 			updatedAt: Number(data[CST.DB_UPDATED_AT].N)
