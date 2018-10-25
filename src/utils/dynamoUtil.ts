@@ -78,7 +78,7 @@ class DynamoUtil {
 		);
 	}
 
-	public updateStatus(process: string, connection: number = 0, sequence: number = 0) {
+	public updateStatus(process: string, count: number = 0, sequence: number = 0) {
 		const params: PutItemInput = {
 			TableName: `${CST.DB_ISRAFEL}.${CST.DB_STATUS}.${this.live ? CST.DB_LIVE : CST.DB_DEV}`,
 			Item: {
@@ -91,7 +91,7 @@ class DynamoUtil {
 				[CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' }
 			}
 		};
-		if (connection) params.Item[CST.DB_STS_CONNECTION] = { N: connection + '' };
+		if (count) params.Item[CST.DB_STS_COUNT] = { N: count + '' };
 		if (sequence) params.Item[CST.DB_SEQUENCE] = { N: sequence + '' };
 		return this.putData(params).catch(error => util.logError('Error insert status: ' + error));
 	}
@@ -104,12 +104,10 @@ class DynamoUtil {
 			hostname: data[CST.DB_STS_HOSTNAME].S || '',
 			updatedAt: Number(data[CST.DB_UPDATED_AT].N)
 		};
-		const connection = data[CST.DB_STS_CONNECTION] ? Number(data[CST.DB_STS_CONNECTION].N) : 0;
-		if (connection)
-			status.connection = connection;
+		const count = data[CST.DB_STS_COUNT] ? Number(data[CST.DB_STS_COUNT].N) : 0;
+		if (count) status.count = count;
 		const sequence = data[CST.DB_SEQUENCE] ? Number(data[CST.DB_SEQUENCE].N) : 0;
-		if (sequence)
-			status.sequence = sequence;
+		if (sequence) status.sequence = sequence;
 
 		return status;
 	}
@@ -342,20 +340,21 @@ class DynamoUtil {
 	}
 
 	public convertUserOrderToDynamo(userOrder: IUserOrder): AttributeMap {
+		const timestamp = util.getUTCNowTimestamp();
 		return {
 			[CST.DB_ACCOUNT_YM]: {
-				S: userOrder.account + '|' + moment.utc(userOrder.createdAt).format('YYYY-MM')
+				S: userOrder.account + '|' + moment.utc(timestamp).format('YYYY-MM')
 			},
 			[CST.DB_PAIR_SEQ]: { S: userOrder.pair + '|' + userOrder.sequence },
 			[CST.DB_TYPE]: { S: userOrder.type },
+			[CST.DB_STATUS]: { S: userOrder.status },
 			[CST.DB_ORDER_HASH]: { S: userOrder.orderHash },
 			[CST.DB_PRICE]: {
 				N: util.round(userOrder.price) + ''
 			},
 			[CST.DB_BALANCE]: { N: userOrder.amount + '' },
 			[CST.DB_SIDE]: { S: userOrder.side },
-			[CST.DB_CREATED_AT]: { N: userOrder.createdAt + '' },
-			[CST.DB_UPDATED_AT]: { N: userOrder.updatedAt + '' },
+			[CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' },
 			[CST.DB_UPDATED_BY]: { S: userOrder.updatedBy + '' }
 		};
 	}
@@ -375,12 +374,12 @@ class DynamoUtil {
 			account: (data[CST.DB_ACCOUNT_YM].S || '').split('|')[0],
 			pair: pair,
 			type: data[CST.DB_TYPE].S || '',
+			status: data[CST.DB_STATUS].S || '',
 			orderHash: data[CST.DB_ORDER_HASH].S || '',
 			price: Number(data[CST.DB_PRICE].N),
 			side: data[CST.DB_SIDE].S || '',
 			amount: Number(data[CST.DB_BALANCE].N),
 			sequence: Number(seq),
-			createdAt: Number(data[CST.DB_CREATED_AT].N),
 			updatedAt: Number(data[CST.DB_UPDATED_AT].N),
 			updatedBy: data[CST.DB_UPDATED_BY].S || ''
 		};

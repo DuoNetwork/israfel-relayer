@@ -20,17 +20,27 @@ export interface IRawOrder {
 	updatedAt?: number;
 }
 
+export interface INewOrderQueueItem {
+	liveOrder: ILiveOrder;
+	rawOrder: IRawOrder;
+}
+
+export interface ICancelOrderQueueItem {
+	liveOrder: ILiveOrder;
+	account: string;
+}
+
 export interface IUserOrder {
 	account: string;
 	pair: string;
 	type: string;
+	status: string;
 	orderHash: string;
 	price: number;
 	amount: number;
 	side: string;
 	sequence: number;
-	createdAt: number;
-	updatedAt: number;
+	updatedAt?: number;
 	updatedBy: string;
 }
 
@@ -159,19 +169,7 @@ export interface IOption {
 	spender: number;
 	amount: number;
 	debug: boolean;
-}
-
-export interface IAddOrderQueue {
-	id: string;
-	pair: string;
-	side: string;
-	orderHash: string;
-	order: SignedOrder;
-}
-
-export interface ICancelOrderQueue {
-	id: string;
-	liveOrder: ILiveOrder;
+	type: string;
 }
 
 export interface IQueueOrder {
@@ -192,6 +190,6 @@ export interface IStatus {
 	updatedAt: number;
 	pair: string;
 	tool: string;
-	connection?: number;
+	count?: number;
 	sequence?: number;
 }

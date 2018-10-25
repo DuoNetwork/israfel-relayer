@@ -2,6 +2,7 @@ import * as CST from './common/constants';
 import sequenceServer from './server/sequenceServer';
 import assetsUtil from './utils/assetsUtil';
 import dynamoUtil from './utils/dynamoUtil';
+import orderUtil from './utils/orderUtil';
 import orderWatcherUtil from './utils/orderWatcherUtil';
 import osUtil from './utils/osUtil';
 import redisUtil from './utils/redisUtil';
@@ -33,6 +34,9 @@ switch (tool) {
 		break;
 	case CST.DB_SEQUENCE:
 		sequenceServer.startServer();
+		break;
+	case CST.DB_ORDERS:
+		orderUtil.startProcessing(option);
 		break;
 	default:
 		break;

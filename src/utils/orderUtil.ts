@@ -1,7 +1,13 @@
 import { signatureUtils, SignedOrder } from '0x.js';
 import { schemas, SchemaValidator } from '@0xproject/json-schemas';
 import * as CST from '../common/constants';
-import { IAddOrderQueue, ICancelOrderQueue, ILiveOrder } from '../common/types';
+import {
+	ICancelOrderQueueItem,
+	ILiveOrder,
+	INewOrderQueueItem,
+	IOption,
+	IUserOrder
+} from '../common/types';
 import { providerEngine } from '../providerEngine';
 import assetsUtil from './assetsUtil';
 import dynamoUtil from './dynamoUtil';
@@ -9,54 +15,38 @@ import redisUtil from './redisUtil';
 import util from './util';
 
 class OrderUtil {
-	public startAddOrders() {
-		const tradeLoop = () =>
-			this.addOrderToDB().then(result => {
-				setTimeout(() => tradeLoop(), result ? 0 : 100);
-			});
-
-		tradeLoop();
-	}
-
-	public startCancelOrders() {
-		const tradeLoop = () =>
-			this.cancelOrder().then(result => {
-				setTimeout(() => tradeLoop(), result ? 0 : 100);
-			});
-
-		tradeLoop();
+	public getUserOrder(type: string, account: string, liveOrder: ILiveOrder): IUserOrder {
+		return {
+			account: account,
+			pair: liveOrder.pair,
+			type: type,
+			status: CST.DB_CONFIRMED,
+			orderHash: liveOrder.orderHash,
+			price: liveOrder.price,
+			amount: liveOrder.amount,
+			side: liveOrder.side,
+			sequence: liveOrder.currentSequence,
+			updatedBy: CST.DB_ORDER_PROCESSOR
+		};
 	}
 
 	public async addOrderToDB() {
-		const res = await redisUtil.pop(CST.DB_ADD_ORDER_QUEUE);
+		const res = await redisUtil.pop(`${CST.DB_ORDERS}|${CST.DB_ADD}`);
 
 		if (res) {
-			const orderQueue: IAddOrderQueue = JSON.parse(res);
-			const signedOrder: SignedOrder = orderQueue.order;
-
-			const id = orderQueue.id;
-			// attention: needs to ensure atomicity of insertion
+			const orderQueueItem: INewOrderQueueItem = JSON.parse(res);
 			try {
-				await dynamoUtil.addLiveOrder({
-					pair: orderQueue.pair,
-					orderHash: orderQueue.orderHash,
-					price: util.round(
-						signedOrder.takerAssetAmount.div(signedOrder.makerAssetAmount).valueOf()
-					),
-					amount: Number(signedOrder.takerAssetAmount.valueOf()),
-					side: this.determineSide(signedOrder, orderQueue.pair),
-					createdAt: 0,
-					updatedAt: 0,
-					initialSequence: Number(id),
-					currentSequence: Number(id)
-				});
-
-				await dynamoUtil.addRawOrder({
-					orderHash: orderQueue.orderHash,
-					signedOrder: signedOrder
-				});
+				await dynamoUtil.addRawOrder(orderQueueItem.rawOrder);
+				await dynamoUtil.addLiveOrder(orderQueueItem.liveOrder);
+				await dynamoUtil.addUserOrder(
+					this.getUserOrder(
+						CST.DB_ADD,
+						orderQueueItem.rawOrder.signedOrder.makerAddress,
+						orderQueueItem.liveOrder
+					)
+				);
 			} catch (err) {
-				redisUtil.putBack(CST.DB_ADD_ORDER_QUEUE, res);
+				redisUtil.putBack(`${CST.DB_ORDERS}|${CST.DB_ADD}`, res);
 				return false;
 			}
 
@@ -65,17 +55,23 @@ class OrderUtil {
 		return false;
 	}
 
-	public async cancelOrder() {
-		const res = await redisUtil.pop(CST.DB_CANCEL_ORDER_QUEUE);
+	public async cancelOrderInDB() {
+		const res = await redisUtil.pop(`${CST.DB_ORDERS}|${CST.DB_CANCEL}`);
 		if (res) {
-			const orderQueue: ICancelOrderQueue = JSON.parse(res);
-			const liveOrder: ILiveOrder = orderQueue.liveOrder;
+			const orderQueueItem: ICancelOrderQueueItem = JSON.parse(res);
 			// attention: needs to ensure atomicity of insertion
 			try {
-				await dynamoUtil.deleteLiveOrder(liveOrder);
-				await dynamoUtil.deleteRawOrderSignature(liveOrder.orderHash);
+				await dynamoUtil.deleteRawOrderSignature(orderQueueItem.liveOrder.orderHash);
+				await dynamoUtil.deleteLiveOrder(orderQueueItem.liveOrder);
+				await dynamoUtil.addUserOrder(
+					this.getUserOrder(
+						CST.DB_CANCEL,
+						orderQueueItem.account,
+						orderQueueItem.liveOrder
+					)
+				);
 			} catch (err) {
-				redisUtil.putBack(CST.DB_CANCEL_ORDER_QUEUE, res);
+				redisUtil.putBack(`${CST.DB_ORDERS}|${CST.DB_CANCEL}`, res);
 				return false;
 			}
 
@@ -84,14 +80,13 @@ class OrderUtil {
 		return false;
 	}
 
-	public determineSide(order: SignedOrder, pair: string): string {
-		const baseToken = pair.split('-')[0];
-		return assetsUtil.assetDataToTokenName(order.takerAssetData) === baseToken
+	public getSideFromSignedOrder(order: SignedOrder, pair: string): string {
+		return assetsUtil.assetDataToTokenName(order.takerAssetData) === pair.split('-')[0]
 			? CST.DB_BID
 			: CST.DB_ASK;
 	}
 
-	public toSignedOrder(order: any): SignedOrder {
+	public parseSignedOrder(order: any): SignedOrder {
 		return {
 			signature: order.signature,
 			senderAddress: order.senderAddress,
@@ -109,7 +104,8 @@ class OrderUtil {
 			expirationTimeSeconds: util.stringToBN(order.expirationTimeSeconds)
 		};
 	}
-	public async validateNewOrder(signedOrder: SignedOrder, orderHash: string): Promise<boolean> {
+
+	public async validateOrder(signedOrder: SignedOrder, orderHash: string): Promise<boolean> {
 		const { orderSchema } = schemas;
 		const { signature, ...rest } = signedOrder;
 		const validator = new SchemaValidator();
@@ -121,8 +117,44 @@ class OrderUtil {
 			signature,
 			rest.makerAddress
 		);
-		console.log('schema is %s and signature is %s', isValidSchema, isValidSig);
+		util.logDebug(`schema is ${isValidSchema} and signature is ${isValidSig}`);
 		return isValidSchema && isValidSig;
+	}
+
+	public async startProcessing(option: IOption) {
+		dynamoUtil.updateStatus(
+			option.type,
+			await redisUtil.getQueueLength(`${CST.DB_ORDERS}|${option.type}`)
+		);
+
+		setInterval(
+			async () =>
+				dynamoUtil.updateStatus(
+					option.type,
+					await redisUtil.getQueueLength(`${CST.DB_ORDERS}|${option.type}`)
+				),
+			15000
+		);
+
+		const loop = () => {
+			let promise: Promise<boolean>;
+			switch (option.type) {
+				case CST.DB_ADD:
+					promise = this.addOrderToDB();
+					break;
+				case CST.DB_CANCEL:
+					promise = this.cancelOrderInDB();
+					break;
+				default:
+					throw new Error('Invalid type');
+					break;
+			}
+			promise.then(result => {
+				setTimeout(() => loop(), result ? 0 : 500);
+			});
+		};
+
+		loop();
 	}
 }
 const orderUtil = new OrderUtil();

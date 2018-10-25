@@ -1,0 +1,121 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`addOrderToDB 1`] = `
+Array [
+  Array [
+    Object {
+      "orderHash": "0xOrderHash",
+      "signedOrder": Object {
+        "exchangeAddress": "exchangeAddress",
+        "expirationTimeSeconds": "1234567890",
+        "feeRecipientAddress": "feeRecipientAddress",
+        "makerAddress": "makerAddress",
+        "makerAssetAmount": "123",
+        "makerAssetData": "makerAssetData",
+        "makerFee": "0",
+        "salt": "789",
+        "senderAddress": "senderAddress",
+        "signature": "signature",
+        "takerAddress": "takerAddress",
+        "takerAssetAmount": "456",
+        "takerAssetData": "takerAssetData",
+        "takerFee": "0",
+      },
+    },
+  ],
+]
+`;
+
+exports[`addOrderToDB 2`] = `
+Array [
+  Array [
+    Object {
+      "amount": 456,
+      "currentSequence": 2,
+      "initialSequence": 1,
+      "orderHash": "0xOrderHash",
+      "pair": "pair",
+      "price": 0.123456789,
+      "side": "bid",
+    },
+  ],
+]
+`;
+
+exports[`addOrderToDB 3`] = `
+Array [
+  Array [
+    Object {
+      "account": "makerAddress",
+      "amount": 456,
+      "orderHash": "0xOrderHash",
+      "pair": "pair",
+      "price": 0.123456789,
+      "sequence": 2,
+      "side": "bid",
+      "status": "confirmed",
+      "type": "add",
+      "updatedBy": "orderProcessor",
+    },
+  ],
+]
+`;
+
+exports[`addOrderToDB no order 1`] = `
+Array [
+  Array [
+    "orders|add",
+  ],
+]
+`;
+
+exports[`cancelOrderInDB 1`] = `
+Array [
+  Array [
+    "0xOrderHash",
+  ],
+]
+`;
+
+exports[`cancelOrderInDB 2`] = `
+Array [
+  Array [
+    Object {
+      "amount": 456,
+      "currentSequence": 2,
+      "initialSequence": 1,
+      "orderHash": "0xOrderHash",
+      "pair": "pair",
+      "price": 0.123456789,
+      "side": "bid",
+    },
+  ],
+]
+`;
+
+exports[`cancelOrderInDB 3`] = `
+Array [
+  Array [
+    Object {
+      "account": "0xAccount",
+      "amount": 456,
+      "orderHash": "0xOrderHash",
+      "pair": "pair",
+      "price": 0.123456789,
+      "sequence": 2,
+      "side": "bid",
+      "status": "confirmed",
+      "type": "cancel",
+      "updatedBy": "orderProcessor",
+    },
+  ],
+]
+`;
+
+exports[`cancelOrderInDB no order 1`] = `
+Array [
+  Array [
+    "orders|cancel",
+  ],
+]
+`;

@@ -8,6 +8,7 @@ Object {
   "maker": 456,
   "spender": 789,
   "token": "token",
+  "type": "type",
 }
 `;
 

@@ -113,9 +113,6 @@ Array [
         "balance": Object {
           "N": "456",
         },
-        "createdAt": Object {
-          "N": "1234560000",
-        },
         "orderHash": Object {
           "S": "0xOrderHash",
         },
@@ -127,6 +124,9 @@ Array [
         },
         "side": Object {
           "S": "side",
+        },
+        "status": Object {
+          "S": "status",
         },
         "type": Object {
           "S": "type",
@@ -337,12 +337,12 @@ Array [
   Object {
     "account": "0xAccount",
     "amount": 456,
-    "createdAt": 1234560000,
     "orderHash": "0xOrderHash",
     "pair": "pair",
     "price": 123,
     "sequence": 1,
     "side": "side",
+    "status": "status",
     "type": "type",
     "updatedAt": 1234567890,
     "updatedBy": "updatedBy",
@@ -387,7 +387,7 @@ Array [
 exports[`scanStatus 3`] = `
 Array [
   Object {
-    "connection": 123,
+    "count": 123,
     "hostname": "hostname",
     "pair": "pair",
     "sequence": 456,
@@ -459,7 +459,7 @@ Array [
   Array [
     Object {
       "Item": Object {
-        "connection": Object {
+        "count": Object {
           "N": "123",
         },
         "hostname": Object {
@@ -478,7 +478,7 @@ Array [
   Array [
     Object {
       "Item": Object {
-        "connection": Object {
+        "count": Object {
           "N": "123",
         },
         "hostname": Object {

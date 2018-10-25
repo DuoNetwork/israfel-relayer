@@ -15,9 +15,15 @@ export const DB_ACCOUNT = 'account';
 export const DB_ACCOUNT_YM = 'accountYearMonth';
 export const DB_PAIR_SEQ = 'pairSequence';
 export const DB_TYPE = 'type';
-export const DB_TP_ADD = 'add';
-export const DB_TP_CANCEL = 'cancel';
-export const DB_TP_FILL = 'fill';
+export const DB_ADD = 'add';
+export const DB_CANCEL = 'cancel';
+export const DB_UPDATE = 'update';
+export const DB_FILL = 'fill';
+export const DB_PENDING = 'pending';
+export const DB_CONFIRMED = 'confirmed';
+export const DB_USER = 'user';
+export const DB_ORDER_PROCESSOR = 'orderProcessor';
+export const DB_ORDER_WATCHER = 'orderWatcher';
 
 export const DB_SIDE = 'side';
 export const DB_ASK = 'ask';
@@ -29,7 +35,7 @@ export const DB_UPDATED_BY = 'updatedBy';
 
 export const DB_STS_PROCESS = 'process';
 export const DB_STS_HOSTNAME = 'hostname';
-export const DB_STS_CONNECTION = 'connection';
+export const DB_STS_COUNT = 'count';
 
 export const DB_0X_SENDER_ADDR = 'senderAddress';
 export const DB_0X_MAKER_FEE = 'makerFee';
@@ -50,9 +56,6 @@ export const ORDERBOOK_UPDATE = 'orderBookUpdate';
 export const ORDERBOOK_SNAPSHOT = 'orderBookSnapshot';
 
 export const DB_ORDERS = 'orders';
-export const DB_ADD_ORDER_QUEUE = 'addOrderQueue';
-export const DB_CANCEL_ORDER_QUEUE = 'cancelOrderQueue';
-export const DB_UPDATE_ORDER_QUEUE = 'updateOrderQueue';
 
 export const AWS_DYNAMO_API_VERSION = '2012-10-08';
 

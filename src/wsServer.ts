@@ -48,7 +48,7 @@ class WsServer {
 				);
 				orderObj.ws.send(
 					JSON.stringify({
-						method: CST.DB_TP_ADD,
+						method: CST.DB_ADD,
 						channel: `${WsChannelName.Order}| ${orderObj.pair}`,
 						status: 'success',
 						orderHash: orderObj.orderHash,
@@ -60,7 +60,7 @@ class WsServer {
 
 				orderObj.ws.send(
 					JSON.stringify({
-						method: CST.DB_TP_CANCEL,
+						method: CST.DB_CANCEL,
 						channel: `${WsChannelName.Order}| ${orderObj.pair}`,
 						status: 'success',
 						orderHash: orderObj.orderHash,
@@ -96,12 +96,12 @@ class WsServer {
 						else if (parsedMessage.method === WsChannelMessageTypes.Add) {
 							util.logInfo('add new order');
 
-							const signedOrder: SignedOrder = orderUtil.toSignedOrder(parsedMessage);
+							const signedOrder: SignedOrder = orderUtil.parseSignedOrder(parsedMessage);
 							const { signature, ...order } = signedOrder;
 
 							const orderHash = orderHashUtils.getOrderHashHex(order);
 
-							if (await orderUtil.validateNewOrder(signedOrder, orderHash)) {
+							if (await orderUtil.validateOrder(signedOrder, orderHash)) {
 								const requestSequence: IWsRequest = {
 									method: pair,
 									channel: CST.DB_SEQUENCE
@@ -118,7 +118,7 @@ class WsServer {
 							} else
 								ws.send(
 									JSON.stringify({
-										method: CST.DB_TP_ADD,
+										method: CST.DB_ADD,
 										channel: `${WsChannelName.Order}| ${pair}`,
 										status: 'failed',
 										orderHash: orderHash,
@@ -137,7 +137,7 @@ class WsServer {
 							if (liveOrders.length < 1)
 								ws.send(
 									JSON.stringify({
-										method: CST.DB_TP_CANCEL,
+										method: CST.DB_CANCEL,
 										channel: `${WsChannelName.Order}| ${pair}`,
 										status: 'fail',
 										orderHash: orderHash,

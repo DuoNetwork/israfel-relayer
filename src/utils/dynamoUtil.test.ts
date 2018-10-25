@@ -24,7 +24,7 @@ test('scanStatus', async () => {
 				[CST.DB_STS_PROCESS]: { S: 'tool|pair' },
 				[CST.DB_UPDATED_AT]: { N: '1234567890' },
 				[CST.DB_STS_HOSTNAME]: { S: 'hostname' },
-				[CST.DB_STS_CONNECTION]: { N: '123' },
+				[CST.DB_STS_COUNT]: { N: '123' },
 				[CST.DB_SEQUENCE]: { N: '456' }
 			},
 			{
@@ -247,13 +247,12 @@ test('addUserOrder', async () => {
 		account: '0xAccount',
 		pair: 'pair',
 		type: 'type',
+		status: 'status',
 		orderHash: '0xOrderHash',
 		price: 0.123456789,
 		amount: 456,
 		side: 'side',
 		sequence: 1,
-		createdAt: 1234560000,
-		updatedAt: 1234567890,
 		updatedBy: 'updatedBy'
 	});
 	expect((dynamoUtil.putData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
@@ -274,6 +273,7 @@ test('getUserOrdersForMonth', async () => {
 				},
 				[CST.DB_PAIR_SEQ]: { S: 'pair|1' },
 				[CST.DB_TYPE]: { S: 'type' },
+				[CST.DB_STATUS]: { S: 'status' },
 				[CST.DB_ORDER_HASH]: { S: '0xOrderHash' },
 				[CST.DB_PRICE]: {
 					N: '123'

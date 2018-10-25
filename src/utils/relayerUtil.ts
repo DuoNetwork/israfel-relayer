@@ -97,10 +97,10 @@ class RelayerUtil {
 		orderHash: string,
 		signedOrder: SignedOrder
 	): void {
-		const side = orderUtil.determineSide(signedOrder, pair);
+		const side = orderUtil.getSideFromSignedOrder(signedOrder, pair);
 		// matchOrdersUtil.matchOrder(signedOrder, pair, side);
 		redisUtil.push(
-			CST.DB_ADD_ORDER_QUEUE,
+			`${CST.DB_ORDERS}|${CST.DB_ADD}`,
 			JSON.stringify({
 				sequence,
 				signedOrder,
@@ -124,7 +124,7 @@ class RelayerUtil {
 
 	public handleCancel(sequence: string, liveOrder: ILiveOrder): void {
 		redisUtil.push(
-			CST.DB_CANCEL_ORDER_QUEUE,
+			`${CST.DB_ORDERS}|${CST.DB_CANCEL}`,
 			JSON.stringify({
 				sequence,
 				liveOrder
@@ -165,7 +165,7 @@ class RelayerUtil {
 				) - liveOrders[0].amount;
 
 		redisUtil.push(
-			CST.DB_UPDATE_ORDER_QUEUE,
+			`${CST.DB_ORDERS}|${CST.DB_UPDATE}`,
 			JSON.stringify({
 				pair,
 				sequence,
