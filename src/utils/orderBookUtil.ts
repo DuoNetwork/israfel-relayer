@@ -29,7 +29,7 @@ class OrderBookUtil {
 
 	public aggrOrderBook(rawLiveOrders: ILiveOrder[]): IOrderBookSnapshot {
 		return {
-			id: Math.max(...rawLiveOrders.map(order => order.initialSequence)),
+			sequence: Math.max(...rawLiveOrders.map(order => order.initialSequence)),
 			bids: this.aggrByPrice(
 				this.sortByPriceTime(
 					rawLiveOrders.filter(order => order[CST.DB_SIDE] === CST.DB_BID),
@@ -63,7 +63,7 @@ class OrderBookUtil {
 
 	public applyChangeOrderBook(
 		pair: string,
-		id: number,
+		sequence: number,
 		bidChanges: IOrderBookUpdateWS[],
 		askChanges: IOrderBookUpdateWS[]
 	) {
@@ -74,7 +74,7 @@ class OrderBookUtil {
 			return Number(a.price) - Number(b.price);
 		});
 		this.orderBook[pair] = {
-			id: id,
+			sequence: sequence,
 			bids: this.aggrByPrice(newBids),
 			asks: this.aggrByPrice(newAsks)
 		};

@@ -8,6 +8,7 @@ import {
 	WsChannelResposnseTypes
 } from '../common/types';
 import { providerEngine } from '../providerEngine';
+import dynamoUtil from './dynamoUtil';
 import orderBookUtil from './orderBookUtil';
 import orderUtil from './orderUtil';
 import redisUtil from './redisUtil';
@@ -42,21 +43,26 @@ class RelayerUtil {
 		const pair = channel.split('|')[1];
 		if (pair !== orderBookUpdate.pair) throw new Error('wrong channel update');
 
-		if (orderBookUpdate.id - orderBookUtil.orderBook[orderBookUpdate.pair].id === 1) {
-			const { id, price, amount } = orderBookUpdate;
+		if (
+			orderBookUpdate.sequence - orderBookUtil.orderBook[orderBookUpdate.pair].sequence ===
+			1
+		) {
+			const { sequence, price, amount } = orderBookUpdate;
 			// apply orderBook directly
-			if (amount > 0) orderBookUtil.applyChangeOrderBook(pair, id, [{ price, amount }], []);
-			if (amount < 0) orderBookUtil.applyChangeOrderBook(pair, id, [], [{ price, amount }]);
+			if (amount > 0)
+				orderBookUtil.applyChangeOrderBook(pair, sequence, [{ price, amount }], []);
+			if (amount < 0)
+				orderBookUtil.applyChangeOrderBook(pair, sequence, [], [{ price, amount }]);
 
 			while (
 				this.orderBookUpdateCache[pair].length &&
-				this.orderBookUpdateCache[pair][0].id - orderBookUpdate.id === 1
+				this.orderBookUpdateCache[pair][0].sequence - orderBookUpdate.sequence === 1
 			)
 				this.applyCatchedUpdate(pair);
 		} else {
 			this.orderBookUpdateCache[pair].push(orderBookUpdate);
 			this.orderBookUpdateCache[pair] = this.orderBookUpdateCache[pair].sort(
-				(a, b) => a.id - b.id
+				(a, b) => a.sequence - b.sequence
 			);
 
 			if (this.orderBookUpdateCache[pair].length > 5) this.applyCatchedUpdate(pair);
@@ -65,9 +71,9 @@ class RelayerUtil {
 
 	public applyCatchedUpdate(pair: string) {
 		const update: IOrderBookUpdate = this.orderBookUpdateCache[pair][0];
-		const { id, price, amount } = update;
-		if (amount > 0) orderBookUtil.applyChangeOrderBook(pair, id, [{ price, amount }], []);
-		if (amount < 0) orderBookUtil.applyChangeOrderBook(pair, id, [], [{ price, amount }]);
+		const { sequence, price, amount } = update;
+		if (amount > 0) orderBookUtil.applyChangeOrderBook(pair, sequence, [{ price, amount }], []);
+		if (amount < 0) orderBookUtil.applyChangeOrderBook(pair, sequence, [], [{ price, amount }]);
 		delete this.orderBookUpdateCache[pair][0];
 	}
 
@@ -75,7 +81,7 @@ class RelayerUtil {
 		console.log('Handle Message: ' + message.type);
 		const returnMessage = {
 			type: WsChannelResposnseTypes.Snapshot,
-			id: orderBookUtil.orderBook[message.channel.pair].id,
+			sequence: orderBookUtil.orderBook[message.channel.pair].sequence,
 			channel: { name: message.channel.name, pair: message.channel.pair },
 			requestId: message.requestId,
 			bids: orderBookUtil.orderBook[message.channel.pair].bids,
@@ -86,7 +92,7 @@ class RelayerUtil {
 	}
 
 	public handleAddOrder(
-		id: string,
+		sequence: string,
 		pair: string,
 		orderHash: string,
 		signedOrder: SignedOrder
@@ -96,7 +102,7 @@ class RelayerUtil {
 		redisUtil.push(
 			CST.DB_ADD_ORDER_QUEUE,
 			JSON.stringify({
-				id,
+				sequence,
 				signedOrder,
 				orderHash,
 				pair,
@@ -110,17 +116,17 @@ class RelayerUtil {
 				signedOrder.makerAssetAmount.div(signedOrder.takerAssetAmount).valueOf()
 			),
 			amount: Number(signedOrder.makerAssetAmount.valueOf()),
-			id: Number(id)
+			sequence: Number(sequence)
 		};
 
 		redisUtil.publish(CST.ORDERBOOK_UPDATE + '|' + pair, JSON.stringify(orderBookUpdate));
 	}
 
-	public handleCancel(id: string, liveOrder: ILiveOrder): void {
+	public handleCancel(sequence: string, liveOrder: ILiveOrder): void {
 		redisUtil.push(
 			CST.DB_CANCEL_ORDER_QUEUE,
 			JSON.stringify({
-				id,
+				sequence,
 				liveOrder
 			})
 		);
@@ -129,7 +135,7 @@ class RelayerUtil {
 			pair: liveOrder.pair,
 			price: liveOrder.price,
 			amount: -liveOrder.amount,
-			id: Number(id)
+			sequence: Number(sequence)
 		};
 
 		redisUtil.publish(
@@ -138,9 +144,25 @@ class RelayerUtil {
 		);
 	}
 
-	public handleUpdateOrder(id: string, pair: string, orderState: OrderState) {
+	public async handleUpdateOrder(sequence: string, pair: string, orderState: OrderState) {
 		// TODO
+		const { orderHash, isValid } = orderState;
 
+		const liveOrders: ILiveOrder[] = await dynamoUtil.getLiveOrders(pair, orderHash);
+		if (liveOrders.length === 0) throw new Error('invalid orderHash');
+
+		const orderBookUpdate: IOrderBookUpdate = {
+			pair: pair,
+			price: liveOrders[0].price,
+			amount: -liveOrders[0].amount,
+			sequence: Number(sequence)
+		};
+
+		// redisUtil.publish(
+		// 	CST.ORDERBOOK_UPDATE + '|' + liveOrder.pair,
+		// 	JSON.stringify(orderBookUpdate)
+		// );
+		// if(!isValid)
 	}
 }
 const relayerUtil = new RelayerUtil();

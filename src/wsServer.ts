@@ -6,6 +6,7 @@ import {
 	ILiveOrder,
 	IQueueOrder,
 	IWsRequest,
+	IWsSequenceResponse,
 	WsChannelMessageTypes,
 	WsChannelName
 } from './common/types';
@@ -34,13 +35,13 @@ class WsServer {
 		});
 
 		this.ws.on('message', m => {
-			const receivedMsg = JSON.parse(m.toString());
-			const id = receivedMsg.id;
+			const receivedMsg: IWsSequenceResponse = JSON.parse(m.toString());
+			const sequence = receivedMsg.sequence;
 			const orderObj = this.pendingRequest[0];
 			delete this.pendingRequest[0];
 			if (orderObj.method === WsChannelMessageTypes.Add) {
 				relayerUtil.handleAddOrder(
-					id,
+					sequence + '',
 					orderObj.pair,
 					orderObj.orderHash,
 					orderObj.order as SignedOrder
@@ -55,7 +56,7 @@ class WsServer {
 					})
 				);
 			} else if (orderObj.method === WsChannelMessageTypes.Cancel) {
-				relayerUtil.handleCancel(id, orderObj.order as ILiveOrder);
+				relayerUtil.handleCancel(sequence + '', orderObj.order as ILiveOrder);
 
 				orderObj.ws.send(
 					JSON.stringify({

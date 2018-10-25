@@ -44,7 +44,7 @@ export interface IOrderBookSnapshotWs extends IOrderBookSnapshot {
 }
 
 export interface IOrderBookSnapshot {
-	id: number;
+	sequence: number;
 	bids: IOrderBookUpdateWS[];
 	asks: IOrderBookUpdateWS[];
 }
@@ -62,7 +62,7 @@ export interface IOrderBookUpdateWS {
 }
 
 export interface IOrderBookUpdate {
-	id: number;
+	sequence: number;
 	pair: string;
 	price: number;
 	amount: number;

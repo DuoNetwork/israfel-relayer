@@ -1,7 +1,7 @@
 import { ContractWrappers, OrderState, OrderWatcher, RPCSubprovider } from '0x.js';
 import WebSocket from 'ws';
 import * as CST from '../common/constants';
-import { ILiveOrder, IOption, IRawOrder, IResponseId } from '../common/types';
+import { ILiveOrder, IOption, IRawOrder, IWsRequest, IWsSequenceResponse } from '../common/types';
 import { providerEngine } from '../providerEngine';
 import dynamoUtil from './dynamoUtil';
 import relayerUtil from './relayerUtil';
@@ -14,7 +14,7 @@ class OrderWatcherUtil {
 	public orderWatcher: OrderWatcher;
 	public ws: WebSocket | null = null;
 	public ip: string = '';
-	public pendingRequest: { [key: string]: {pair: string, orderState: OrderState} } = {};
+	public pendingRequest: Array<{ pair: string; orderState: OrderState }> = [];
 
 	constructor() {
 		// this.providerEngine.addProvider(this.provider);
@@ -41,14 +41,13 @@ class OrderWatcherUtil {
 		});
 
 		this.ws.on('message', m => {
-			const receivedMsg: IResponseId = JSON.parse(m.toString());
-			const {id, requestId} = receivedMsg;
+			const receivedMsg: IWsSequenceResponse = JSON.parse(m.toString());
 
-			const orderObj = this.pendingRequest[requestId];
-			delete this.pendingRequest[requestId];
+			const orderObj = this.pendingRequest[0];
+			delete this.pendingRequest[0];
 
 			relayerUtil.handleUpdateOrder(
-				id,
+				receivedMsg.sequence + '',
 				orderObj.pair,
 				orderObj.orderState
 			);
@@ -103,18 +102,17 @@ class OrderWatcherUtil {
 			console.log(Date.now().toString(), orderState);
 			if (orderState !== undefined) {
 				if (!this.ws) throw new Error('sequence service is unavailable');
-				const requestId = orderState.orderHash + '|' + CST.WS_TYPE_ORDER_UPDATE;
-				this.ws.send(
-					JSON.stringify({
-						ip: this.ip,
-						pair: pair,
-						requestId: requestId
-					})
-				);
-				this.pendingRequest[requestId] = {
+				// const requestId = orderState.orderHash + '|' + CST.WS_TYPE_ORDER_UPDATE;
+
+				const requestSequence: IWsRequest = {
+					method: pair,
+					channel: CST.DB_SEQUENCE
+				};
+				this.ws.send(JSON.stringify(requestSequence));
+				this.pendingRequest.push({
 					pair: pair,
 					orderState: orderState
-				};
+				});
 				// await dynamoUtil.updateOrderState(orderState, pair);
 			}
 		});
