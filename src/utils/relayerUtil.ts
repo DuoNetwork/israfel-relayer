@@ -8,6 +8,7 @@ import {
 	WsChannelResposnseTypes
 } from '../common/types';
 import { providerEngine } from '../providerEngine';
+import assetUtil from './assetUtil';
 import dynamoUtil from './dynamoUtil';
 import orderBookUtil from './orderBookUtil';
 import orderUtil from './orderUtil';
@@ -97,7 +98,7 @@ class RelayerUtil {
 		orderHash: string,
 		signedOrder: SignedOrder
 	): void {
-		const side = orderUtil.getSideFromSignedOrder(signedOrder, pair);
+		const side = assetUtil.getSideFromSignedOrder(signedOrder, pair);
 		// matchOrdersUtil.matchOrder(signedOrder, pair, side);
 		redisUtil.push(
 			`${CST.DB_ORDERS}|${CST.DB_ADD}`,

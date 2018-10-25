@@ -4,6 +4,26 @@ import orderUtil from './orderUtil';
 import redisUtil from './redisUtil';
 import util from './util';
 
+test('parseSignedOrder', () =>
+	expect(
+		orderUtil.parseSignedOrder({
+			senderAddress: 'senderAddress',
+			makerAddress: 'makerAddress',
+			takerAddress: 'takerAddress',
+			makerFee: '0',
+			takerFee: '0',
+			makerAssetAmount: '123',
+			takerAssetAmount: '456',
+			makerAssetData: 'makerAssetData',
+			takerAssetData: 'takerAssetData',
+			salt: '789',
+			exchangeAddress: 'exchangeAddress',
+			feeRecipientAddress: 'feeRecipientAddress',
+			expirationTimeSeconds: '1234567890',
+			signature: 'signature'
+		})
+	).toMatchSnapshot());
+
 const liveOrder = {
 	pair: 'pair',
 	orderHash: '0xOrderHash',
@@ -122,7 +142,9 @@ test('cancelOrderInDB no order', async () => {
 	dynamoUtil.deleteLiveOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.addUserOrder = jest.fn(() => Promise.resolve());
 	const isSuccess = await orderUtil.cancelOrderInDB();
-	expect((dynamoUtil.deleteRawOrderSignature as jest.Mock<Promise<boolean>>).mock.calls.length).toBe(0);
+	expect(
+		(dynamoUtil.deleteRawOrderSignature as jest.Mock<Promise<boolean>>).mock.calls.length
+	).toBe(0);
 	expect((dynamoUtil.deleteLiveOrder as jest.Mock<Promise<boolean>>).mock.calls.length).toBe(0);
 	expect((dynamoUtil.addUserOrder as jest.Mock<Promise<boolean>>).mock.calls.length).toBe(0);
 	expect((redisUtil.pop as jest.Mock<Promise<boolean>>).mock.calls).toMatchSnapshot();
@@ -137,8 +159,12 @@ test('cancelOrderInDB', async () => {
 	dynamoUtil.deleteLiveOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.addUserOrder = jest.fn(() => Promise.resolve());
 	const isSuccess = await orderUtil.cancelOrderInDB();
-	expect((dynamoUtil.deleteRawOrderSignature as jest.Mock<Promise<boolean>>).mock.calls).toMatchSnapshot();
-	expect((dynamoUtil.deleteLiveOrder as jest.Mock<Promise<boolean>>).mock.calls).toMatchSnapshot();
+	expect(
+		(dynamoUtil.deleteRawOrderSignature as jest.Mock<Promise<boolean>>).mock.calls
+	).toMatchSnapshot();
+	expect(
+		(dynamoUtil.deleteLiveOrder as jest.Mock<Promise<boolean>>).mock.calls
+	).toMatchSnapshot();
 	expect((dynamoUtil.addUserOrder as jest.Mock<Promise<boolean>>).mock.calls).toMatchSnapshot();
 	expect((redisUtil.putBack as jest.Mock<Promise<boolean>>).mock.calls.length).toBe(0);
 	expect(isSuccess).toEqual(true);

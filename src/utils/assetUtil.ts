@@ -1,4 +1,4 @@
-import { assetDataUtils, BigNumber, ContractWrappers } from '0x.js';
+import { assetDataUtils, BigNumber, ContractWrappers, SignedOrder } from '0x.js';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import { TransactionReceiptWithDecodedLogs } from 'ethereum-types';
 import * as CST from '../common/constants';
@@ -6,7 +6,7 @@ import { IOption } from '../common/types';
 import { providerEngine } from '../providerEngine';
 import util from './util';
 
-class AccountsUtil {
+class AssetUtil {
 	public contractWrappers: ContractWrappers;
 	public web3Wrapper: Web3Wrapper;
 	public makers: string[] = [];
@@ -44,6 +44,12 @@ class AccountsUtil {
 	public assetDataToTokenName(assetData: string): string {
 		const tokenAddr = assetDataUtils.decodeERC20AssetData(assetData).tokenAddress;
 		return CST.TOKEN_MAPPING[tokenAddr];
+	}
+
+	public getSideFromSignedOrder(order: SignedOrder, pair: string): string {
+		return this.assetDataToTokenName(order.takerAssetData) === pair.split('-')[0]
+			? CST.DB_BID
+			: CST.DB_ASK;
 	}
 
 	public getTokenAddressFromName(tokenName: string): string {
@@ -100,5 +106,5 @@ class AccountsUtil {
 
 	// TODO add from signedOrder to orderHash function
 }
-const accountsUtil = new AccountsUtil();
-export default accountsUtil;
+const assetUtil = new AssetUtil();
+export default assetUtil;

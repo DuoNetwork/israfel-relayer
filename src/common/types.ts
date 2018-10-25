@@ -20,6 +20,23 @@ export interface IRawOrder {
 	updatedAt?: number;
 }
 
+export interface IStringSignedOrder {
+	senderAddress: string;
+	makerAddress: string;
+	takerAddress: string;
+	makerFee: string;
+	takerFee: string;
+	makerAssetAmount: string;
+	takerAssetAmount: string;
+	makerAssetData: string;
+	takerAssetData: string;
+	salt: string;
+	exchangeAddress: string;
+	feeRecipientAddress: string;
+	expirationTimeSeconds: string;
+	signature: string;
+}
+
 export interface INewOrderQueueItem {
 	liveOrder: ILiveOrder;
 	rawOrder: IRawOrder;
@@ -94,7 +111,7 @@ export interface IWsSequenceResponse extends IWsResponse {
 }
 
 export interface IAddOrderRequest extends IWsRequest {
-	order: SignedOrder;
+	order: IStringSignedOrder;
 }
 
 export interface ICanceleOrderRequest extends IWsRequest {

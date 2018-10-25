@@ -14,7 +14,7 @@ import WebSocket from 'ws';
 import * as CST from '../common/constants';
 import {IAddOrderRequest, WsChannelMessageTypes, WsChannelName } from '../common/types';
 import { providerEngine } from '../providerEngine';
-import assetsUtil from '../utils/assetsUtil';
+import assetsUtil from '../utils/assetUtil';
 import util from '../utils/util';
 
 // const web3: Web3 = new Web3(new Web3.providers.HttpProvider(CST.PROVIDER_LOCAL));

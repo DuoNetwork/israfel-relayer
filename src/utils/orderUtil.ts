@@ -1,15 +1,16 @@
 import { signatureUtils, SignedOrder } from '0x.js';
 import { schemas, SchemaValidator } from '@0xproject/json-schemas';
+import Web3 from 'web3';
 import * as CST from '../common/constants';
 import {
 	ICancelOrderQueueItem,
 	ILiveOrder,
 	INewOrderQueueItem,
 	IOption,
+	IStringSignedOrder,
 	IUserOrder
 } from '../common/types';
-import { providerEngine } from '../providerEngine';
-import assetsUtil from './assetsUtil';
+import infura from '../keys/infura.json';
 import dynamoUtil from './dynamoUtil';
 import redisUtil from './redisUtil';
 import util from './util';
@@ -80,13 +81,7 @@ class OrderUtil {
 		return false;
 	}
 
-	public getSideFromSignedOrder(order: SignedOrder, pair: string): string {
-		return assetsUtil.assetDataToTokenName(order.takerAssetData) === pair.split('-')[0]
-			? CST.DB_BID
-			: CST.DB_ASK;
-	}
-
-	public parseSignedOrder(order: any): SignedOrder {
+	public parseSignedOrder(order: IStringSignedOrder): SignedOrder {
 		return {
 			signature: order.signature,
 			senderAddress: order.senderAddress,
@@ -109,16 +104,23 @@ class OrderUtil {
 		const { orderSchema } = schemas;
 		const { signature, ...rest } = signedOrder;
 		const validator = new SchemaValidator();
-		const isValidSchema = validator.validate(rest, orderSchema).valid;
+		if (!validator.validate(rest, orderSchema).valid) {
+			util.logDebug('invalid schema ' + orderHash);
+			return false;
+		}
 
 		const isValidSig = await signatureUtils.isValidSignatureAsync(
-			providerEngine,
+			new Web3.providers.HttpProvider(CST.PROVIDER_INFURA_KOVAN + '/' + infura.token),
 			orderHash,
 			signature,
 			rest.makerAddress
 		);
-		util.logDebug(`schema is ${isValidSchema} and signature is ${isValidSig}`);
-		return isValidSchema && isValidSig;
+		if (!isValidSig) {
+			util.logDebug('invalid signature ' + orderHash);
+			return false;
+		}
+
+		return true;
 	}
 
 	public async startProcessing(option: IOption) {

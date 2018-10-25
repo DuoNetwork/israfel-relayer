@@ -106,7 +106,6 @@ export const PAIR_SEPARATOR = '-';
 export const TRADING_PAIRS = [TOKEN_ZRX + PAIR_SEPARATOR + TOKEN_WETH];
 
 export const PRUNE_INTERVAL = 3600000;
-export const ORDER_WATCHER = 'orderWatcher';
 export const ORDER_PRUNE = 'pruneOrder';
 export const SET_ALLOWANCE = 'setAllowance';
 export const START_RELAYER = 'startRelayer';

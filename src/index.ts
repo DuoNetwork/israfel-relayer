@@ -1,9 +1,9 @@
 import * as CST from './common/constants';
+import orderWatcherServer from './server/orderWatcherServer';
 import sequenceServer from './server/sequenceServer';
-import assetsUtil from './utils/assetsUtil';
+import assetsUtil from './utils/assetUtil';
 import dynamoUtil from './utils/dynamoUtil';
 import orderUtil from './utils/orderUtil';
-import orderWatcherUtil from './utils/orderWatcherUtil';
 import osUtil from './utils/osUtil';
 import redisUtil from './utils/redisUtil';
 import util from './utils/util';
@@ -24,9 +24,9 @@ switch (tool) {
 	case CST.SET_ALLOWANCE:
 		assetsUtil.setTokenAllowance(option);
 		break;
-	case CST.ORDER_WATCHER:
-		orderWatcherUtil.init(tool, option);
-		orderWatcherUtil.startOrderWatcher(option);
+	case CST.DB_ORDER_WATCHER:
+		orderWatcherServer.init(tool, option);
+		orderWatcherServer.startOrderWatcher(option);
 		break;
 	case CST.START_RELAYER:
 		wsServer.init();

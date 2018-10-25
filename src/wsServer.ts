@@ -3,6 +3,8 @@ import WebSocket from 'ws';
 import * as CST from './common/constants';
 import {
 	ErrorResponseWs,
+	IAddOrderRequest,
+	ICanceleOrderRequest,
 	ILiveOrder,
 	IQueueOrder,
 	IWsRequest,
@@ -83,9 +85,9 @@ class WsServer {
 				util.logInfo('Standard relayer API (WS) listening on port 8080!');
 				ws.on('message', async message => {
 					util.logInfo('received: ' + message);
-					const parsedMessage: any = JSON.parse(message.toString());
-					// const type = parsedMessage.type;
-					const [channelName, pair] = parsedMessage.channel.split('|');
+					const req: IWsRequest = JSON.parse(message.toString());
+					// const type = req.type;
+					const [channelName, pair] = req.channel.split('|');
 					if (channelName === WsChannelName.Order)
 						if (!this.ws)
 							ws.send(
@@ -93,10 +95,12 @@ class WsServer {
 									message: 'id service not available'
 								})
 							);
-						else if (parsedMessage.method === WsChannelMessageTypes.Add) {
+						else if (req.method === WsChannelMessageTypes.Add) {
 							util.logInfo('add new order');
 
-							const signedOrder: SignedOrder = orderUtil.parseSignedOrder(parsedMessage);
+							const signedOrder: SignedOrder = orderUtil.parseSignedOrder(
+								(req as IAddOrderRequest).order
+							);
 							const { signature, ...order } = signedOrder;
 
 							const orderHash = orderHashUtils.getOrderHashHex(order);
@@ -125,8 +129,8 @@ class WsServer {
 										message: ErrorResponseWs.InvalidOrder
 									})
 								);
-						} else if (parsedMessage.method === WsChannelMessageTypes.Cancel) {
-							const orderHash = parsedMessage.orderHash;
+						} else if (req.method === WsChannelMessageTypes.Cancel) {
+							const orderHash = (req as ICanceleOrderRequest).orderHash;
 							let liveOrders: ILiveOrder[] = [];
 							try {
 								liveOrders = await dynamoUtil.getLiveOrders(pair, orderHash);
@@ -162,10 +166,10 @@ class WsServer {
 						}
 					// TO DO send new orders based on payload Assetpairs
 					// else if (type === CST.ORDERBOOK_UPDATE)
-					// 	const returnMsg = await relayerUtil.handleUpdate(parsedMessage);
+					// 	const returnMsg = await relayerUtil.handleUpdate(req);
 					if (channelName === WsChannelName.Orderbook) {
 						console.log('subscribe orderbook');
-						ws.send(JSON.stringify(relayerUtil.handleSubscribe(parsedMessage)));
+						ws.send(JSON.stringify(relayerUtil.handleSubscribe(req)));
 					}
 				});
 			});

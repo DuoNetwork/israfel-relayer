@@ -1,11 +1,11 @@
 import { SignedOrder } from '0x.js';
 import * as CST from '../common/constants';
 import { ILiveOrder } from '../common/types';
-import assetsUtil from './assetsUtil';
-import dynamoUtil from './dynamoUtil';
-import orderbookUtil from './orderBookUtil';
+import assetsUtil from '../utils/assetUtil';
+import dynamoUtil from '../utils/dynamoUtil';
+import orderbookUtil from '../utils/orderBookUtil';
 
-class MatchOrdersUtil {
+class OrderMatcher {
 	public async scanToMatchOrder(
 		oldOrders: ILiveOrder[],
 		newOrder: SignedOrder,
@@ -79,5 +79,5 @@ class MatchOrdersUtil {
 		);
 	}
 }
-const matchOrdersUtil = new MatchOrdersUtil();
-export default matchOrdersUtil;
+const orderMatcher = new OrderMatcher();
+export default orderMatcher;

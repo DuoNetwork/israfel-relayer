@@ -1,16 +1,10 @@
 import * as CST from '../common/constants';
-import { ILiveOrder, IOption, IOrderBookSnapshot, IOrderBookUpdateWS } from '../common/types';
+import { ILiveOrder, IOrderBookSnapshot, IOrderBookUpdateWS } from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import redisUtil from './redisUtil';
 
 class OrderBookUtil {
 	public orderBook: { [key: string]: IOrderBookSnapshot } = {};
-
-	public async init(tool: string, option: IOption) {
-		const config = require('./keys/' + (option.live ? 'live' : 'dev') + '/dynamo.json');
-		dynamoUtil.init(config, option.live, tool);
-	}
-
 	public async calculateOrderBookSnapshot() {
 		for (const pair of CST.TRADING_PAIRS) {
 			const liveOrders: ILiveOrder[] = await dynamoUtil.getLiveOrders(pair);

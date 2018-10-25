@@ -3,11 +3,11 @@ import WebSocket from 'ws';
 import * as CST from '../common/constants';
 import { ILiveOrder, IOption, IRawOrder, IWsRequest, IWsSequenceResponse } from '../common/types';
 import { providerEngine } from '../providerEngine';
-import dynamoUtil from './dynamoUtil';
-import relayerUtil from './relayerUtil';
-import util from './util';
+import dynamoUtil from '../utils/dynamoUtil';
+import relayerUtil from '../utils/relayerUtil';
+import util from '../utils/util';
 
-class OrderWatcherUtil {
+class OrderWatcherServer {
 	public provider = new RPCSubprovider(CST.PROVIDER_LOCAL);
 	// public providerEngine = new Web3ProviderEngine();
 	public zeroEx: ContractWrappers;
@@ -119,5 +119,5 @@ class OrderWatcherUtil {
 	}
 }
 
-const orderWatcherUtil = new OrderWatcherUtil();
-export default orderWatcherUtil;
+const orderWatcherServer = new OrderWatcherServer();
+export default orderWatcherServer;

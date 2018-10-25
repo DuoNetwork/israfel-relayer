@@ -12,11 +12,12 @@
 		"start": "cross-env ganache-cli --gasLimit 10000000 --noVMErrorsOnRPCResponse --db 0x_ganache_snapshot -p 8555 --networkId 50 -m \"concert load couple harbor equip island argue ramp clarify fence smart topic\"",
 		"downloadSnapshot": "cross-env download --extract --strip 1 --out 0x_ganache_snapshot https://s3.amazonaws.com/testrpc-shapshots/965d6098294beb22292090c461151274ee6f9a26.zip",
 		"addOrders": "ts-node ./src/client/addOrders",
-		"orderWatcher": "ts-node ./src/index orderWatcher",
 		"cancelOrders": "ts-node ./src/client/cancelOrders",
 		"pruneOrder": "ts-node ./src/index pruneOrder",
 		"setAllowance": "ts-node ./src/index setAllowance",
-		"sequence": "ts-node ./src/index sequence"
+		"orderWatcher": "ts-node ./src/index orderWatcher",
+		"sequence": "ts-node ./src/index sequence",
+		"orders": "ts-node ./src/index orders"
 	},
 	"jest": {
 		"roots": [
