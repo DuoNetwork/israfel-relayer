@@ -1,4 +1,4 @@
-import { ContractWrappers, OrderState, SignedOrder } from '0x.js';
+import { ContractWrappers, OrderState, OrderStateValid, SignedOrder } from '0x.js';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import * as CST from '../common/constants';
 import {
@@ -158,11 +158,26 @@ class RelayerUtil {
 			sequence: Number(sequence)
 		};
 
-		// redisUtil.publish(
-		// 	CST.ORDERBOOK_UPDATE + '|' + liveOrder.pair,
-		// 	JSON.stringify(orderBookUpdate)
-		// );
-		// if(!isValid)
+		if (isValid)
+			orderBookUpdate.amount =
+				Number(
+					(orderState as OrderStateValid).orderRelevantState.remainingFillableMakerAssetAmount.valueOf()
+				) - liveOrders[0].amount;
+
+		redisUtil.push(
+			CST.DB_UPDATE_ORDER_QUEUE,
+			JSON.stringify({
+				pair,
+				sequence,
+				orderHash,
+				newAmount: !isValid
+					? 0
+					: Number(
+							(orderState as OrderStateValid).orderRelevantState.remainingFillableMakerAssetAmount.valueOf()
+					)
+			})
+		);
+		redisUtil.publish(CST.ORDERBOOK_UPDATE + '|' + pair, JSON.stringify(orderBookUpdate));
 	}
 }
 const relayerUtil = new RelayerUtil();
