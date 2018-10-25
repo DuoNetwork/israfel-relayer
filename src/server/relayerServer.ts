@@ -1,5 +1,6 @@
 import { orderHashUtils, SignedOrder } from '0x.js';
 import WebSocket from 'ws';
+import SequenceClient from '../client/SequenceClient';
 import * as CST from '../common/constants';
 import {
 	ILiveOrder,
@@ -18,17 +19,17 @@ import relayerUtil from '../utils/relayerUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/web3Util';
 
-class RelayerServer {
+class RelayerServer extends SequenceClient {
 	private web3Util: Web3Util | null = null;
-	private live: boolean = false;
+	// private live: boolean = false;
 	public relayerWsServer: WebSocket.Server | null = null;
-	public sequenceWsClient: WebSocket | null = null;
 	public ip: string = '';
 	public requestQueue: { [pair: string]: IRelayerQueueItem[] } = {};
 
 	public init(web3Util: Web3Util, live: boolean) {
-		this.live = live;
+		// this.live = live;
 		this.web3Util = web3Util;
+		this.connectToSequenceServer(live);
 		relayerUtil.init();
 		this.relayerWsServer = new WebSocket.Server({ port: 8080 });
 	}
@@ -80,31 +81,6 @@ class RelayerServer {
 				util.logError(error);
 			}
 		}
-	}
-
-	public connectToSequenceServer() {
-		this.sequenceWsClient = new WebSocket(
-			`${this.live ? CST.SEQUENCE_URL_LIVE : CST.SEQUENCE_URL_DEV}:${CST.SEQUENCE_PORT}`
-		);
-
-		this.sequenceWsClient.on('open', () => util.logInfo('connected to sequence server'));
-		this.sequenceWsClient.on('message', m => this.handleSequenceMessage(m.toString()));
-		this.sequenceWsClient.on('error', (error: Error) => {
-			util.logError(error);
-			if (this.sequenceWsClient) {
-				this.sequenceWsClient.removeAllListeners();
-				this.sequenceWsClient.terminate();
-			}
-			this.connectToSequenceServer();
-		});
-		this.sequenceWsClient.on('close', (code: number, reason: string) => {
-			util.logError('connection closed ' + code + ' ' + reason);
-			if (this.sequenceWsClient) {
-				this.sequenceWsClient.removeAllListeners();
-				this.sequenceWsClient.terminate();
-			}
-			this.connectToSequenceServer();
-		});
 	}
 
 	public async handleRelayerOrderMessage(ws: WebSocket, req: IWsRequest) {
@@ -196,7 +172,12 @@ class RelayerServer {
 					orderHash: orderHash,
 					liveOrder: liveOrders[0]
 				});
-				const userOrder = orderUtil.getUserOrder(liveOrders[0], CST.DB_ADD, CST.DB_PENDING, CST.DB_USER);
+				const userOrder = orderUtil.getUserOrder(
+					liveOrders[0],
+					CST.DB_ADD,
+					CST.DB_PENDING,
+					CST.DB_USER
+				);
 				await dynamoUtil.addUserOrder(userOrder);
 
 				const orderResponse: IWsOrderResponse = {
