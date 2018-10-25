@@ -42,6 +42,7 @@ test('addLiveOrder', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
 	await dynamoUtil.addLiveOrder({
+		account: '0xAccount',
 		pair: 'pair',
 		orderHash: '0xOrderHash',
 		price: 0.123456789,
@@ -57,6 +58,7 @@ test('updateLiveOrder', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.updateData = jest.fn(() => Promise.resolve({}));
 	await dynamoUtil.updateLiveOrder({
+		account: '0xAccount',
 		pair: 'pair',
 		orderHash: '0xOrderHash',
 		price: 0.123456789,
@@ -73,6 +75,7 @@ test('updateLiveOrder', async () => {
 test('deleteLiveOrder', async () => {
 	dynamoUtil.deleteData = jest.fn(() => Promise.resolve({}));
 	await dynamoUtil.deleteLiveOrder({
+		account: '0xAccount',
 		pair: 'pair',
 		orderHash: '0xOrderHash',
 		price: 123,
@@ -97,6 +100,7 @@ test('getLiveOrders', async () => {
 	queryOutput = {
 		Items: [
 			{
+				[CST.DB_ACCOUNT]: { S: '0xAccount' },
 				[CST.DB_PAIR]: { S: 'pair' },
 				[CST.DB_ORDER_HASH]: { S: '0xOrderHash' },
 				[CST.DB_PRICE]: {
@@ -126,6 +130,7 @@ test('getLiveOrders with orderHash', async () => {
 	queryOutput = {
 		Items: [
 			{
+				[CST.DB_ACCOUNT]: { S: '0xAccount' },
 				[CST.DB_PAIR]: { S: 'pair' },
 				[CST.DB_ORDER_HASH]: { S: '0xOrderHash' },
 				[CST.DB_PRICE]: {
@@ -252,7 +257,9 @@ test('addUserOrder', async () => {
 		price: 0.123456789,
 		amount: 456,
 		side: 'side',
-		sequence: 1,
+		createdAt: 1234560000,
+		initialSequence: 1,
+		currentSequence: 2,
 		updatedBy: 'updatedBy'
 	});
 	expect((dynamoUtil.putData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
@@ -280,6 +287,7 @@ test('getUserOrdersForMonth', async () => {
 				},
 				[CST.DB_BALANCE]: { N: '456' },
 				[CST.DB_SIDE]: { S: 'side' },
+				[CST.DB_INITIAL_SEQ]: { N: '1' },
 				[CST.DB_CREATED_AT]: { N: '1234560000' },
 				[CST.DB_UPDATED_AT]: { N: '1234567890' },
 				[CST.DB_UPDATED_BY]: { S: 'updatedBy' }

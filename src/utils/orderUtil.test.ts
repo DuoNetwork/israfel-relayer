@@ -1,30 +1,38 @@
 import * as CST from '../common/constants';
+import assetUtil from './assetUtil';
 import dynamoUtil from './dynamoUtil';
 import orderUtil from './orderUtil';
 import redisUtil from './redisUtil';
 import util from './util';
 
-test('parseSignedOrder', () =>
-	expect(
-		orderUtil.parseSignedOrder({
-			senderAddress: 'senderAddress',
-			makerAddress: 'makerAddress',
-			takerAddress: 'takerAddress',
-			makerFee: '0',
-			takerFee: '0',
-			makerAssetAmount: '123',
-			takerAssetAmount: '456',
-			makerAssetData: 'makerAssetData',
-			takerAssetData: 'takerAssetData',
-			salt: '789',
-			exchangeAddress: 'exchangeAddress',
-			feeRecipientAddress: 'feeRecipientAddress',
-			expirationTimeSeconds: '1234567890',
-			signature: 'signature'
-		})
-	).toMatchSnapshot());
+const signedOrder = {
+	senderAddress: 'senderAddress',
+	makerAddress: 'makerAddress',
+	takerAddress: 'takerAddress',
+	makerFee: '0',
+	takerFee: '0',
+	makerAssetAmount: '123',
+	takerAssetAmount: '456',
+	makerAssetData: 'makerAssetData',
+	takerAssetData: 'takerAssetData',
+	salt: '789',
+	exchangeAddress: 'exchangeAddress',
+	feeRecipientAddress: 'feeRecipientAddress',
+	expirationTimeSeconds: '1234567890',
+	signature: 'signature'
+};
+
+test('parseSignedOrder', () => expect(orderUtil.parseSignedOrder(signedOrder)).toMatchSnapshot());
+
+test('getLiveOrder', () => {
+	assetUtil.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
+	expect(orderUtil.getLiveOrder(signedOrder, 'pair', '0xOrderHash')).toMatchSnapshot();
+	assetUtil.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
+	expect(orderUtil.getLiveOrder(signedOrder, 'pair', '0xOrderHash')).toMatchSnapshot();
+});
 
 const liveOrder = {
+	account: '0xAccount',
 	pair: 'pair',
 	orderHash: '0xOrderHash',
 	price: 0.123456789,
@@ -35,7 +43,7 @@ const liveOrder = {
 };
 
 test('getUserOrder', () => {
-	expect(orderUtil.getUserOrder('type', '0xAccount', liveOrder));
+	expect(orderUtil.getUserOrder(liveOrder, 'type', 'status', 'updatedBy'));
 });
 
 const addOrderQueueItem = {

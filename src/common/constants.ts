@@ -82,6 +82,7 @@ export const WS_UNSUB = 'unsubscribe';
 export const WS_CHANNEL = 'channel';
 export const WS_METHOD = 'method';
 export const WS_INVALID_REQ = 'invalid request';
+export const WS_INVALID_ORDER = 'invalid order';
 export const WS_OK = 'ok';
 export const WS_SERVICE_NA = 'service not available';
 

@@ -8,23 +8,47 @@ import {
 	IStringSignedOrder,
 	IUserOrder
 } from '../common/types';
+import assetUtil from './assetUtil';
 import dynamoUtil from './dynamoUtil';
 import redisUtil from './redisUtil';
 import util from './util';
 
 class OrderUtil {
-	public getUserOrder(type: string, account: string, liveOrder: ILiveOrder): IUserOrder {
+	public getUserOrder(
+		liveOrder: ILiveOrder,
+		type: string,
+		status: string,
+		updatedBy: string
+	): IUserOrder {
 		return {
-			account: account,
-			pair: liveOrder.pair,
+			...liveOrder,
 			type: type,
-			status: CST.DB_CONFIRMED,
-			orderHash: liveOrder.orderHash,
-			price: liveOrder.price,
-			amount: liveOrder.amount,
-			side: liveOrder.side,
-			sequence: liveOrder.currentSequence,
-			updatedBy: CST.DB_ORDER_PROCESSOR
+			status: status,
+			updatedBy: updatedBy
+		};
+	}
+
+	public getLiveOrder(
+		signedOrder: IStringSignedOrder,
+		pair: string,
+		orderHash: string
+	): ILiveOrder {
+		const side = assetUtil.getSideFromSignedOrder(signedOrder, pair);
+		const isBid = side === CST.DB_BID;
+		return {
+			account: isBid ? signedOrder.makerAddress : signedOrder.takerAddress,
+			pair: pair,
+			orderHash: orderHash,
+			price: util.round(
+				util
+					.stringToBN(isBid ? signedOrder.makerAssetAmount : signedOrder.takerAssetAmount)
+					.div(isBid ? signedOrder.takerAssetAmount : signedOrder.makerAssetAmount)
+					.valueOf()
+			),
+			amount: Number(isBid ? signedOrder.makerAssetAmount : signedOrder.takerAssetAmount),
+			side: side,
+			initialSequence: 0,
+			currentSequence: 0
 		};
 	}
 
@@ -38,9 +62,10 @@ class OrderUtil {
 				await dynamoUtil.addLiveOrder(orderQueueItem.liveOrder);
 				await dynamoUtil.addUserOrder(
 					this.getUserOrder(
+						orderQueueItem.liveOrder,
 						CST.DB_ADD,
-						orderQueueItem.rawOrder.signedOrder.makerAddress,
-						orderQueueItem.liveOrder
+						CST.DB_CONFIRMED,
+						CST.DB_ORDER_PROCESSOR
 					)
 				);
 			} catch (err) {
@@ -63,9 +88,10 @@ class OrderUtil {
 				await dynamoUtil.deleteLiveOrder(orderQueueItem.liveOrder);
 				await dynamoUtil.addUserOrder(
 					this.getUserOrder(
+						orderQueueItem.liveOrder,
 						CST.DB_CANCEL,
-						orderQueueItem.account,
-						orderQueueItem.liveOrder
+						CST.DB_CONFIRMED,
+						CST.DB_ORDER_PROCESSOR
 					)
 				);
 			} catch (err) {

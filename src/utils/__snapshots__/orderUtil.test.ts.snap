@@ -30,6 +30,7 @@ exports[`addOrderToDB 2`] = `
 Array [
   Array [
     Object {
+      "account": "0xAccount",
       "amount": 456,
       "currentSequence": 2,
       "initialSequence": 1,
@@ -46,12 +47,13 @@ exports[`addOrderToDB 3`] = `
 Array [
   Array [
     Object {
-      "account": "makerAddress",
+      "account": "0xAccount",
       "amount": 456,
+      "currentSequence": 2,
+      "initialSequence": 1,
       "orderHash": "0xOrderHash",
       "pair": "pair",
       "price": 0.123456789,
-      "sequence": 2,
       "side": "bid",
       "status": "confirmed",
       "type": "add",
@@ -81,6 +83,7 @@ exports[`cancelOrderInDB 2`] = `
 Array [
   Array [
     Object {
+      "account": "0xAccount",
       "amount": 456,
       "currentSequence": 2,
       "initialSequence": 1,
@@ -99,10 +102,11 @@ Array [
     Object {
       "account": "0xAccount",
       "amount": 456,
+      "currentSequence": 2,
+      "initialSequence": 1,
       "orderHash": "0xOrderHash",
       "pair": "pair",
       "price": 0.123456789,
-      "sequence": 2,
       "side": "bid",
       "status": "confirmed",
       "type": "cancel",
@@ -118,6 +122,32 @@ Array [
     "orders|cancel",
   ],
 ]
+`;
+
+exports[`getLiveOrder 1`] = `
+Object {
+  "account": "makerAddress",
+  "amount": 123,
+  "currentSequence": 0,
+  "initialSequence": 0,
+  "orderHash": "0xOrderHash",
+  "pair": "pair",
+  "price": 0.26973684,
+  "side": "bid",
+}
+`;
+
+exports[`getLiveOrder 2`] = `
+Object {
+  "account": "takerAddress",
+  "amount": 456,
+  "currentSequence": 0,
+  "initialSequence": 0,
+  "orderHash": "0xOrderHash",
+  "pair": "pair",
+  "price": 3.70731707,
+  "side": "ask",
+}
 `;
 
 exports[`parseSignedOrder 1`] = `

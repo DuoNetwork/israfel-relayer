@@ -7,6 +7,7 @@ import {
 	IStringSignedOrder,
 	IWsAddOrderRequest,
 	IWsCanceleOrderRequest,
+	IWsOrderResponse,
 	IWsRequest,
 	IWsResponse,
 	IWsSequenceResponse
@@ -37,7 +38,8 @@ class RelayerServer {
 		const res: IWsResponse = JSON.parse(m);
 		if (res.channel !== CST.DB_SEQUENCE || res.status !== CST.WS_OK) return;
 
-		const { sequence, pair } = res as IWsSequenceResponse;
+		const { sequence, method } = res as IWsSequenceResponse;
+		const pair = method;
 		if (!this.requestQueue[pair] || !this.requestQueue[pair].length) return;
 
 		const queueItem = this.requestQueue[pair].pop();
@@ -47,7 +49,7 @@ class RelayerServer {
 				sequence + '',
 				queueItem.pair,
 				queueItem.orderHash,
-				queueItem.order as IStringSignedOrder
+				queueItem.signedOrder as IStringSignedOrder
 			);
 			try {
 				queueItem.ws.send(
@@ -63,7 +65,7 @@ class RelayerServer {
 				util.logError(error);
 			}
 		} else if (queueItem.method === CST.DB_CANCEL) {
-			relayerUtil.handleCancel(sequence + '', queueItem.order as ILiveOrder);
+			relayerUtil.handleCancel(sequence + '', queueItem.liveOrder as ILiveOrder);
 			try {
 				queueItem.ws.send(
 					JSON.stringify({
@@ -106,14 +108,17 @@ class RelayerServer {
 	}
 
 	public async handleRelayerOrderMessage(ws: WebSocket, req: IWsRequest) {
-		if (!this.sequenceWsClient)
-			ws.send(
-				JSON.stringify({
-					status: CST.WS_SERVICE_NA,
-					channel: req.channel
-				})
-			);
-		else if (req.method === CST.DB_ADD) {
+		if (!this.sequenceWsClient) {
+			const res: IWsResponse = {
+				status: CST.WS_SERVICE_NA,
+				channel: req.channel,
+				method: req.method
+			};
+			ws.send(res);
+			return;
+		}
+
+		if (req.method === CST.DB_ADD) {
 			util.logDebug('add new order');
 			const stringSignedOrder = (req as IWsAddOrderRequest).order;
 			const pair = (req as IWsAddOrderRequest).pair;
@@ -126,41 +131,45 @@ class RelayerServer {
 					channel: CST.DB_SEQUENCE
 				};
 				this.sequenceWsClient.send(JSON.stringify(requestSequence));
+				const liveOrder = orderUtil.getLiveOrder(stringSignedOrder, pair, orderHash);
 				if (!this.requestQueue[pair]) this.requestQueue[pair] = [];
 				this.requestQueue[pair].push({
 					ws: ws,
 					pair: pair,
 					method: req.method,
 					orderHash: orderHash,
-					order: stringSignedOrder
+					liveOrder: liveOrder,
+					signedOrder: stringSignedOrder
 				});
-				ws.send(
-					JSON.stringify({
-						method: req.method,
-						channel: req.channel,
-						status: CST.WS_OK,
-						pair: pair,
-						orderHash: orderHash
-					})
+				const userOrder = orderUtil.getUserOrder(
+					liveOrder,
+					CST.DB_ADD,
+					CST.DB_PENDING,
+					CST.DB_USER
 				);
-				// TODO: write to db user order as pending
-			} else
-				ws.send(
-					JSON.stringify({
-						method: req.method,
-						channel: req.channel,
-						status: CST.WS_INVALID_REQ,
-						pair: pair,
-						orderHash: orderHash,
-						message: 'invalid order'
-					})
-				);
+				await dynamoUtil.addUserOrder(userOrder);
+				const orderResponse: IWsOrderResponse = {
+					method: req.method,
+					channel: req.channel,
+					status: CST.WS_OK,
+					pair: pair,
+					userOrder: userOrder
+				};
+				ws.send(JSON.stringify(orderResponse));
+			} else {
+				const orderResponse: IWsOrderResponse = {
+					method: req.method,
+					channel: req.channel,
+					status: CST.WS_INVALID_ORDER,
+					pair: pair
+				};
+				ws.send(JSON.stringify(orderResponse));
+			}
 		} else if (req.method === CST.DB_CANCEL) {
 			const { orderHash, pair } = req as IWsCanceleOrderRequest;
-			let liveOrders: ILiveOrder[] = [];
 			try {
-				liveOrders = await dynamoUtil.getLiveOrders(pair, orderHash);
-				if (liveOrders.length < 1)
+				const liveOrders = await dynamoUtil.getLiveOrders(pair, orderHash);
+				if (liveOrders.length < 1) {
 					ws.send(
 						JSON.stringify({
 							method: req.method,
@@ -171,33 +180,42 @@ class RelayerServer {
 							message: 'order does not exist'
 						})
 					);
-				else {
-					const requestSequence: IWsRequest = {
-						method: pair,
-						channel: CST.DB_SEQUENCE
-					};
-					this.sequenceWsClient.send(JSON.stringify(requestSequence));
-					if (!this.requestQueue[pair]) this.requestQueue[pair] = [];
-					this.requestQueue[pair].push({
-						ws: ws,
-						pair: pair,
-						method: req.method,
-						orderHash: orderHash,
-						order: liveOrders[0]
-					});
+					return;
 				}
+
+				const requestSequence: IWsRequest = {
+					method: pair,
+					channel: CST.DB_SEQUENCE
+				};
+				this.sequenceWsClient.send(JSON.stringify(requestSequence));
+				if (!this.requestQueue[pair]) this.requestQueue[pair] = [];
+				this.requestQueue[pair].push({
+					ws: ws,
+					pair: pair,
+					method: req.method,
+					orderHash: orderHash,
+					liveOrder: liveOrders[0]
+				});
+				const userOrder = orderUtil.getUserOrder(liveOrders[0], CST.DB_ADD, CST.DB_PENDING, CST.DB_USER);
+				await dynamoUtil.addUserOrder(userOrder);
+
+				const orderResponse: IWsOrderResponse = {
+					method: req.method,
+					channel: req.channel,
+					status: CST.WS_OK,
+					pair: pair,
+					userOrder: userOrder
+				};
+				ws.send(JSON.stringify(orderResponse));
 			} catch (err) {
 				util.logError(err);
-				ws.send(
-					JSON.stringify({
-						method: req.method,
-						channel: req.channel,
-						status: 'failed',
-						pair: pair,
-						orderHash: orderHash,
-						message: err
-					})
-				);
+				const orderResponse: IWsOrderResponse = {
+					method: req.method,
+					channel: req.channel,
+					status: CST.WS_INVALID_ORDER,
+					pair: pair
+				};
+				ws.send(JSON.stringify(orderResponse));
 			}
 		}
 	}
@@ -207,7 +225,8 @@ class RelayerServer {
 		const req: IWsRequest = JSON.parse(m);
 		const res: IWsResponse = {
 			status: CST.WS_INVALID_REQ,
-			channel: req.channel || ''
+			channel: req.channel || '',
+			method: req.method || ''
 		};
 		if (
 			!req.channel ||
@@ -224,7 +243,7 @@ class RelayerServer {
 		}
 
 		switch (req.channel) {
-			case  CST.DB_ORDERS:
+			case CST.DB_ORDERS:
 				this.handleRelayerOrderMessage(ws, req);
 				break;
 			case CST.DB_ORDER_BOOKS:

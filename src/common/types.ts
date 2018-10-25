@@ -1,6 +1,7 @@
 import WebSocket from 'ws';
 
 export interface ILiveOrder {
+	account: string;
 	pair: string;
 	orderHash: string;
 	price: number;
@@ -10,6 +11,12 @@ export interface ILiveOrder {
 	updatedAt?: number;
 	initialSequence: number;
 	currentSequence: number;
+}
+
+export interface IUserOrder extends ILiveOrder {
+	type: string;
+	status: string;
+	updatedBy: string;
 }
 
 export interface IRawOrder {
@@ -44,20 +51,6 @@ export interface INewOrderQueueItem {
 export interface ICancelOrderQueueItem {
 	liveOrder: ILiveOrder;
 	account: string;
-}
-
-export interface IUserOrder {
-	account: string;
-	pair: string;
-	type: string;
-	status: string;
-	orderHash: string;
-	price: number;
-	amount: number;
-	side: string;
-	sequence: number;
-	updatedAt?: number;
-	updatedBy: string;
 }
 
 // export interface IOrderBookSnapshotWs extends IOrderBookSnapshot {
@@ -101,11 +94,11 @@ export interface IWsRequest {
 
 export interface IWsResponse {
 	status: string;
+	method: string;
 	channel: string;
 }
 
 export interface IWsSequenceResponse extends IWsResponse {
-	pair: string;
 	sequence: number;
 }
 
@@ -114,19 +107,14 @@ export interface IWsAddOrderRequest extends IWsRequest {
 	order: IStringSignedOrder;
 }
 
-export interface IWsAddOrderResponse extends IWsResponse {
-	pair: string;
-	userOrder: IUserOrder;
-}
-
 export interface IWsCanceleOrderRequest extends IWsRequest {
 	pair: string;
 	orderHash: string;
 }
 
-export interface IWsCancelOrderResponse extends IWsResponse {
+export interface IWsOrderResponse extends IWsResponse {
 	pair: string;
-	userOrder: IUserOrder;
+	userOrder?: IUserOrder;
 }
 
 export interface ISubscribeOrderBookRequest {
@@ -170,7 +158,8 @@ export interface IRelayerQueueItem {
 	pair: string;
 	method: string;
 	orderHash: string;
-	order: IStringSignedOrder | ILiveOrder;
+	liveOrder: ILiveOrder;
+	signedOrder?: IStringSignedOrder;
 }
 
 export interface IStatus {

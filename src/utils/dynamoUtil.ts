@@ -124,6 +124,7 @@ class DynamoUtil {
 	public convertLiveOrderToDynamo(liveOrder: ILiveOrder): AttributeMap {
 		const timestamp = util.getUTCNowTimestamp();
 		return {
+			[CST.DB_ACCOUNT]: { S: liveOrder.account },
 			[CST.DB_PAIR]: { S: liveOrder.pair },
 			[CST.DB_ORDER_HASH]: { S: liveOrder.orderHash },
 			[CST.DB_PRICE]: {
@@ -196,6 +197,7 @@ class DynamoUtil {
 
 	public parseLiveOrder(data: AttributeMap): ILiveOrder {
 		return {
+			account: data[CST.DB_ACCOUNT].S || '',
 			pair: data[CST.DB_PAIR].S || '',
 			orderHash: data[CST.DB_ORDER_HASH].S || '',
 			price: Number(data[CST.DB_PRICE].N),
@@ -343,7 +345,7 @@ class DynamoUtil {
 			[CST.DB_ACCOUNT_YM]: {
 				S: userOrder.account + '|' + moment.utc(timestamp).format('YYYY-MM')
 			},
-			[CST.DB_PAIR_SEQ]: { S: userOrder.pair + '|' + userOrder.sequence },
+			[CST.DB_PAIR_SEQ]: { S: userOrder.pair + '|' + userOrder.currentSequence },
 			[CST.DB_TYPE]: { S: userOrder.type },
 			[CST.DB_STATUS]: { S: userOrder.status },
 			[CST.DB_ORDER_HASH]: { S: userOrder.orderHash },
@@ -352,7 +354,9 @@ class DynamoUtil {
 			},
 			[CST.DB_BALANCE]: { N: userOrder.amount + '' },
 			[CST.DB_SIDE]: { S: userOrder.side },
-			[CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' },
+			[CST.DB_INITIAL_SEQ]: { N: userOrder.initialSequence + '' },
+			[CST.DB_CREATED_AT]: { N: (userOrder.createdAt || timestamp) + '' },
+			[CST.DB_UPDATED_AT]: { N: timestamp + '' },
 			[CST.DB_UPDATED_BY]: { S: userOrder.updatedBy + '' }
 		};
 	}
@@ -377,7 +381,9 @@ class DynamoUtil {
 			price: Number(data[CST.DB_PRICE].N),
 			side: data[CST.DB_SIDE].S || '',
 			amount: Number(data[CST.DB_BALANCE].N),
-			sequence: Number(seq),
+			initialSequence: Number(data[CST.DB_INITIAL_SEQ].N),
+			currentSequence: Number(seq),
+			createdAt: Number(data[CST.DB_CREATED_AT].N),
 			updatedAt: Number(data[CST.DB_UPDATED_AT].N),
 			updatedBy: data[CST.DB_UPDATED_BY].S || ''
 		};

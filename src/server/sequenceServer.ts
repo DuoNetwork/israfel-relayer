@@ -15,7 +15,8 @@ class SequenceServer {
 		const req: IWsRequest = JSON.parse(m);
 		const res: IWsResponse = {
 			status: CST.WS_INVALID_REQ,
-			channel: req.channel || ''
+			channel: req.channel || '',
+			method: req.method || ''
 		};
 		if (
 			!req.channel ||
@@ -36,7 +37,7 @@ class SequenceServer {
 		const seqRes: IWsSequenceResponse = {
 			channel: CST.DB_SEQUENCE,
 			status: CST.WS_OK,
-			pair: pair,
+			method: pair,
 			sequence: ++this.sequence[pair]
 		};
 		redisUtil.set(`${CST.DB_SEQUENCE}|${pair}`, this.sequence[pair] + '');
