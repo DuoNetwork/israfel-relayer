@@ -216,15 +216,12 @@ class RelayerServer extends SequenceClient {
 		switch (req.channel) {
 			case CST.DB_ORDERS:
 				return this.handleOrderRequest(ws, req as IWsOrderRequest);
-				break;
 			case CST.DB_ORDER_BOOKS:
 				util.logInfo('subscribe orderbook');
 				util.safeWsSend(ws, JSON.stringify(relayerUtil.handleSubscribe(req)));
 				return Promise.resolve();
-				break;
 			default:
 				return Promise.resolve();
-				break;
 		}
 	}
 
