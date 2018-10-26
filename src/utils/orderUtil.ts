@@ -8,11 +8,9 @@ import {
 	IStringSignedOrder,
 	IUserOrder
 } from '../common/types';
-import assetUtil from './assetUtil';
 import dynamoUtil from './dynamoUtil';
 import redisUtil from './redisUtil';
-import util from './util';
-import { stringToBN } from './web3Util';
+import web3Util from './web3Util';
 
 class OrderUtil {
 	public getUserOrder(
@@ -34,17 +32,13 @@ class OrderUtil {
 		pair: string,
 		orderHash: string
 	): ILiveOrder {
-		const side = assetUtil.getSideFromSignedOrder(signedOrder, pair);
+		const side = web3Util.getSideFromSignedOrder(signedOrder, pair);
 		const isBid = side === CST.DB_BID;
 		return {
 			account: isBid ? signedOrder.makerAddress : signedOrder.takerAddress,
 			pair: pair,
 			orderHash: orderHash,
-			price: util.round(
-				stringToBN(isBid ? signedOrder.makerAssetAmount : signedOrder.takerAssetAmount)
-					.div(isBid ? signedOrder.takerAssetAmount : signedOrder.makerAssetAmount)
-					.valueOf()
-			),
+			price: web3Util.getPriceFromSignedOrder(signedOrder, side),
 			amount: Number(isBid ? signedOrder.makerAssetAmount : signedOrder.takerAssetAmount),
 			side: side,
 			initialSequence: 0,
@@ -110,16 +104,16 @@ class OrderUtil {
 			senderAddress: order.senderAddress,
 			makerAddress: order.makerAddress,
 			takerAddress: order.takerAddress,
-			makerFee: stringToBN(order.makerFee),
-			takerFee: stringToBN(order.takerFee),
-			makerAssetAmount: stringToBN(order.makerAssetAmount),
-			takerAssetAmount: stringToBN(order.takerAssetAmount),
+			makerFee: web3Util.stringToBN(order.makerFee),
+			takerFee: web3Util.stringToBN(order.takerFee),
+			makerAssetAmount: web3Util.stringToBN(order.makerAssetAmount),
+			takerAssetAmount: web3Util.stringToBN(order.takerAssetAmount),
 			makerAssetData: order.makerAssetData,
 			takerAssetData: order.takerAssetData,
-			salt: stringToBN(order.salt),
+			salt: web3Util.stringToBN(order.salt),
 			exchangeAddress: order.exchangeAddress,
 			feeRecipientAddress: order.feeRecipientAddress,
-			expirationTimeSeconds: stringToBN(order.expirationTimeSeconds)
+			expirationTimeSeconds: web3Util.stringToBN(order.expirationTimeSeconds)
 		};
 	}
 

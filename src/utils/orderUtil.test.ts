@@ -1,9 +1,8 @@
 import * as CST from '../common/constants';
-import assetUtil from './assetUtil';
 import dynamoUtil from './dynamoUtil';
 import orderUtil from './orderUtil';
 import redisUtil from './redisUtil';
-import { stringToBN } from './web3Util';
+import Web3Util from './web3Util';
 
 const signedOrder = {
 	senderAddress: 'senderAddress',
@@ -25,9 +24,9 @@ const signedOrder = {
 test('parseSignedOrder', () => expect(orderUtil.parseSignedOrder(signedOrder)).toMatchSnapshot());
 
 test('getNewLiveOrder', () => {
-	assetUtil.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
+	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
 	expect(orderUtil.getNewLiveOrder(signedOrder, 'pair', '0xOrderHash')).toMatchSnapshot();
-	assetUtil.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
+	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
 	expect(orderUtil.getNewLiveOrder(signedOrder, 'pair', '0xOrderHash')).toMatchSnapshot();
 });
 
@@ -54,16 +53,16 @@ const addOrderQueueItem = {
 			senderAddress: 'senderAddress',
 			makerAddress: 'makerAddress',
 			takerAddress: 'takerAddress',
-			makerFee: stringToBN('0'),
-			takerFee: stringToBN('0'),
-			makerAssetAmount: stringToBN('123'),
-			takerAssetAmount: stringToBN('456'),
+			makerFee: Web3Util.stringToBN('0'),
+			takerFee: Web3Util.stringToBN('0'),
+			makerAssetAmount: Web3Util.stringToBN('123'),
+			takerAssetAmount: Web3Util.stringToBN('456'),
 			makerAssetData: 'makerAssetData',
 			takerAssetData: 'takerAssetData',
-			salt: stringToBN('789'),
+			salt: Web3Util.stringToBN('789'),
 			exchangeAddress: 'exchangeAddress',
 			feeRecipientAddress: 'feeRecipientAddress',
-			expirationTimeSeconds: stringToBN('1234567890'),
+			expirationTimeSeconds: Web3Util.stringToBN('1234567890'),
 			signature: 'signature'
 		}
 	}

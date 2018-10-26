@@ -6,10 +6,10 @@ import {
 	IOrderBookUpdate,
 	IStringSignedOrder
 } from '../common/types';
-import assetUtil from './assetUtil';
 import dynamoUtil from './dynamoUtil';
 import orderBookUtil from './orderBookUtil';
 import redisUtil from './redisUtil';
+import Web3Util from './web3Util';
 
 class RelayerUtil {
 	public orderBookUpdateCache: { [key: string]: IOrderBookUpdate[] } = {};
@@ -81,7 +81,7 @@ class RelayerUtil {
 		orderHash: string,
 		signedOrder: IStringSignedOrder
 	): void {
-		const side = assetUtil.getSideFromSignedOrder(signedOrder, pair);
+		const side = Web3Util.getSideFromSignedOrder(signedOrder, pair);
 		redisUtil.push(
 			`${CST.DB_ORDERS}|${CST.DB_ADD}`,
 			JSON.stringify({
@@ -95,7 +95,7 @@ class RelayerUtil {
 
 		const orderBookUpdate: IOrderBookUpdate = {
 			pair: pair,
-			price: assetUtil.getPriceFromSignedOrder(signedOrder, side),
+			price: Web3Util.getPriceFromSignedOrder(signedOrder, side),
 			amount: Number(signedOrder.makerAssetAmount.valueOf()),
 			sequence: Number(sequence)
 		};

@@ -1,11 +1,8 @@
-import { assetDataUtils, BigNumber, SignedOrder } from '0x.js';
+import { BigNumber } from '0x.js';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import { TransactionReceiptWithDecodedLogs } from 'ethereum-types';
-import * as CST from '../common/constants';
-import { IOption, IStringSignedOrder } from '../common/types';
-import util from './util';
+import { IOption } from '../common/types';
 import Web3Util from './web3Util';
-import { stringToBN } from './web3Util';
 
 class AssetUtil {
 	private web3Util: Web3Util | null = null;
@@ -36,54 +33,10 @@ class AssetUtil {
 		}
 	}
 
-	public assetDataToTokenName(assetData: string): string {
-		const tokenAddr = assetDataUtils.decodeERC20AssetData(assetData).tokenAddress;
-		return CST.TOKEN_MAPPING[tokenAddr];
-	}
-
-	public getSideFromSignedOrder(order: SignedOrder | IStringSignedOrder, pair: string): string {
-		return this.assetDataToTokenName(order.takerAssetData) === pair.split('-')[0]
-			? CST.DB_BID
-			: CST.DB_ASK;
-	}
-
-	public getPriceFromSignedOrder(order: IStringSignedOrder, side: string): number {
-		if (![CST.DB_BID, CST.DB_ASK].includes(side)) throw new Error('wrong side specified');
-		return side === CST.DB_BID
-			? util.round(
-					stringToBN(order.takerAssetAmount)
-						.div(order.makerAssetAmount)
-						.valueOf()
-			)
-			: util.round(
-					stringToBN(order.makerAssetAmount)
-						.div(order.takerAssetAmount)
-						.valueOf()
-			);
-	}
-
-	public getTokenAddressFromName(tokenName: string): string {
-		if (!this.web3Util) return '';
-		switch (tokenName) {
-			case CST.TOKEN_ZRX:
-				return this.web3Util.contractWrappers.exchange.getZRXTokenAddress();
-			case CST.TOKEN_WETH:
-				const ethTokenAddr = this.web3Util.contractWrappers.etherToken.getContractAddressIfExists();
-				if (!ethTokenAddr) {
-					util.logInfo('no eth token address');
-					return '';
-				} else return ethTokenAddr;
-
-			default:
-				util.logInfo('no such token found');
-				return '';
-		}
-	}
-
 	public async setTokenAllowance(option: IOption): Promise<TransactionReceiptWithDecodedLogs> {
 		if (!this.web3Util) throw new Error('error');
 		const TxHash = await this.web3Util.contractWrappers.erc20Token.setAllowanceAsync(
-			this.getTokenAddressFromName(option.token),
+			this.web3Util.getTokenAddressFromName(option.token),
 			this.makers[option.maker],
 			option.spender
 				? this.makers[option.spender]
@@ -92,40 +45,6 @@ class AssetUtil {
 		);
 		return await this.web3Util.web3Wrapper.awaitTransactionSuccessAsync(TxHash);
 	}
-
-	public setAllUnlimitedAllowance(tokenAddr: string, addrs: string[]): Array<Promise<string>> {
-		return addrs.map(
-			address =>
-				this.web3Util
-					? this.web3Util.contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
-							tokenAddr,
-							address
-					)
-					: Promise.reject()
-		);
-	}
-
-	public async setBaseQuoteAllowance(
-		baseTokenAddr: string,
-		quoteTokenAddr: string,
-		addrs: string[]
-	): Promise<void> {
-		const responses = await Promise.all(
-			this.setAllUnlimitedAllowance(quoteTokenAddr, addrs).concat(
-				this.setAllUnlimitedAllowance(baseTokenAddr, addrs)
-			)
-		);
-		await Promise.all(
-			responses.map(
-				tx =>
-					this.web3Util
-						? this.web3Util.web3Wrapper.awaitTransactionSuccessAsync(tx)
-						: Promise.reject()
-			)
-		);
-	}
-
-	// TODO add from signedOrder to orderHash function
 }
 const assetUtil = new AssetUtil();
 export default assetUtil;
