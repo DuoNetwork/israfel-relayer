@@ -99,13 +99,15 @@ export interface IWsSequenceResponse extends IWsResponse {
 	sequence: number;
 }
 
-export interface IWsAddOrderRequest extends IWsRequest {
+export interface IWsOrderRequest extends IWsRequest {
 	pair: string;
+}
+
+export interface IWsAddOrderRequest extends IWsOrderRequest {
 	order: IStringSignedOrder;
 }
 
-export interface IWsCanceleOrderRequest extends IWsRequest {
-	pair: string;
+export interface IWsCanceleOrderRequest extends IWsOrderRequest {
 	orderHash: string;
 }
 

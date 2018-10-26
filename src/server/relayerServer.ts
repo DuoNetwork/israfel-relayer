@@ -8,6 +8,7 @@ import {
 	IStringSignedOrder,
 	IWsAddOrderRequest,
 	IWsCanceleOrderRequest,
+	IWsOrderRequest,
 	IWsOrderResponse,
 	IWsRequest,
 	IWsResponse,
@@ -33,7 +34,7 @@ class RelayerServer extends SequenceClient {
 		this.relayerWsServer = new WebSocket.Server({ port: 8080 });
 	}
 
-	public handleSequenceMessage(m: string) {
+	public async handleSequenceMessage(m: string) {
 		util.logDebug('received: ' + m);
 		const res: IWsResponse = JSON.parse(m);
 		if (res.channel !== CST.DB_SEQUENCE || res.status !== CST.WS_OK) return;
@@ -52,152 +53,178 @@ class RelayerServer extends SequenceClient {
 				queueItem.signedOrder as IStringSignedOrder
 			);
 			try {
-				queueItem.ws.send(
-					JSON.stringify({
-						method: CST.DB_ADD,
-						channel: `${CST.DB_ORDERS}| ${queueItem.pair}`,
-						status: CST.WS_OK,
-						orderHash: queueItem.orderHash,
-						message: ''
-					})
+				const userOrder = orderUtil.getUserOrder(
+					queueItem.liveOrder,
+					CST.DB_ADD,
+					CST.DB_CONFIRMED,
+					CST.DB_ORDER_PROCESSOR
 				);
+				await dynamoUtil.addUserOrder(userOrder);
+				const orderResponse: IWsOrderResponse = {
+					method: CST.DB_ADD,
+					channel: CST.DB_ORDERS,
+					status: CST.WS_OK,
+					pair: pair,
+					userOrder: userOrder
+				};
+				queueItem.ws.send(JSON.stringify(orderResponse));
 			} catch (error) {
 				util.logError(error);
 			}
 		} else if (queueItem.method === CST.DB_CANCEL) {
 			relayerUtil.handleCancel(sequence + '', queueItem.liveOrder as ILiveOrder);
 			try {
-				queueItem.ws.send(
-					JSON.stringify({
-						method: CST.DB_CANCEL,
-						channel: `${CST.DB_ORDERS}| ${queueItem.pair}`,
-						status: CST.WS_OK,
-						orderHash: queueItem.orderHash,
-						message: ''
-					})
+				const userOrder = orderUtil.getUserOrder(
+					queueItem.liveOrder,
+					CST.DB_CANCEL,
+					CST.DB_CONFIRMED,
+					CST.DB_ORDER_PROCESSOR
 				);
+				await dynamoUtil.addUserOrder(userOrder);
+				const orderResponse: IWsOrderResponse = {
+					method: CST.DB_CANCEL,
+					channel: CST.DB_ORDERS,
+					status: CST.WS_OK,
+					pair: pair,
+					userOrder: userOrder
+				};
+				queueItem.ws.send(JSON.stringify(orderResponse));
 			} catch (error) {
 				util.logError(error);
 			}
 		}
 	}
 
-	public async handleRelayerOrderMessage(ws: WebSocket, req: IWsRequest) {
-		if (!this.sequenceWsClient) {
-			const res: IWsResponse = {
-				status: CST.WS_SERVICE_NA,
+	public handleInvalidOrderRequest(ws: WebSocket, req: IWsOrderRequest) {
+		const orderResponse: IWsOrderResponse = {
+			method: req.method,
+			channel: req.channel,
+			status: CST.WS_INVALID_ORDER,
+			pair: req.pair
+		};
+		ws.send(JSON.stringify(orderResponse));
+	}
+
+	public async handleAddOrderRequest(ws: WebSocket, req: IWsAddOrderRequest) {
+		util.logDebug('add new order');
+		const signedOrder: SignedOrder = orderUtil.parseSignedOrder(req.order);
+		const pair = req.pair;
+		const { signature, ...order } = signedOrder;
+		const orderHash = orderHashUtils.getOrderHashHex(order);
+		if (this.web3Util && (await this.web3Util.validateOrder(signedOrder, orderHash))) {
+			const liveOrder = orderUtil.getLiveOrder(req.order, pair, orderHash);
+			if (!this.requestQueue[pair]) this.requestQueue[pair] = [];
+			this.requestQueue[pair].push({
+				ws: ws,
+				pair: pair,
+				method: req.method,
+				orderHash: orderHash,
+				liveOrder: liveOrder,
+				signedOrder: req.order
+			});
+			const userOrder = orderUtil.getUserOrder(
+				liveOrder,
+				CST.DB_ADD,
+				CST.DB_PENDING,
+				CST.DB_USER
+			);
+			await dynamoUtil.addUserOrder(userOrder);
+			const orderResponse: IWsOrderResponse = {
+				method: req.method,
 				channel: req.channel,
-				method: req.method
+				status: CST.WS_OK,
+				pair: pair,
+				userOrder: userOrder
 			};
-			ws.send(res);
-			return;
-		}
+			ws.send(JSON.stringify(orderResponse));
+		} else this.handleInvalidOrderRequest(ws, req);
+	}
 
-		if (req.method === CST.DB_ADD) {
-			util.logDebug('add new order');
-			const stringSignedOrder = (req as IWsAddOrderRequest).order;
-			const pair = (req as IWsAddOrderRequest).pair;
-			const signedOrder: SignedOrder = orderUtil.parseSignedOrder(stringSignedOrder);
-			const { signature, ...order } = signedOrder;
-			const orderHash = orderHashUtils.getOrderHashHex(order);
-			if (this.web3Util && (await this.web3Util.validateOrder(signedOrder, orderHash))) {
-				const requestSequence: IWsRequest = {
-					method: pair,
-					channel: CST.DB_SEQUENCE
-				};
-				this.sequenceWsClient.send(JSON.stringify(requestSequence));
-				const liveOrder = orderUtil.getLiveOrder(stringSignedOrder, pair, orderHash);
-				if (!this.requestQueue[pair]) this.requestQueue[pair] = [];
-				this.requestQueue[pair].push({
-					ws: ws,
-					pair: pair,
-					method: req.method,
-					orderHash: orderHash,
-					liveOrder: liveOrder,
-					signedOrder: stringSignedOrder
-				});
-				const userOrder = orderUtil.getUserOrder(
-					liveOrder,
-					CST.DB_ADD,
-					CST.DB_PENDING,
-					CST.DB_USER
+	public async handleCancelOrderRequest(ws: WebSocket, req: IWsCanceleOrderRequest) {
+		const { orderHash, pair } = req;
+		try {
+			const liveOrders = await dynamoUtil.getLiveOrders(pair, orderHash);
+			if (liveOrders.length < 1) {
+				ws.send(
+					JSON.stringify({
+						method: req.method,
+						channel: req.channel,
+						pair: pair,
+						status: CST.WS_INVALID_REQ,
+						orderHash: orderHash,
+						message: 'order does not exist'
+					})
 				);
-				await dynamoUtil.addUserOrder(userOrder);
-				const orderResponse: IWsOrderResponse = {
-					method: req.method,
-					channel: req.channel,
-					status: CST.WS_OK,
-					pair: pair,
-					userOrder: userOrder
-				};
-				ws.send(JSON.stringify(orderResponse));
-			} else {
-				const orderResponse: IWsOrderResponse = {
-					method: req.method,
-					channel: req.channel,
-					status: CST.WS_INVALID_ORDER,
-					pair: pair
-				};
-				ws.send(JSON.stringify(orderResponse));
+				return;
 			}
-		} else if (req.method === CST.DB_CANCEL) {
-			const { orderHash, pair } = req as IWsCanceleOrderRequest;
+
+			if (!this.requestQueue[pair]) this.requestQueue[pair] = [];
+			this.requestQueue[pair].push({
+				ws: ws,
+				pair: pair,
+				method: req.method,
+				orderHash: orderHash,
+				liveOrder: liveOrders[0]
+			});
+			const userOrder = orderUtil.getUserOrder(
+				liveOrders[0],
+				CST.DB_CANCEL,
+				CST.DB_PENDING,
+				CST.DB_USER
+			);
+			await dynamoUtil.addUserOrder(userOrder);
+
+			const orderResponse: IWsOrderResponse = {
+				method: req.method,
+				channel: req.channel,
+				status: CST.WS_OK,
+				pair: pair,
+				userOrder: userOrder
+			};
+			ws.send(JSON.stringify(orderResponse));
+		} catch (err) {
+			util.logError(err);
+			this.handleInvalidOrderRequest(ws, req);
+		}
+	}
+
+	public handleRelayerOrderMessage(ws: WebSocket, req: IWsRequest) {
+		const pair = (req as IWsOrderRequest).pair;
+		if (
+			![CST.DB_ADD, CST.DB_CANCEL].includes(req.method) ||
+			!CST.SUPPORTED_PAIRS.includes(pair)
+		) {
+			const orderResponse: IWsOrderResponse = {
+				status: CST.WS_INVALID_REQ,
+				channel: req.channel,
+				method: req.method,
+				pair: pair
+			};
 			try {
-				const liveOrders = await dynamoUtil.getLiveOrders(pair, orderHash);
-				if (liveOrders.length < 1) {
-					ws.send(
-						JSON.stringify({
-							method: req.method,
-							channel: req.channel,
-							pair: pair,
-							status: CST.WS_INVALID_REQ,
-							orderHash: orderHash,
-							message: 'order does not exist'
-						})
-					);
-					return;
-				}
-
-				const requestSequence: IWsRequest = {
-					method: pair,
-					channel: CST.DB_SEQUENCE
-				};
-				this.sequenceWsClient.send(JSON.stringify(requestSequence));
-				if (!this.requestQueue[pair]) this.requestQueue[pair] = [];
-				this.requestQueue[pair].push({
-					ws: ws,
-					pair: pair,
-					method: req.method,
-					orderHash: orderHash,
-					liveOrder: liveOrders[0]
-				});
-				const userOrder = orderUtil.getUserOrder(
-					liveOrders[0],
-					CST.DB_CANCEL,
-					CST.DB_PENDING,
-					CST.DB_USER
-				);
-				await dynamoUtil.addUserOrder(userOrder);
-
-				const orderResponse: IWsOrderResponse = {
-					method: req.method,
-					channel: req.channel,
-					status: CST.WS_OK,
-					pair: pair,
-					userOrder: userOrder
-				};
 				ws.send(JSON.stringify(orderResponse));
-			} catch (err) {
-				util.logError(err);
-				const orderResponse: IWsOrderResponse = {
-					method: req.method,
-					channel: req.channel,
-					status: CST.WS_INVALID_ORDER,
-					pair: pair
-				};
-				ws.send(JSON.stringify(orderResponse));
+			} catch (error) {
+				util.logDebug(error);
 			}
+
+			return Promise.resolve();
 		}
+
+		const sequenceResult = this.requestSequence(pair);
+		if (sequenceResult) {
+			const orderResponse: IWsOrderResponse = {
+				status: sequenceResult,
+				channel: req.channel,
+				method: req.method,
+				pair: pair
+			};
+			ws.send(orderResponse);
+			return Promise.resolve();
+		}
+
+		if (req.method === CST.DB_ADD)
+			return this.handleAddOrderRequest(ws, req as IWsAddOrderRequest);
+		// if (req.method === CST.DB_CANCEL)
+		else return this.handleCancelOrderRequest(ws, req as IWsCanceleOrderRequest);
 	}
 
 	public handleRelayerMessage(ws: WebSocket, m: string) {

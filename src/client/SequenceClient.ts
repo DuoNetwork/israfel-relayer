@@ -1,5 +1,6 @@
 import WebSocket from 'ws';
 import * as CST from '../common/constants';
+import { IWsRequest } from '../common/types';
 import util from '../utils/util';
 
 export default abstract class SequenceClient {
@@ -29,5 +30,16 @@ export default abstract class SequenceClient {
 			util.logError('connection closed ' + code + ' ' + reason);
 			this.reconnect(live);
 		});
+	}
+
+	public requestSequence(pair: string) {
+		if (!this.sequenceWsClient) return CST.WS_SERVICE_NA;
+
+		const requestSequence: IWsRequest = {
+			method: pair,
+			channel: CST.DB_SEQUENCE
+		};
+		this.sequenceWsClient.send(JSON.stringify(requestSequence));
+		return '';
 	}
 }
