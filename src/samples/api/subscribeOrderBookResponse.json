@@ -1,7 +1,7 @@
 [
 	{
-        "type": "snapshot",
-        "id": 12345,
+        "type": "orderBookSnapshot",
+        "sequence": 12345,
 		"channel": "orderBook|pair",
 		"bids": [
 			{ "price": "0.007", "amount": "400" },
@@ -34,7 +34,7 @@
 	},
 	{
         "type": "update",
-		"id": 12349,
+		"sequence": 12349,
 		"channel":"orderBook|pair",
 		"bids": [
 			{ "price": "0.007", "amount": "0" },

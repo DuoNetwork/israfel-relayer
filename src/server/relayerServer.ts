@@ -173,7 +173,7 @@ class RelayerServer extends SequenceClient {
 				});
 				const userOrder = orderUtil.getUserOrder(
 					liveOrders[0],
-					CST.DB_ADD,
+					CST.DB_CANCEL,
 					CST.DB_PENDING,
 					CST.DB_USER
 				);

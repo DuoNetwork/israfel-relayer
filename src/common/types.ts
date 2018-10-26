@@ -53,14 +53,11 @@ export interface ICancelOrderQueueItem {
 	account: string;
 }
 
-// export interface IOrderBookSnapshotWs extends IOrderBookSnapshot {
-// 	type: WsChannelResposnseTypes;
-// 	channel: {
-// 		name: string;
-// 		pair: string;
-// 	};
-// 	requestId: number;
-// }
+export interface IOrderBookSnapshotWs extends IOrderBookSnapshot {
+	type: string;
+	sequence: number;
+	channel: string;
+}
 
 export interface IOrderBookSnapshot {
 	sequence: number;

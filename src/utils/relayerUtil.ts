@@ -2,10 +2,9 @@ import { OrderState, OrderStateValid } from '0x.js';
 import * as CST from '../common/constants';
 import {
 	ILiveOrder,
-	// IOrderBookSnapshotWs,
+	IOrderBookSnapshotWs,
 	IOrderBookUpdate,
-	IStringSignedOrder
-	// WsChannelResposnseTypes
+	IStringSignedOrder,
 } from '../common/types';
 import assetUtil from './assetUtil';
 import dynamoUtil from './dynamoUtil';
@@ -65,11 +64,11 @@ class RelayerUtil {
 
 	public handleSubscribe(message: any): IOrderBookSnapshotWs {
 		console.log('Handle Message: ' + message.type);
+		const pair = message.channel.split('|')[1];
 		const returnMessage = {
-			type: WsChannelResposnseTypes.Snapshot,
-			sequence: orderBookUtil.orderBook[message.channel.pair].sequence,
-			channel: { name: message.channel.name, pair: message.channel.pair },
-			requestId: message.requestId,
+			type: CST.ORDERBOOK_SNAPSHOT,
+			sequence: orderBookUtil.orderBook[pair].sequence,
+			channel: message.channel,
 			bids: orderBookUtil.orderBook[message.channel.pair].bids,
 			asks: orderBookUtil.orderBook[message.channel.pair].asks
 		};
@@ -133,7 +132,6 @@ class RelayerUtil {
 	}
 
 	public async handleUpdateOrder(sequence: string, pair: string, orderState: OrderState) {
-		// TODO
 		const { orderHash, isValid } = orderState;
 
 		const liveOrders: ILiveOrder[] = await dynamoUtil.getLiveOrders(pair, orderHash);
