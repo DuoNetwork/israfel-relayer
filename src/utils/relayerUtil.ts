@@ -4,13 +4,12 @@ import {
 	ILiveOrder,
 	IOrderBookSnapshotWs,
 	IOrderBookUpdate,
-	IStringSignedOrder,
+	IStringSignedOrder
 } from '../common/types';
 import assetUtil from './assetUtil';
 import dynamoUtil from './dynamoUtil';
 import orderBookUtil from './orderBookUtil';
 import redisUtil from './redisUtil';
-import util from './util';
 
 class RelayerUtil {
 	public orderBookUpdateCache: { [key: string]: IOrderBookUpdate[] } = {};
@@ -96,12 +95,7 @@ class RelayerUtil {
 
 		const orderBookUpdate: IOrderBookUpdate = {
 			pair: pair,
-			price: util.round(
-				util
-					.stringToBN(signedOrder.makerAssetAmount)
-					.div(signedOrder.takerAssetAmount)
-					.valueOf()
-			),
+			price: assetUtil.getPriceFromSignedOrder(signedOrder, side),
 			amount: Number(signedOrder.makerAssetAmount.valueOf()),
 			sequence: Number(sequence)
 		};

@@ -5,6 +5,7 @@ import * as CST from '../common/constants';
 import { IOption, IStringSignedOrder } from '../common/types';
 import util from './util';
 import Web3Util from './web3Util';
+import { stringToBN } from './web3Util';
 
 class AssetUtil {
 	private web3Util: Web3Util | null = null;
@@ -44,6 +45,21 @@ class AssetUtil {
 		return this.assetDataToTokenName(order.takerAssetData) === pair.split('-')[0]
 			? CST.DB_BID
 			: CST.DB_ASK;
+	}
+
+	public getPriceFromSignedOrder(order: IStringSignedOrder, side: string): number {
+		if (![CST.DB_BID, CST.DB_ASK].includes(side)) throw new Error('wrong side specified');
+		return side === CST.DB_BID
+			? util.round(
+					stringToBN(order.takerAssetAmount)
+						.div(order.makerAssetAmount)
+						.valueOf()
+			)
+			: util.round(
+					stringToBN(order.makerAssetAmount)
+						.div(order.takerAssetAmount)
+						.valueOf()
+			);
 	}
 
 	public getTokenAddressFromName(tokenName: string): string {
