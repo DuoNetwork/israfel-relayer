@@ -17,7 +17,7 @@ import dynamoUtil from '../utils/dynamoUtil';
 import orderUtil from '../utils/orderUtil';
 import relayerUtil from '../utils/relayerUtil';
 import util from '../utils/util';
-import Web3Util from '../utils/web3Util';
+import Web3Util from '../utils/Web3Util1';
 
 class RelayerServer extends SequenceClient {
 	public web3Util: Web3Util | null = null;
