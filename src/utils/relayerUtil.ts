@@ -4,7 +4,7 @@ import {
 	ILiveOrder,
 	// IOrderBookSnapshotWs,
 	IOrderBookUpdate,
-	IStringSignedOrder,
+	IStringSignedOrder
 	// WsChannelResposnseTypes
 } from '../common/types';
 import assetUtil from './assetUtil';
@@ -162,7 +162,7 @@ class RelayerUtil {
 					? 0
 					: Number(
 							(orderState as OrderStateValid).orderRelevantState.remainingFillableMakerAssetAmount.valueOf()
-					  )
+					)
 			})
 		);
 		redisUtil.publish(CST.ORDERBOOK_UPDATE + '|' + pair, JSON.stringify(orderBookUpdate));

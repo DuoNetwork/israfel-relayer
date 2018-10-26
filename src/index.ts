@@ -1,4 +1,5 @@
 import * as CST from './common/constants';
+import { IOption } from './common/types';
 import orderWatcherServer from './server/orderWatcherServer';
 import relayerServer from './server/relayerServer';
 import sequenceServer from './server/sequenceServer';
@@ -12,7 +13,7 @@ import Web3Util from './utils/web3Util';
 
 const tool = process.argv[2];
 util.logInfo('tool ' + tool);
-const option = util.parseOptions(process.argv);
+const option: IOption = util.parseOptions(process.argv);
 if (option.debug) util.logLevel = CST.LOG_DEBUG;
 
 const redisConfig = require(`./keys/${option.live ? CST.DB_LIVE : CST.DB_DEV}/redis.json`);
@@ -28,7 +29,7 @@ switch (tool) {
 		assetsUtil.setTokenAllowance(option);
 		break;
 	case CST.DB_ORDER_WATCHER:
-		orderWatcherServer.init(tool, option);
+		orderWatcherServer.init(option.live);
 		orderWatcherServer.startOrderWatcher(option);
 		break;
 	case CST.DB_RELAYER:

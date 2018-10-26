@@ -23,7 +23,6 @@ class RelayerServer extends SequenceClient {
 	private web3Util: Web3Util | null = null;
 	// private live: boolean = false;
 	public relayerWsServer: WebSocket.Server | null = null;
-	public ip: string = '';
 	public requestQueue: { [pair: string]: IRelayerQueueItem[] } = {};
 
 	public init(web3Util: Web3Util, live: boolean) {
