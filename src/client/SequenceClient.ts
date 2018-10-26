@@ -39,7 +39,7 @@ export default abstract class SequenceClient {
 			method: pair,
 			channel: CST.DB_SEQUENCE
 		};
-		this.sequenceWsClient.send(JSON.stringify(requestSequence));
+		util.safeWsSend(this.sequenceWsClient, JSON.stringify(requestSequence));
 		return '';
 	}
 }

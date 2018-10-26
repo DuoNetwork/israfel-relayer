@@ -101,18 +101,16 @@ export interface IWsSequenceResponse extends IWsResponse {
 
 export interface IWsOrderRequest extends IWsRequest {
 	pair: string;
+	orderHash: string;
 }
 
 export interface IWsAddOrderRequest extends IWsOrderRequest {
 	order: IStringSignedOrder;
 }
 
-export interface IWsCanceleOrderRequest extends IWsOrderRequest {
-	orderHash: string;
-}
-
 export interface IWsOrderResponse extends IWsResponse {
 	pair: string;
+	orderHash: string;
 	userOrder?: IUserOrder;
 }
 

@@ -62,3 +62,14 @@ test('parseOptions', () => {
 	];
 	expect(util.parseOptions(command)).toMatchSnapshot();
 });
+
+test('safeWsSend', () => {
+	const ws = {
+		send: jest.fn()
+	};
+	expect(util.safeWsSend(ws as any, 'message')).toBeTruthy();
+	ws.send = jest.fn(() => {
+		throw new Error('error');
+	});
+	expect(util.safeWsSend(ws as any, 'message')).toBeFalsy();
+});

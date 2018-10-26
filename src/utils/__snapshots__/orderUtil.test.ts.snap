@@ -124,7 +124,7 @@ Array [
 ]
 `;
 
-exports[`getLiveOrder 1`] = `
+exports[`getNewLiveOrder 1`] = `
 Object {
   "account": "makerAddress",
   "amount": 123,
@@ -137,7 +137,7 @@ Object {
 }
 `;
 
-exports[`getLiveOrder 2`] = `
+exports[`getNewLiveOrder 2`] = `
 Object {
   "account": "takerAddress",
   "amount": 456,

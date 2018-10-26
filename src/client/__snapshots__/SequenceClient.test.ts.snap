@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`requestSequence 1`] = `"service not available"`;
+
+exports[`requestSequence 2`] = `""`;
+
+exports[`requestSequence 3`] = `
+Array [
+  Array [
+    "{\\"method\\":\\"pair\\",\\"channel\\":\\"sequence\\"}",
+  ],
+]
+`;

@@ -1,5 +1,5 @@
-import { BigNumber } from '0x.js';
 import moment from 'moment';
+import WebSocket from 'ws';
 import * as CST from '../common/constants';
 import { IOption } from '../common/types';
 
@@ -34,14 +34,6 @@ class Util {
 		for (const prop in obj) if (obj.hasOwnProperty(prop)) return false;
 
 		return true;
-	}
-
-	public getRandomFutureDateInSeconds() {
-		return new BigNumber(Date.now() + CST.TEN_MINUTES_MS).div(CST.ONE_SECOND_MS).ceil();
-	}
-
-	public stringToBN(value: string): BigNumber {
-		return new BigNumber(value);
 	}
 
 	public defaultOption: IOption = {
@@ -92,6 +84,15 @@ class Util {
 		return +(Math.floor((num + 'e+8') as any) + 'e-8');
 	}
 
+	public safeWsSend(ws: WebSocket, message: string) {
+		try {
+			ws.send(message);
+			return true;
+		} catch (error) {
+			this.logError(error);
+			return false;
+		}
+	}
 }
 
 const util = new Util();

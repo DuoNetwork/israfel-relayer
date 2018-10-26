@@ -24,12 +24,7 @@ class SequenceServer {
 			req.channel !== CST.DB_SEQUENCE ||
 			!CST.SUPPORTED_PAIRS.includes(req.method)
 		) {
-			try {
-				ws.send(JSON.stringify(res));
-			} catch (error) {
-				util.logDebug(error);
-			}
-
+			util.safeWsSend(ws, JSON.stringify(res));
 			return;
 		}
 
@@ -41,7 +36,7 @@ class SequenceServer {
 			sequence: ++this.sequence[pair]
 		};
 		redisUtil.set(`${CST.DB_SEQUENCE}|${pair}`, this.sequence[pair] + '');
-		ws.send(JSON.stringify(seqRes));
+		util.safeWsSend(ws, JSON.stringify(seqRes));
 	}
 
 	public async startServer() {
@@ -65,7 +60,7 @@ class SequenceServer {
 				ws.on('close', () => {
 					util.logInfo('connection close');
 					this.connectionCount = Math.max(this.connectionCount - 1, 0);
-				})
+				});
 			});
 	}
 }

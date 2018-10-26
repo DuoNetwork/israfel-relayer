@@ -12,6 +12,7 @@ import assetUtil from './assetUtil';
 import dynamoUtil from './dynamoUtil';
 import redisUtil from './redisUtil';
 import util from './util';
+import { stringToBN } from './web3Util';
 
 class OrderUtil {
 	public getUserOrder(
@@ -28,7 +29,7 @@ class OrderUtil {
 		};
 	}
 
-	public getLiveOrder(
+	public getNewLiveOrder(
 		signedOrder: IStringSignedOrder,
 		pair: string,
 		orderHash: string
@@ -40,8 +41,7 @@ class OrderUtil {
 			pair: pair,
 			orderHash: orderHash,
 			price: util.round(
-				util
-					.stringToBN(isBid ? signedOrder.makerAssetAmount : signedOrder.takerAssetAmount)
+				stringToBN(isBid ? signedOrder.makerAssetAmount : signedOrder.takerAssetAmount)
 					.div(isBid ? signedOrder.takerAssetAmount : signedOrder.makerAssetAmount)
 					.valueOf()
 			),
@@ -110,16 +110,16 @@ class OrderUtil {
 			senderAddress: order.senderAddress,
 			makerAddress: order.makerAddress,
 			takerAddress: order.takerAddress,
-			makerFee: util.stringToBN(order.makerFee),
-			takerFee: util.stringToBN(order.takerFee),
-			makerAssetAmount: util.stringToBN(order.makerAssetAmount),
-			takerAssetAmount: util.stringToBN(order.takerAssetAmount),
+			makerFee: stringToBN(order.makerFee),
+			takerFee: stringToBN(order.takerFee),
+			makerAssetAmount: stringToBN(order.makerAssetAmount),
+			takerAssetAmount: stringToBN(order.takerAssetAmount),
 			makerAssetData: order.makerAssetData,
 			takerAssetData: order.takerAssetData,
-			salt: util.stringToBN(order.salt),
+			salt: stringToBN(order.salt),
 			exchangeAddress: order.exchangeAddress,
 			feeRecipientAddress: order.feeRecipientAddress,
-			expirationTimeSeconds: util.stringToBN(order.expirationTimeSeconds)
+			expirationTimeSeconds: stringToBN(order.expirationTimeSeconds)
 		};
 	}
 
