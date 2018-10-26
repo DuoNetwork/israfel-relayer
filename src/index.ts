@@ -9,7 +9,7 @@ import orderUtil from './utils/orderUtil';
 import osUtil from './utils/osUtil';
 import redisUtil from './utils/redisUtil';
 import util from './utils/util';
-import Web3Util from './utils/Web3Util1';
+import Web3Util from './utils/Web3Util';
 
 const tool = process.argv[2];
 util.logInfo('tool ' + tool);

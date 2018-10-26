@@ -6,7 +6,7 @@ import dynamoUtil from '../utils/dynamoUtil';
 import orderUtil from '../utils/orderUtil';
 import relayerUtil from '../utils/relayerUtil';
 import util from '../utils/util';
-import Web3Util from '../utils/Web3Util1';
+import Web3Util from '../utils/Web3Util';
 
 class OrderWatcherServer extends SequenceClient {
 	public provider = new RPCSubprovider(CST.PROVIDER_LOCAL);

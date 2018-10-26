@@ -2,7 +2,7 @@ import { BigNumber } from '0x.js';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import { TransactionReceiptWithDecodedLogs } from 'ethereum-types';
 import { IOption } from '../common/types';
-import Web3Util from './Web3Util1';
+import Web3Util from './Web3Util';
 
 class AssetUtil {
 	private web3Util: Web3Util | null = null;

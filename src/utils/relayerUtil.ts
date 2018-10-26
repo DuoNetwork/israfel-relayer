@@ -9,7 +9,7 @@ import {
 import dynamoUtil from './dynamoUtil';
 import orderBookUtil from './orderBookUtil';
 import redisUtil from './redisUtil';
-import Web3Util from './Web3Util1';
+import Web3Util from './Web3Util';
 
 class RelayerUtil {
 	public orderBookUpdateCache: { [key: string]: IOrderBookUpdate[] } = {};

@@ -10,7 +10,7 @@ import {
 } from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import redisUtil from './redisUtil';
-import web3Util from './Web3Util1';
+import web3Util from './Web3Util';
 
 class OrderUtil {
 	public getUserOrder(

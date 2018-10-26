@@ -2,7 +2,7 @@ import * as CST from '../common/constants';
 import dynamoUtil from './dynamoUtil';
 import orderUtil from './orderUtil';
 import redisUtil from './redisUtil';
-import Web3Util from './Web3Util1';
+import Web3Util from './Web3Util';
 
 const signedOrder = {
 	senderAddress: 'senderAddress',
