@@ -1,4 +1,3 @@
-import { SignedOrder } from '0x.js';
 import WebSocket from 'ws';
 import SequenceClient from '../client/SequenceClient';
 import * as CST from '../common/constants';
@@ -119,10 +118,11 @@ class RelayerServer extends SequenceClient {
 
 	public async handleAddOrderRequest(ws: WebSocket, req: IWsAddOrderRequest) {
 		util.logDebug('add new order');
-		const signedOrder: SignedOrder = orderUtil.parseSignedOrder(req.order);
-		const pair = req.pair;
-		const orderHash = this.web3Util ? await this.web3Util.validateOrder(signedOrder) : '';
+		const orderHash = this.web3Util
+			? await this.web3Util.validateOrder(orderUtil.parseSignedOrder(req.order))
+			: '';
 		if (orderHash && orderHash === req.orderHash) {
+			const pair = req.pair;
 			const liveOrder = orderUtil.constructNewLiveOrder(req.order, pair, orderHash);
 			const cacheKey = this.getCacheKey(req);
 			this.requestCache[cacheKey] = {
@@ -136,7 +136,12 @@ class RelayerServer extends SequenceClient {
 			this.requestSequence(req.method, req.pair, req.orderHash);
 			this.handleUserOrder(
 				ws,
-				await orderUtil.addUserOrderToDB(liveOrder, CST.DB_ADD, CST.DB_PENDING, CST.DB_USER),
+				await orderUtil.addUserOrderToDB(
+					liveOrder,
+					CST.DB_ADD,
+					CST.DB_PENDING,
+					CST.DB_USER
+				),
 				CST.DB_ADD
 			);
 		} else this.handleInvalidOrderRequest(ws, req);
