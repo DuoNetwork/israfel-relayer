@@ -3,6 +3,74 @@ import dynamoUtil from '../utils/dynamoUtil';
 import orderUtil from '../utils/orderUtil';
 import relayerServer from './relayerServer';
 
+test('handleSequenceMessage invalid response', async () => {
+	expect(
+		await relayerServer.handleSequenceMessage(
+			JSON.stringify({
+				channel: 'channel',
+				status: CST.WS_OK
+			})
+		)
+	).toBeFalsy();
+	expect(
+		await relayerServer.handleSequenceMessage(
+			JSON.stringify({
+				channel: CST.DB_SEQUENCE,
+				status: 'status'
+			})
+		)
+	).toBeFalsy();
+	expect(
+		await relayerServer.handleSequenceMessage(
+			JSON.stringify({
+				channel: CST.DB_SEQUENCE,
+				status: 'status'
+			})
+		)
+	).toBeFalsy();
+	expect(
+		await relayerServer.handleSequenceMessage(
+			JSON.stringify({
+				channel: CST.DB_SEQUENCE,
+				status: CST.WS_OK
+			})
+		)
+	).toBeFalsy();
+	expect(
+		await relayerServer.handleSequenceMessage(
+			JSON.stringify({
+				channel: CST.DB_SEQUENCE,
+				status: CST.WS_OK,
+				sequence: 0
+			})
+		)
+	).toBeFalsy();
+	expect(
+		await relayerServer.handleSequenceMessage(
+			JSON.stringify({
+				channel: CST.DB_SEQUENCE,
+				status: CST.WS_OK,
+				sequence: 1
+			})
+		)
+	).toBeFalsy();
+	relayerServer.requestCache = {
+		'method|pair|orderHash': {}
+	} as any;
+	expect(
+		await relayerServer.handleSequenceMessage(
+			JSON.stringify({
+				channel: CST.DB_SEQUENCE,
+				status: CST.WS_OK,
+				sequence: 1,
+				method: 'method',
+				pair: ' pair',
+				orderHash: 'orderHash'
+			})
+		)
+	).toBeFalsy();
+});
+
 test('handleInvalidOrderRequest', () => {
 	const ws = {
 		send: jest.fn()
@@ -107,7 +175,7 @@ test('handleCancelOrderRequest invalid order', async () => {
 test('handleCancelOrderRequest', async () => {
 	relayerServer.handleInvalidOrderRequest = jest.fn();
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
-	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([{test: 'liveOrder'}]));
+	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([{ test: 'liveOrder' }]));
 	relayerServer.requestCache = {};
 	await relayerServer.handleCancelOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,

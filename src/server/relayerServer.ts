@@ -43,23 +43,31 @@ class RelayerServer extends SequenceClient {
 	public async handleSequenceMessage(m: string) {
 		util.logDebug('received: ' + m);
 		const res: IWsResponse = JSON.parse(m);
-		if (res.channel !== CST.DB_SEQUENCE || res.status !== CST.WS_OK) return;
+		if (res.channel !== CST.DB_SEQUENCE || res.status !== CST.WS_OK) return false;
 
 		const { sequence, method } = res as IWsOrderSequenceResponse;
+		if (!sequence)
+			return false;
 		const cacheKey = this.getCacheKey(res as IWsOrderSequenceResponse);
-		if (!this.requestCache[cacheKey]) return;
+		if (!this.requestCache[cacheKey]) return false;
 
 		const cacheItem = this.requestCache[cacheKey];
 		cacheItem.liveOrder.currentSequence = sequence;
-		// TODO handle failure and put back cache item;
 		delete this.requestCache[cacheKey];
 		if (method === CST.DB_ADD) {
-			cacheItem.liveOrder.initialSequence = sequence;
-			const orderQueueItem: INewOrderQueueItem = {
-				liveOrder: cacheItem.liveOrder,
-				signedOrder: cacheItem.signedOrder as IStringSignedOrder
-			};
-			redisUtil.push(`${CST.DB_ORDERS}|${CST.DB_ADD}`, JSON.stringify(orderQueueItem));
+			try {
+				cacheItem.liveOrder.initialSequence = sequence;
+				const orderQueueItem: INewOrderQueueItem = {
+					liveOrder: cacheItem.liveOrder,
+					signedOrder: cacheItem.signedOrder as IStringSignedOrder
+				};
+				redisUtil.push(`${CST.DB_ORDERS}|${CST.DB_ADD}`, JSON.stringify(orderQueueItem));
+			} catch (error) {
+				util.logError(error);
+				this.requestCache[cacheKey] = cacheItem;
+				return false;
+			}
+
 			try {
 				this.handleUserOrder(
 					cacheItem.ws,
@@ -70,12 +78,20 @@ class RelayerServer extends SequenceClient {
 				);
 			} catch (error) {
 				util.logError(error);
+				return false;
 			}
 		} else if (method === CST.DB_CANCEL) {
-			redisUtil.push(
-				`${CST.DB_ORDERS}|${CST.DB_CANCEL}`,
-				JSON.stringify(cacheItem.liveOrder)
-			);
+			try {
+				redisUtil.push(
+					`${CST.DB_ORDERS}|${CST.DB_CANCEL}`,
+					JSON.stringify(cacheItem.liveOrder)
+				);
+			} catch (error) {
+				util.logError(error);
+				this.requestCache[cacheKey] = cacheItem;
+				return false;
+			}
+
 			try {
 				this.handleUserOrder(
 					cacheItem.ws,
@@ -86,8 +102,12 @@ class RelayerServer extends SequenceClient {
 				);
 			} catch (error) {
 				util.logError(error);
+				return false;
 			}
-		}
+		} else
+			return false;
+
+		return true;
 	}
 
 	public handleInvalidOrderRequest(ws: WebSocket, req: IWsOrderRequest) {
