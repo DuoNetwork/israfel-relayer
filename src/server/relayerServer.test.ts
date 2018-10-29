@@ -77,7 +77,7 @@ test('handleAddOrderRequest', async () => {
 		validateOrder: jest.fn(() => '0xOrderHash')
 	} as any;
 	orderUtil.getNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' }));
-	relayerServer.requestQueue = {};
+	relayerServer.requestCache = {};
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
@@ -85,7 +85,7 @@ test('handleAddOrderRequest', async () => {
 		order: signedOrder,
 		orderHash: '0xOrderHash'
 	});
-	expect(relayerServer.requestQueue).toMatchSnapshot();
+	expect(relayerServer.requestCache).toMatchSnapshot();
 	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((relayerServer.handleInvalidOrderRequest as jest.Mock).mock.calls.length).toBe(0);
 });
@@ -108,14 +108,14 @@ test('handleCancelOrderRequest', async () => {
 	relayerServer.handleInvalidOrderRequest = jest.fn();
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([{test: 'liveOrder'}]));
-	relayerServer.requestQueue = {};
+	relayerServer.requestCache = {};
 	await relayerServer.handleCancelOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
 		pair: CST.SUPPORTED_PAIRS[0],
 		orderHash: '0xOrderHash'
 	});
-	expect(relayerServer.requestQueue).toMatchSnapshot();
+	expect(relayerServer.requestCache).toMatchSnapshot();
 	expect((relayerServer.handleInvalidOrderRequest as jest.Mock).mock.calls.length).toBe(0);
 	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });
@@ -201,22 +201,25 @@ test('handleRelayerMessage invalid requests', () => {
 	relayerServer.handleRelayerMessage(
 		ws as any,
 		JSON.stringify({
-			channel: '',
-			method: 'method'
-		})
-	);
-	relayerServer.handleRelayerMessage(
-		ws as any,
-		JSON.stringify({
-			channel: 'test',
-			method: 'method'
+			channel: 'channel',
+			method: 'method',
+			pair: CST.SUPPORTED_PAIRS[0]
 		})
 	);
 	relayerServer.handleRelayerMessage(
 		ws as any,
 		JSON.stringify({
 			channel: CST.DB_ORDERS,
-			method: ''
+			method: '',
+			pair: CST.SUPPORTED_PAIRS[0]
+		})
+	);
+	relayerServer.handleRelayerMessage(
+		ws as any,
+		JSON.stringify({
+			channel: CST.DB_ORDERS,
+			method: 'method',
+			pair: 'test'
 		})
 	);
 	expect((ws.send as jest.Mock).mock.calls).toMatchSnapshot();
@@ -229,7 +232,8 @@ test('handleRelayerMessage orders', () => {
 		ws as any,
 		JSON.stringify({
 			channel: CST.DB_ORDERS,
-			method: 'method'
+			method: 'method',
+			pair: CST.SUPPORTED_PAIRS[0]
 		})
 	);
 	expect((relayerServer.handleOrderRequest as jest.Mock).mock.calls).toMatchSnapshot();

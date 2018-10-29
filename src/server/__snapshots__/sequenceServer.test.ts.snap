@@ -3,7 +3,7 @@
 exports[`handleMessage 1`] = `
 Array [
   Array [
-    "{\\"channel\\":\\"sequence\\",\\"status\\":\\"ok\\",\\"method\\":\\"ZRX-WETH\\",\\"sequence\\":124}",
+    "{\\"channel\\":\\"sequence\\",\\"status\\":\\"ok\\",\\"method\\":\\"add\\",\\"pair\\":\\"ZRX-WETH\\",\\"orderHash\\":\\"0xOrderHash\\",\\"sequence\\":124}",
   ],
 ]
 `;
@@ -23,34 +23,19 @@ Object {
 }
 `;
 
-exports[`handleMessage invalid channel 1`] = `
+exports[`handleMessage invalid requests 1`] = `
 Array [
   Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"channel\\",\\"method\\":\\"pair\\"}",
+    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"channel\\",\\"method\\":\\"add\\",\\"pair\\":\\"ZRX-WETH\\",\\"orderHash\\":\\"0xOrderHash\\"}",
   ],
-]
-`;
-
-exports[`handleMessage invalid pair 1`] = `
-Array [
   Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"sequence\\",\\"method\\":\\"pair\\"}",
+    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"sequence\\",\\"method\\":\\"method\\",\\"pair\\":\\"ZRX-WETH\\",\\"orderHash\\":\\"0xOrderHash\\"}",
   ],
-]
-`;
-
-exports[`handleMessage no channel 1`] = `
-Array [
   Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"\\",\\"method\\":\\"method\\"}",
+    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"sequence\\",\\"method\\":\\"add\\",\\"pair\\":\\"pair\\",\\"orderHash\\":\\"0xOrderHash\\"}",
   ],
-]
-`;
-
-exports[`handleMessage no method 1`] = `
-Array [
   Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"channel\\",\\"method\\":\\"\\"}",
+    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"sequence\\",\\"method\\":\\"add\\",\\"pair\\":\\"ZRX-WETH\\",\\"orderHash\\":\\"\\"}",
   ],
 ]
 `;

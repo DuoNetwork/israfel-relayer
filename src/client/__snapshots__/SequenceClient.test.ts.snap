@@ -7,7 +7,7 @@ exports[`requestSequence 2`] = `""`;
 exports[`requestSequence 3`] = `
 Array [
   Array [
-    "{\\"method\\":\\"pair\\",\\"channel\\":\\"sequence\\"}",
+    "{\\"method\\":\\"method\\",\\"channel\\":\\"sequence\\",\\"pair\\":\\"pair\\",\\"orderHash\\":\\"0xOrderHash\\"}",
   ],
 ]
 `;

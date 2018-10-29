@@ -87,20 +87,17 @@ export interface IOrderBookUpdate {
 export interface IWsRequest {
 	method: string;
 	channel: string;
+	pair: string;
 }
 
 export interface IWsResponse {
 	status: string;
 	method: string;
 	channel: string;
-}
-
-export interface IWsSequenceResponse extends IWsResponse {
-	sequence: number;
+	pair: string;
 }
 
 export interface IWsOrderRequest extends IWsRequest {
-	pair: string;
 	orderHash: string;
 }
 
@@ -109,9 +106,15 @@ export interface IWsAddOrderRequest extends IWsOrderRequest {
 }
 
 export interface IWsOrderResponse extends IWsResponse {
-	pair: string;
 	orderHash: string;
-	userOrder?: IUserOrder;
+}
+
+export interface IWsUserOrderResponse extends IWsOrderResponse {
+	userOrder: IUserOrder;
+}
+
+export interface IWsOrderSequenceResponse extends IWsOrderResponse {
+	sequence: number;
 }
 
 export interface ISubscribeOrderBookRequest {
@@ -150,7 +153,7 @@ export interface IOption {
 	type: string;
 }
 
-export interface IRelayerQueueItem {
+export interface IRelayerCacheItem {
 	ws: WebSocket;
 	pair: string;
 	method: string;

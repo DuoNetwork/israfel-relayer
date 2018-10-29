@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
 import * as CST from '../common/constants';
-import { IWsRequest, IWsResponse, IWsSequenceResponse } from '../common/types';
+import { IWsOrderRequest, IWsOrderResponse, IWsOrderSequenceResponse } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import redisUtil from '../utils/redisUtil';
 import util from '../utils/util';
@@ -12,27 +12,31 @@ class SequenceServer {
 
 	public handleMessage(ws: WebSocket, m: string) {
 		util.logDebug('received: ' + m);
-		const req: IWsRequest = JSON.parse(m);
-		const res: IWsResponse = {
+		const req: IWsOrderRequest = JSON.parse(m);
+		const res: IWsOrderResponse = {
 			status: CST.WS_INVALID_REQ,
 			channel: req.channel || '',
-			method: req.method || ''
+			method: req.method || '',
+			pair: req.pair || '',
+			orderHash: req.orderHash || ''
 		};
 		if (
-			!req.channel ||
-			!req.method ||
 			req.channel !== CST.DB_SEQUENCE ||
-			!CST.SUPPORTED_PAIRS.includes(req.method)
+			![CST.DB_ADD, CST.DB_CANCEL, CST.DB_UPDATE].includes(req.method) ||
+			!CST.SUPPORTED_PAIRS.includes(req.pair) ||
+			!req.orderHash
 		) {
 			util.safeWsSend(ws, JSON.stringify(res));
 			return;
 		}
 
-		const pair = req.method;
-		const seqRes: IWsSequenceResponse = {
+		const pair = req.pair;
+		const seqRes: IWsOrderSequenceResponse = {
 			channel: CST.DB_SEQUENCE,
 			status: CST.WS_OK,
-			method: pair,
+			method: req.method,
+			pair: req.pair,
+			orderHash: req.orderHash,
 			sequence: ++this.sequence[pair]
 		};
 		redisUtil.set(`${CST.DB_SEQUENCE}|${pair}`, this.sequence[pair] + '');

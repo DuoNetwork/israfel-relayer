@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
 import * as CST from '../common/constants';
-import { IWsRequest } from '../common/types';
+import { IWsOrderRequest } from '../common/types';
 import util from '../utils/util';
 
 export default abstract class SequenceClient {
@@ -32,12 +32,14 @@ export default abstract class SequenceClient {
 		});
 	}
 
-	public requestSequence(pair: string) {
+	public requestSequence(method: string, pair: string, orderHash: string) {
 		if (!this.sequenceWsClient) return CST.WS_SERVICE_NA;
 
-		const requestSequence: IWsRequest = {
-			method: pair,
-			channel: CST.DB_SEQUENCE
+		const requestSequence: IWsOrderRequest = {
+			method: method,
+			channel: CST.DB_SEQUENCE,
+			pair: pair,
+			orderHash: orderHash
 		};
 		util.safeWsSend(this.sequenceWsClient, JSON.stringify(requestSequence));
 		return '';

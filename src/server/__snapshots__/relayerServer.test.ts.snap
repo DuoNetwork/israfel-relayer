@@ -2,33 +2,31 @@
 
 exports[`handleAddOrderRequest 1`] = `
 Object {
-  "ZRX-WETH": Array [
-    Object {
-      "liveOrder": Object {
-        "test": "liveOrder",
-      },
-      "method": "add",
-      "orderHash": "0xOrderHash",
-      "pair": "ZRX-WETH",
-      "signedOrder": Object {
-        "exchangeAddress": "exchangeAddress",
-        "expirationTimeSeconds": "1234567890",
-        "feeRecipientAddress": "feeRecipientAddress",
-        "makerAddress": "makerAddress",
-        "makerAssetAmount": "123",
-        "makerAssetData": "makerAssetData",
-        "makerFee": "0",
-        "salt": "789",
-        "senderAddress": "senderAddress",
-        "signature": "signature",
-        "takerAddress": "takerAddress",
-        "takerAssetAmount": "456",
-        "takerAssetData": "takerAssetData",
-        "takerFee": "0",
-      },
-      "ws": Object {},
+  "add|ZRX-WETH|0xOrderHash": Object {
+    "liveOrder": Object {
+      "test": "liveOrder",
     },
-  ],
+    "method": "add",
+    "orderHash": "0xOrderHash",
+    "pair": "ZRX-WETH",
+    "signedOrder": Object {
+      "exchangeAddress": "exchangeAddress",
+      "expirationTimeSeconds": "1234567890",
+      "feeRecipientAddress": "feeRecipientAddress",
+      "makerAddress": "makerAddress",
+      "makerAssetAmount": "123",
+      "makerAssetData": "makerAssetData",
+      "makerFee": "0",
+      "salt": "789",
+      "senderAddress": "senderAddress",
+      "signature": "signature",
+      "takerAddress": "takerAddress",
+      "takerAssetAmount": "456",
+      "takerAssetData": "takerAssetData",
+      "takerFee": "0",
+    },
+    "ws": Object {},
+  },
 }
 `;
 
@@ -103,17 +101,15 @@ Array [
 
 exports[`handleCancelOrderRequest 1`] = `
 Object {
-  "ZRX-WETH": Array [
-    Object {
-      "liveOrder": Object {
-        "test": "liveOrder",
-      },
-      "method": "cancel",
-      "orderHash": "0xOrderHash",
-      "pair": "ZRX-WETH",
-      "ws": Object {},
+  "add|ZRX-WETH|0xOrderHash": Object {
+    "liveOrder": Object {
+      "test": "liveOrder",
     },
-  ],
+    "method": "cancel",
+    "orderHash": "0xOrderHash",
+    "pair": "ZRX-WETH",
+    "ws": Object {},
+  },
 }
 `;
 
@@ -207,16 +203,16 @@ Array [
 exports[`handleRelayerMessage invalid requests 1`] = `
 Array [
   Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"\\",\\"method\\":\\"\\"}",
+    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"\\",\\"method\\":\\"\\",\\"pair\\":\\"\\"}",
   ],
   Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"\\",\\"method\\":\\"method\\"}",
+    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"channel\\",\\"method\\":\\"method\\",\\"pair\\":\\"ZRX-WETH\\"}",
   ],
   Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"test\\",\\"method\\":\\"method\\"}",
+    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"orders\\",\\"method\\":\\"\\",\\"pair\\":\\"ZRX-WETH\\"}",
   ],
   Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"orders\\",\\"method\\":\\"\\"}",
+    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"orders\\",\\"method\\":\\"method\\",\\"pair\\":\\"test\\"}",
   ],
 ]
 `;
@@ -228,6 +224,7 @@ Array [
     Object {
       "channel": "orders",
       "method": "method",
+      "pair": "ZRX-WETH",
     },
   ],
 ]
