@@ -1,10 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`requestSequence 1`] = `"service not available"`;
-
-exports[`requestSequence 2`] = `""`;
-
-exports[`requestSequence 3`] = `
+exports[`requestSequence 1`] = `
 Array [
   Array [
     "{\\"method\\":\\"method\\",\\"channel\\":\\"sequence\\",\\"pair\\":\\"pair\\",\\"orderHash\\":\\"0xOrderHash\\"}",

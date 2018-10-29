@@ -156,6 +156,7 @@ class RelayerServer extends SequenceClient {
 				liveOrder: liveOrder,
 				signedOrder: req.order
 			};
+			this.requestSequence(req.method, req.pair, req.orderHash)
 			await this.handleUserOrder(ws, liveOrder, CST.DB_ADD, CST.DB_PENDING, CST.DB_USER);
 		} else this.handleInvalidOrderRequest(ws, req);
 	}
@@ -175,6 +176,7 @@ class RelayerServer extends SequenceClient {
 				method: CST.DB_CANCEL,
 				liveOrder: liveOrders[0]
 			};
+			this.requestSequence(req.method, req.pair, req.orderHash);
 			await this.handleUserOrder(
 				ws,
 				liveOrders[0],
@@ -202,10 +204,9 @@ class RelayerServer extends SequenceClient {
 			return Promise.resolve();
 		}
 
-		const sequenceResult = this.requestSequence(req.method, req.pair, req.orderHash);
-		if (sequenceResult) {
+		if (!this.sequenceWsClient) {
 			const orderResponse: IWsOrderResponse = {
-				status: sequenceResult,
+				status: CST.WS_SERVICE_NA,
 				channel: req.channel,
 				method: req.method,
 				orderHash: req.orderHash,

@@ -32,6 +32,16 @@ Object {
 exports[`handleAddOrderRequest 2`] = `
 Array [
   Array [
+    "add",
+    "ZRX-WETH",
+    "0xOrderHash",
+  ],
+]
+`;
+
+exports[`handleAddOrderRequest 3`] = `
+Array [
+  Array [
     Object {},
     Object {
       "test": "liveOrder",
@@ -100,7 +110,7 @@ Array [
 
 exports[`handleCancelOrderRequest 1`] = `
 Object {
-  "add|ZRX-WETH|0xOrderHash": Object {
+  "cancel|ZRX-WETH|0xOrderHash": Object {
     "liveOrder": Object {
       "test": "liveOrder",
     },
@@ -112,6 +122,16 @@ Object {
 `;
 
 exports[`handleCancelOrderRequest 2`] = `
+Array [
+  Array [
+    "cancel",
+    "ZRX-WETH",
+    "0xOrderHash",
+  ],
+]
+`;
+
+exports[`handleCancelOrderRequest 3`] = `
 Array [
   Array [
     Object {},
@@ -131,7 +151,7 @@ Array [
     Object {},
     Object {
       "channel": "orders",
-      "method": "add",
+      "method": "cancel",
       "orderHash": "0xOrderHash",
       "pair": "ZRX-WETH",
     },

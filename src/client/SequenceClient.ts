@@ -33,15 +33,14 @@ export default abstract class SequenceClient {
 	}
 
 	public requestSequence(method: string, pair: string, orderHash: string) {
-		if (!this.sequenceWsClient) return CST.WS_SERVICE_NA;
-
-		const requestSequence: IWsOrderRequest = {
-			method: method,
-			channel: CST.DB_SEQUENCE,
-			pair: pair,
-			orderHash: orderHash
-		};
-		util.safeWsSend(this.sequenceWsClient, JSON.stringify(requestSequence));
-		return '';
+		if (this.sequenceWsClient) {
+			const requestSequence: IWsOrderRequest = {
+				method: method,
+				channel: CST.DB_SEQUENCE,
+				pair: pair,
+				orderHash: orderHash
+			};
+			util.safeWsSend(this.sequenceWsClient, JSON.stringify(requestSequence));
+		}
 	}
 }
