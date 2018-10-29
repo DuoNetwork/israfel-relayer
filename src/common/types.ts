@@ -154,7 +154,7 @@ export interface IRelayerCacheItem {
 	method: string;
 	liveOrder: ILiveOrder;
 	signedOrder?: IStringSignedOrder;
-	lastRetryTime: number;
+	timeout: NodeJS.Timeout
 }
 
 export interface IStatus {

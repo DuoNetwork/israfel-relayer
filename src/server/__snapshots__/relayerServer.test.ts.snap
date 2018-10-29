@@ -24,6 +24,7 @@ Object {
       "takerAssetData": "takerAssetData",
       "takerFee": "0",
     },
+    "timeout": 19,
     "ws": Object {},
   },
 }
@@ -44,11 +45,12 @@ Array [
   Array [
     Object {},
     Object {
+      "status": "pending",
       "test": "liveOrder",
+      "type": "add",
+      "updatedBy": "user",
     },
     "add",
-    "pending",
-    "user",
   ],
 ]
 `;
@@ -116,6 +118,7 @@ Object {
     },
     "method": "cancel",
     "pair": "ZRX-WETH",
+    "timeout": 24,
     "ws": Object {},
   },
 }
@@ -136,11 +139,12 @@ Array [
   Array [
     Object {},
     Object {
+      "status": "pending",
       "test": "liveOrder",
+      "type": "cancel",
+      "updatedBy": "user",
     },
     "cancel",
-    "pending",
-    "user",
   ],
 ]
 `;
@@ -256,10 +260,11 @@ Array [
       "currentSequence": 1,
       "initialSequence": 1,
       "orderHash": "orderHash",
+      "status": "confirmed",
+      "type": "add",
+      "updatedBy": "relayer",
     },
     "add",
-    "confirmed",
-    "relayer",
   ],
 ]
 `;
@@ -283,10 +288,11 @@ Array [
     Object {
       "currentSequence": 2,
       "orderHash": "orderHash",
+      "status": "confirmed",
+      "type": "cancel",
+      "updatedBy": "relayer",
     },
     "cancel",
-    "confirmed",
-    "relayer",
   ],
 ]
 `;
@@ -302,10 +308,10 @@ Object {
 }
 `;
 
-exports[`handleUserOrder 1`] = `
+exports[`respondToUserOrder 1`] = `
 Array [
   Array [
-    "{\\"method\\":\\"type\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"userOrder\\":{\\"test\\":\\"liveOrder\\",\\"type\\":\\"type\\",\\"status\\":\\"status\\",\\"updatedBy\\":\\"updatedBy\\"}}",
+    "{\\"method\\":\\"type\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"userOrder\\":{\\"test\\":\\"liveOrder\\"}}",
   ],
 ]
 `;

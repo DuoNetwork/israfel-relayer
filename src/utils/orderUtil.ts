@@ -9,10 +9,76 @@ import {
 } from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import redisUtil from './redisUtil';
+import util from './util';
 import web3Util from './Web3Util';
 
 class OrderUtil {
-	public getUserOrder(
+	public async handleUserOrder(
+		liveOrder: ILiveOrder,
+		type: string,
+		status: string,
+		updatedBy: string
+	) {
+		const userOrder = orderUtil.constructUserOrder(liveOrder, type, status, updatedBy);
+		try {
+			await dynamoUtil.addUserOrder(userOrder);
+		} catch (error) {
+			util.logError(error);
+		}
+
+		return userOrder;
+	}
+
+	public async getLiveOrderInPersistence(pair: string, orderHash: string) {
+		const redisLiveOrderString = await redisUtil.get(
+			`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderHash}`
+		);
+		if (redisLiveOrderString) {
+			const orderQueueItem: INewOrderQueueItem = JSON.parse(redisLiveOrderString);
+			return orderQueueItem.liveOrder;
+		}
+
+		const liveOrders = await dynamoUtil.getLiveOrders(pair, orderHash);
+		if (liveOrders.length < 1) return null;
+
+		return liveOrders[0];
+	}
+
+	public async addOrderToPersistence(orderQueueItem: INewOrderQueueItem) {
+		try {
+			const item = JSON.stringify(orderQueueItem);
+			redisUtil.push(`${CST.DB_ORDERS}|${CST.DB_ADD}`, item);
+			redisUtil.set(
+				`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderQueueItem.liveOrder.orderHash}`,
+				item
+			);
+		} catch (error) {
+			util.logError(error);
+			return null;
+		}
+
+		return this.handleUserOrder(
+			orderQueueItem.liveOrder,
+			CST.DB_ADD,
+			CST.DB_CONFIRMED,
+			CST.DB_RELAYER
+		);
+	}
+
+	public async cancelOrderInPersistence(liveOrder: ILiveOrder) {
+		try {
+			const item = JSON.stringify(liveOrder);
+			redisUtil.push(`${CST.DB_ORDERS}|${CST.DB_CANCEL}`, item);
+			redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_ADD}|${liveOrder.orderHash}`, item);
+		} catch (error) {
+			util.logError(error);
+			return null;
+		}
+
+		return this.handleUserOrder(liveOrder, CST.DB_CANCEL, CST.DB_CONFIRMED, CST.DB_RELAYER);
+	}
+
+	public constructUserOrder(
 		liveOrder: ILiveOrder,
 		type: string,
 		status: string,
@@ -26,7 +92,7 @@ class OrderUtil {
 		};
 	}
 
-	public getNewLiveOrder(
+	public constructNewLiveOrder(
 		signedOrder: IStringSignedOrder,
 		pair: string,
 		orderHash: string
@@ -57,7 +123,7 @@ class OrderUtil {
 				});
 				await dynamoUtil.addLiveOrder(orderQueueItem.liveOrder);
 				await dynamoUtil.addUserOrder(
-					this.getUserOrder(
+					this.constructUserOrder(
 						orderQueueItem.liveOrder,
 						CST.DB_ADD,
 						CST.DB_CONFIRMED,
@@ -83,7 +149,7 @@ class OrderUtil {
 				await dynamoUtil.deleteRawOrderSignature(liveOrder.orderHash);
 				await dynamoUtil.deleteLiveOrder(liveOrder);
 				await dynamoUtil.addUserOrder(
-					this.getUserOrder(
+					this.constructUserOrder(
 						liveOrder,
 						CST.DB_CANCEL,
 						CST.DB_CONFIRMED,

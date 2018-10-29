@@ -23,11 +23,11 @@ const signedOrder = {
 
 test('parseSignedOrder', () => expect(orderUtil.parseSignedOrder(signedOrder)).toMatchSnapshot());
 
-test('getNewLiveOrder', () => {
+test('constructNewLiveOrder', () => {
 	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
-	expect(orderUtil.getNewLiveOrder(signedOrder, 'pair', '0xOrderHash')).toMatchSnapshot();
+	expect(orderUtil.constructNewLiveOrder(signedOrder, 'pair', '0xOrderHash')).toMatchSnapshot();
 	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
-	expect(orderUtil.getNewLiveOrder(signedOrder, 'pair', '0xOrderHash')).toMatchSnapshot();
+	expect(orderUtil.constructNewLiveOrder(signedOrder, 'pair', '0xOrderHash')).toMatchSnapshot();
 });
 
 const liveOrder = {
@@ -41,8 +41,8 @@ const liveOrder = {
 	currentSequence: 2
 };
 
-test('getUserOrder', () => {
-	expect(orderUtil.getUserOrder(liveOrder, 'type', 'status', 'updatedBy'));
+test('constructUserOrder', () => {
+	expect(orderUtil.constructUserOrder(liveOrder, 'type', 'status', 'updatedBy'));
 });
 
 const addOrderQueueItem = {

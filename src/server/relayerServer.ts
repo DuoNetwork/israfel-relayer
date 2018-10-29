@@ -1,13 +1,12 @@
 import { SignedOrder } from '0x.js';
-import moment from 'moment';
 import WebSocket from 'ws';
 import SequenceClient from '../client/SequenceClient';
 import * as CST from '../common/constants';
 import {
-	ILiveOrder,
 	INewOrderQueueItem,
 	IRelayerCacheItem,
 	IStringSignedOrder,
+	IUserOrder,
 	IWsAddOrderRequest,
 	IWsOrderRequest,
 	IWsOrderResponse,
@@ -18,7 +17,6 @@ import {
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderUtil from '../utils/orderUtil';
-import redisUtil from '../utils/redisUtil';
 // import relayerUtil from '../utils/relayerUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
@@ -41,6 +39,11 @@ class RelayerServer extends SequenceClient {
 		this.relayerWsServer = new WebSocket.Server({ port: CST.RELAYER_PORT });
 	}
 
+	public handleTimeout(cacheKey: string) {
+		util.logError(cacheKey);
+		return;
+	}
+
 	public async handleSequenceMessage(m: string) {
 		util.logDebug('received: ' + m);
 		const res: IWsResponse = JSON.parse(m);
@@ -49,65 +52,46 @@ class RelayerServer extends SequenceClient {
 		const { sequence, method } = res as IWsOrderSequenceResponse;
 		const cacheKey = this.getCacheKey(res as IWsOrderSequenceResponse);
 		if (!this.requestCache[cacheKey]) return false;
-		this.requestCache[cacheKey].lastRetryTime = moment.utc().valueOf();
 		if (!sequence) return false;
 
 		const cacheItem = this.requestCache[cacheKey];
+		clearTimeout(cacheItem.timeout);
 		cacheItem.liveOrder.currentSequence = sequence;
 		delete this.requestCache[cacheKey];
 		if (method === CST.DB_ADD) {
-			try {
-				cacheItem.liveOrder.initialSequence = sequence;
-				const orderQueueItem: INewOrderQueueItem = {
-					liveOrder: cacheItem.liveOrder,
-					signedOrder: cacheItem.signedOrder as IStringSignedOrder
-				};
-				redisUtil.push(`${CST.DB_ORDERS}|${CST.DB_ADD}`, JSON.stringify(orderQueueItem));
-			} catch (error) {
-				util.logError(error);
-				this.requestCache[cacheKey] = cacheItem;
-				return false;
+			cacheItem.liveOrder.initialSequence = sequence;
+			const orderQueueItem: INewOrderQueueItem = {
+				liveOrder: cacheItem.liveOrder,
+				signedOrder: cacheItem.signedOrder as IStringSignedOrder
+			};
+			const userOrder = await orderUtil.addOrderToPersistence(orderQueueItem);
+			if (userOrder) {
+				try {
+					this.respondToUserOrder(cacheItem.ws, userOrder, CST.DB_ADD);
+				} catch (error) {
+					util.logError(error);
+				}
+
+				return true;
 			}
 
-			try {
-				this.handleUserOrder(
-					cacheItem.ws,
-					cacheItem.liveOrder,
-					CST.DB_ADD,
-					CST.DB_CONFIRMED,
-					CST.DB_RELAYER
-				);
-			} catch (error) {
-				util.logError(error);
-				return false;
-			}
+			this.requestCache[cacheKey] = cacheItem;
+			return false;
 		} else if (method === CST.DB_CANCEL) {
-			try {
-				redisUtil.push(
-					`${CST.DB_ORDERS}|${CST.DB_CANCEL}`,
-					JSON.stringify(cacheItem.liveOrder)
-				);
-			} catch (error) {
-				util.logError(error);
-				this.requestCache[cacheKey] = cacheItem;
-				return false;
+			const userOrder = await orderUtil.cancelOrderInPersistence(cacheItem.liveOrder);
+			if (userOrder) {
+				try {
+					this.respondToUserOrder(cacheItem.ws, userOrder, CST.DB_CANCEL);
+				} catch (error) {
+					util.logError(error);
+				}
+
+				return true;
 			}
 
-			try {
-				this.handleUserOrder(
-					cacheItem.ws,
-					cacheItem.liveOrder,
-					CST.DB_CANCEL,
-					CST.DB_CONFIRMED,
-					CST.DB_RELAYER
-				);
-			} catch (error) {
-				util.logError(error);
-				return false;
-			}
+			this.requestCache[cacheKey] = cacheItem;
+			return false;
 		} else return false;
-
-		return true;
 	}
 
 	public handleInvalidOrderRequest(ws: WebSocket, req: IWsOrderRequest) {
@@ -121,21 +105,13 @@ class RelayerServer extends SequenceClient {
 		util.safeWsSend(ws, JSON.stringify(orderResponse));
 	}
 
-	public async handleUserOrder(
-		ws: WebSocket,
-		liveOrder: ILiveOrder,
-		type: string,
-		status: string,
-		updatedBy: string
-	) {
-		const userOrder = orderUtil.getUserOrder(liveOrder, type, status, updatedBy);
-		await dynamoUtil.addUserOrder(userOrder);
+	public respondToUserOrder(ws: WebSocket, userOrder: IUserOrder, type: string) {
 		const orderResponse: IWsUserOrderResponse = {
 			method: type,
 			channel: CST.DB_ORDERS,
 			status: CST.WS_OK,
-			pair: liveOrder.pair,
-			orderHash: liveOrder.orderHash,
+			pair: userOrder.pair,
+			orderHash: userOrder.orderHash,
 			userOrder: userOrder
 		};
 		util.safeWsSend(ws, JSON.stringify(orderResponse));
@@ -147,7 +123,7 @@ class RelayerServer extends SequenceClient {
 		const pair = req.pair;
 		const orderHash = this.web3Util ? await this.web3Util.validateOrder(signedOrder) : '';
 		if (orderHash && orderHash === req.orderHash) {
-			const liveOrder = orderUtil.getNewLiveOrder(req.order, pair, orderHash);
+			const liveOrder = orderUtil.constructNewLiveOrder(req.order, pair, orderHash);
 			const cacheKey = this.getCacheKey(req);
 			this.requestCache[cacheKey] = {
 				ws: ws,
@@ -155,19 +131,22 @@ class RelayerServer extends SequenceClient {
 				method: CST.DB_ADD,
 				liveOrder: liveOrder,
 				signedOrder: req.order,
-				lastRetryTime: 0
+				timeout: setTimeout(() => this.handleTimeout(cacheKey), 30000)
 			};
 			this.requestSequence(req.method, req.pair, req.orderHash);
-			this.requestCache[cacheKey].lastRetryTime = moment.utc().valueOf();
-			await this.handleUserOrder(ws, liveOrder, CST.DB_ADD, CST.DB_PENDING, CST.DB_USER);
+			this.respondToUserOrder(
+				ws,
+				await orderUtil.handleUserOrder(liveOrder, CST.DB_ADD, CST.DB_PENDING, CST.DB_USER),
+				CST.DB_ADD
+			);
 		} else this.handleInvalidOrderRequest(ws, req);
 	}
 
 	public async handleCancelOrderRequest(ws: WebSocket, req: IWsOrderRequest) {
 		const { orderHash, pair } = req;
 		try {
-			const liveOrders = await dynamoUtil.getLiveOrders(pair, orderHash);
-			if (liveOrders.length < 1) {
+			const liveOrder = await orderUtil.getLiveOrderInPersistence(pair, orderHash);
+			if (!liveOrder) {
 				this.handleInvalidOrderRequest(ws, req);
 				return;
 			}
@@ -176,17 +155,19 @@ class RelayerServer extends SequenceClient {
 				ws: ws,
 				pair: pair,
 				method: CST.DB_CANCEL,
-				liveOrder: liveOrders[0],
-				lastRetryTime: 0
+				liveOrder: liveOrder,
+				timeout: setTimeout(() => this.handleTimeout(cacheKey), 30000)
 			};
 			this.requestSequence(req.method, req.pair, req.orderHash);
-			this.requestCache[cacheKey].lastRetryTime = moment.utc().valueOf();
-			await this.handleUserOrder(
+			this.respondToUserOrder(
 				ws,
-				liveOrders[0],
-				CST.DB_CANCEL,
-				CST.DB_PENDING,
-				CST.DB_USER
+				await orderUtil.handleUserOrder(
+					liveOrder,
+					CST.DB_CANCEL,
+					CST.DB_PENDING,
+					CST.DB_USER
+				),
+				CST.DB_CANCEL
 			);
 		} catch (err) {
 			util.logError(err);

@@ -130,7 +130,7 @@ class RelayerUtil {
 					? 0
 					: Number(
 							(orderState as OrderStateValid).orderRelevantState.remainingFillableMakerAssetAmount.valueOf()
-					  )
+					)
 			})
 		);
 		redisUtil.publish(CST.ORDERBOOK_UPDATE + '|' + pair, JSON.stringify(orderBookUpdate));
