@@ -75,11 +75,7 @@ class RelayerUtil {
 		return returnMessage;
 	}
 
-	public handleAddOrder(
-		sequence: string,
-		pair: string,
-		signedOrder: IStringSignedOrder
-	): void {
+	public handleAddOrder(sequence: string, pair: string, signedOrder: IStringSignedOrder): void {
 		const side = Web3Util.getSideFromSignedOrder(signedOrder, pair);
 		const orderBookUpdate: IOrderBookUpdate = {
 			pair: pair,
@@ -134,7 +130,7 @@ class RelayerUtil {
 					? 0
 					: Number(
 							(orderState as OrderStateValid).orderRelevantState.remainingFillableMakerAssetAmount.valueOf()
-					)
+					  )
 			})
 		);
 		redisUtil.publish(CST.ORDERBOOK_UPDATE + '|' + pair, JSON.stringify(orderBookUpdate));

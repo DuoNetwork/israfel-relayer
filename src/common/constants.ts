@@ -122,3 +122,5 @@ export const LOG_RANKING: { [level: string]: number } = {
 };
 
 export const PRICE_PRECISION = 8;
+
+export const RELAYER_PORT = 8080;

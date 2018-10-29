@@ -1,4 +1,5 @@
 import { SignedOrder } from '0x.js';
+import moment from 'moment';
 import WebSocket from 'ws';
 import SequenceClient from '../client/SequenceClient';
 import * as CST from '../common/constants';
@@ -37,7 +38,7 @@ class RelayerServer extends SequenceClient {
 		this.web3Util = web3Util;
 		this.connectToSequenceServer(live);
 		// relayerUtil.init();
-		this.relayerWsServer = new WebSocket.Server({ port: 8080 });
+		this.relayerWsServer = new WebSocket.Server({ port: CST.RELAYER_PORT });
 	}
 
 	public async handleSequenceMessage(m: string) {
@@ -46,10 +47,10 @@ class RelayerServer extends SequenceClient {
 		if (res.channel !== CST.DB_SEQUENCE || res.status !== CST.WS_OK) return false;
 
 		const { sequence, method } = res as IWsOrderSequenceResponse;
-		if (!sequence)
-			return false;
 		const cacheKey = this.getCacheKey(res as IWsOrderSequenceResponse);
 		if (!this.requestCache[cacheKey]) return false;
+		this.requestCache[cacheKey].lastRetryTime = moment.utc().valueOf();
+		if (!sequence) return false;
 
 		const cacheItem = this.requestCache[cacheKey];
 		cacheItem.liveOrder.currentSequence = sequence;
@@ -104,8 +105,7 @@ class RelayerServer extends SequenceClient {
 				util.logError(error);
 				return false;
 			}
-		} else
-			return false;
+		} else return false;
 
 		return true;
 	}
@@ -154,9 +154,11 @@ class RelayerServer extends SequenceClient {
 				pair: pair,
 				method: CST.DB_ADD,
 				liveOrder: liveOrder,
-				signedOrder: req.order
+				signedOrder: req.order,
+				lastRetryTime: 0
 			};
-			this.requestSequence(req.method, req.pair, req.orderHash)
+			this.requestSequence(req.method, req.pair, req.orderHash);
+			this.requestCache[cacheKey].lastRetryTime = moment.utc().valueOf();
 			await this.handleUserOrder(ws, liveOrder, CST.DB_ADD, CST.DB_PENDING, CST.DB_USER);
 		} else this.handleInvalidOrderRequest(ws, req);
 	}
@@ -174,9 +176,11 @@ class RelayerServer extends SequenceClient {
 				ws: ws,
 				pair: pair,
 				method: CST.DB_CANCEL,
-				liveOrder: liveOrders[0]
+				liveOrder: liveOrders[0],
+				lastRetryTime: 0
 			};
 			this.requestSequence(req.method, req.pair, req.orderHash);
+			this.requestCache[cacheKey].lastRetryTime = moment.utc().valueOf();
 			await this.handleUserOrder(
 				ws,
 				liveOrders[0],
