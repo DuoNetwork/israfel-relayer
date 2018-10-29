@@ -55,18 +55,57 @@ Array [
       "pair": "pair",
       "price": 0.123456789,
       "side": "bid",
-      "status": "confirmed",
-      "type": "add",
-      "updatedBy": "orderProcessor",
     },
+    "add",
+    "confirmed",
+    "orderProcessor",
   ],
 ]
 `;
 
-exports[`addOrderToDB no order 1`] = `
+exports[`addOrderToDB in queue but no key value 1`] = `
 Array [
   Array [
     "orders|add",
+  ],
+]
+`;
+
+exports[`addOrderToDB not in queue 1`] = `
+Array [
+  Array [
+    "orders|add",
+  ],
+]
+`;
+
+exports[`addOrderToPersistence 1`] = `
+Array [
+  Array [
+    "orders|add|0xOrderHash",
+    "{\\"liveOrder\\":{\\"orderHash\\":\\"0xOrderHash\\"}}",
+  ],
+]
+`;
+
+exports[`addOrderToPersistence 2`] = `
+Array [
+  Array [
+    "orders|add",
+    "0xOrderHash",
+  ],
+]
+`;
+
+exports[`addOrderToPersistence 3`] = `
+Array [
+  Array [
+    Object {
+      "orderHash": "0xOrderHash",
+    },
+    "add",
+    "confirmed",
+    "relayer",
   ],
 ]
 `;
@@ -108,18 +147,57 @@ Array [
       "pair": "pair",
       "price": 0.123456789,
       "side": "bid",
-      "status": "confirmed",
-      "type": "cancel",
-      "updatedBy": "orderProcessor",
     },
+    "cancel",
+    "confirmed",
+    "orderProcessor",
   ],
 ]
 `;
+
+exports[`cancelOrderInDB 4`] = `"orders|cancel|0xOrderHash"`;
 
 exports[`cancelOrderInDB no order 1`] = `
 Array [
   Array [
     "orders|cancel",
+  ],
+]
+`;
+
+exports[`cancelOrderInDB rawOrder failed 1`] = `"orders|cancel|0xOrderHash"`;
+
+exports[`cancelOrderInPersistence 1`] = `
+Array [
+  Array [
+    "orders|add|0xOrderHash",
+    "",
+  ],
+  Array [
+    "orders|cancel|0xOrderHash",
+    "0xOrderHash",
+  ],
+]
+`;
+
+exports[`cancelOrderInPersistence 2`] = `
+Array [
+  Array [
+    "orders|cancel",
+    "{\\"orderHash\\":\\"0xOrderHash\\"}",
+  ],
+]
+`;
+
+exports[`cancelOrderInPersistence 3`] = `
+Array [
+  Array [
+    Object {
+      "orderHash": "0xOrderHash",
+    },
+    "cancel",
+    "confirmed",
+    "relayer",
   ],
 ]
 `;
@@ -147,6 +225,14 @@ Object {
   "pair": "pair",
   "price": 3.70731707,
   "side": "ask",
+}
+`;
+
+exports[`getLiveOrderInPersistence in add queue 1`] = `"test"`;
+
+exports[`getLiveOrderInPersistence only in db 1`] = `
+Object {
+  "liveOrder": "test",
 }
 `;
 

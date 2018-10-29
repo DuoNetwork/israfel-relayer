@@ -30,16 +30,16 @@ class OrderUtil {
 	}
 
 	public async getLiveOrderInPersistence(pair: string, orderHash: string) {
+		const cancelQueueString = await redisUtil.get(
+			`${CST.DB_ORDERS}|${CST.DB_CANCEL}|${orderHash}`
+		);
+		if (cancelQueueString) return null;
+
 		const addQueueString = await redisUtil.get(`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderHash}`);
 		if (addQueueString) {
 			const orderQueueItem: INewOrderQueueItem = JSON.parse(addQueueString);
 			return orderQueueItem.liveOrder;
 		}
-
-		const cancelQueueString = await redisUtil.get(
-			`${CST.DB_ORDERS}|${CST.DB_CANCEL}|${orderHash}`
-		);
-		if (cancelQueueString) return null;
 
 		const liveOrders = await dynamoUtil.getLiveOrders(pair, orderHash);
 		if (liveOrders.length < 1) return null;
@@ -49,10 +49,9 @@ class OrderUtil {
 
 	public async addOrderToPersistence(orderQueueItem: INewOrderQueueItem) {
 		try {
-			const item = JSON.stringify(orderQueueItem);
-			redisUtil.set(
+			await redisUtil.set(
 				`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderQueueItem.liveOrder.orderHash}`,
-				item
+				JSON.stringify(orderQueueItem)
 			);
 			redisUtil.push(`${CST.DB_ORDERS}|${CST.DB_ADD}`, orderQueueItem.liveOrder.orderHash);
 		} catch (error) {
@@ -70,8 +69,8 @@ class OrderUtil {
 
 	public async cancelOrderInPersistence(liveOrder: ILiveOrder) {
 		try {
-			redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_ADD}|${liveOrder.orderHash}`, '');
-			redisUtil.set(
+			await redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_ADD}|${liveOrder.orderHash}`, '');
+			await redisUtil.set(
 				`${CST.DB_ORDERS}|${CST.DB_CANCEL}|${liveOrder.orderHash}`,
 				liveOrder.orderHash
 			);
@@ -132,9 +131,9 @@ class OrderUtil {
 					});
 					await dynamoUtil.addLiveOrder(orderQueueItem.liveOrder);
 
-					redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderHash}`, '');
+					await redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderHash}`, '');
 				} catch (err) {
-					redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderHash}`, orderInRedis);
+					await redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderHash}`, orderInRedis);
 					redisUtil.putBack(`${CST.DB_ORDERS}|${CST.DB_ADD}`, orderHash);
 					return false;
 				}
@@ -160,9 +159,9 @@ class OrderUtil {
 				await dynamoUtil.deleteRawOrderSignature(liveOrder.orderHash);
 				await dynamoUtil.deleteLiveOrder(liveOrder);
 
-				redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_CANCEL}|${liveOrder.orderHash}`, '');
+				await redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_CANCEL}|${liveOrder.orderHash}`, '');
 			} catch (err) {
-				redisUtil.set(
+				await redisUtil.set(
 					`${CST.DB_ORDERS}|${CST.DB_CANCEL}|${liveOrder.orderHash}`,
 					liveOrder.orderHash
 				);
