@@ -81,7 +81,9 @@ test('addOrderToDB no order', async () => {
 });
 
 test('addOrderToDB', async () => {
-	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(addOrderQueueItem)));
+	redisUtil.pop = jest.fn(() => Promise.resolve('0xorderHash'));
+	redisUtil.get = jest.fn(() => Promise.resolve(JSON.stringify(addOrderQueueItem)));
+	redisUtil.set = jest.fn();
 	redisUtil.putBack = jest.fn();
 	dynamoUtil.addRawOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.addLiveOrder = jest.fn(() => Promise.resolve());
@@ -95,8 +97,10 @@ test('addOrderToDB', async () => {
 });
 
 test('addOrderToDB rawOrder failed', async () => {
-	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(addOrderQueueItem)));
+	redisUtil.pop = jest.fn(() => Promise.resolve('0xorderHash'));
+	redisUtil.get = jest.fn(() => JSON.stringify(addOrderQueueItem))
 	redisUtil.putBack = jest.fn();
+	redisUtil.set = jest.fn();
 	dynamoUtil.addRawOrder = jest.fn(() => Promise.reject());
 	dynamoUtil.addLiveOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.addUserOrder = jest.fn(() => Promise.resolve());
@@ -108,14 +112,16 @@ test('addOrderToDB rawOrder failed', async () => {
 		(redisUtil.pop as jest.Mock<Promise<boolean>>).mock.calls[0][0]
 	);
 	expect((redisUtil.putBack as jest.Mock<Promise<boolean>>).mock.calls[0][1]).toEqual(
-		JSON.stringify(addOrderQueueItem)
+		'0xorderHash'
 	);
 	expect(isSuccess).toEqual(false);
 });
 
 test('addOrderToDB liveOrder failed', async () => {
-	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(addOrderQueueItem)));
+	redisUtil.pop = jest.fn(() => Promise.resolve('0xorderHash'));
+	redisUtil.get = jest.fn(() => Promise.resolve(JSON.stringify(addOrderQueueItem)));
 	redisUtil.putBack = jest.fn();
+	redisUtil.set = jest.fn();
 	dynamoUtil.addRawOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.addLiveOrder = jest.fn(() => Promise.reject());
 	dynamoUtil.addUserOrder = jest.fn(() => Promise.resolve());
@@ -125,7 +131,9 @@ test('addOrderToDB liveOrder failed', async () => {
 });
 
 test('addOrderToDB userOrder failed', async () => {
-	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(addOrderQueueItem)));
+	redisUtil.pop = jest.fn(() => Promise.resolve(''));
+	redisUtil.get = jest.fn(() => Promise.resolve(JSON.stringify(addOrderQueueItem)));
+	redisUtil.set = jest.fn();
 	redisUtil.putBack = jest.fn();
 	dynamoUtil.addRawOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.addLiveOrder = jest.fn(() => Promise.resolve());
@@ -200,8 +208,9 @@ test('cancelOrderInDB liveOrder failed', async () => {
 });
 
 test('cancelOrderInDB userOrder failed', async () => {
-	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(liveOrder)));
+	redisUtil.pop = jest.fn(() => Promise.resolve());
 	redisUtil.putBack = jest.fn();
+	redisUtil.set = jest.fn();
 	dynamoUtil.deleteRawOrderSignature = jest.fn(() => Promise.resolve());
 	dynamoUtil.deleteLiveOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.addUserOrder = jest.fn(() => Promise.reject());

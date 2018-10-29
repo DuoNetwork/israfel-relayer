@@ -1,9 +1,10 @@
 import { SignedOrder } from '0x.js';
 import * as CST from '../common/constants';
-import { ILiveOrder } from '../common/types';
+import { ILiveOrder, IRawOrder } from '../common/types';
 import assetsUtil from '../utils/assetUtil';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderbookUtil from '../utils/orderBookUtil';
+import orderUtil from '../utils/orderUtil';
 
 class OrderMatcher {
 	public async scanToMatchOrder(
@@ -17,33 +18,35 @@ class OrderMatcher {
 					newOrder.takerAssetAmount.div(newOrder.makerAssetAmount).lessThan(order.price)
 				) {
 					console.log('### there is profit!');
-					const askToMatch = await dynamoUtil.getRawOrder(order.orderHash);
+					const askToMatch: IRawOrder | null = await dynamoUtil.getRawOrder(
+						order.orderHash
+					);
 					console.log('#### look for askToMatch!', askToMatch);
-					if (
-						askToMatch &&
-						askToMatch.signedOrder.takerAssetAmount.equals(newOrder.makerAssetAmount)
-					) {
-						console.log('>>>>>>>>>>>>>>>>>>>>> start matching orders ');
-						const txHash = await assetsUtil.contractWrappers.exchange.matchOrdersAsync(
-							askToMatch.signedOrder,
-							newOrder,
-							assetsUtil.taker
+
+					if (askToMatch) {
+						const signedOrder: SignedOrder = orderUtil.parseSignedOrder(
+							askToMatch.signedOrder
 						);
-						console.log('matched txhash is ', txHash);
-						console.log('matched old order ', order.orderHash);
-						break;
-					} else if (
-						askToMatch &&
-						askToMatch.signedOrder.makerAssetAmount.equals(newOrder.takerAssetAmount)
-					) {
-						const txHash = await assetsUtil.contractWrappers.exchange.matchOrdersAsync(
-							newOrder,
-							askToMatch.signedOrder,
-							assetsUtil.taker
-						);
-						console.log('matched txhash is ', txHash);
-						console.log('matched old order ', order.orderHash);
-						break;
+						if (signedOrder.takerAssetAmount.equals(newOrder.makerAssetAmount)) {
+							console.log('>>>>>>>>>>>>>>>>>>>>> start matching orders ');
+							const txHash = await assetsUtil.contractWrappers.exchange.matchOrdersAsync(
+								signedOrder,
+								newOrder,
+								assetsUtil.taker
+							);
+							console.log('matched txhash is ', txHash);
+							console.log('matched old order ', order.orderHash);
+							break;
+						} else if (signedOrder.makerAssetAmount.equals(newOrder.takerAssetAmount)) {
+							const txHash = await assetsUtil.contractWrappers.exchange.matchOrdersAsync(
+								newOrder,
+								signedOrder,
+								assetsUtil.taker
+							);
+							console.log('matched txhash is ', txHash);
+							console.log('matched old order ', order.orderHash);
+							break;
+						}
 					}
 				}
 	}

@@ -30,17 +30,16 @@ class OrderUtil {
 	}
 
 	public async getLiveOrderInPersistence(pair: string, orderHash: string) {
-		const addQueueString = await redisUtil.get(
-			`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderHash}`
-		);
+		const addQueueString = await redisUtil.get(`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderHash}`);
 		if (addQueueString) {
 			const orderQueueItem: INewOrderQueueItem = JSON.parse(addQueueString);
 			return orderQueueItem.liveOrder;
 		}
 
-		const cancelQueueString = await redisUtil.get(`${CST.DB_ORDERS}|${CST.DB_CANCEL}|${orderHash}`);
-		if (cancelQueueString)
-			return null;
+		const cancelQueueString = await redisUtil.get(
+			`${CST.DB_ORDERS}|${CST.DB_CANCEL}|${orderHash}`
+		);
+		if (cancelQueueString) return null;
 
 		const liveOrders = await dynamoUtil.getLiveOrders(pair, orderHash);
 		if (liveOrders.length < 1) return null;
@@ -51,11 +50,11 @@ class OrderUtil {
 	public async addOrderToPersistence(orderQueueItem: INewOrderQueueItem) {
 		try {
 			const item = JSON.stringify(orderQueueItem);
-			redisUtil.push(`${CST.DB_ORDERS}|${CST.DB_ADD}`, item);
 			redisUtil.set(
 				`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderQueueItem.liveOrder.orderHash}`,
 				item
 			);
+			redisUtil.push(`${CST.DB_ORDERS}|${CST.DB_ADD}`, orderQueueItem.liveOrder.orderHash);
 		} catch (error) {
 			util.logError(error);
 			return null;
@@ -71,9 +70,12 @@ class OrderUtil {
 
 	public async cancelOrderInPersistence(liveOrder: ILiveOrder) {
 		try {
-			const item = JSON.stringify(liveOrder);
-			redisUtil.push(`${CST.DB_ORDERS}|${CST.DB_CANCEL}`, item);
-			redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_ADD}|${liveOrder.orderHash}`, item);
+			redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_ADD}|${liveOrder.orderHash}`, '');
+			redisUtil.set(
+				`${CST.DB_ORDERS}|${CST.DB_CANCEL}|${liveOrder.orderHash}`,
+				liveOrder.orderHash
+			);
+			redisUtil.push(`${CST.DB_ORDERS}|${CST.DB_CANCEL}`, JSON.stringify(liveOrder));
 		} catch (error) {
 			util.logError(error);
 			return null;
@@ -116,30 +118,36 @@ class OrderUtil {
 	}
 
 	public async addOrderToDB() {
-		const res = await redisUtil.pop(`${CST.DB_ORDERS}|${CST.DB_ADD}`);
+		const orderHash = await redisUtil.pop(`${CST.DB_ORDERS}|${CST.DB_ADD}`);
 
-		if (res) {
-			const orderQueueItem: INewOrderQueueItem = JSON.parse(res);
-			try {
-				await dynamoUtil.addRawOrder({
-					orderHash: orderQueueItem.liveOrder.orderHash,
-					signedOrder: orderQueueItem.signedOrder
-				});
-				await dynamoUtil.addLiveOrder(orderQueueItem.liveOrder);
-				await dynamoUtil.addUserOrder(
-					this.constructUserOrder(
-						orderQueueItem.liveOrder,
-						CST.DB_ADD,
-						CST.DB_CONFIRMED,
-						CST.DB_ORDER_PROCESSOR
-					)
+		if (orderHash) {
+			const orderInRedis = await redisUtil.get(`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderHash}`);
+
+			if (orderInRedis) {
+				const orderQueueItem: INewOrderQueueItem = JSON.parse(orderInRedis);
+				try {
+					await dynamoUtil.addRawOrder({
+						orderHash: orderQueueItem.liveOrder.orderHash,
+						signedOrder: orderQueueItem.signedOrder
+					});
+					await dynamoUtil.addLiveOrder(orderQueueItem.liveOrder);
+
+					redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderHash}`, '');
+				} catch (err) {
+					redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderHash}`, orderInRedis);
+					redisUtil.putBack(`${CST.DB_ORDERS}|${CST.DB_ADD}`, orderHash);
+					return false;
+				}
+
+				await this.addUserOrderToDB(
+					orderQueueItem.liveOrder,
+					CST.DB_ADD,
+					CST.DB_CONFIRMED,
+					CST.DB_ORDER_PROCESSOR
 				);
-			} catch (err) {
-				redisUtil.putBack(`${CST.DB_ORDERS}|${CST.DB_ADD}`, res);
-				return false;
-			}
 
-			return true;
+				return true;
+			} else return true;
 		}
 		return false;
 	}
@@ -148,22 +156,27 @@ class OrderUtil {
 		const res = await redisUtil.pop(`${CST.DB_ORDERS}|${CST.DB_CANCEL}`);
 		if (res) {
 			const liveOrder: ILiveOrder = JSON.parse(res);
-			// attention: needs to ensure atomicity of insertion
 			try {
 				await dynamoUtil.deleteRawOrderSignature(liveOrder.orderHash);
 				await dynamoUtil.deleteLiveOrder(liveOrder);
-				await dynamoUtil.addUserOrder(
-					this.constructUserOrder(
-						liveOrder,
-						CST.DB_CANCEL,
-						CST.DB_CONFIRMED,
-						CST.DB_ORDER_PROCESSOR
-					)
-				);
+
+				redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_CANCEL}|${liveOrder.orderHash}`, '');
 			} catch (err) {
+				redisUtil.set(
+					`${CST.DB_ORDERS}|${CST.DB_CANCEL}|${liveOrder.orderHash}`,
+					liveOrder.orderHash
+				);
 				redisUtil.putBack(`${CST.DB_ORDERS}|${CST.DB_CANCEL}`, res);
+
 				return false;
 			}
+
+			await this.addUserOrderToDB(
+				liveOrder,
+				CST.DB_CANCEL,
+				CST.DB_CONFIRMED,
+				CST.DB_ORDER_PROCESSOR
+			);
 
 			return true;
 		}

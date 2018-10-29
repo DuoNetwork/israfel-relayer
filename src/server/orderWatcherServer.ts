@@ -1,7 +1,13 @@
 import { OrderState, OrderWatcher, RPCSubprovider } from '0x.js';
 import SequenceClient from '../client/SequenceClient';
 import * as CST from '../common/constants';
-import { ILiveOrder, IOption, IRawOrder, IWsRequest, IWsResponse, IWsSequenceResponse } from '../common/types';
+import {
+	ILiveOrder,
+	IOption,
+	IRawOrder,
+	IWsOrderSequenceResponse,
+	IWsResponse
+} from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderUtil from '../utils/orderUtil';
 import relayerUtil from '../utils/relayerUtil';
@@ -66,11 +72,7 @@ class OrderWatcherServer extends SequenceClient {
 				console.log(Date.now().toString(), orderState);
 				if (orderState !== undefined) {
 					if (!this.sequenceWsClient) throw new Error('sequence service is unavailable');
-					const requestSequence: IWsRequest = {
-						method: pair,
-						channel: CST.DB_SEQUENCE
-					};
-					this.sequenceWsClient.send(JSON.stringify(requestSequence));
+					this.requestSequence(CST.DB_UPDATE, pair, orderState.orderHash);
 					this.requestQueue[pair].push(orderState);
 				}
 			});
@@ -78,22 +80,18 @@ class OrderWatcherServer extends SequenceClient {
 	}
 
 	public handleSequenceMessage(m: string) {
-		util.logDebug('received: ' + m);
 		const res: IWsResponse = JSON.parse(m);
 		if (res.channel !== CST.DB_SEQUENCE || res.status !== CST.WS_OK) return;
 
-		const { sequence, method } = res as IWsSequenceResponse;
+		const { sequence, method } = res as IWsOrderSequenceResponse;
+
 		const pair = method;
 		if (!this.requestQueue[pair] || !this.requestQueue[pair].length) return;
 
 		const queueItem = this.requestQueue[pair].pop();
 		if (!queueItem) return;
 
-		relayerUtil.handleUpdateOrder(
-			sequence + '',
-			pair,
-			queueItem
-		);
+		relayerUtil.handleUpdateOrder(sequence + '', pair, queueItem);
 	}
 
 	//remove orders remaining invalid for 24 hours from DB
