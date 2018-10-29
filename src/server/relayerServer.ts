@@ -67,7 +67,7 @@ class RelayerServer extends SequenceClient {
 			const userOrder = await orderUtil.addOrderToPersistence(orderQueueItem);
 			if (userOrder) {
 				try {
-					this.respondToUserOrder(cacheItem.ws, userOrder, CST.DB_ADD);
+					this.handleUserOrder(cacheItem.ws, userOrder, CST.DB_ADD);
 				} catch (error) {
 					util.logError(error);
 				}
@@ -81,7 +81,7 @@ class RelayerServer extends SequenceClient {
 			const userOrder = await orderUtil.cancelOrderInPersistence(cacheItem.liveOrder);
 			if (userOrder) {
 				try {
-					this.respondToUserOrder(cacheItem.ws, userOrder, CST.DB_CANCEL);
+					this.handleUserOrder(cacheItem.ws, userOrder, CST.DB_CANCEL);
 				} catch (error) {
 					util.logError(error);
 				}
@@ -105,7 +105,7 @@ class RelayerServer extends SequenceClient {
 		util.safeWsSend(ws, JSON.stringify(orderResponse));
 	}
 
-	public respondToUserOrder(ws: WebSocket, userOrder: IUserOrder, type: string) {
+	public handleUserOrder(ws: WebSocket, userOrder: IUserOrder, type: string) {
 		const orderResponse: IWsUserOrderResponse = {
 			method: type,
 			channel: CST.DB_ORDERS,
@@ -134,9 +134,9 @@ class RelayerServer extends SequenceClient {
 				timeout: setTimeout(() => this.handleTimeout(cacheKey), 30000)
 			};
 			this.requestSequence(req.method, req.pair, req.orderHash);
-			this.respondToUserOrder(
+			this.handleUserOrder(
 				ws,
-				await orderUtil.handleUserOrder(liveOrder, CST.DB_ADD, CST.DB_PENDING, CST.DB_USER),
+				await orderUtil.addUserOrderToDB(liveOrder, CST.DB_ADD, CST.DB_PENDING, CST.DB_USER),
 				CST.DB_ADD
 			);
 		} else this.handleInvalidOrderRequest(ws, req);
@@ -159,9 +159,9 @@ class RelayerServer extends SequenceClient {
 				timeout: setTimeout(() => this.handleTimeout(cacheKey), 30000)
 			};
 			this.requestSequence(req.method, req.pair, req.orderHash);
-			this.respondToUserOrder(
+			this.handleUserOrder(
 				ws,
-				await orderUtil.handleUserOrder(
+				await orderUtil.addUserOrderToDB(
 					liveOrder,
 					CST.DB_CANCEL,
 					CST.DB_PENDING,

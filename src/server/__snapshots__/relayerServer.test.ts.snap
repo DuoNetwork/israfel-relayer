@@ -308,7 +308,7 @@ Object {
 }
 `;
 
-exports[`respondToUserOrder 1`] = `
+exports[`handleUserOrder 1`] = `
 Array [
   Array [
     "{\\"method\\":\\"type\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"userOrder\\":{\\"test\\":\\"liveOrder\\"}}",

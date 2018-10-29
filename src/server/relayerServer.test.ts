@@ -17,12 +17,12 @@ test('handleInvalidOrderRequest', () => {
 	expect((ws.send as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('respondToUserOrder', async () => {
+test('handleUserOrder', async () => {
 	const ws = {
 		send: jest.fn()
 	};
 	dynamoUtil.addUserOrder = jest.fn(() => Promise.resolve());
-	await relayerServer.respondToUserOrder(
+	await relayerServer.handleUserOrder(
 		ws as any,
 		{ test: 'liveOrder' } as any,
 		'type'
@@ -111,7 +111,7 @@ test('handleSequenceMessage add', async () => {
 		}
 	} as any;
 	redisUtil.push = jest.fn();
-	relayerServer.respondToUserOrder = jest.fn(() => Promise.resolve());
+	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	expect(
 		await relayerServer.handleSequenceMessage(
 			JSON.stringify({
@@ -125,7 +125,7 @@ test('handleSequenceMessage add', async () => {
 		)
 	).toBeTruthy();
 	expect(relayerServer.requestCache).toEqual({});
-	expect((relayerServer.respondToUserOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleSequenceMessage add failed', async () => {
@@ -139,7 +139,7 @@ test('handleSequenceMessage add failed', async () => {
 	redisUtil.push = jest.fn(() => {
 		throw new Error('test');
 	});
-	relayerServer.respondToUserOrder = jest.fn(() => Promise.resolve());
+	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	expect(
 		await relayerServer.handleSequenceMessage(
 			JSON.stringify({
@@ -153,7 +153,7 @@ test('handleSequenceMessage add failed', async () => {
 		)
 	).toBeFalsy();
 	expect(relayerServer.requestCache).toMatchSnapshot();
-	expect((relayerServer.respondToUserOrder as jest.Mock).mock.calls.length).toBe(0);
+	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls.length).toBe(0);
 });
 
 test('handleSequenceMessage cancel', async () => {
@@ -165,7 +165,7 @@ test('handleSequenceMessage cancel', async () => {
 		}
 	} as any;
 	redisUtil.push = jest.fn();
-	relayerServer.respondToUserOrder = jest.fn(() => Promise.resolve());
+	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	expect(
 		await relayerServer.handleSequenceMessage(
 			JSON.stringify({
@@ -179,7 +179,7 @@ test('handleSequenceMessage cancel', async () => {
 		)
 	).toBeTruthy();
 	expect(relayerServer.requestCache).toEqual({});
-	expect((relayerServer.respondToUserOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleSequenceMessage cancel failed', async () => {
@@ -193,7 +193,7 @@ test('handleSequenceMessage cancel failed', async () => {
 	redisUtil.push = jest.fn(() => {
 		throw new Error('test');
 	});
-	relayerServer.respondToUserOrder = jest.fn(() => Promise.resolve());
+	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	expect(
 		await relayerServer.handleSequenceMessage(
 			JSON.stringify({
@@ -207,7 +207,7 @@ test('handleSequenceMessage cancel failed', async () => {
 		)
 	).toBeFalsy();
 	expect(relayerServer.requestCache).toMatchSnapshot();
-	expect((relayerServer.respondToUserOrder as jest.Mock).mock.calls.length).toBe(0);
+	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls.length).toBe(0);
 });
 
 const signedOrder = {
@@ -229,7 +229,7 @@ const signedOrder = {
 
 test('handleAddOrderRequest invalid order', async () => {
 	relayerServer.handleInvalidOrderRequest = jest.fn();
-	relayerServer.respondToUserOrder = jest.fn(() => Promise.resolve());
+	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
@@ -249,13 +249,13 @@ test('handleAddOrderRequest invalid order', async () => {
 		orderHash: '0xInvalidHash'
 	});
 	expect((relayerServer.requestSequence as jest.Mock).mock.calls.length).toBe(0);
-	expect((relayerServer.respondToUserOrder as jest.Mock).mock.calls.length).toBe(0);
+	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls.length).toBe(0);
 	expect((relayerServer.handleInvalidOrderRequest as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleAddOrderRequest', async () => {
 	relayerServer.handleInvalidOrderRequest = jest.fn();
-	relayerServer.respondToUserOrder = jest.fn(() => Promise.resolve());
+	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	relayerServer.web3Util = {
 		validateOrder: jest.fn(() => '0xOrderHash')
 	} as any;
@@ -271,13 +271,13 @@ test('handleAddOrderRequest', async () => {
 	});
 	expect(relayerServer.requestCache).toMatchSnapshot();
 	expect((relayerServer.requestSequence as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((relayerServer.respondToUserOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((relayerServer.handleInvalidOrderRequest as jest.Mock).mock.calls.length).toBe(0);
 });
 
 test('handleCancelOrderRequest invalid order', async () => {
 	relayerServer.handleInvalidOrderRequest = jest.fn();
-	relayerServer.respondToUserOrder = jest.fn(() => Promise.resolve());
+	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([]));
 	relayerServer.requestSequence = jest.fn();
 	await relayerServer.handleCancelOrderRequest({} as any, {
@@ -287,13 +287,13 @@ test('handleCancelOrderRequest invalid order', async () => {
 		orderHash: '0xOrderHash'
 	});
 	expect((relayerServer.requestSequence as jest.Mock).mock.calls.length).toBe(0);
-	expect((relayerServer.respondToUserOrder as jest.Mock).mock.calls.length).toBe(0);
+	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls.length).toBe(0);
 	expect((relayerServer.handleInvalidOrderRequest as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleCancelOrderRequest', async () => {
 	relayerServer.handleInvalidOrderRequest = jest.fn();
-	relayerServer.respondToUserOrder = jest.fn(() => Promise.resolve());
+	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([{ test: 'liveOrder' }]));
 	relayerServer.requestSequence = jest.fn();
 	relayerServer.requestCache = {};
@@ -306,7 +306,7 @@ test('handleCancelOrderRequest', async () => {
 	expect(relayerServer.requestCache).toMatchSnapshot();
 	expect((relayerServer.requestSequence as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((relayerServer.handleInvalidOrderRequest as jest.Mock).mock.calls.length).toBe(0);
-	expect((relayerServer.respondToUserOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleOrderRequest invalid requests', async () => {

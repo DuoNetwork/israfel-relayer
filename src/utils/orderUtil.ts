@@ -13,7 +13,7 @@ import util from './util';
 import web3Util from './Web3Util';
 
 class OrderUtil {
-	public async handleUserOrder(
+	public async addUserOrderToDB(
 		liveOrder: ILiveOrder,
 		type: string,
 		status: string,
@@ -57,7 +57,7 @@ class OrderUtil {
 			return null;
 		}
 
-		return this.handleUserOrder(
+		return this.addUserOrderToDB(
 			orderQueueItem.liveOrder,
 			CST.DB_ADD,
 			CST.DB_CONFIRMED,
@@ -75,7 +75,7 @@ class OrderUtil {
 			return null;
 		}
 
-		return this.handleUserOrder(liveOrder, CST.DB_CANCEL, CST.DB_CONFIRMED, CST.DB_RELAYER);
+		return this.addUserOrderToDB(liveOrder, CST.DB_CANCEL, CST.DB_CONFIRMED, CST.DB_RELAYER);
 	}
 
 	public constructUserOrder(
