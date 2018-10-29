@@ -1,7 +1,6 @@
 import { SignedOrder } from '0x.js';
 import * as CST from '../common/constants';
 import {
-	ICancelOrderQueueItem,
 	ILiveOrder,
 	INewOrderQueueItem,
 	IOption,
@@ -52,7 +51,10 @@ class OrderUtil {
 		if (res) {
 			const orderQueueItem: INewOrderQueueItem = JSON.parse(res);
 			try {
-				await dynamoUtil.addRawOrder(orderQueueItem.rawOrder);
+				await dynamoUtil.addRawOrder({
+					orderHash: orderQueueItem.liveOrder.orderHash,
+					signedOrder: orderQueueItem.signedOrder
+				});
 				await dynamoUtil.addLiveOrder(orderQueueItem.liveOrder);
 				await dynamoUtil.addUserOrder(
 					this.getUserOrder(
@@ -75,14 +77,14 @@ class OrderUtil {
 	public async cancelOrderInDB() {
 		const res = await redisUtil.pop(`${CST.DB_ORDERS}|${CST.DB_CANCEL}`);
 		if (res) {
-			const orderQueueItem: ICancelOrderQueueItem = JSON.parse(res);
+			const liveOrder: ILiveOrder = JSON.parse(res);
 			// attention: needs to ensure atomicity of insertion
 			try {
-				await dynamoUtil.deleteRawOrderSignature(orderQueueItem.liveOrder.orderHash);
-				await dynamoUtil.deleteLiveOrder(orderQueueItem.liveOrder);
+				await dynamoUtil.deleteRawOrderSignature(liveOrder.orderHash);
+				await dynamoUtil.deleteLiveOrder(liveOrder);
 				await dynamoUtil.addUserOrder(
 					this.getUserOrder(
-						orderQueueItem.liveOrder,
+						liveOrder,
 						CST.DB_CANCEL,
 						CST.DB_CONFIRMED,
 						CST.DB_ORDER_PROCESSOR

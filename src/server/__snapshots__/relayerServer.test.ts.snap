@@ -7,7 +7,6 @@ Object {
       "test": "liveOrder",
     },
     "method": "add",
-    "orderHash": "0xOrderHash",
     "pair": "ZRX-WETH",
     "signedOrder": Object {
       "exchangeAddress": "exchangeAddress",
@@ -106,7 +105,6 @@ Object {
       "test": "liveOrder",
     },
     "method": "cancel",
-    "orderHash": "0xOrderHash",
     "pair": "ZRX-WETH",
     "ws": Object {},
   },

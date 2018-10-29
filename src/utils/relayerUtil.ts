@@ -78,21 +78,9 @@ class RelayerUtil {
 	public handleAddOrder(
 		sequence: string,
 		pair: string,
-		orderHash: string,
 		signedOrder: IStringSignedOrder
 	): void {
 		const side = Web3Util.getSideFromSignedOrder(signedOrder, pair);
-		redisUtil.push(
-			`${CST.DB_ORDERS}|${CST.DB_ADD}`,
-			JSON.stringify({
-				sequence,
-				signedOrder,
-				orderHash,
-				pair,
-				side
-			})
-		);
-
 		const orderBookUpdate: IOrderBookUpdate = {
 			pair: pair,
 			price: Web3Util.getPriceFromSignedOrder(signedOrder, side),
@@ -104,14 +92,6 @@ class RelayerUtil {
 	}
 
 	public handleCancel(sequence: string, liveOrder: ILiveOrder): void {
-		redisUtil.push(
-			`${CST.DB_ORDERS}|${CST.DB_CANCEL}`,
-			JSON.stringify({
-				sequence,
-				liveOrder
-			})
-		);
-
 		const orderBookUpdate: IOrderBookUpdate = {
 			pair: liveOrder.pair,
 			price: liveOrder.price,

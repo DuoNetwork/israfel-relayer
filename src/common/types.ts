@@ -45,12 +45,7 @@ export interface IStringSignedOrder {
 
 export interface INewOrderQueueItem {
 	liveOrder: ILiveOrder;
-	rawOrder: IRawOrder;
-}
-
-export interface ICancelOrderQueueItem {
-	liveOrder: ILiveOrder;
-	account: string;
+	signedOrder: IStringSignedOrder;
 }
 
 export interface IOrderBookSnapshotWs extends IOrderBookSnapshot {
@@ -157,7 +152,6 @@ export interface IRelayerCacheItem {
 	ws: WebSocket;
 	pair: string;
 	method: string;
-	orderHash: string;
 	liveOrder: ILiveOrder;
 	signedOrder?: IStringSignedOrder;
 }

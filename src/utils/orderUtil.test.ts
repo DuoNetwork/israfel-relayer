@@ -47,24 +47,21 @@ test('getUserOrder', () => {
 
 const addOrderQueueItem = {
 	liveOrder: liveOrder,
-	rawOrder: {
-		orderHash: '0xOrderHash',
-		signedOrder: {
-			senderAddress: 'senderAddress',
-			makerAddress: 'makerAddress',
-			takerAddress: 'takerAddress',
-			makerFee: Web3Util.stringToBN('0'),
-			takerFee: Web3Util.stringToBN('0'),
-			makerAssetAmount: Web3Util.stringToBN('123'),
-			takerAssetAmount: Web3Util.stringToBN('456'),
-			makerAssetData: 'makerAssetData',
-			takerAssetData: 'takerAssetData',
-			salt: Web3Util.stringToBN('789'),
-			exchangeAddress: 'exchangeAddress',
-			feeRecipientAddress: 'feeRecipientAddress',
-			expirationTimeSeconds: Web3Util.stringToBN('1234567890'),
-			signature: 'signature'
-		}
+	signedOrder: {
+		senderAddress: 'senderAddress',
+		makerAddress: 'makerAddress',
+		takerAddress: 'takerAddress',
+		makerFee: Web3Util.stringToBN('0'),
+		takerFee: Web3Util.stringToBN('0'),
+		makerAssetAmount: Web3Util.stringToBN('123'),
+		takerAssetAmount: Web3Util.stringToBN('456'),
+		makerAssetData: 'makerAssetData',
+		takerAssetData: 'takerAssetData',
+		salt: Web3Util.stringToBN('789'),
+		exchangeAddress: 'exchangeAddress',
+		feeRecipientAddress: 'feeRecipientAddress',
+		expirationTimeSeconds: Web3Util.stringToBN('1234567890'),
+		signature: 'signature'
 	}
 };
 
@@ -137,11 +134,6 @@ test('addOrderToDB userOrder failed', async () => {
 	expect(isSuccess).toEqual(false);
 });
 
-const cancelOrderQueueItem = {
-	liveOrder: liveOrder,
-	account: '0xAccount'
-};
-
 test('cancelOrderInDB no order', async () => {
 	redisUtil.pop = jest.fn(() => Promise.resolve(''));
 	redisUtil.putBack = jest.fn();
@@ -160,7 +152,7 @@ test('cancelOrderInDB no order', async () => {
 });
 
 test('cancelOrderInDB', async () => {
-	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(cancelOrderQueueItem)));
+	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(liveOrder)));
 	redisUtil.putBack = jest.fn();
 	dynamoUtil.deleteRawOrderSignature = jest.fn(() => Promise.resolve());
 	dynamoUtil.deleteLiveOrder = jest.fn(() => Promise.resolve());
@@ -178,7 +170,7 @@ test('cancelOrderInDB', async () => {
 });
 
 test('cancelOrderInDB rawOrder failed', async () => {
-	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(cancelOrderQueueItem)));
+	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(liveOrder)));
 	redisUtil.putBack = jest.fn();
 	dynamoUtil.deleteRawOrderSignature = jest.fn(() => Promise.reject());
 	dynamoUtil.deleteLiveOrder = jest.fn(() => Promise.resolve());
@@ -191,13 +183,13 @@ test('cancelOrderInDB rawOrder failed', async () => {
 		(redisUtil.pop as jest.Mock<Promise<boolean>>).mock.calls[0][0]
 	);
 	expect((redisUtil.putBack as jest.Mock<Promise<boolean>>).mock.calls[0][1]).toEqual(
-		JSON.stringify(cancelOrderQueueItem)
+		JSON.stringify(liveOrder)
 	);
 	expect(isSuccess).toEqual(false);
 });
 
 test('cancelOrderInDB liveOrder failed', async () => {
-	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(cancelOrderQueueItem)));
+	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(liveOrder)));
 	redisUtil.putBack = jest.fn();
 	dynamoUtil.deleteRawOrderSignature = jest.fn(() => Promise.resolve());
 	dynamoUtil.deleteLiveOrder = jest.fn(() => Promise.reject());
@@ -208,7 +200,7 @@ test('cancelOrderInDB liveOrder failed', async () => {
 });
 
 test('cancelOrderInDB userOrder failed', async () => {
-	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(cancelOrderQueueItem)));
+	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(liveOrder)));
 	redisUtil.putBack = jest.fn();
 	dynamoUtil.deleteRawOrderSignature = jest.fn(() => Promise.resolve());
 	dynamoUtil.deleteLiveOrder = jest.fn(() => Promise.resolve());
