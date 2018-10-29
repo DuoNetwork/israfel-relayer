@@ -49,11 +49,13 @@ class OrderUtil {
 
 	public async addOrderToPersistence(orderQueueItem: INewOrderQueueItem) {
 		try {
-			await redisUtil.set(
+			redisUtil.multi();
+			redisUtil.set(
 				`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderQueueItem.liveOrder.orderHash}`,
 				JSON.stringify(orderQueueItem)
 			);
 			redisUtil.push(`${CST.DB_ORDERS}|${CST.DB_ADD}`, orderQueueItem.liveOrder.orderHash);
+			await redisUtil.exec();
 		} catch (error) {
 			util.logError(error);
 			return null;
@@ -69,12 +71,14 @@ class OrderUtil {
 
 	public async cancelOrderInPersistence(liveOrder: ILiveOrder) {
 		try {
-			await redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_ADD}|${liveOrder.orderHash}`, '');
-			await redisUtil.set(
+			redisUtil.multi();
+			redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_ADD}|${liveOrder.orderHash}`, '');
+			redisUtil.set(
 				`${CST.DB_ORDERS}|${CST.DB_CANCEL}|${liveOrder.orderHash}`,
 				liveOrder.orderHash
 			);
 			redisUtil.push(`${CST.DB_ORDERS}|${CST.DB_CANCEL}`, JSON.stringify(liveOrder));
+			await redisUtil.exec();
 		} catch (error) {
 			util.logError(error);
 			return null;
@@ -133,7 +137,10 @@ class OrderUtil {
 
 					await redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderHash}`, '');
 				} catch (err) {
-					await redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderHash}`, orderInRedis);
+					await redisUtil.set(
+						`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderHash}`,
+						orderInRedis
+					);
 					redisUtil.putBack(`${CST.DB_ORDERS}|${CST.DB_ADD}`, orderHash);
 					return false;
 				}

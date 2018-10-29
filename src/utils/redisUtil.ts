@@ -95,7 +95,17 @@ export class RedisUtil {
 
 	public pop(key: string) {
 		if (this.redisSub) return this.redisSub.rpop(key);
-		return  Promise.resolve('');
+		return Promise.resolve('');
+	}
+
+	public multi() {
+		if (this.redisSub) return this.redisSub.multi({pipeline: false});
+		return Promise.resolve('');
+	}
+
+	public exec() {
+		if (this.redisSub) return this.redisSub.exec();
+		return Promise.resolve('');
 	}
 
 	public getQueueLength(key: string) {

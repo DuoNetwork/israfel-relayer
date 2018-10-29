@@ -90,6 +90,8 @@ test('getLiveOrderInPersistence only in db', async () => {
 });
 
 test('addOrderToPersistence failed', async () => {
+	redisUtil.multi = jest.fn(() => Promise.resolve());
+	redisUtil.exec = jest.fn(() => Promise.resolve());
 	redisUtil.set = jest.fn(() => Promise.resolve());
 	redisUtil.push = jest.fn(() => {
 		throw new Error('test');
@@ -99,6 +101,8 @@ test('addOrderToPersistence failed', async () => {
 });
 
 test('addOrderToPersistence', async () => {
+	redisUtil.multi = jest.fn(() => Promise.resolve());
+	redisUtil.exec = jest.fn(() => Promise.resolve());
 	redisUtil.set = jest.fn(() => Promise.resolve());
 	redisUtil.push = jest.fn();
 	orderUtil.addUserOrderToDB = jest.fn(() => Promise.resolve());
@@ -116,6 +120,8 @@ test('addOrderToPersistence', async () => {
 });
 
 test('cancelOrderInPersistence failed', async () => {
+	redisUtil.multi = jest.fn(() => Promise.resolve());
+	redisUtil.exec = jest.fn(() => Promise.resolve());
 	redisUtil.set = jest.fn(() => Promise.resolve());
 	redisUtil.push = jest.fn(() => {
 		throw new Error('test');
@@ -125,6 +131,8 @@ test('cancelOrderInPersistence failed', async () => {
 });
 
 test('cancelOrderInPersistence', async () => {
+	redisUtil.multi = jest.fn(() => Promise.resolve());
+	redisUtil.exec = jest.fn(() => Promise.resolve());
 	redisUtil.set = jest.fn(() => Promise.resolve());
 	redisUtil.push = jest.fn();
 	orderUtil.addUserOrderToDB = jest.fn(() => Promise.resolve());
