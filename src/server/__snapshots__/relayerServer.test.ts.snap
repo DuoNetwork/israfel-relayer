@@ -215,7 +215,7 @@ Array [
     Object {},
     Object {
       "channel": "orders",
-      "method": "add",
+      "method": "cancel",
       "orderHash": "0xOrderHash",
       "pair": "ZRX-WETH",
     },
@@ -229,7 +229,7 @@ Array [
     Object {},
     Object {
       "channel": "orders",
-      "method": "add",
+      "method": "cancel",
       "orderHash": "0xOrderHash",
       "pair": "ZRX-WETH",
     },

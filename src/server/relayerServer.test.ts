@@ -330,7 +330,7 @@ test('handleCancelOrderRequest exist in request cache', async () => {
 	relayerServer.requestSequence = jest.fn();
 	await relayerServer.handleCancelOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
-		method: CST.DB_ADD,
+		method: CST.DB_CANCEL,
 		pair: CST.SUPPORTED_PAIRS[0],
 		orderHash: '0xOrderHash'
 	});
@@ -347,7 +347,7 @@ test('handleCancelOrderRequest already cancelled', async () => {
 	orderUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
 	await relayerServer.handleCancelOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
-		method: CST.DB_ADD,
+		method: CST.DB_CANCEL,
 		pair: CST.SUPPORTED_PAIRS[0],
 		orderHash: '0xOrderHash'
 	});
