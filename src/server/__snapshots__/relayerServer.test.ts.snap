@@ -248,6 +248,60 @@ Array [
 ]
 `;
 
+exports[`handleSequenceMessage add 1`] = `
+Array [
+  Array [
+    undefined,
+    Object {
+      "currentSequence": 1,
+      "initialSequence": 1,
+      "orderHash": "orderHash",
+    },
+    "add",
+    "confirmed",
+    "relayer",
+  ],
+]
+`;
+
+exports[`handleSequenceMessage add failed 1`] = `
+Object {
+  "add|pair|orderHash": Object {
+    "liveOrder": Object {
+      "currentSequence": 1,
+      "initialSequence": 1,
+      "orderHash": "orderHash",
+    },
+  },
+}
+`;
+
+exports[`handleSequenceMessage cancel 1`] = `
+Array [
+  Array [
+    undefined,
+    Object {
+      "currentSequence": 2,
+      "orderHash": "orderHash",
+    },
+    "cancel",
+    "confirmed",
+    "relayer",
+  ],
+]
+`;
+
+exports[`handleSequenceMessage cancel failed 1`] = `
+Object {
+  "cancel|pair|orderHash": Object {
+    "liveOrder": Object {
+      "currentSequence": 2,
+      "orderHash": "orderHash",
+    },
+  },
+}
+`;
+
 exports[`handleUserOrder 1`] = `
 Array [
   Array [
