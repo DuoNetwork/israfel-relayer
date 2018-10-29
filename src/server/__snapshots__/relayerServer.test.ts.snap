@@ -24,7 +24,7 @@ Object {
       "takerAssetData": "takerAssetData",
       "takerFee": "0",
     },
-    "timeout": 19,
+    "timeout": 23,
     "ws": Object {},
   },
 }
@@ -51,6 +51,66 @@ Array [
       "updatedBy": "user",
     },
     "add",
+  ],
+]
+`;
+
+exports[`handleAddOrderRequest exist in persistence 1`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "channel": "orders",
+      "method": "add",
+      "order": Object {
+        "exchangeAddress": "exchangeAddress",
+        "expirationTimeSeconds": "1234567890",
+        "feeRecipientAddress": "feeRecipientAddress",
+        "makerAddress": "makerAddress",
+        "makerAssetAmount": "123",
+        "makerAssetData": "makerAssetData",
+        "makerFee": "0",
+        "salt": "789",
+        "senderAddress": "senderAddress",
+        "signature": "signature",
+        "takerAddress": "takerAddress",
+        "takerAssetAmount": "456",
+        "takerAssetData": "takerAssetData",
+        "takerFee": "0",
+      },
+      "orderHash": "0xOrderHash",
+      "pair": "ZRX-WETH",
+    },
+  ],
+]
+`;
+
+exports[`handleAddOrderRequest exist in request cache 1`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "channel": "orders",
+      "method": "add",
+      "order": Object {
+        "exchangeAddress": "exchangeAddress",
+        "expirationTimeSeconds": "1234567890",
+        "feeRecipientAddress": "feeRecipientAddress",
+        "makerAddress": "makerAddress",
+        "makerAssetAmount": "123",
+        "makerAssetData": "makerAssetData",
+        "makerFee": "0",
+        "salt": "789",
+        "senderAddress": "senderAddress",
+        "signature": "signature",
+        "takerAddress": "takerAddress",
+        "takerAssetAmount": "456",
+        "takerAssetData": "takerAssetData",
+        "takerFee": "0",
+      },
+      "orderHash": "0xOrderHash",
+      "pair": "ZRX-WETH",
+    },
   ],
 ]
 `;
@@ -118,7 +178,7 @@ Object {
     },
     "method": "cancel",
     "pair": "ZRX-WETH",
-    "timeout": 24,
+    "timeout": 32,
     "ws": Object {},
   },
 }
@@ -145,6 +205,34 @@ Array [
       "updatedBy": "user",
     },
     "cancel",
+  ],
+]
+`;
+
+exports[`handleCancelOrderRequest already cancelled 1`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "channel": "orders",
+      "method": "add",
+      "orderHash": "0xOrderHash",
+      "pair": "ZRX-WETH",
+    },
+  ],
+]
+`;
+
+exports[`handleCancelOrderRequest exist in request cache 1`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "channel": "orders",
+      "method": "add",
+      "orderHash": "0xOrderHash",
+      "pair": "ZRX-WETH",
+    },
   ],
 ]
 `;
@@ -257,12 +345,7 @@ Array [
   Array [
     undefined,
     Object {
-      "currentSequence": 1,
-      "initialSequence": 1,
-      "orderHash": "orderHash",
-      "status": "confirmed",
-      "type": "add",
-      "updatedBy": "relayer",
+      "userOrder": "test",
     },
     "add",
   ],
@@ -286,11 +369,7 @@ Array [
   Array [
     undefined,
     Object {
-      "currentSequence": 2,
-      "orderHash": "orderHash",
-      "status": "confirmed",
-      "type": "cancel",
-      "updatedBy": "relayer",
+      "userOrder": "test",
     },
     "cancel",
   ],

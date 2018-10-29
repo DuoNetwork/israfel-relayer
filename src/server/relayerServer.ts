@@ -118,13 +118,24 @@ class RelayerServer extends SequenceClient {
 
 	public async handleAddOrderRequest(ws: WebSocket, req: IWsAddOrderRequest) {
 		util.logDebug('add new order');
+		const cacheKey = this.getCacheKey(req);
+		if (this.requestCache[cacheKey]) {
+			this.handleInvalidOrderRequest(ws, req);
+			return;
+		}
+
+		let liveOrder = await orderUtil.getLiveOrderInPersistence(req.pair, req.orderHash);
+		if (liveOrder) {
+			this.handleInvalidOrderRequest(ws, req);
+			return;
+		}
+
 		const orderHash = this.web3Util
 			? await this.web3Util.validateOrder(orderUtil.parseSignedOrder(req.order))
 			: '';
 		if (orderHash && orderHash === req.orderHash) {
 			const pair = req.pair;
-			const liveOrder = orderUtil.constructNewLiveOrder(req.order, pair, orderHash);
-			const cacheKey = this.getCacheKey(req);
+			liveOrder = orderUtil.constructNewLiveOrder(req.order, pair, orderHash);
 			this.requestCache[cacheKey] = {
 				ws: ws,
 				pair: pair,
@@ -149,35 +160,31 @@ class RelayerServer extends SequenceClient {
 
 	public async handleCancelOrderRequest(ws: WebSocket, req: IWsOrderRequest) {
 		const { orderHash, pair } = req;
-		try {
-			const liveOrder = await orderUtil.getLiveOrderInPersistence(pair, orderHash);
-			if (!liveOrder) {
-				this.handleInvalidOrderRequest(ws, req);
-				return;
-			}
-			const cacheKey = this.getCacheKey(req);
-			this.requestCache[cacheKey] = {
-				ws: ws,
-				pair: pair,
-				method: CST.DB_CANCEL,
-				liveOrder: liveOrder,
-				timeout: setTimeout(() => this.handleTimeout(cacheKey), 30000)
-			};
-			this.requestSequence(req.method, req.pair, req.orderHash);
-			this.handleUserOrder(
-				ws,
-				await orderUtil.addUserOrderToDB(
-					liveOrder,
-					CST.DB_CANCEL,
-					CST.DB_PENDING,
-					CST.DB_USER
-				),
-				CST.DB_CANCEL
-			);
-		} catch (err) {
-			util.logError(err);
+		const cacheKey = this.getCacheKey(req);
+		if (this.requestCache[cacheKey]) {
 			this.handleInvalidOrderRequest(ws, req);
+			return;
 		}
+
+		const liveOrder = await orderUtil.getLiveOrderInPersistence(pair, orderHash);
+		if (!liveOrder) {
+			this.handleInvalidOrderRequest(ws, req);
+			return;
+		}
+
+		this.requestCache[cacheKey] = {
+			ws: ws,
+			pair: pair,
+			method: CST.DB_CANCEL,
+			liveOrder: liveOrder,
+			timeout: setTimeout(() => this.handleTimeout(cacheKey), 30000)
+		};
+		this.requestSequence(req.method, req.pair, req.orderHash);
+		this.handleUserOrder(
+			ws,
+			await orderUtil.addUserOrderToDB(liveOrder, CST.DB_CANCEL, CST.DB_PENDING, CST.DB_USER),
+			CST.DB_CANCEL
+		);
 	}
 
 	public handleOrderRequest(ws: WebSocket, req: IWsOrderRequest) {

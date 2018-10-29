@@ -30,13 +30,17 @@ class OrderUtil {
 	}
 
 	public async getLiveOrderInPersistence(pair: string, orderHash: string) {
-		const redisLiveOrderString = await redisUtil.get(
+		const addQueueString = await redisUtil.get(
 			`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderHash}`
 		);
-		if (redisLiveOrderString) {
-			const orderQueueItem: INewOrderQueueItem = JSON.parse(redisLiveOrderString);
+		if (addQueueString) {
+			const orderQueueItem: INewOrderQueueItem = JSON.parse(addQueueString);
 			return orderQueueItem.liveOrder;
 		}
+
+		const cancelQueueString = await redisUtil.get(`${CST.DB_ORDERS}|${CST.DB_CANCEL}|${orderHash}`);
+		if (cancelQueueString)
+			return null;
 
 		const liveOrders = await dynamoUtil.getLiveOrders(pair, orderHash);
 		if (liveOrders.length < 1) return null;
