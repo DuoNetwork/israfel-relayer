@@ -117,15 +117,17 @@ class RelayerServer extends SequenceClient {
 	}
 
 	public async handleAddOrderRequest(ws: WebSocket, req: IWsAddOrderRequest) {
-		util.logDebug('add new order');
+		util.logDebug(`add new order ${req.orderHash}`);
 		const cacheKey = this.getCacheKey(req);
 		if (this.requestCache[cacheKey]) {
+			util.logDebug('existing request, ignore');
 			this.handleInvalidOrderRequest(ws, req);
 			return;
 		}
 
 		let liveOrder = await orderUtil.getLiveOrderInPersistence(req.pair, req.orderHash);
 		if (liveOrder) {
+			util.logDebug('existing order, ignore');
 			this.handleInvalidOrderRequest(ws, req);
 			return;
 		}
@@ -144,6 +146,7 @@ class RelayerServer extends SequenceClient {
 				signedOrder: req.order,
 				timeout: setTimeout(() => this.handleTimeout(cacheKey), 30000)
 			};
+			util.logDebug('request added to cache');
 			this.requestSequence(req.method, req.pair, req.orderHash);
 			this.handleUserOrder(
 				ws,
@@ -155,19 +158,25 @@ class RelayerServer extends SequenceClient {
 				),
 				CST.DB_ADD
 			);
-		} else this.handleInvalidOrderRequest(ws, req);
+		} else {
+			util.logDebug('invalid orderHash, ignore');
+			this.handleInvalidOrderRequest(ws, req);
+		}
 	}
 
 	public async handleCancelOrderRequest(ws: WebSocket, req: IWsOrderRequest) {
+		util.logDebug(`cancel order ${req.orderHash}`);
 		const { orderHash, pair } = req;
 		const cacheKey = this.getCacheKey(req);
 		if (this.requestCache[cacheKey]) {
+			util.logDebug('existing request, ignore');
 			this.handleInvalidOrderRequest(ws, req);
 			return;
 		}
 
 		const liveOrder = await orderUtil.getLiveOrderInPersistence(pair, orderHash);
 		if (!liveOrder) {
+			util.logDebug('non-existing order, ignore');
 			this.handleInvalidOrderRequest(ws, req);
 			return;
 		}
@@ -179,6 +188,7 @@ class RelayerServer extends SequenceClient {
 			liveOrder: liveOrder,
 			timeout: setTimeout(() => this.handleTimeout(cacheKey), 30000)
 		};
+		util.logDebug('request added to cache');
 		this.requestSequence(req.method, req.pair, req.orderHash);
 		this.handleUserOrder(
 			ws,

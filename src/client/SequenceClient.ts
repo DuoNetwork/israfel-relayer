@@ -34,6 +34,7 @@ export default abstract class SequenceClient {
 
 	public requestSequence(method: string, pair: string, orderHash: string) {
 		if (this.sequenceWsClient) {
+			util.logDebug(`request sequence for ${method}|${pair}|${orderHash}`);
 			const requestSequence: IWsOrderRequest = {
 				method: method,
 				channel: CST.DB_SEQUENCE,
