@@ -118,7 +118,9 @@ class OrderUtil {
 			pair: pair,
 			orderHash: orderHash,
 			price: web3Util.getPriceFromSignedOrder(signedOrder, side),
-			amount: Number(isBid ? signedOrder.makerAssetAmount : signedOrder.takerAssetAmount),
+			amount: web3Util.fromWei(
+				isBid ? signedOrder.makerAssetAmount : signedOrder.takerAssetAmount
+			),
 			side: side,
 			initialSequence: 0,
 			currentSequence: 0

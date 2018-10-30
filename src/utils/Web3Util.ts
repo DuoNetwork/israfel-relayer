@@ -37,6 +37,10 @@ export default class Web3Util {
 		return new BigNumber(value);
 	};
 
+	public static fromWei = (value: BigNumber | string, decimal: number = 18): number => {
+		return Number(Web3Wrapper.toUnitAmount(new BigNumber(value), decimal).valueOf());
+	};
+
 	public static assetDataToTokenName = (assetData: string): string => {
 		const tokenAddr = assetDataUtils.decodeERC20AssetData(assetData).tokenAddress;
 		return CST.TOKEN_MAPPING[tokenAddr];
