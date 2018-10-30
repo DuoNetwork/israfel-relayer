@@ -21,6 +21,7 @@ export default class Web3Util {
 	constructor() {
 		const provider = new Web3.providers.HttpProvider(
 			CST.PROVIDER_INFURA_KOVAN + '/' + infura.token
+			// 'http://localhost:8545'
 		);
 		this.web3Wrapper = new Web3Wrapper(provider);
 		this.contractWrappers = new ContractWrappers(provider, {
@@ -28,7 +29,7 @@ export default class Web3Util {
 		});
 	}
 
-	public static getRandomFutureDateInSeconds = () => {
+	public getRandomFutureDateInSeconds = () => {
 		return new BigNumber(Date.now() + CST.TEN_MINUTES_MS).div(CST.ONE_SECOND_MS).ceil();
 	};
 

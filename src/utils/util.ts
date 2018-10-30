@@ -43,6 +43,7 @@ class Util {
 		maker: 0,
 		spender: 1,
 		debug: false,
+		server: false,
 		type: CST.DB_ADD
 	};
 
@@ -53,6 +54,7 @@ class Util {
 	public parseOptions(argv: string[]): IOption {
 		const option: IOption = this.defaultOption;
 		option.live = argv.includes('live');
+		option.server = argv.includes('server');
 		option.debug = argv.includes('debug');
 		for (let i = 3; i < argv.length; i++) {
 			const args = argv[i].split('=');

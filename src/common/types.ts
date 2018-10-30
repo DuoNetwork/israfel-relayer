@@ -145,6 +145,7 @@ export interface IOption {
 	spender: number;
 	amount: number;
 	debug: boolean;
+	server: boolean;
 	type: string;
 }
 
