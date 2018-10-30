@@ -22,6 +22,7 @@ class OrderUtil {
 		const userOrder = orderUtil.constructUserOrder(liveOrder, type, status, updatedBy);
 		try {
 			await dynamoUtil.addUserOrder(userOrder);
+			util.logDebug('added user order');
 		} catch (error) {
 			util.logError(error);
 		}
@@ -49,6 +50,7 @@ class OrderUtil {
 
 	public async addOrderToPersistence(orderQueueItem: INewOrderQueueItem) {
 		try {
+			util.logDebug(`storing add order in redis ${orderQueueItem.liveOrder.orderHash}`);
 			redisUtil.multi();
 			redisUtil.set(
 				`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderQueueItem.liveOrder.orderHash}`,
@@ -56,6 +58,7 @@ class OrderUtil {
 			);
 			redisUtil.push(`${CST.DB_ORDERS}|${CST.DB_ADD}`, orderQueueItem.liveOrder.orderHash);
 			await redisUtil.exec();
+			util.logDebug(`done`);
 		} catch (error) {
 			util.logError(error);
 			return null;
@@ -71,6 +74,7 @@ class OrderUtil {
 
 	public async cancelOrderInPersistence(liveOrder: ILiveOrder) {
 		try {
+			util.logDebug(`storing cancel order in redis ${liveOrder.orderHash}`);
 			redisUtil.multi();
 			redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_ADD}|${liveOrder.orderHash}`, '');
 			redisUtil.set(
@@ -79,6 +83,7 @@ class OrderUtil {
 			);
 			redisUtil.push(`${CST.DB_ORDERS}|${CST.DB_CANCEL}`, JSON.stringify(liveOrder));
 			await redisUtil.exec();
+			util.logDebug(`done`);
 		} catch (error) {
 			util.logError(error);
 			return null;
@@ -124,19 +129,25 @@ class OrderUtil {
 		const orderHash = await redisUtil.pop(`${CST.DB_ORDERS}|${CST.DB_ADD}`);
 
 		if (orderHash) {
+			util.logDebug(`processing add order: ${orderHash}`);
 			const orderInRedis = await redisUtil.get(`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderHash}`);
 
 			if (orderInRedis) {
+				util.logDebug('found order in redis');
 				const orderQueueItem: INewOrderQueueItem = JSON.parse(orderInRedis);
 				try {
 					await dynamoUtil.addRawOrder({
 						orderHash: orderQueueItem.liveOrder.orderHash,
 						signedOrder: orderQueueItem.signedOrder
 					});
+					util.logDebug(`added raw order`);
 					await dynamoUtil.addLiveOrder(orderQueueItem.liveOrder);
-
+					util.logDebug(`added live order`);
 					await redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderHash}`, '');
+					util.logDebug(`removed redis data`);
 				} catch (err) {
+					util.logError(`error in addOrderToDB for ${orderHash}`);
+					util.logError(err);
 					await redisUtil.set(
 						`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderHash}`,
 						orderInRedis
@@ -162,12 +173,17 @@ class OrderUtil {
 		const res = await redisUtil.pop(`${CST.DB_ORDERS}|${CST.DB_CANCEL}`);
 		if (res) {
 			const liveOrder: ILiveOrder = JSON.parse(res);
+			util.logDebug(`processing cancel order: ${liveOrder.orderHash}`);
 			try {
 				await dynamoUtil.deleteRawOrderSignature(liveOrder.orderHash);
+				util.logDebug(`deleted signature`);
 				await dynamoUtil.deleteLiveOrder(liveOrder);
-
+				util.logDebug(`deleted live order`);
 				await redisUtil.set(`${CST.DB_ORDERS}|${CST.DB_CANCEL}|${liveOrder.orderHash}`, '');
+				util.logDebug(`removed redis data`);
 			} catch (err) {
+				util.logError(`error in cancelOrderInDB for ${liveOrder.orderHash}`);
+				util.logError(err);
 				await redisUtil.set(
 					`${CST.DB_ORDERS}|${CST.DB_CANCEL}|${liveOrder.orderHash}`,
 					liveOrder.orderHash
