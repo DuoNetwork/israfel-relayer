@@ -1,3 +1,4 @@
+import { SignedOrder } from '0x.js';
 import WebSocket from 'ws';
 
 export interface ILiveOrder {
@@ -21,7 +22,7 @@ export interface IUserOrder extends ILiveOrder {
 
 export interface IRawOrder {
 	orderHash: string;
-	signedOrder: IStringSignedOrder;
+	signedOrder: IStringSignedOrder | SignedOrder;
 	createdAt?: number;
 	updatedAt?: number;
 }
@@ -97,7 +98,7 @@ export interface IWsOrderRequest extends IWsRequest {
 }
 
 export interface IWsAddOrderRequest extends IWsOrderRequest {
-	order: IStringSignedOrder;
+	order: IStringSignedOrder | SignedOrder;
 }
 
 export interface IWsOrderResponse extends IWsResponse {

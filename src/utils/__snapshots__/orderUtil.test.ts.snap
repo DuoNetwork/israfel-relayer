@@ -205,7 +205,7 @@ Array [
 exports[`constructNewLiveOrder 1`] = `
 Object {
   "account": "makerAddress",
-  "amount": 123,
+  "amount": 1.23e-16,
   "currentSequence": 0,
   "initialSequence": 0,
   "orderHash": "0xOrderHash",
@@ -218,7 +218,7 @@ Object {
 exports[`constructNewLiveOrder 2`] = `
 Object {
   "account": "takerAddress",
-  "amount": 456,
+  "amount": 4.56e-16,
   "currentSequence": 0,
   "initialSequence": 0,
   "orderHash": "0xOrderHash",
