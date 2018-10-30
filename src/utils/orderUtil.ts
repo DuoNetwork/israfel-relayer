@@ -5,6 +5,7 @@ import {
 	INewOrderQueueItem,
 	IOption,
 	IStringSignedOrder,
+	IUpdateOrderQueueItem,
 	IUserOrder
 } from '../common/types';
 import dynamoUtil from './dynamoUtil';
@@ -171,6 +172,41 @@ class OrderUtil {
 		return false;
 	}
 
+	public async updateOrderInDB() {
+		const rawUpdateQueueItem = await redisUtil.pop(`${CST.DB_ORDERS}|${CST.DB_UPDATE}`);
+		if (rawUpdateQueueItem) {
+			const updateQueueItem: IUpdateOrderQueueItem = JSON.parse(rawUpdateQueueItem);
+			const liveOrder: ILiveOrder = updateQueueItem.liveOrder;
+			util.logDebug(`processing update order: ${liveOrder.orderHash}`);
+
+			if (await redisUtil.get(`${CST.DB_ORDERS}|${CST.DB_CANCEL}|${liveOrder.orderHash}`)) {
+				util.logDebug(`order in cancel queue, do not update ${liveOrder.orderHash}`);
+				return false;
+			}
+
+			try {
+				await dynamoUtil.updateLiveOrder(liveOrder);
+				util.logDebug(`updated order ${liveOrder.orderHash}`);
+			} catch (err) {
+				util.logError(`error in updateOrderInDB for ${liveOrder.orderHash}`);
+				util.logError(err);
+
+				redisUtil.putBack(`${CST.DB_ORDERS}|${CST.DB_UPDATE}`, rawUpdateQueueItem);
+				return false;
+			}
+
+			await this.addUserOrderToDB(
+				liveOrder,
+				CST.DB_UPDATE,
+				CST.DB_CONFIRMED,
+				CST.DB_ORDER_PROCESSOR
+			);
+
+			return true;
+		}
+		return false;
+	}
+
 	public async cancelOrderInDB() {
 		const res = await redisUtil.pop(`${CST.DB_ORDERS}|${CST.DB_CANCEL}`);
 		if (res) {
@@ -250,9 +286,11 @@ class OrderUtil {
 				case CST.DB_CANCEL:
 					promise = this.cancelOrderInDB();
 					break;
+				case CST.DB_UPDATE:
+					promise = this.updateOrderInDB();
+					break;
 				default:
 					throw new Error('Invalid type');
-					break;
 			}
 			promise.then(result => {
 				setTimeout(() => loop(), result ? 0 : 500);

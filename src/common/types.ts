@@ -165,6 +165,12 @@ export interface IOrderWatcherCacheItem {
 	orderState: OrderState;
 }
 
+export interface IUpdateOrderQueueItem {
+	pair: string;
+	sequence: number;
+	liveOrder: ILiveOrder;
+}
+
 export interface IStatus {
 	hostname: string;
 	updatedAt: number;

@@ -108,7 +108,7 @@ class OrderWatcherServer extends SequenceClient {
 		delete this.requestCache[requestId];
 		if (!queueItem) return;
 
-		if (!(await relayerUtil.handleUpdateOrder(sequence + '', pair, queueItem)))
+		if (!(await relayerUtil.handleUpdateOrder(sequence, pair, queueItem)))
 			if (this.orderWatcher) {
 				await this.orderWatcher.removeOrder(queueItem.orderState.orderHash);
 				this.watchedOrders = this.watchedOrders.filter(

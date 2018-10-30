@@ -316,3 +316,57 @@ test('cancelOrderInDB liveOrder failed', async () => {
 	expect((orderUtil.addUserOrderToDB as jest.Mock<Promise<boolean>>).mock.calls.length).toBe(0);
 	expect(isSuccess).toEqual(false);
 });
+
+test('updateOrderInDB not in queue', async () => {
+	redisUtil.pop = jest.fn(() => Promise.resolve(''));
+	redisUtil.putBack = jest.fn();
+	dynamoUtil.updateLiveOrder = jest.fn(() => Promise.resolve());
+	orderUtil.addUserOrderToDB = jest.fn(() => Promise.resolve());
+	const isSuccess = await orderUtil.updateOrderInDB();
+	expect((redisUtil.pop as jest.Mock<Promise<boolean>>).mock.calls).toMatchSnapshot();
+	expect((redisUtil.putBack as jest.Mock<Promise<boolean>>).mock.calls.length).toBe(0);
+	expect(isSuccess).toEqual(false);
+});
+
+const updateOrderQueueItem = {
+	pair: 'pair',
+	sequence: 123,
+	liveOrder: liveOrder
+};
+
+test('updateOrderInDB for order in cancel queue', async () => {
+	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(updateOrderQueueItem)));
+	redisUtil.get = jest.fn(() => Promise.resolve('orderHash'));
+	redisUtil.putBack = jest.fn();
+	dynamoUtil.updateLiveOrder = jest.fn(() => Promise.resolve());
+	orderUtil.addUserOrderToDB = jest.fn(() => Promise.resolve());
+	const isSuccess = await orderUtil.updateOrderInDB();
+	expect((redisUtil.pop as jest.Mock<Promise<boolean>>).mock.calls).toMatchSnapshot();
+	expect((redisUtil.putBack as jest.Mock<Promise<boolean>>).mock.calls.length).toBe(0);
+	expect(isSuccess).toEqual(false);
+});
+
+test('updateOrderInDB dynamo udpate failed', async () => {
+	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(updateOrderQueueItem)));
+	redisUtil.get = jest.fn(() => Promise.resolve(''));
+	redisUtil.putBack = jest.fn();
+	dynamoUtil.updateLiveOrder = jest.fn(() => Promise.reject());
+	orderUtil.addUserOrderToDB = jest.fn(() => Promise.resolve());
+	const isSuccess = await orderUtil.updateOrderInDB();
+	expect((redisUtil.pop as jest.Mock<Promise<boolean>>).mock.calls).toMatchSnapshot();
+	expect((redisUtil.putBack as jest.Mock<Promise<boolean>>).mock.calls.length).toBe(1);
+	expect(isSuccess).toEqual(false);
+});
+
+test('updateOrderInDB dynamo udpate success', async () => {
+	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(updateOrderQueueItem)));
+	redisUtil.get = jest.fn(() => Promise.resolve(''));
+	redisUtil.putBack = jest.fn();
+	dynamoUtil.updateLiveOrder = jest.fn(() => Promise.resolve());
+	orderUtil.addUserOrderToDB = jest.fn(() => Promise.resolve());
+	const isSuccess = await orderUtil.updateOrderInDB();
+	expect((dynamoUtil.updateLiveOrder as jest.Mock<Promise<boolean>>).mock.calls).toMatchSnapshot();
+	expect((redisUtil.pop as jest.Mock<Promise<boolean>>).mock.calls).toMatchSnapshot();
+	expect((redisUtil.putBack as jest.Mock<Promise<boolean>>).mock.calls.length).toBe(0);
+	expect(isSuccess).toEqual(true);
+});

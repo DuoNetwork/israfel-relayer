@@ -254,3 +254,52 @@ Object {
   "takerFee": "0",
 }
 `;
+
+exports[`updateOrderInDB dynamo udpate failed 1`] = `
+Array [
+  Array [
+    "orders|update",
+  ],
+]
+`;
+
+exports[`updateOrderInDB dynamo udpate success 1`] = `
+Array [
+  Array [
+    Object {
+      "account": "0xAccount",
+      "amount": 456,
+      "currentSequence": 2,
+      "initialSequence": 1,
+      "orderHash": "0xOrderHash",
+      "pair": "pair",
+      "price": 0.123456789,
+      "side": "bid",
+    },
+  ],
+]
+`;
+
+exports[`updateOrderInDB dynamo udpate success 2`] = `
+Array [
+  Array [
+    "orders|update",
+  ],
+]
+`;
+
+exports[`updateOrderInDB for order in cancel queue 1`] = `
+Array [
+  Array [
+    "orders|update",
+  ],
+]
+`;
+
+exports[`updateOrderInDB not in queue 1`] = `
+Array [
+  Array [
+    "orders|update",
+  ],
+]
+`;

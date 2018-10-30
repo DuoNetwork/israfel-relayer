@@ -5,7 +5,8 @@ import {
 	IOrderBookSnapshotWs,
 	IOrderBookUpdate,
 	IOrderWatcherCacheItem,
-	IStringSignedOrder
+	IStringSignedOrder,
+	IUpdateOrderQueueItem
 } from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import orderBookUtil from './orderBookUtil';
@@ -104,7 +105,7 @@ class RelayerUtil {
 	}
 
 	public async handleUpdateOrder(
-		sequence: string,
+		sequence: number,
 		pair: string,
 		orderUpdateItem: IOrderWatcherCacheItem
 	): Promise<boolean> {
@@ -117,11 +118,13 @@ class RelayerUtil {
 			return false;
 		}
 
+		const liveOrder: ILiveOrder = liveOrders[0];
+
 		const orderBookUpdate: IOrderBookUpdate = {
 			pair: pair,
-			price: liveOrders[0].price,
-			amount: -liveOrders[0].amount,
-			sequence: Number(sequence)
+			price: liveOrder.price,
+			amount: -liveOrder.amount,
+			sequence: sequence
 		};
 
 		if (isValid)
@@ -129,22 +132,20 @@ class RelayerUtil {
 				Web3Util.fromWei(
 					(orderState as OrderStateValid).orderRelevantState
 						.remainingFillableMakerAssetAmount
-				) - liveOrders[0].amount;
+				) - liveOrder.amount;
 
-		redisUtil.push(
-			`${CST.DB_ORDERS}|${CST.DB_UPDATE}`,
-			JSON.stringify({
-				pair,
-				sequence,
-				orderHash,
-				newAmount: !isValid
-					? 0
-					: Web3Util.fromWei(
-							(orderState as OrderStateValid).orderRelevantState
-								.remainingFillableMakerAssetAmount
-					)
-			})
-		);
+		liveOrder.amount = !isValid
+			? 0
+			: Web3Util.fromWei(
+					(orderState as OrderStateValid).orderRelevantState
+						.remainingFillableMakerAssetAmount
+			);
+		const updateQueueItem: IUpdateOrderQueueItem = {
+			pair,
+			sequence,
+			liveOrder
+		};
+		redisUtil.push(`${CST.DB_ORDERS}|${CST.DB_UPDATE}`, JSON.stringify(updateQueueItem));
 		redisUtil.publish(CST.ORDERBOOK_UPDATE + '|' + pair, JSON.stringify(orderBookUpdate));
 
 		return true;
