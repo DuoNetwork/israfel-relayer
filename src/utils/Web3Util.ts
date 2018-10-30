@@ -9,7 +9,7 @@ import {
 	SignerType
 } from '0x.js';
 import { schemas, SchemaValidator } from '@0xproject/json-schemas';
-import { RPCSubprovider, SignerSubprovider, Web3ProviderEngine } from '@0xproject/subproviders';
+// import { RPCSubprovider, SignerSubprovider, Web3ProviderEngine } from '@0xproject/subproviders';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import Web3 from 'web3';
 import * as CST from '../common/constants';
@@ -30,13 +30,13 @@ export default class Web3Util {
 
 	constructor(window: any, live: boolean) {
 		if (window && typeof window.web3 !== 'undefined') {
-			const providerEngine = new Web3ProviderEngine();
-			providerEngine.addProvider(new SignerSubprovider(window.web3.currentProvider));
-			providerEngine.addProvider(
-				new RPCSubprovider(live ? CST.PROVIDER_INFURA_MAIN : CST.PROVIDER_INFURA_KOVAN)
-			);
-			providerEngine.start();
-			this.web3Wrapper = new Web3Wrapper(providerEngine);
+			// const providerEngine = new Web3ProviderEngine();
+			// providerEngine.addProvider(new SignerSubprovider(window.web3.currentProvider));
+			// providerEngine.addProvider(
+			// 	new RPCSubprovider(live ? CST.PROVIDER_INFURA_MAIN : CST.PROVIDER_INFURA_KOVAN)
+			// );
+			// providerEngine.start();
+			this.web3Wrapper = new Web3Wrapper(window.web3.currentProvider);
 			this.wallet = Wallet.MetaMask;
 		} else {
 			this.web3Wrapper = new Web3Wrapper(
@@ -50,6 +50,19 @@ export default class Web3Util {
 		this.contractWrappers = new ContractWrappers(this.web3Wrapper.getProvider(), {
 			networkId: live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN
 		});
+	}
+
+	public onWeb3AccountUpdate(onUpdate: (addr: string, network: number) => any) {
+		if (this.wallet !== Wallet.MetaMask) return;
+
+		const store = (this.web3Wrapper.getProvider() as any).publicConfigStore;
+		if (store)
+			store.on('update', () => {
+				onUpdate(
+					store.getState().selectedAddress || '',
+					Number(store.getState().networkVersion || '')
+				);
+			});
 	}
 
 	public async getCurrentAddress(): Promise<string> {
