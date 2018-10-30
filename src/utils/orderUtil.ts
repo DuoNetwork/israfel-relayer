@@ -22,7 +22,7 @@ class OrderUtil {
 		const userOrder = orderUtil.constructUserOrder(liveOrder, type, status, updatedBy);
 		try {
 			await dynamoUtil.addUserOrder(userOrder);
-			util.logDebug('added user order');
+			util.logDebug(`added user order ${liveOrder.orderHash}|${type}|${status}|${updatedBy}`);
 		} catch (error) {
 			util.logError(error);
 		}
