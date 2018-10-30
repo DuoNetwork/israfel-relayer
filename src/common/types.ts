@@ -1,4 +1,4 @@
-import { SignedOrder } from '0x.js';
+import { OrderState, SignedOrder } from '0x.js';
 import WebSocket from 'ws';
 
 export interface ILiveOrder {
@@ -157,6 +157,12 @@ export interface IRelayerCacheItem {
 	liveOrder: ILiveOrder;
 	signedOrder?: IStringSignedOrder;
 	timeout: NodeJS.Timeout
+}
+
+export interface IOrderWatcherCacheItem {
+	pair: string;
+	method: string;
+	orderState: OrderState;
 }
 
 export interface IStatus {

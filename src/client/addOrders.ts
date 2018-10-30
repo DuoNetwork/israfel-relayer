@@ -17,7 +17,7 @@ import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
 // const web3: Web3 = new Web3(new Web3.providers.HttpProvider(CST.PROVIDER_LOCAL));
-const web3Util = new Web3Util();
+const web3Util = new Web3Util(null, false);
 
 const mainAsync = async () => {
 	await assetsUtil.init(web3Util);
@@ -58,7 +58,7 @@ const mainAsync = async () => {
 
 	let isBid = true;
 
-	const randomExpiration = web3Util.getRandomFutureDateInSeconds();
+	const randomExpiration = Web3Util.getRandomFutureDateInSeconds();
 	const maker = assetsUtil.getRandomMaker();
 	// const zrxAssetAmount = Web3Wrapper.toBaseUnitAmount(
 	// 	new BigNumber(Number(Math.random() * 10 || 5).toFixed(3)),

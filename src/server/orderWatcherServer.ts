@@ -1,10 +1,12 @@
-import { OrderState, OrderWatcher, RPCSubprovider } from '0x.js';
+import { OrderWatcher, RPCSubprovider } from '0x.js';
 import SequenceClient from '../client/SequenceClient';
 import * as CST from '../common/constants';
 import {
 	ILiveOrder,
 	IOption,
+	IOrderWatcherCacheItem,
 	IRawOrder,
+	IStringSignedOrder,
 	IWsOrderSequenceResponse,
 	IWsResponse
 } from '../common/types';
@@ -17,12 +19,12 @@ import Web3Util from '../utils/Web3Util';
 class OrderWatcherServer extends SequenceClient {
 	public provider = new RPCSubprovider(CST.PROVIDER_LOCAL);
 	public orderWatcher: OrderWatcher | null = null;
-	public requestQueue: { [pair: string]: OrderState[] } = {};
+	public requestCache: { [methodPairOrderHash: string]: IOrderWatcherCacheItem } = {};
 	public web3Util: Web3Util | null = null;
-	public numOfWatchedOrders: number = 0;
+	public watchedOrders: string[] = [];
 
 	public init(live: boolean) {
-		this.web3Util = new Web3Util();
+		this.web3Util = new Web3Util(null, live);
 		this.orderWatcher = new OrderWatcher(
 			this.web3Util.web3Wrapper.getProvider(),
 			CST.NETWORK_ID_LOCAL
@@ -35,17 +37,21 @@ class OrderWatcherServer extends SequenceClient {
 	}
 
 	public async startOrderWatcher(option: IOption) {
+		const pair = option.token + '-' + CST.TOKEN_WETH;
 		dynamoUtil.updateStatus(CST.DB_ORDER_WATCHER);
 		setInterval(
-			() => dynamoUtil.updateStatus(CST.DB_ORDER_WATCHER, this.numOfWatchedOrders),
+			() =>
+				dynamoUtil.updateStatus(
+					`${CST.DB_ORDER_WATCHER}|${pair}`,
+					this.watchedOrders.length
+				),
 			10000
 		);
 
-		const pair = option.token + '-' + CST.TOKEN_WETH;
 		util.logInfo('start order watcher for ' + pair);
 		const liveOrders: ILiveOrder[] = await dynamoUtil.getLiveOrders(pair);
 
-		console.log('length in DB is ', liveOrders.length);
+		util.logInfo('length in DB is ' + liveOrders.length);
 		if (this.orderWatcher) {
 			for (const order of liveOrders)
 				try {
@@ -54,44 +60,61 @@ class OrderWatcherServer extends SequenceClient {
 					);
 					if (rawOrder) {
 						await this.orderWatcher.addOrderAsync(
-							orderUtil.parseSignedOrder(rawOrder.signedOrder)
+							orderUtil.parseSignedOrder(rawOrder.signedOrder as IStringSignedOrder)
 						);
-						this.numOfWatchedOrders++;
-						console.log('succsfully added %s', order.orderHash);
+						this.watchedOrders.push(order.orderHash);
+						util.logInfo('succsfully added ' + order.orderHash);
 					}
 				} catch (e) {
-					console.log('failed to add %s', order.orderHash, 'error is ' + e);
+					util.logInfo('failed to add ' + order.orderHash + 'error is ' + e);
 				}
 
 			this.orderWatcher.subscribe(async (err, orderState) => {
 				if (err) {
-					console.log(err);
+					util.logError(err);
 					return;
 				}
 
-				console.log(Date.now().toString(), orderState);
+				util.logInfo(Date.now().toString() + JSON.stringify(orderState));
 				if (orderState !== undefined) {
 					if (!this.sequenceWsClient) throw new Error('sequence service is unavailable');
 					this.requestSequence(CST.DB_UPDATE, pair, orderState.orderHash);
-					this.requestQueue[pair].push(orderState);
+					this.requestCache[`${CST.DB_UPDATE}|${pair}|${orderState.orderHash}`] = {
+						pair,
+						method: CST.DB_UPDATE,
+						orderState
+					};
 				}
 			});
 		}
 	}
 
-	public handleSequenceMessage(m: string) {
+	public async handleSequenceMessage(m: string) {
 		const res: IWsResponse = JSON.parse(m);
 		if (res.channel !== CST.DB_SEQUENCE || res.status !== CST.WS_OK) return;
 
-		const { sequence, method } = res as IWsOrderSequenceResponse;
+		const { sequence, pair, orderHash, method } = res as IWsOrderSequenceResponse;
+		if (!sequence || !pair || !orderHash) {
+			util.logDebug('returned sequence messae is wrong');
+			return;
+		}
+		const requestId = `${method}|${pair}|${orderHash}`;
+		if (!this.requestCache[requestId]) {
+			util.logDebug('request id does not exist');
+			return;
+		}
 
-		const pair = method;
-		if (!this.requestQueue[pair] || !this.requestQueue[pair].length) return;
-
-		const queueItem = this.requestQueue[pair].pop();
+		const queueItem = this.requestCache[requestId];
+		delete this.requestCache[requestId];
 		if (!queueItem) return;
 
-		relayerUtil.handleUpdateOrder(sequence + '', pair, queueItem);
+		if (!(await relayerUtil.handleUpdateOrder(sequence + '', pair, queueItem)))
+			if (this.orderWatcher) {
+				await this.orderWatcher.removeOrder(queueItem.orderState.orderHash);
+				this.watchedOrders = this.watchedOrders.filter(
+					hash => hash !== queueItem.orderState.orderHash
+				);
+			}
 	}
 
 	//remove orders remaining invalid for 24 hours from DB

@@ -24,7 +24,7 @@ class RelayerServer extends SequenceClient {
 	public web3Util: Web3Util | null = null;
 	// private live: boolean = false;
 	public relayerWsServer: WebSocket.Server | null = null;
-	public requestCache: { [pairMethodOrderHash: string]: IRelayerCacheItem } = {};
+	public requestCache: { [methodPairOrderHash: string]: IRelayerCacheItem } = {};
 
 	public getCacheKey(re: IWsOrderRequest | IWsOrderResponse) {
 		return `${re.method}|${re.pair}|${re.orderHash}`;
@@ -132,18 +132,20 @@ class RelayerServer extends SequenceClient {
 			return;
 		}
 
+		const stringSignedOrder: IStringSignedOrder = req.order as IStringSignedOrder;
+
 		const orderHash = this.web3Util
-			? await this.web3Util.validateOrder(orderUtil.parseSignedOrder(req.order as IStringSignedOrder))
+			? await this.web3Util.validateOrder(orderUtil.parseSignedOrder(stringSignedOrder))
 			: '';
 		if (orderHash && orderHash === req.orderHash) {
 			const pair = req.pair;
-			liveOrder = orderUtil.constructNewLiveOrder(req.order as IStringSignedOrder, pair, orderHash);
+			liveOrder = orderUtil.constructNewLiveOrder(stringSignedOrder, pair, orderHash);
 			this.requestCache[cacheKey] = {
 				ws: ws,
 				pair: pair,
 				method: CST.DB_ADD,
 				liveOrder: liveOrder,
-				signedOrder: req.order as IStringSignedOrder,
+				signedOrder: stringSignedOrder,
 				timeout: setTimeout(() => this.handleTimeout(cacheKey), 30000)
 			};
 			util.logDebug('request added to cache');

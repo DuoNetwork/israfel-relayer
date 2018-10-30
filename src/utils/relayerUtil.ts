@@ -4,11 +4,13 @@ import {
 	ILiveOrder,
 	IOrderBookSnapshotWs,
 	IOrderBookUpdate,
+	IOrderWatcherCacheItem,
 	IStringSignedOrder
 } from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import orderBookUtil from './orderBookUtil';
 import redisUtil from './redisUtil';
+import util from './util';
 import Web3Util from './Web3Util';
 
 class RelayerUtil {
@@ -101,11 +103,19 @@ class RelayerUtil {
 		);
 	}
 
-	public async handleUpdateOrder(sequence: string, pair: string, orderState: OrderState) {
+	public async handleUpdateOrder(
+		sequence: string,
+		pair: string,
+		orderUpdateItem: IOrderWatcherCacheItem
+	): Promise<boolean> {
+		const orderState: OrderState = orderUpdateItem.orderState;
 		const { orderHash, isValid } = orderState;
 
 		const liveOrders: ILiveOrder[] = await dynamoUtil.getLiveOrders(pair, orderHash);
-		if (liveOrders.length === 0) throw new Error('invalid orderHash');
+		if (liveOrders.length < 1) {
+			util.logDebug('order does not exist');
+			return false;
+		}
 
 		const orderBookUpdate: IOrderBookUpdate = {
 			pair: pair,
@@ -116,8 +126,9 @@ class RelayerUtil {
 
 		if (isValid)
 			orderBookUpdate.amount =
-				Number(
-					(orderState as OrderStateValid).orderRelevantState.remainingFillableMakerAssetAmount.valueOf()
+				Web3Util.fromWei(
+					(orderState as OrderStateValid).orderRelevantState
+						.remainingFillableMakerAssetAmount
 				) - liveOrders[0].amount;
 
 		redisUtil.push(
@@ -128,12 +139,15 @@ class RelayerUtil {
 				orderHash,
 				newAmount: !isValid
 					? 0
-					: Number(
-							(orderState as OrderStateValid).orderRelevantState.remainingFillableMakerAssetAmount.valueOf()
+					: Web3Util.fromWei(
+							(orderState as OrderStateValid).orderRelevantState
+								.remainingFillableMakerAssetAmount
 					)
 			})
 		);
 		redisUtil.publish(CST.ORDERBOOK_UPDATE + '|' + pair, JSON.stringify(orderBookUpdate));
+
+		return true;
 	}
 }
 const relayerUtil = new RelayerUtil();
