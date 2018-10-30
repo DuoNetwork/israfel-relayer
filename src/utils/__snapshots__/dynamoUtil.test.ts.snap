@@ -122,11 +122,8 @@ Array [
         "initialSequence": Object {
           "N": "1",
         },
-        "orderHash": Object {
-          "S": "0xOrderHash",
-        },
-        "pairSequence": Object {
-          "S": "pair|2",
+        "pairOrderHashSequence": Object {
+          "S": "pair|0xOrderHash|2",
         },
         "price": Object {
           "N": "0.12345678",
@@ -378,7 +375,7 @@ Array [
           "S": "pair|",
         },
       },
-      "KeyConditionExpression": "accountYearMonth = :accountYearMonth AND pairSequence BETWEEN :start AND :end",
+      "KeyConditionExpression": "accountYearMonth = :accountYearMonth AND pairOrderHashSequence BETWEEN :start AND :end",
       "TableName": "israfel.userOrders.dev",
     },
   ],

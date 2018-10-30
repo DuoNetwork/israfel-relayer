@@ -345,10 +345,11 @@ class DynamoUtil {
 			[CST.DB_ACCOUNT_YM]: {
 				S: userOrder.account + '|' + moment.utc(timestamp).format('YYYY-MM')
 			},
-			[CST.DB_PAIR_SEQ]: { S: userOrder.pair + '|' + userOrder.currentSequence },
+			[CST.DB_PAIR_OH_SEQ]: {
+				S: userOrder.pair + '|' + userOrder.orderHash + '|' + userOrder.currentSequence
+			},
 			[CST.DB_TYPE]: { S: userOrder.type },
 			[CST.DB_STATUS]: { S: userOrder.status },
-			[CST.DB_ORDER_HASH]: { S: userOrder.orderHash },
 			[CST.DB_PRICE]: {
 				N: util.round(userOrder.price) + ''
 			},
@@ -371,13 +372,13 @@ class DynamoUtil {
 	}
 
 	public parseUserOrder(data: AttributeMap): IUserOrder {
-		const [pair, seq] = (data[CST.DB_PAIR_SEQ].S || '').split('|');
+		const [pair, orderHash, seq] = (data[CST.DB_PAIR_OH_SEQ].S || '').split('|');
 		return {
 			account: (data[CST.DB_ACCOUNT_YM].S || '').split('|')[0],
 			pair: pair,
 			type: data[CST.DB_TYPE].S || '',
 			status: data[CST.DB_STATUS].S || '',
-			orderHash: data[CST.DB_ORDER_HASH].S || '',
+			orderHash: orderHash,
 			price: Number(data[CST.DB_PRICE].N),
 			side: data[CST.DB_SIDE].S || '',
 			amount: Number(data[CST.DB_BALANCE].N),
@@ -419,7 +420,7 @@ class DynamoUtil {
 			}
 		};
 		if (pair) {
-			params.KeyConditionExpression += ` AND ${CST.DB_PAIR_SEQ} BETWEEN :start AND :end`;
+			params.KeyConditionExpression += ` AND ${CST.DB_PAIR_OH_SEQ} BETWEEN :start AND :end`;
 			if (params.ExpressionAttributeValues) {
 				params.ExpressionAttributeValues[':start'] = { S: `${pair}|` };
 				params.ExpressionAttributeValues[':end'] = { S: `${pair}|z` };
