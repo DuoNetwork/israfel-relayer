@@ -133,17 +133,17 @@ class RelayerServer extends SequenceClient {
 		}
 
 		const orderHash = this.web3Util
-			? await this.web3Util.validateOrder(orderUtil.parseSignedOrder(req.order))
+			? await this.web3Util.validateOrder(orderUtil.parseSignedOrder(req.order as IStringSignedOrder))
 			: '';
 		if (orderHash && orderHash === req.orderHash) {
 			const pair = req.pair;
-			liveOrder = orderUtil.constructNewLiveOrder(req.order, pair, orderHash);
+			liveOrder = orderUtil.constructNewLiveOrder(req.order as IStringSignedOrder, pair, orderHash);
 			this.requestCache[cacheKey] = {
 				ws: ws,
 				pair: pair,
 				method: CST.DB_ADD,
 				liveOrder: liveOrder,
-				signedOrder: req.order,
+				signedOrder: req.order as IStringSignedOrder,
 				timeout: setTimeout(() => this.handleTimeout(cacheKey), 30000)
 			};
 			util.logDebug('request added to cache');

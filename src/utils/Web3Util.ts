@@ -13,7 +13,7 @@ import { RPCSubprovider, SignerSubprovider, Web3ProviderEngine } from '@0xprojec
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import Web3 from 'web3';
 import * as CST from '../common/constants';
-import { IRawOrder, IStringSignedOrder,  } from '../common/types';
+import { IRawOrder, IStringSignedOrder } from '../common/types';
 import util from './util';
 
 export enum Wallet {
@@ -26,6 +26,7 @@ export default class Web3Util {
 	public contractWrappers: ContractWrappers;
 	public web3Wrapper: Web3Wrapper;
 	public wallet: Wallet = Wallet.None;
+	public accountIndex: number = 0;
 
 	constructor(window: any, live: boolean) {
 		if (window && typeof window.web3 !== 'undefined') {
@@ -49,6 +50,15 @@ export default class Web3Util {
 		this.contractWrappers = new ContractWrappers(this.web3Wrapper.getProvider(), {
 			networkId: live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN
 		});
+	}
+
+	public async getCurrentAddress(): Promise<string> {
+		const accounts = await this.web3Wrapper.getAvailableAddressesAsync();
+		return accounts[this.accountIndex] || CST.DUMMY_ADDR;
+	}
+
+	public getCurrentNetwork(): Promise<number> {
+		return this.web3Wrapper.getNetworkIdAsync();
 	}
 
 	public async createRawOrder(
