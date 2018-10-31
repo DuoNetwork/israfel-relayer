@@ -29,7 +29,7 @@ switch (tool) {
 		assetsUtil.setTokenAllowance(option);
 		break;
 	case CST.DB_ORDER_WATCHER:
-		orderWatcherServer.startOrderWatcher(option);
+		orderWatcherServer.startOrderWatcher(web3Util, option);
 		break;
 	case CST.DB_RELAYER:
 		relayerServer.startServer(web3Util, option);
