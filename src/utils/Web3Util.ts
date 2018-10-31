@@ -9,7 +9,6 @@ import {
 	SignerType
 } from '0x.js';
 import { schemas, SchemaValidator } from '@0xproject/json-schemas';
-// import { RPCSubprovider, SignerSubprovider, Web3ProviderEngine } from '@0xproject/subproviders';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import Web3 from 'web3';
 import * as CST from '../common/constants';
@@ -85,9 +84,9 @@ export default class Web3Util {
 	): Promise<IRawOrder> {
 		if (this.wallet !== Wallet.MetaMask) Promise.reject('cannot sign');
 		const order = {
-			senderAddress: relayerAddr,
-			makerAddress: userAddr,
-			takerAddress: relayerAddr,
+			senderAddress: relayerAddr.toLowerCase(),
+			makerAddress: userAddr.toLowerCase(),
+			takerAddress: relayerAddr.toLowerCase(),
 			makerFee: new BigNumber(0),
 			takerFee: new BigNumber(0),
 			makerAssetAmount: Web3Wrapper.toBaseUnitAmount(new BigNumber(makerAmt), 18),
@@ -96,7 +95,7 @@ export default class Web3Util {
 			takerAssetData: assetDataUtils.encodeERC20AssetData(takerAssetAddr),
 			salt: generatePseudoRandomSalt(),
 			exchangeAddress: this.contractWrappers.exchange.getContractAddress(),
-			feeRecipientAddress: relayerAddr,
+			feeRecipientAddress: relayerAddr.toLowerCase(),
 			expirationTimeSeconds: new BigNumber(expInSeconds)
 		};
 

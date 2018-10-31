@@ -8,9 +8,6 @@
 		"test": "jest",
 		"tslint": "tslint -c tslint.json -p tsconfig.json src/**/*.ts{,x} --fix",
 		"relayer": "ts-node ./src/index relayer",
-		"startIdService": "ts-node ./src/index startIdService",
-		"start": "cross-env ganache-cli --gasLimit 10000000 --noVMErrorsOnRPCResponse --db 0x_ganache_snapshot -p 8555 --networkId 50 -m \"concert load couple harbor equip island argue ramp clarify fence smart topic\"",
-		"downloadSnapshot": "cross-env download --extract --strip 1 --out 0x_ganache_snapshot https://s3.amazonaws.com/testrpc-shapshots/965d6098294beb22292090c461151274ee6f9a26.zip",
 		"addOrders": "ts-node ./src/client/addOrders",
 		"cancelOrders": "ts-node ./src/client/cancelOrders",
 		"pruneOrder": "ts-node ./src/index pruneOrder",
@@ -36,28 +33,20 @@
 			"node"
 		]
 	},
-	"config": {
-		"mnemonic": "concert load couple harbor equip island argue ramp clarify fence smart topic",
-		"snapshot_url": "https://s3.amazonaws.com/testrpc-shapshots/965d6098294beb22292090c461151274ee6f9a26.zip"
-	},
 	"devDependencies": {
 		"@types/ioredis": "^4.0.3",
 		"@types/jest": "^23.3.1",
 		"@types/ws": "^6.0.0",
-		"cross-env": "^5.1.4",
-		"download-cli": "^1.1.1",
-		"ganache-cli": "^6.1.6",
 		"jest": "^23.5.0",
 		"pre-commit": "^1.2.2",
 		"ts-jest": "^23.1.4",
 		"tslint": "^5.11.0"
 	},
 	"dependencies": {
-		"0x.js": "^1.0.1",
 		"@0xproject/json-schemas": "^1.0.1",
-		"@0xproject/subproviders": "^2.0.5",
 		"@0xproject/types": "^1.0.1",
 		"@0xproject/web3-wrapper": "^2.0.2",
+		"0x.js": "^1.0.1",
 		"aws-sdk": "^2.323.0",
 		"ioredis": "^4.2.0",
 		"moment": "^2.22.2",

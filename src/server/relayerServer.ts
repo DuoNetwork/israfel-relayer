@@ -276,6 +276,7 @@ class RelayerServer extends SequenceClient {
 			this.relayerWsServer.on('connection', ws => {
 				util.logInfo('new connection');
 				ws.on('message', message => this.handleRelayerMessage(ws, message.toString()));
+				ws.on('close', () => util.logInfo('connection close'));
 			});
 	}
 }
