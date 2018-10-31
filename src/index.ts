@@ -29,7 +29,6 @@ switch (tool) {
 		assetsUtil.setTokenAllowance(option);
 		break;
 	case CST.DB_ORDER_WATCHER:
-		orderWatcherServer.init(option.live);
 		orderWatcherServer.startOrderWatcher(option);
 		break;
 	case CST.DB_RELAYER:

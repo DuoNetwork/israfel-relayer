@@ -1,4 +1,4 @@
-import { OrderWatcher, RPCSubprovider } from '0x.js';
+import { orderHashUtils, OrderWatcher, RPCSubprovider, SignedOrder } from '0x.js';
 import SequenceClient from '../client/SequenceClient';
 import * as CST from '../common/constants';
 import {
@@ -23,20 +23,25 @@ class OrderWatcherServer extends SequenceClient {
 	public web3Util: Web3Util | null = null;
 	public watchedOrders: string[] = [];
 
-	public init(live: boolean) {
-		this.web3Util = new Web3Util(null, live);
-		this.orderWatcher = new OrderWatcher(
-			this.web3Util.web3Wrapper.getProvider(),
-			CST.NETWORK_ID_LOCAL
-		);
-		this.connectToSequenceServer(live);
-	}
-
 	public unsubOrderWatcher() {
 		if (this.orderWatcher) this.orderWatcher.unsubscribe();
 	}
 
 	public async startOrderWatcher(option: IOption) {
+		this.web3Util = new Web3Util(null, option.live);
+		this.orderWatcher = new OrderWatcher(
+			this.web3Util.web3Wrapper.getProvider(),
+			CST.NETWORK_ID_LOCAL
+		);
+
+		let url = `ws://13.251.115.119:8080`;
+		if (option.server) {
+			const sequenceService = await dynamoUtil.getServices(CST.DB_SEQUENCE);
+			if (!sequenceService.length) return;
+			url = sequenceService[0].url;
+		}
+		this.connectToSequenceServer(url);
+
 		const pair = option.token + '-' + CST.TOKEN_WETH;
 		dynamoUtil.updateStatus(CST.DB_ORDER_WATCHER);
 		setInterval(
@@ -58,10 +63,27 @@ class OrderWatcherServer extends SequenceClient {
 					const rawOrder: IRawOrder | null = await dynamoUtil.getRawOrder(
 						order.orderHash
 					);
+					// if (rawOrder) console.log(rawOrder.signedOrder as IStringSignedOrder);
 					if (rawOrder) {
+						console.log('>>>>>>>> adding order with hash' + order.orderHash);
+						console.log(rawOrder.signedOrder.expirationTimeSeconds);
+						console.log(Web3Util.stringToBN(rawOrder.signedOrder.expirationTimeSeconds + ''));
+						console.log(
+							orderUtil.parseSignedOrder(rawOrder.signedOrder as IStringSignedOrder)
+						);
+
+						const signedOrder: SignedOrder = orderUtil.parseSignedOrder(
+							rawOrder.signedOrder as IStringSignedOrder
+						);
+
+						const { signature, ...orderx } = signedOrder;
+
+						const orderHash = orderHashUtils.getOrderHashHex(orderx);
+						console.log('>>>>>>> calculated orderHash ' + orderHash);
 						await this.orderWatcher.addOrderAsync(
 							orderUtil.parseSignedOrder(rawOrder.signedOrder as IStringSignedOrder)
 						);
+						console.log('>>>>>>>>>>>>>>>>>>>>>>>> added success');
 						this.watchedOrders.push(order.orderHash);
 						util.logInfo('succsfully added ' + order.orderHash);
 					}
