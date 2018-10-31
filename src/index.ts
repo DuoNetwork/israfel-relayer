@@ -16,10 +16,10 @@ util.logInfo('tool ' + tool);
 const option: IOption = util.parseOptions(process.argv);
 if (option.debug) util.logLevel = CST.LOG_DEBUG;
 
-const redisConfig = require(`./keys/${option.live ? CST.DB_LIVE : CST.DB_DEV}/redis.json`);
+const redisConfig = require(`./keys/redis.${option.live ? CST.DB_LIVE : CST.DB_DEV}.json`);
 redisUtil.init(redisConfig);
 
-const config = require('./keys/' + (option.live ? 'live' : 'dev') + '/dynamo.json');
+const config = require(`./keys/dynamo.${option.live ? CST.DB_LIVE : CST.DB_DEV}.json`);
 dynamoUtil.init(config, option.live, tool, osUtil.getHostName());
 
 const web3Util = new Web3Util(null, option.live);
@@ -33,11 +33,10 @@ switch (tool) {
 		orderWatcherServer.startOrderWatcher(option);
 		break;
 	case CST.DB_RELAYER:
-		relayerServer.init(web3Util, option.live);
-		relayerServer.startServer();
+		relayerServer.startServer(web3Util, option);
 		break;
 	case CST.DB_SEQUENCE:
-		sequenceServer.startServer();
+		sequenceServer.startServer(option);
 		break;
 	case CST.DB_ORDERS:
 		orderUtil.startProcessing(option);

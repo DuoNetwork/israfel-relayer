@@ -25,6 +25,9 @@ export const DB_USER = 'user';
 export const DB_ORDER_PROCESSOR = 'orderProcessor';
 export const DB_ORDER_WATCHER = 'orderWatcher';
 export const DB_RELAYER = 'relayer';
+export const DB_SERVICES = 'services';
+export const DB_SERVICE = 'service';
+export const DB_URL = 'url';
 
 export const DB_SIDE = 'side';
 export const DB_ASK = 'ask';
@@ -34,9 +37,9 @@ export const DB_CREATED_AT = 'createdAt';
 export const DB_UPDATED_AT = 'updatedAt';
 export const DB_UPDATED_BY = 'updatedBy';
 
-export const DB_STS_PROCESS = 'process';
-export const DB_STS_HOSTNAME = 'hostname';
-export const DB_STS_COUNT = 'count';
+export const DB_PROCESS = 'process';
+export const DB_HOSTNAME = 'hostname';
+export const DB_COUNT = 'count';
 
 export const DB_0X_SENDER_ADDR = 'senderAddress';
 export const DB_0X_MAKER_FEE = 'makerFee';
@@ -76,9 +79,6 @@ export const PROVIDER_LOCAL = 'http://localhost:8555';
 export const NETWORK_ID_LOCAL = 50;
 export const RELAYER_HTTP_URL = 'http://localhost:3000/v0';
 export const RELAYER_WS_URL = 'ws://localhost:8080';
-export const SEQUENCE_URL_DEV = 'ws://13.251.115.119';
-export const SEQUENCE_URL_LIVE = 'ws://13.251.115.119';
-export const SEQUENCE_PORT = 8000;
 export const PENDING_HOURS = 24;
 
 export const WS_SUB = 'subscribe';

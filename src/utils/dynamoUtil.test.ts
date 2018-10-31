@@ -2,6 +2,57 @@ import * as CST from '../common/constants';
 import dynamoUtil from './dynamoUtil';
 import util from './util';
 
+test('scanServices', async () => {
+	let scanOutput: { [key: string]: any } = {
+		Items: []
+	};
+	dynamoUtil.scanData = jest.fn(() => Promise.resolve(scanOutput));
+	expect(await dynamoUtil.scanServices()).toMatchSnapshot();
+	expect((dynamoUtil.scanData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	scanOutput = {
+		Items: [
+			{
+				[CST.DB_SERVICE]: { S: 'service1' },
+				[CST.DB_HOSTNAME]: { S: 'hostname1' },
+				[CST.DB_URL]: { S: 'url1' },
+			},
+			{
+				[CST.DB_SERVICE]: { S: 'service2' },
+				[CST.DB_HOSTNAME]: { S: 'hostname2' },
+				[CST.DB_URL]: { N: 'url2' },
+			}
+		]
+	};
+	dynamoUtil.scanData = jest.fn(() => Promise.resolve(scanOutput));
+	expect(await dynamoUtil.scanServices()).toMatchSnapshot();
+});
+
+test('getServices', async () => {
+	let queryOutput: { [key: string]: any } = {
+		Items: []
+	};
+	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
+	expect(await dynamoUtil.getServices('service', true)).toMatchSnapshot();
+	expect((dynamoUtil.queryData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	queryOutput = {
+		Items: [
+			{
+				[CST.DB_SERVICE]: { S: 'service' },
+				[CST.DB_HOSTNAME]: { S: 'hostname1' },
+				[CST.DB_URL]: { S: 'url1' },
+			},
+			{
+				[CST.DB_SERVICE]: { S: 'service' },
+				[CST.DB_HOSTNAME]: { S: 'hostname2' },
+				[CST.DB_URL]: { N: 'url2' },
+			}
+		]
+	};
+	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
+	expect(await dynamoUtil.getServices('service')).toMatchSnapshot();
+	expect((dynamoUtil.queryData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+});
+
 test('updateStatus', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
@@ -21,16 +72,16 @@ test('scanStatus', async () => {
 	scanOutput = {
 		Items: [
 			{
-				[CST.DB_STS_PROCESS]: { S: 'tool|pair' },
+				[CST.DB_PROCESS]: { S: 'tool|pair' },
 				[CST.DB_UPDATED_AT]: { N: '1234567890' },
-				[CST.DB_STS_HOSTNAME]: { S: 'hostname' },
-				[CST.DB_STS_COUNT]: { N: '123' },
+				[CST.DB_HOSTNAME]: { S: 'hostname' },
+				[CST.DB_COUNT]: { N: '123' },
 				[CST.DB_SEQUENCE]: { N: '456' }
 			},
 			{
-				[CST.DB_STS_PROCESS]: { S: 'tool|' },
+				[CST.DB_PROCESS]: { S: 'tool|' },
 				[CST.DB_UPDATED_AT]: { N: '1234567890' },
-				[CST.DB_STS_HOSTNAME]: { S: 'hostname' }
+				[CST.DB_HOSTNAME]: { S: 'hostname' }
 			}
 		]
 	};

@@ -179,3 +179,9 @@ export interface IStatus {
 	count?: number;
 	sequence?: number;
 }
+
+export interface IService {
+	service: string;
+	hostname: string;
+	url: string;
+}

@@ -11,7 +11,7 @@ import DynamoDB, {
 import AWS from 'aws-sdk/global';
 import moment from 'moment';
 import * as CST from '../common/constants';
-import { ILiveOrder, IRawOrder, IStatus, IUserOrder } from '../common/types';
+import { ILiveOrder, IRawOrder, IService, IStatus, IUserOrder } from '../common/types';
 import util from './util';
 
 class DynamoUtil {
@@ -78,33 +78,75 @@ class DynamoUtil {
 		);
 	}
 
+	public parseService(data: AttributeMap): IService {
+		return {
+			service: data[CST.DB_SERVICE].S || '',
+			hostname: data[CST.DB_HOSTNAME].S || '',
+			url: data[CST.DB_URL].S || ''
+		};
+	}
+
+	public async scanServices() {
+		const data = await this.scanData({
+			TableName: `${CST.DB_ISRAFEL}.${CST.DB_SERVICES}.${
+				this.live ? CST.DB_LIVE : CST.DB_DEV
+			}`
+		});
+		if (!data.Items || !data.Items.length) return [];
+
+		return data.Items.map(ob => this.parseService(ob));
+	}
+
+	public async getServices(service: string, onlyThisHost: boolean = false) {
+		const params: QueryInput = {
+			TableName: `${CST.DB_ISRAFEL}.${CST.DB_SERVICES}.${
+				this.live ? CST.DB_LIVE : CST.DB_DEV
+			}`,
+			KeyConditionExpression: `${CST.DB_SERVICE} = :${CST.DB_SERVICE}`,
+			ExpressionAttributeValues: {
+				[':' + CST.DB_SERVICE]: { S: service }
+			}
+		};
+
+		if (onlyThisHost) {
+			params.KeyConditionExpression += ` AND ${CST.DB_HOSTNAME} = :${CST.DB_HOSTNAME}`;
+			if (params.ExpressionAttributeValues)
+				params.ExpressionAttributeValues[':' + CST.DB_HOSTNAME] = { S: this.hostname };
+		}
+
+		const data = await this.queryData(params);
+		if (!data.Items || !data.Items.length) return [];
+
+		return data.Items.map(ob => this.parseService(ob));
+	}
+
 	public updateStatus(process: string, count: number = 0, sequence: number = 0) {
 		const params: PutItemInput = {
 			TableName: `${CST.DB_ISRAFEL}.${CST.DB_STATUS}.${this.live ? CST.DB_LIVE : CST.DB_DEV}`,
 			Item: {
-				[CST.DB_STS_PROCESS]: {
+				[CST.DB_PROCESS]: {
 					S: `${this.tool}|${process}|${this.hostname}`
 				},
-				[CST.DB_STS_HOSTNAME]: {
+				[CST.DB_HOSTNAME]: {
 					S: this.hostname
 				},
 				[CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' }
 			}
 		};
-		if (count) params.Item[CST.DB_STS_COUNT] = { N: count + '' };
+		if (count) params.Item[CST.DB_COUNT] = { N: count + '' };
 		if (sequence) params.Item[CST.DB_SEQUENCE] = { N: sequence + '' };
 		return this.putData(params).catch(error => util.logError('Error insert status: ' + error));
 	}
 
 	public parseStatus(data: AttributeMap): IStatus {
-		const [tool, pair] = (data[CST.DB_STS_PROCESS].S || '').split('|');
+		const [tool, pair] = (data[CST.DB_PROCESS].S || '').split('|');
 		const status: IStatus = {
 			tool: tool,
 			pair: pair || '',
-			hostname: data[CST.DB_STS_HOSTNAME].S || '',
+			hostname: data[CST.DB_HOSTNAME].S || '',
 			updatedAt: Number(data[CST.DB_UPDATED_AT].N)
 		};
-		const count = data[CST.DB_STS_COUNT] ? Number(data[CST.DB_STS_COUNT].N) : 0;
+		const count = data[CST.DB_COUNT] ? Number(data[CST.DB_COUNT].N) : 0;
 		if (count) status.count = count;
 		const sequence = data[CST.DB_SEQUENCE] ? Number(data[CST.DB_SEQUENCE].N) : 0;
 		if (sequence) status.sequence = sequence;

@@ -1,8 +1,11 @@
+import * as fs from 'fs';
+import * as https from 'https';
 import WebSocket from 'ws';
 import SequenceClient from '../client/SequenceClient';
 import * as CST from '../common/constants';
 import {
 	INewOrderQueueItem,
+	IOption,
 	IRelayerCacheItem,
 	IStringSignedOrder,
 	IUserOrder,
@@ -28,14 +31,6 @@ class RelayerServer extends SequenceClient {
 
 	public getCacheKey(re: IWsOrderRequest | IWsOrderResponse) {
 		return `${re.method}|${re.pair}|${re.orderHash}`;
-	}
-
-	public init(web3Util: Web3Util, live: boolean) {
-		// this.live = live;
-		this.web3Util = web3Util;
-		this.connectToSequenceServer(live);
-		// relayerUtil.init();
-		this.relayerWsServer = new WebSocket.Server({ port: CST.RELAYER_PORT });
 	}
 
 	public handleTimeout(cacheKey: string) {
@@ -261,7 +256,31 @@ class RelayerServer extends SequenceClient {
 		}
 	}
 
-	public startServer() {
+	public async startServer(web3Util: Web3Util, option: IOption) {
+		this.web3Util = web3Util;
+		let url = `ws://13.251.115.119:8080`;
+		if (option.server) {
+			const sequenceService = await dynamoUtil.getServices(CST.DB_SEQUENCE);
+			if (!sequenceService.length) return;
+			url = sequenceService[0].url;
+		}
+
+		this.connectToSequenceServer(url);
+		let port = 8080;
+		if (option.server) {
+			const relayerService = await dynamoUtil.getServices(CST.DB_RELAYER, true);
+			if (!relayerService.length) return;
+			port = Number(relayerService[0].url.split(':').slice(-1)[0]);
+		}
+		const server = https
+			.createServer({
+				key: fs.readFileSync('./src/keys/websocket/key.pem', 'utf8'),
+				cert: fs.readFileSync('./src/keys/websocket/cert.pem', 'utf8')
+			})
+			.listen(port);
+		this.relayerWsServer = new WebSocket.Server({ server: server });
+		util.logInfo(`started relayer service at port ${port}`);
+
 		dynamoUtil.updateStatus(CST.DB_RELAYER);
 		setInterval(
 			() =>

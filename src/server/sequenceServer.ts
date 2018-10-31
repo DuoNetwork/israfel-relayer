@@ -1,6 +1,11 @@
 import WebSocket from 'ws';
 import * as CST from '../common/constants';
-import { IWsOrderRequest, IWsOrderResponse, IWsOrderSequenceResponse } from '../common/types';
+import {
+	IOption,
+	IWsOrderRequest,
+	IWsOrderResponse,
+	IWsOrderSequenceResponse
+} from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import redisUtil from '../utils/redisUtil';
 import util from '../utils/util';
@@ -42,7 +47,7 @@ class SequenceServer {
 		util.safeWsSend(ws, JSON.stringify(seqRes));
 	}
 
-	public async startServer() {
+	public async startServer(option: IOption) {
 		for (const pair of CST.SUPPORTED_PAIRS) {
 			const seq = Number(await redisUtil.get(`${CST.DB_SEQUENCE}|${pair}`));
 			dynamoUtil.updateStatus(pair, 0, seq);
@@ -58,7 +63,18 @@ class SequenceServer {
 				);
 		}, 15000);
 
-		this.wss = new WebSocket.Server({ port: CST.SEQUENCE_PORT });
+		let port = 8000;
+		if (option.server) {
+			const sequenceService = await dynamoUtil.getServices(CST.DB_SERVICE, true);
+			if (!sequenceService.length) return;
+			util.logDebug('loaded sequence service config');
+			util.logDebug(sequenceService[0]);
+			port = Number(sequenceService[0].url.split(':').slice(-1)[0]);
+		}
+
+		this.wss = new WebSocket.Server({ port: port });
+		util.logInfo(`started sequence service at port ${port}`);
+
 		if (this.wss)
 			this.wss.on('connection', ws => {
 				util.logInfo('new connection');

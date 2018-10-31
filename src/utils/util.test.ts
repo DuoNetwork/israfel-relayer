@@ -58,7 +58,8 @@ test('parseOptions', () => {
 		'maker=456',
 		'spender=789',
 		'type=type',
-		'dummy=dummy'
+		'dummy=dummy',
+		'server'
 	];
 	expect(util.parseOptions(command)).toMatchSnapshot();
 });
