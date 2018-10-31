@@ -65,10 +65,13 @@ class SequenceServer {
 
 		let port = 8000;
 		if (option.server) {
-			const sequenceService = await dynamoUtil.getServices(CST.DB_SERVICE, true);
-			if (!sequenceService.length) return;
+			const sequenceService = await dynamoUtil.getServices(CST.DB_SEQUENCE, true);
+			if (!sequenceService.length) {
+				util.logInfo('no sequence service config, exit');
+				return;
+			}
 			util.logInfo('loaded sequence service config');
-			util.logDebug(sequenceService[0]);
+			util.logInfo(sequenceService[0]);
 			port = Number(sequenceService[0].url.split(':').slice(-1)[0]);
 		}
 

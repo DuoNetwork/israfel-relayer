@@ -261,9 +261,12 @@ class RelayerServer extends SequenceClient {
 		let url = `ws://13.251.115.119:8080`;
 		if (option.server) {
 			const sequenceService = await dynamoUtil.getServices(CST.DB_SEQUENCE);
-			if (!sequenceService.length) return;
+			if (!sequenceService.length) {
+				util.logInfo('no sequence service config, exit');
+				return;
+			}
 			util.logInfo('loaded sequence service config');
-			util.logDebug(sequenceService[0]);
+			util.logInfo(sequenceService[0]);
 			url = sequenceService[0].url;
 		}
 
@@ -271,9 +274,12 @@ class RelayerServer extends SequenceClient {
 		let port = 8080;
 		if (option.server) {
 			const relayerService = await dynamoUtil.getServices(CST.DB_RELAYER, true);
-			if (!relayerService.length) return;
+			if (!relayerService.length) {
+				util.logInfo('no relayer service config, exit');
+				return;
+			}
 			util.logInfo('loaded relayer service config');
-			util.logDebug(relayerService[0]);
+			util.logInfo(relayerService[0]);
 			port = Number(relayerService[0].url.split(':').slice(-1)[0]);
 		}
 		const server = https
