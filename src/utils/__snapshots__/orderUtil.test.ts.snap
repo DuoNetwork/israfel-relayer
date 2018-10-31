@@ -217,7 +217,7 @@ Object {
 
 exports[`constructNewLiveOrder 2`] = `
 Object {
-  "account": "takerAddress",
+  "account": "makerAddress",
   "amount": 4.56e-16,
   "currentSequence": 0,
   "initialSequence": 0,

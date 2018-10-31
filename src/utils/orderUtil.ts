@@ -115,7 +115,7 @@ class OrderUtil {
 		const side = web3Util.getSideFromSignedOrder(signedOrder, pair);
 		const isBid = side === CST.DB_BID;
 		return {
-			account: isBid ? signedOrder.makerAddress : signedOrder.takerAddress,
+			account: signedOrder.makerAddress,
 			pair: pair,
 			orderHash: orderHash,
 			price: web3Util.getPriceFromSignedOrder(signedOrder, side),
