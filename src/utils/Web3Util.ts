@@ -29,19 +29,13 @@ export default class Web3Util {
 
 	constructor(window: any, live: boolean) {
 		if (window && typeof window.web3 !== 'undefined') {
-			// const providerEngine = new Web3ProviderEngine();
-			// providerEngine.addProvider(new SignerSubprovider(window.web3.currentProvider));
-			// providerEngine.addProvider(
-			// 	new RPCSubprovider(live ? CST.PROVIDER_INFURA_MAIN : CST.PROVIDER_INFURA_KOVAN)
-			// );
-			// providerEngine.start();
 			this.web3Wrapper = new Web3Wrapper(window.web3.currentProvider);
 			this.wallet = Wallet.MetaMask;
 		} else {
 			this.web3Wrapper = new Web3Wrapper(
 				new Web3.providers.HttpProvider(
 					live ? CST.PROVIDER_INFURA_MAIN : CST.PROVIDER_INFURA_KOVAN
-				)
+				) as any
 			);
 			this.wallet = Wallet.None;
 		}
