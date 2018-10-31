@@ -244,21 +244,23 @@ class OrderUtil {
 	}
 
 	public parseSignedOrder(order: IStringSignedOrder): SignedOrder {
+		const {
+			makerFee,
+			takerFee,
+			makerAssetAmount,
+			takerAssetAmount,
+			salt,
+			expirationTimeSeconds,
+			...rest
+		} = order;
 		return {
-			signature: order.signature,
-			senderAddress: order.senderAddress,
-			makerAddress: order.makerAddress,
-			takerAddress: order.takerAddress,
-			makerFee: web3Util.stringToBN(order.makerFee),
-			takerFee: web3Util.stringToBN(order.takerFee),
-			makerAssetAmount: web3Util.stringToBN(order.makerAssetAmount),
-			takerAssetAmount: web3Util.stringToBN(order.takerAssetAmount),
-			makerAssetData: order.makerAssetData,
-			takerAssetData: order.takerAssetData,
-			salt: web3Util.stringToBN(order.salt),
-			exchangeAddress: order.exchangeAddress,
-			feeRecipientAddress: order.feeRecipientAddress,
-			expirationTimeSeconds: web3Util.stringToBN(order.expirationTimeSeconds)
+			...rest,
+			makerFee: web3Util.stringToBN(makerFee),
+			takerFee: web3Util.stringToBN(takerFee),
+			makerAssetAmount: web3Util.stringToBN(makerAssetAmount),
+			takerAssetAmount: web3Util.stringToBN(takerAssetAmount),
+			salt: web3Util.stringToBN(salt),
+			expirationTimeSeconds: web3Util.stringToBN(expirationTimeSeconds)
 		};
 	}
 
