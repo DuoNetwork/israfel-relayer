@@ -258,7 +258,7 @@ class RelayerServer extends SequenceClient {
 
 	public async startServer(web3Util: Web3Util, option: IOption) {
 		this.web3Util = web3Util;
-		let url = `ws://13.251.115.119:8080`;
+		let url = `ws://13.251.115.119:8000`;
 		if (option.server) {
 			const sequenceService = await dynamoUtil.getServices(CST.DB_SEQUENCE);
 			if (!sequenceService.length) {

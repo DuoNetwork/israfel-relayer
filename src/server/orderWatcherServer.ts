@@ -34,7 +34,7 @@ class OrderWatcherServer extends SequenceClient {
 			CST.NETWORK_ID_LOCAL
 		);
 
-		let url = `ws://13.251.115.119:8080`;
+		let url = `ws://13.251.115.119:8000`;
 		if (option.server) {
 			const sequenceService = await dynamoUtil.getServices(CST.DB_SEQUENCE);
 			if (!sequenceService.length) {
