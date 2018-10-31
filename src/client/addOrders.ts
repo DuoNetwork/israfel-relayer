@@ -17,7 +17,7 @@ import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
 // const web3: Web3 = new Web3(new Web3.providers.HttpProvider(CST.PROVIDER_LOCAL));
-const web3Util = new Web3Util(null, false);
+const web3Util = new Web3Util(null, false, '');
 
 const mainAsync = async () => {
 	await assetsUtil.init(web3Util);
@@ -112,7 +112,7 @@ const mainAsync = async () => {
 	isBid = !isBid;
 
 	// Submit order to relayer
-	const ws = new WebSocket(CST.RELAYER_WS_URL);
+	const ws = new WebSocket('ws://13.251.115.119:8000');
 	const pair = 'ZRX-WETH';
 	const msg: any = {
 		method: 'add',
