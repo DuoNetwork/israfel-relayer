@@ -262,6 +262,8 @@ class RelayerServer extends SequenceClient {
 		if (option.server) {
 			const sequenceService = await dynamoUtil.getServices(CST.DB_SEQUENCE);
 			if (!sequenceService.length) return;
+			util.logInfo('loaded sequence service config');
+			util.logDebug(sequenceService[0]);
 			url = sequenceService[0].url;
 		}
 
@@ -270,6 +272,8 @@ class RelayerServer extends SequenceClient {
 		if (option.server) {
 			const relayerService = await dynamoUtil.getServices(CST.DB_RELAYER, true);
 			if (!relayerService.length) return;
+			util.logInfo('loaded relayer service config');
+			util.logDebug(relayerService[0]);
 			port = Number(relayerService[0].url.split(':').slice(-1)[0]);
 		}
 		const server = https
