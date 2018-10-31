@@ -4,19 +4,22 @@ import {
 	ContractWrappers,
 	generatePseudoRandomSalt,
 	orderHashUtils,
+	RPCSubprovider,
 	signatureUtils,
 	SignedOrder,
-	SignerType
+	SignerType,
+	Web3ProviderEngine
 } from '0x.js';
 import { schemas, SchemaValidator } from '@0xproject/json-schemas';
+import { MnemonicWalletSubprovider } from '@0xproject/subproviders';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
-import Web3 from 'web3';
 import * as CST from '../common/constants';
 import { IRawOrder, IStringSignedOrder } from '../common/types';
 import util from './util';
 
 export enum Wallet {
 	None,
+	Local,
 	MetaMask,
 	Ledger
 }
@@ -27,17 +30,25 @@ export default class Web3Util {
 	public wallet: Wallet = Wallet.None;
 	public accountIndex: number = 0;
 
-	constructor(window: any, live: boolean) {
+	constructor(window: any, live: boolean, mnemonic: string) {
 		if (window && typeof window.web3 !== 'undefined') {
 			this.web3Wrapper = new Web3Wrapper(window.web3.currentProvider);
 			this.wallet = Wallet.MetaMask;
 		} else {
-			this.web3Wrapper = new Web3Wrapper(
-				new Web3.providers.HttpProvider(
-					live ? CST.PROVIDER_INFURA_MAIN : CST.PROVIDER_INFURA_KOVAN
-				) as any
+			const pe = new Web3ProviderEngine();
+			pe.addProvider(
+				new RPCSubprovider(live ? CST.PROVIDER_INFURA_MAIN : CST.PROVIDER_INFURA_KOVAN)
 			);
-			this.wallet = Wallet.None;
+			if (!window && mnemonic) {
+				const mnemonicWallet = new MnemonicWalletSubprovider({
+					mnemonic: mnemonic,
+					baseDerivationPath: CST.BASE_DERIVATION_PATH
+				});
+				pe.addProvider(mnemonicWallet);
+			}
+			pe.start();
+			this.web3Wrapper = new Web3Wrapper(pe);
+			this.wallet = window ? Wallet.None : Wallet.Local;
 		}
 
 		this.contractWrappers = new ContractWrappers(this.web3Wrapper.getProvider(), {

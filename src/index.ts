@@ -22,7 +22,7 @@ redisUtil.init(redisConfig);
 const config = require(`./keys/dynamo.${option.live ? CST.DB_LIVE : CST.DB_DEV}.json`);
 dynamoUtil.init(config, option.live, tool, osUtil.getHostName());
 
-const web3Util = new Web3Util(null, option.live);
+const web3Util = new Web3Util(null, option.live, '');
 
 switch (tool) {
 	case CST.SET_ALLOWANCE:

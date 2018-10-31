@@ -71,8 +71,8 @@ export const TEN_MINUTES_MS = ONE_MINUTE_MS * 10;
 export const RELAYER_ADDR_KOVAN = '0x003519A4aB2C35c59Cb31d9194A45DD3F9Bf9e32';
 export const RELAYER_ADDR_MAIN = '0x003519A4aB2C35c59Cb31d9194A45DD3F9Bf9e32';
 export const DUMMY_ADDR = '0x0000000000000000000000000000000000000000';
-export const PROVIDER_INFURA_KOVAN = 'https://kovan.infura.io';
-export const PROVIDER_INFURA_MAIN = 'https://mainnet.infura.io';
+export const PROVIDER_INFURA_KOVAN = 'wss://kovan.infura.io/ws';
+export const PROVIDER_INFURA_MAIN = 'wss://mainnet.infura.io/ws';
 export const NETWORK_ID_MAIN = 1;
 export const NETWORK_ID_KOVAN = 42;
 export const PROVIDER_LOCAL = 'http://localhost:8555';
@@ -125,4 +125,4 @@ export const LOG_RANKING: { [level: string]: number } = {
 
 export const PRICE_PRECISION = 8;
 
-export const RELAYER_PORT = 8080;
+export const BASE_DERIVATION_PATH = `44'/60'/0'/0`;
