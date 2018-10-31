@@ -300,7 +300,7 @@ Object {
     "makerAssetData": "makerAssetData",
     "makerFee": "0",
     "salt": "789",
-    "senderAddress": "makerAddress",
+    "senderAddress": "senderAddress",
     "signature": "signature",
     "takerAddress": "takerAddress",
     "takerAssetAmount": "456",

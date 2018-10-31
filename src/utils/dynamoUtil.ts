@@ -345,7 +345,7 @@ class DynamoUtil {
 			orderHash: data[CST.DB_ORDER_HASH].S || '',
 			signedOrder: {
 				signature: data[CST.DB_0X_SIGNATURE].S || '',
-				senderAddress: data[CST.DB_0X_MAKER_ADDR].S || '',
+				senderAddress: data[CST.DB_0X_SENDER_ADDR].S || '',
 				makerAddress: data[CST.DB_0X_MAKER_ADDR].S || '',
 				takerAddress: data[CST.DB_0X_TAKER_ADDR].S || '',
 				makerFee: data[CST.DB_0X_MAKER_FEE].S || '0',
