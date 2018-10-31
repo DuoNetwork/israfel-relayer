@@ -291,22 +291,24 @@ class RelayerServer extends SequenceClient {
 		this.relayerWsServer = new WebSocket.Server({ server: server });
 		util.logInfo(`started relayer service at port ${port}`);
 
-		dynamoUtil.updateStatus(CST.DB_RELAYER);
-		setInterval(
-			() =>
-				dynamoUtil.updateStatus(
-					CST.DB_RELAYER,
-					this.relayerWsServer ? this.relayerWsServer.clients.size : 0
-				),
-			10000
-		);
-
 		if (this.relayerWsServer)
 			this.relayerWsServer.on('connection', ws => {
 				util.logInfo('new connection');
 				ws.on('message', message => this.handleRelayerMessage(ws, message.toString()));
 				ws.on('close', () => util.logInfo('connection close'));
 			});
+
+		if (option.server) {
+			dynamoUtil.updateStatus(CST.DB_RELAYER);
+			setInterval(
+				() =>
+					dynamoUtil.updateStatus(
+						CST.DB_RELAYER,
+						this.relayerWsServer ? this.relayerWsServer.clients.size : 0
+					),
+				10000
+			);
+		}
 	}
 }
 

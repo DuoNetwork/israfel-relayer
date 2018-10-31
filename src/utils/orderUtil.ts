@@ -263,19 +263,21 @@ class OrderUtil {
 	}
 
 	public async startProcessing(option: IOption) {
-		dynamoUtil.updateStatus(
-			option.type,
-			await redisUtil.getQueueLength(`${CST.DB_ORDERS}|${option.type}`)
-		);
+		if (option.server) {
+			dynamoUtil.updateStatus(
+				option.type,
+				await redisUtil.getQueueLength(`${CST.DB_ORDERS}|${option.type}`)
+			);
 
-		setInterval(
-			async () =>
-				dynamoUtil.updateStatus(
-					option.type,
-					await redisUtil.getQueueLength(`${CST.DB_ORDERS}|${option.type}`)
-				),
-			15000
-		);
+			setInterval(
+				async () =>
+					dynamoUtil.updateStatus(
+						option.type,
+						await redisUtil.getQueueLength(`${CST.DB_ORDERS}|${option.type}`)
+					),
+				15000
+			);
+		}
 
 		const loop = () => {
 			let promise: Promise<boolean>;

@@ -48,21 +48,6 @@ class SequenceServer {
 	}
 
 	public async startServer(option: IOption) {
-		for (const pair of CST.SUPPORTED_PAIRS) {
-			const seq = Number(await redisUtil.get(`${CST.DB_SEQUENCE}|${pair}`));
-			dynamoUtil.updateStatus(pair, 0, seq);
-			this.sequence[pair] = seq;
-		}
-
-		setInterval(async () => {
-			for (const pair in this.sequence)
-				await dynamoUtil.updateStatus(
-					pair,
-					this.wss ? this.wss.clients.size : 0,
-					this.sequence[pair]
-				);
-		}, 15000);
-
 		let port = 8000;
 		if (option.server) {
 			const sequenceService = await dynamoUtil.getServices(CST.DB_SEQUENCE, true);
@@ -84,6 +69,23 @@ class SequenceServer {
 				ws.on('message', message => this.handleMessage(ws, message.toString()));
 				ws.on('close', () => util.logInfo('connection close'));
 			});
+
+		if (option.server) {
+			for (const pair of CST.SUPPORTED_PAIRS) {
+				const seq = Number(await redisUtil.get(`${CST.DB_SEQUENCE}|${pair}`));
+				dynamoUtil.updateStatus(pair, 0, seq);
+				this.sequence[pair] = seq;
+			}
+
+			setInterval(async () => {
+				for (const pair in this.sequence)
+					await dynamoUtil.updateStatus(
+						pair,
+						this.wss ? this.wss.clients.size : 0,
+						this.sequence[pair]
+					);
+			}, 15000);
+		}
 	}
 }
 
