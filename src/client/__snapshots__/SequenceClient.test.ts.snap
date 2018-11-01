@@ -11,6 +11,12 @@ Array [
       "sequence": 1,
       "status": "ok",
     },
+    "method|pair|0xOrderHash",
+    Object {
+      "liveOrder": Object {
+        "orderHash": "0xOrderHash",
+      },
+    },
   ],
 ]
 `;

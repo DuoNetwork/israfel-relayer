@@ -360,6 +360,7 @@ Object {
       "initialSequence": 1,
       "orderHash": "orderHash",
     },
+    "timeout": 9,
   },
 }
 `;
@@ -393,6 +394,7 @@ Object {
       "currentSequence": 2,
       "orderHash": "orderHash",
     },
+    "timeout": 14,
   },
 }
 `;

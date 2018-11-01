@@ -151,18 +151,19 @@ export interface IOption {
 	type: string;
 }
 
-export interface IRelayerCacheItem {
-	ws: WebSocket;
+export interface ISequenceCacheItem {
 	pair: string;
 	method: string;
+}
+
+export interface IRelayerCacheItem extends ISequenceCacheItem {
+	ws: WebSocket;
 	liveOrder: ILiveOrder;
 	signedOrder?: IStringSignedOrder;
 	timeout: NodeJS.Timeout
 }
 
-export interface IOrderWatcherCacheItem {
-	pair: string;
-	method: string;
+export interface IOrderWatcherCacheItem extends ISequenceCacheItem {
 	orderState: OrderState;
 }
 

@@ -30,23 +30,18 @@ class RelayerServer extends SequenceClient {
 	public relayerWsServer: WebSocket.Server | null = null;
 	public requestCache: { [methodPairOrderHash: string]: IRelayerCacheItem } = {};
 
-	public getCacheKey(re: IWsOrderRequest | IWsOrderResponse) {
-		return `${re.method}|${re.pair}|${re.orderHash}`;
-	}
-
 	public handleTimeout(cacheKey: string) {
 		util.logError(cacheKey);
 		return;
 	}
 
-	public async handleSequenceResponse(res: IWsOrderSequenceResponse) {
-		const cacheKey = this.getCacheKey(res);
-		if (!this.requestCache[cacheKey]) return false;
-
-		const cacheItem = this.requestCache[cacheKey];
+	public async handleSequenceResponse(
+		res: IWsOrderSequenceResponse,
+		cacheKey: string,
+		cacheItem: IRelayerCacheItem
+	) {
 		clearTimeout(cacheItem.timeout);
 		cacheItem.liveOrder.currentSequence = res.sequence;
-		delete this.requestCache[cacheKey];
 		const orderQueueItem: IOrderQueueItem = {
 			method: res.method,
 			liveOrder: cacheItem.liveOrder
@@ -69,6 +64,7 @@ class RelayerServer extends SequenceClient {
 		}
 
 		// failed to persist, add back to cache for next retry
+		cacheItem.timeout = setTimeout(() => this.handleTimeout(cacheKey), 30000);
 		this.requestCache[cacheKey] = cacheItem;
 		this.requestSequence(res.method, res.pair, cacheItem.liveOrder.orderHash);
 		return false;

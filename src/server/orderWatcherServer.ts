@@ -1,4 +1,4 @@
-import { OrderWatcher, RPCSubprovider } from '0x.js';
+import { OrderWatcher } from '0x.js';
 import SequenceClient from '../client/SequenceClient';
 import * as CST from '../common/constants';
 import {
@@ -7,8 +7,7 @@ import {
 	IOrderWatcherCacheItem,
 	IRawOrder,
 	IStringSignedOrder,
-	IWsOrderSequenceResponse,
-	IWsResponse
+	IWsOrderSequenceResponse
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderUtil from '../utils/orderUtil';
@@ -18,7 +17,6 @@ import Web3Util from '../utils/Web3Util';
 
 class OrderWatcherServer extends SequenceClient {
 	public sequenceMethods = [CST.DB_UPDATE];
-	public provider = new RPCSubprovider(CST.PROVIDER_LOCAL);
 	public orderWatcher: OrderWatcher | null = null;
 	public requestCache: { [methodPairOrderHash: string]: IOrderWatcherCacheItem } = {};
 	public web3Util: Web3Util | null = null;
@@ -87,23 +85,14 @@ class OrderWatcherServer extends SequenceClient {
 		}
 	}
 
-	public async handleSequenceResponse(res: IWsOrderSequenceResponse) {
-		const { sequence, pair, orderHash, method } = res;
-		const requestId = `${method}|${pair}|${orderHash}`;
-		if (!this.requestCache[requestId]) {
-			util.logDebug('request id does not exist');
-			return;
-		}
-
-		const queueItem = this.requestCache[requestId];
-		delete this.requestCache[requestId];
-		if (!queueItem) return;
-
-		if (!(await relayerUtil.handleUpdateOrder(sequence, pair, queueItem)))
+	public async handleSequenceResponse(res: IWsOrderSequenceResponse, cacheKey: string, cahceItem: IOrderWatcherCacheItem) {
+		util.logDebug(cacheKey);
+		const { sequence, pair } = res;
+		if (!(await relayerUtil.handleUpdateOrder(sequence, pair, cahceItem)))
 			if (this.orderWatcher) {
-				await this.orderWatcher.removeOrder(queueItem.orderState.orderHash);
+				await this.orderWatcher.removeOrder(cahceItem.orderState.orderHash);
 				this.watchedOrders = this.watchedOrders.filter(
-					hash => hash !== queueItem.orderState.orderHash
+					hash => hash !== cahceItem.orderState.orderHash
 				);
 			}
 	}

@@ -1,24 +1,47 @@
 import WebSocket from 'ws';
 import * as CST from '../common/constants';
-import { IWsOrderRequest, IWsOrderSequenceResponse, IWsResponse } from '../common/types';
+import {
+	ISequenceCacheItem,
+	IWsOrderRequest,
+	IWsOrderResponse,
+	IWsOrderSequenceResponse,
+	IWsResponse
+} from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import util from '../utils/util';
 
 export default abstract class SequenceClient {
 	public sequenceWsClient: WebSocket | null = null;
-	public abstract handleSequenceResponse(res: IWsOrderSequenceResponse): any;
+	public abstract handleSequenceResponse(
+		res: IWsOrderSequenceResponse,
+		cacheKey: string,
+		cacheItem: ISequenceCacheItem
+	): any;
 	public sequenceMethods: string[] = [];
+	public requestCache: { [methodPairOrderHash: string]: ISequenceCacheItem } = {};
+
+	public getCacheKey(re: IWsOrderRequest | IWsOrderResponse) {
+		return `${re.method}|${re.pair}|${re.orderHash}`;
+	}
 
 	public handleMessage(m: string) {
 		util.logDebug('received: ' + m);
 		const res: IWsResponse = JSON.parse(m);
 		if (res.channel !== CST.DB_SEQUENCE || res.status !== CST.WS_OK) return false;
 
-		const { sequence, method, pair, orderHash } = res as IWsOrderSequenceResponse;
+		const osRes = res as IWsOrderSequenceResponse;
+		const { sequence, method, pair, orderHash } = osRes;
 		if (!this.sequenceMethods.includes(method)) return false;
 		if (!sequence || !pair || !orderHash) return false;
 
-		return this.handleSequenceResponse(res as IWsOrderSequenceResponse);
+		const key = this.getCacheKey(osRes);
+		const cacheItem = this.requestCache[key];
+		if (!cacheItem) {
+			util.logDebug('request id does not exist');
+			return false;
+		}
+		delete this.requestCache[key];
+		return this.handleSequenceResponse(osRes, key, cacheItem);
 	}
 
 	private reconnect(server: boolean) {

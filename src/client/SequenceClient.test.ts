@@ -101,12 +101,21 @@ test('handleMessage invalid response', async () => {
 			})
 		)
 	).toBeFalsy();
+	testClient.requestCache = {
+		'method|pair|0xOrderHash': {
+			liveOrder: {
+				orderHash: '0xOrderHash'
+			}
+		}
+	} as any;
 	testClient.handleMessage(
 		JSON.stringify({
 			channel: CST.DB_SEQUENCE,
 			status: CST.WS_OK,
 			sequence: 1,
-			method: 'method'
+			method: 'method',
+			pair: 'pair',
+			orderHash: '0xOrderHash'
 		})
 	);
 	expect(testClient.handleSequenceResponse.mock.calls).toMatchSnapshot();
