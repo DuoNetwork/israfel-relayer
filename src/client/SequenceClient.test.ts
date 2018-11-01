@@ -118,5 +118,6 @@ test('handleMessage invalid response', async () => {
 			orderHash: '0xOrderHash'
 		})
 	);
+	expect(testClient.requestCache).toEqual({});
 	expect(testClient.handleSequenceResponse.mock.calls).toMatchSnapshot();
 });
