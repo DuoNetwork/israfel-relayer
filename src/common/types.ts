@@ -44,9 +44,10 @@ export interface IStringSignedOrder {
 	signature: string;
 }
 
-export interface INewOrderQueueItem {
+export interface IOrderQueueItem {
+	method: string;
 	liveOrder: ILiveOrder;
-	signedOrder: IStringSignedOrder;
+	signedOrder?: IStringSignedOrder;
 }
 
 export interface IOrderBookSnapshotWs extends IOrderBookSnapshot {
@@ -163,12 +164,6 @@ export interface IOrderWatcherCacheItem {
 	pair: string;
 	method: string;
 	orderState: OrderState;
-}
-
-export interface IUpdateOrderQueueItem {
-	pair: string;
-	sequence: number;
-	liveOrder: ILiveOrder;
 }
 
 export interface IStatus {

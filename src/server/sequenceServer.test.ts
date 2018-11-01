@@ -42,7 +42,7 @@ test('handleMessage invalid requests', () => {
 			orderHash: ''
 		})
 	);
-	expect((ws.send as jest.Mock<void>).mock.calls).toMatchSnapshot();
+	expect((ws.send as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleMessage', () => {
@@ -58,7 +58,7 @@ test('handleMessage', () => {
 	redisUtil.set = jest.fn(() => Promise.resolve());
 	sequenceServer.sequence[CST.SUPPORTED_PAIRS[0]] = 123;
 	sequenceServer.handleMessage(ws, message);
-	expect((ws.send as jest.Mock<void>).mock.calls).toMatchSnapshot();
-	expect((redisUtil.set as jest.Mock<void>).mock.calls).toMatchSnapshot();
+	expect((ws.send as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((redisUtil.set as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(sequenceServer.sequence).toMatchSnapshot();
 });

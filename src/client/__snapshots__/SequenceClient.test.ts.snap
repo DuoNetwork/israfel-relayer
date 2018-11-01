@@ -1,5 +1,20 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`handleMessage invalid response 1`] = `
+Array [
+  Array [
+    Object {
+      "channel": "sequence",
+      "method": "method",
+      "orderHash": "0xOrderHash",
+      "pair": "pair",
+      "sequence": 1,
+      "status": "ok",
+    },
+  ],
+]
+`;
+
 exports[`requestSequence 1`] = `
 Array [
   Array [

@@ -19,87 +19,11 @@ test('handleUserOrder', async () => {
 	const ws = {
 		send: jest.fn()
 	};
-	await relayerServer.handleUserOrder(
-		ws as any,
-		{ test: 'liveOrder' } as any,
-		'type'
-	);
+	await relayerServer.handleUserOrder(ws as any, { test: 'liveOrder' } as any, 'type');
 	expect((ws.send as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('handleSequenceMessage invalid response', async () => {
-	expect(
-		await relayerServer.handleSequenceMessage(
-			JSON.stringify({
-				channel: 'channel',
-				status: CST.WS_OK
-			})
-		)
-	).toBeFalsy();
-	expect(
-		await relayerServer.handleSequenceMessage(
-			JSON.stringify({
-				channel: CST.DB_SEQUENCE,
-				status: 'status'
-			})
-		)
-	).toBeFalsy();
-	expect(
-		await relayerServer.handleSequenceMessage(
-			JSON.stringify({
-				channel: CST.DB_SEQUENCE,
-				status: 'status'
-			})
-		)
-	).toBeFalsy();
-	expect(
-		await relayerServer.handleSequenceMessage(
-			JSON.stringify({
-				channel: CST.DB_SEQUENCE,
-				status: CST.WS_OK
-			})
-		)
-	).toBeFalsy();
-	expect(
-		await relayerServer.handleSequenceMessage(
-			JSON.stringify({
-				channel: CST.DB_SEQUENCE,
-				status: CST.WS_OK,
-				sequence: 0
-			})
-		)
-	).toBeFalsy();
-	expect(
-		await relayerServer.handleSequenceMessage(
-			JSON.stringify({
-				channel: CST.DB_SEQUENCE,
-				status: CST.WS_OK,
-				sequence: 1
-			})
-		)
-	).toBeFalsy();
-	relayerServer.requestCache = {
-		'method|pair|orderHash': {
-			liveOrder: {
-				orderHash: 'orderHash'
-			}
-		}
-	} as any;
-	expect(
-		await relayerServer.handleSequenceMessage(
-			JSON.stringify({
-				channel: CST.DB_SEQUENCE,
-				status: CST.WS_OK,
-				sequence: 1,
-				method: 'method',
-				pair: 'pair',
-				orderHash: 'orderHash'
-			})
-		)
-	).toBeFalsy();
-});
-
-test('handleSequenceMessage add', async () => {
+test('handleSequenceResponse invalid response', async () => {
 	relayerServer.requestCache = {
 		'add|pair|orderHash': {
 			liveOrder: {
@@ -107,25 +31,43 @@ test('handleSequenceMessage add', async () => {
 			}
 		}
 	} as any;
-	orderUtil.addOrderToPersistence = jest.fn(() => Promise.resolve({userOrder: 'test'}));
+	expect(
+		await relayerServer.handleSequenceResponse({
+			channel: CST.DB_SEQUENCE,
+			status: CST.WS_OK,
+			sequence: 1,
+			method: 'method',
+			pair: 'pair',
+			orderHash: 'orderHash'
+		})
+	).toBeFalsy();
+});
+
+test('handleSequenceResponse add', async () => {
+	relayerServer.requestCache = {
+		'add|pair|orderHash': {
+			liveOrder: {
+				orderHash: 'orderHash'
+			}
+		}
+	} as any;
+	orderUtil.persistOrder = jest.fn(() => Promise.resolve({ userOrder: 'test' }));
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	expect(
-		await relayerServer.handleSequenceMessage(
-			JSON.stringify({
-				channel: CST.DB_SEQUENCE,
-				status: CST.WS_OK,
-				sequence: 1,
-				method: CST.DB_ADD,
-				pair: 'pair',
-				orderHash: 'orderHash'
-			})
-		)
+		await relayerServer.handleSequenceResponse({
+			channel: CST.DB_SEQUENCE,
+			status: CST.WS_OK,
+			sequence: 1,
+			method: CST.DB_ADD,
+			pair: 'pair',
+			orderHash: 'orderHash'
+		})
 	).toBeTruthy();
 	expect(relayerServer.requestCache).toEqual({});
 	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('handleSequenceMessage add failed', async () => {
+test('handleSequenceResponse add failed', async () => {
 	relayerServer.requestCache = {
 		'add|pair|orderHash': {
 			liveOrder: {
@@ -134,24 +76,24 @@ test('handleSequenceMessage add failed', async () => {
 		}
 	} as any;
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
-	orderUtil.addOrderToPersistence = jest.fn(() => Promise.resolve(null));
+	relayerServer.requestSequence = jest.fn();
+	orderUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	expect(
-		await relayerServer.handleSequenceMessage(
-			JSON.stringify({
-				channel: CST.DB_SEQUENCE,
-				status: CST.WS_OK,
-				sequence: 1,
-				method: CST.DB_ADD,
-				pair: 'pair',
-				orderHash: 'orderHash'
-			})
-		)
+		await relayerServer.handleSequenceResponse({
+			channel: CST.DB_SEQUENCE,
+			status: CST.WS_OK,
+			sequence: 1,
+			method: CST.DB_ADD,
+			pair: 'pair',
+			orderHash: 'orderHash'
+		})
 	).toBeFalsy();
 	expect(relayerServer.requestCache).toMatchSnapshot();
-	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls.length).toBe(0);
+	expect(relayerServer.handleUserOrder as jest.Mock).not.toBeCalled();
+	expect((relayerServer.requestSequence as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('handleSequenceMessage cancel', async () => {
+test('handleSequenceResponse cancel', async () => {
 	relayerServer.requestCache = {
 		'cancel|pair|orderHash': {
 			liveOrder: {
@@ -159,25 +101,23 @@ test('handleSequenceMessage cancel', async () => {
 			}
 		}
 	} as any;
-	orderUtil.cancelOrderInPersistence = jest.fn(() => Promise.resolve({userOrder: 'test'}));
+	orderUtil.persistOrder = jest.fn(() => Promise.resolve({ userOrder: 'test' }));
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	expect(
-		await relayerServer.handleSequenceMessage(
-			JSON.stringify({
-				channel: CST.DB_SEQUENCE,
-				status: CST.WS_OK,
-				sequence: 2,
-				method: CST.DB_CANCEL,
-				pair: 'pair',
-				orderHash: 'orderHash'
-			})
-		)
+		await relayerServer.handleSequenceResponse({
+			channel: CST.DB_SEQUENCE,
+			status: CST.WS_OK,
+			sequence: 2,
+			method: CST.DB_CANCEL,
+			pair: 'pair',
+			orderHash: 'orderHash'
+		})
 	).toBeTruthy();
 	expect(relayerServer.requestCache).toEqual({});
 	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('handleSequenceMessage cancel failed', async () => {
+test('handleSequenceResponse cancel failed', async () => {
 	relayerServer.requestCache = {
 		'cancel|pair|orderHash': {
 			liveOrder: {
@@ -185,22 +125,22 @@ test('handleSequenceMessage cancel failed', async () => {
 			}
 		}
 	} as any;
-	orderUtil.cancelOrderInPersistence = jest.fn(() => Promise.resolve(null));
+	orderUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
+	relayerServer.requestSequence = jest.fn();
 	expect(
-		await relayerServer.handleSequenceMessage(
-			JSON.stringify({
-				channel: CST.DB_SEQUENCE,
-				status: CST.WS_OK,
-				sequence: 2,
-				method: CST.DB_CANCEL,
-				pair: 'pair',
-				orderHash: 'orderHash'
-			})
-		)
+		await relayerServer.handleSequenceResponse({
+			channel: CST.DB_SEQUENCE,
+			status: CST.WS_OK,
+			sequence: 2,
+			method: CST.DB_CANCEL,
+			pair: 'pair',
+			orderHash: 'orderHash'
+		})
 	).toBeFalsy();
 	expect(relayerServer.requestCache).toMatchSnapshot();
-	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls.length).toBe(0);
+	expect(relayerServer.handleUserOrder as jest.Mock).not.toBeCalled();
+	expect((relayerServer.requestSequence as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 const signedOrder = {
@@ -242,8 +182,8 @@ test('handleAddOrderRequest invalid order', async () => {
 		order: signedOrder,
 		orderHash: '0xInvalidHash'
 	});
-	expect((relayerServer.requestSequence as jest.Mock).mock.calls.length).toBe(0);
-	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls.length).toBe(0);
+	expect(relayerServer.requestSequence as jest.Mock).not.toBeCalled();
+	expect(relayerServer.handleUserOrder as jest.Mock).not.toBeCalled();
 	expect((relayerServer.handleInvalidOrderRequest as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
@@ -260,8 +200,8 @@ test('handleAddOrderRequest exist in request cache', async () => {
 		order: signedOrder,
 		orderHash: '0xOrderHash'
 	});
-	expect((relayerServer.requestSequence as jest.Mock).mock.calls.length).toBe(0);
-	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls.length).toBe(0);
+	expect(relayerServer.requestSequence as jest.Mock).not.toBeCalled();
+	expect(relayerServer.handleUserOrder as jest.Mock).not.toBeCalled();
 	expect((relayerServer.handleInvalidOrderRequest as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
@@ -277,8 +217,8 @@ test('handleAddOrderRequest exist in persistence', async () => {
 		order: signedOrder,
 		orderHash: '0xOrderHash'
 	});
-	expect((relayerServer.requestSequence as jest.Mock).mock.calls.length).toBe(0);
-	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls.length).toBe(0);
+	expect(relayerServer.requestSequence as jest.Mock).not.toBeCalled();
+	expect(relayerServer.handleUserOrder as jest.Mock).not.toBeCalled();
 	expect((relayerServer.handleInvalidOrderRequest as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
@@ -302,7 +242,7 @@ test('handleAddOrderRequest', async () => {
 	expect(relayerServer.requestCache).toMatchSnapshot();
 	expect((relayerServer.requestSequence as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((relayerServer.handleInvalidOrderRequest as jest.Mock).mock.calls.length).toBe(0);
+	expect(relayerServer.handleInvalidOrderRequest as jest.Mock).not.toBeCalled();
 });
 
 test('handleCancelOrderRequest invalid order', async () => {
@@ -316,8 +256,8 @@ test('handleCancelOrderRequest invalid order', async () => {
 		pair: CST.SUPPORTED_PAIRS[0],
 		orderHash: '0xOrderHash'
 	});
-	expect((relayerServer.requestSequence as jest.Mock).mock.calls.length).toBe(0);
-	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls.length).toBe(0);
+	expect(relayerServer.requestSequence as jest.Mock).not.toBeCalled();
+	expect(relayerServer.handleUserOrder as jest.Mock).not.toBeCalled();
 	expect((relayerServer.handleInvalidOrderRequest as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
@@ -334,8 +274,8 @@ test('handleCancelOrderRequest exist in request cache', async () => {
 		pair: CST.SUPPORTED_PAIRS[0],
 		orderHash: '0xOrderHash'
 	});
-	expect((relayerServer.requestSequence as jest.Mock).mock.calls.length).toBe(0);
-	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls.length).toBe(0);
+	expect(relayerServer.requestSequence as jest.Mock).not.toBeCalled();
+	expect(relayerServer.handleUserOrder as jest.Mock).not.toBeCalled();
 	expect((relayerServer.handleInvalidOrderRequest as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
@@ -351,8 +291,8 @@ test('handleCancelOrderRequest already cancelled', async () => {
 		pair: CST.SUPPORTED_PAIRS[0],
 		orderHash: '0xOrderHash'
 	});
-	expect((relayerServer.requestSequence as jest.Mock).mock.calls.length).toBe(0);
-	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls.length).toBe(0);
+	expect(relayerServer.requestSequence as jest.Mock).not.toBeCalled();
+	expect(relayerServer.handleUserOrder as jest.Mock).not.toBeCalled();
 	expect((relayerServer.handleInvalidOrderRequest as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
@@ -370,7 +310,7 @@ test('handleCancelOrderRequest', async () => {
 	});
 	expect(relayerServer.requestCache).toMatchSnapshot();
 	expect((relayerServer.requestSequence as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((relayerServer.handleInvalidOrderRequest as jest.Mock).mock.calls.length).toBe(0);
+	expect(relayerServer.handleInvalidOrderRequest as jest.Mock).not.toBeCalled();
 	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
@@ -429,7 +369,7 @@ test('handleOrderRequest add', async () => {
 		orderHash: '0xOrderHash'
 	});
 	expect((relayerServer.handleAddOrderRequest as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((relayerServer.handleCancelOrderRequest as jest.Mock).mock.calls.length).toBe(0);
+	expect(relayerServer.handleCancelOrderRequest as jest.Mock).not.toBeCalled();
 });
 
 test('handleOrderRequest cancel', async () => {
@@ -443,7 +383,7 @@ test('handleOrderRequest cancel', async () => {
 		pair: CST.SUPPORTED_PAIRS[0],
 		orderHash: '0xOrderHash'
 	});
-	expect((relayerServer.handleAddOrderRequest as jest.Mock).mock.calls.length).toBe(0);
+	expect(relayerServer.handleAddOrderRequest as jest.Mock).not.toBeCalled();
 	expect((relayerServer.handleCancelOrderRequest as jest.Mock).mock.calls).toMatchSnapshot();
 });
 

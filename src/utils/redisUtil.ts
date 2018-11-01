@@ -64,9 +64,18 @@ export class RedisUtil {
 		return Promise.resolve(0);
 	}
 
-	public async hashGet(key: string, field: string): Promise<string | null> {
+	public hashGet(key: string, field: string): Promise<string | null> {
 		if (this.redisSub) return this.redisSub.hget(key, field);
-		return null;
+		return Promise.resolve(null);
+	}
+
+	public hashGetAll(key: string): Promise<any> {
+		if (this.redisSub) return this.redisSub.hgetall(key);
+		return Promise.resolve(null);
+	}
+
+	public hashDelete(key: string, field: string) {
+		if (this.redisSub) return this.redisSub.hdel(key, field);
 	}
 
 	public subscribe(channel: string) {
@@ -99,7 +108,7 @@ export class RedisUtil {
 	}
 
 	public multi() {
-		if (this.redisSub) return this.redisSub.multi({pipeline: false});
+		if (this.redisSub) return this.redisSub.multi({ pipeline: false });
 		return Promise.resolve('');
 	}
 

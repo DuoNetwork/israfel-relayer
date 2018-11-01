@@ -17,6 +17,7 @@ import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
 class OrderWatcherServer extends SequenceClient {
+	public sequenceMethods = [CST.DB_UPDATE];
 	public provider = new RPCSubprovider(CST.PROVIDER_LOCAL);
 	public orderWatcher: OrderWatcher | null = null;
 	public requestCache: { [methodPairOrderHash: string]: IOrderWatcherCacheItem } = {};
@@ -34,19 +35,7 @@ class OrderWatcherServer extends SequenceClient {
 			CST.NETWORK_ID_LOCAL
 		);
 
-		let url = `ws://13.251.115.119:8000`;
-		if (option.server) {
-			const sequenceService = await dynamoUtil.getServices(CST.DB_SEQUENCE);
-			if (!sequenceService.length) {
-				util.logInfo('no sequence service config, exit');
-				return;
-			}
-			util.logInfo('loaded sequence service config');
-			util.logInfo(sequenceService[0]);
-			url = sequenceService[0].url;
-		}
-
-		this.connectToSequenceServer(url);
+		await this.connectToSequenceServer(option.server);
 
 		const pair = option.token + '-' + CST.TOKEN_WETH;
 		dynamoUtil.updateStatus(CST.DB_ORDER_WATCHER);
@@ -98,15 +87,8 @@ class OrderWatcherServer extends SequenceClient {
 		}
 	}
 
-	public async handleSequenceMessage(m: string) {
-		const res: IWsResponse = JSON.parse(m);
-		if (res.channel !== CST.DB_SEQUENCE || res.status !== CST.WS_OK) return;
-
-		const { sequence, pair, orderHash, method } = res as IWsOrderSequenceResponse;
-		if (!sequence || !pair || !orderHash) {
-			util.logDebug('returned sequence messae is wrong');
-			return;
-		}
+	public async handleSequenceResponse(res: IWsOrderSequenceResponse) {
+		const { sequence, pair, orderHash, method } = res;
 		const requestId = `${method}|${pair}|${orderHash}`;
 		if (!this.requestCache[requestId]) {
 			util.logDebug('request id does not exist');

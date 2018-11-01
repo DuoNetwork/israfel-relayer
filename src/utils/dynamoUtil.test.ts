@@ -8,7 +8,7 @@ test('scanServices', async () => {
 	};
 	dynamoUtil.scanData = jest.fn(() => Promise.resolve(scanOutput));
 	expect(await dynamoUtil.scanServices()).toMatchSnapshot();
-	expect((dynamoUtil.scanData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.scanData as jest.Mock).mock.calls).toMatchSnapshot();
 	scanOutput = {
 		Items: [
 			{
@@ -33,7 +33,7 @@ test('getServices', async () => {
 	};
 	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
 	expect(await dynamoUtil.getServices('service', true)).toMatchSnapshot();
-	expect((dynamoUtil.queryData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.queryData as jest.Mock).mock.calls).toMatchSnapshot();
 	queryOutput = {
 		Items: [
 			{
@@ -50,7 +50,7 @@ test('getServices', async () => {
 	};
 	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
 	expect(await dynamoUtil.getServices('service')).toMatchSnapshot();
-	expect((dynamoUtil.queryData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.queryData as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('updateStatus', async () => {
@@ -59,7 +59,7 @@ test('updateStatus', async () => {
 	await dynamoUtil.updateStatus('someProcess');
 	await dynamoUtil.updateStatus('someProcess', 123);
 	await dynamoUtil.updateStatus('someProcess', 123, 456);
-	expect((dynamoUtil.putData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('scanStatus', async () => {
@@ -68,7 +68,7 @@ test('scanStatus', async () => {
 	};
 	dynamoUtil.scanData = jest.fn(() => Promise.resolve(scanOutput));
 	expect(await dynamoUtil.scanStatus()).toMatchSnapshot();
-	expect((dynamoUtil.scanData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.scanData as jest.Mock).mock.calls).toMatchSnapshot();
 	scanOutput = {
 		Items: [
 			{
@@ -89,10 +89,10 @@ test('scanStatus', async () => {
 	expect(await dynamoUtil.scanStatus()).toMatchSnapshot();
 });
 
-test('addLiveOrder', async () => {
+test('updateLiveOrder new', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
-	await dynamoUtil.addLiveOrder({
+	await dynamoUtil.updateLiveOrder({
 		account: '0xAccount',
 		pair: 'pair',
 		orderHash: '0xOrderHash',
@@ -102,12 +102,12 @@ test('addLiveOrder', async () => {
 		initialSequence: 1,
 		currentSequence: 1
 	});
-	expect((dynamoUtil.putData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('updateLiveOrder', async () => {
+test('updateLiveOrder existing', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.updateData = jest.fn(() => Promise.resolve({}));
+	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
 	await dynamoUtil.updateLiveOrder({
 		account: '0xAccount',
 		pair: 'pair',
@@ -118,9 +118,9 @@ test('updateLiveOrder', async () => {
 		createdAt: 1234560000,
 		updatedAt: 1234560000,
 		initialSequence: 1,
-		currentSequence: 2
+		currentSequence: 2,
 	});
-	expect((dynamoUtil.updateData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('deleteLiveOrder', async () => {
@@ -137,7 +137,7 @@ test('deleteLiveOrder', async () => {
 		initialSequence: 1,
 		currentSequence: 2
 	});
-	expect((dynamoUtil.deleteData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.deleteData as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('getLiveOrders', async () => {
@@ -146,7 +146,7 @@ test('getLiveOrders', async () => {
 	};
 	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
 	expect(await dynamoUtil.getLiveOrders('pair')).toMatchSnapshot();
-	expect((dynamoUtil.queryData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.queryData as jest.Mock).mock.calls).toMatchSnapshot();
 
 	queryOutput = {
 		Items: [
@@ -176,7 +176,7 @@ test('getLiveOrders with orderHash', async () => {
 	};
 	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
 	expect(await dynamoUtil.getLiveOrders('pair', 'orderHash')).toMatchSnapshot();
-	expect((dynamoUtil.queryData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.queryData as jest.Mock).mock.calls).toMatchSnapshot();
 
 	queryOutput = {
 		Items: [
@@ -211,17 +211,16 @@ test('getLiveOrders with orderHash', async () => {
 	}
 });
 
-test('deleteRawOrderSignature', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.updateData = jest.fn(() => Promise.resolve({}));
-	await dynamoUtil.deleteRawOrderSignature('0xOrderHash');
-	expect((dynamoUtil.updateData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+test('deleteRawOrder', async () => {
+	dynamoUtil.deleteData = jest.fn(() => Promise.resolve({}));
+	await dynamoUtil.deleteRawOrder('0xOrderHash');
+	expect((dynamoUtil.deleteData as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('addRawOrder', async () => {
+test('updateRawOrder new', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
-	await dynamoUtil.addRawOrder({
+	await dynamoUtil.updateRawOrder({
 		orderHash: '0xOrderHash',
 		signedOrder: {
 			senderAddress: 'senderAddress',
@@ -240,7 +239,34 @@ test('addRawOrder', async () => {
 			signature: 'signature'
 		}
 	});
-	expect((dynamoUtil.putData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('updateRawOrder existing', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
+	await dynamoUtil.updateRawOrder({
+		orderHash: '0xOrderHash',
+		signedOrder: {
+			senderAddress: 'senderAddress',
+			makerAddress: 'makerAddress',
+			takerAddress: 'takerAddress',
+			makerFee: '0',
+			takerFee: '0',
+			makerAssetAmount: '123',
+			takerAssetAmount: '456',
+			makerAssetData: 'makerAssetData',
+			takerAssetData: 'takerAssetData',
+			salt: '789',
+			exchangeAddress: 'exchangeAddress',
+			feeRecipientAddress: 'feeRecipientAddress',
+			expirationTimeSeconds: '1234567890',
+			signature: 'signature'
+		},
+		createdAt: 1234560000,
+		updatedAt: 1234560000,
+	});
+	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('getRawOrder', async () => {
@@ -249,7 +275,7 @@ test('getRawOrder', async () => {
 	};
 	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
 	expect(await dynamoUtil.getRawOrder('0xOrderHash')).toBeNull();
-	expect((dynamoUtil.queryData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.queryData as jest.Mock).mock.calls).toMatchSnapshot();
 
 	queryOutput = {
 		Items: [
@@ -313,7 +339,7 @@ test('addUserOrder', async () => {
 		currentSequence: 2,
 		updatedBy: 'updatedBy'
 	});
-	expect((dynamoUtil.putData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('getUserOrdersForMonth', async () => {
@@ -348,7 +374,7 @@ test('getUserOrdersForMonth', async () => {
 	expect(
 		await dynamoUtil.getUserOrdersForMonth('0xAccount', '1234-56', 'pair')
 	).toMatchSnapshot();
-	expect((dynamoUtil.queryData as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.queryData as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('getUserOrders', async () => {
@@ -356,6 +382,6 @@ test('getUserOrders', async () => {
 	dynamoUtil.getUserOrdersForMonth = jest.fn(() => Promise.resolve([]));
 	await dynamoUtil.getUserOrders('0xAccount', 1000000000);
 	expect(
-		(dynamoUtil.getUserOrdersForMonth as jest.Mock<Promise<void>>).mock.calls
+		(dynamoUtil.getUserOrdersForMonth as jest.Mock).mock.calls
 	).toMatchSnapshot();
 });

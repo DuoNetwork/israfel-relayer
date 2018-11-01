@@ -340,7 +340,7 @@ Array [
 ]
 `;
 
-exports[`handleSequenceMessage add 1`] = `
+exports[`handleSequenceResponse add 1`] = `
 Array [
   Array [
     undefined,
@@ -352,7 +352,7 @@ Array [
 ]
 `;
 
-exports[`handleSequenceMessage add failed 1`] = `
+exports[`handleSequenceResponse add failed 1`] = `
 Object {
   "add|pair|orderHash": Object {
     "liveOrder": Object {
@@ -364,7 +364,17 @@ Object {
 }
 `;
 
-exports[`handleSequenceMessage cancel 1`] = `
+exports[`handleSequenceResponse add failed 2`] = `
+Array [
+  Array [
+    "add",
+    "pair",
+    "orderHash",
+  ],
+]
+`;
+
+exports[`handleSequenceResponse cancel 1`] = `
 Array [
   Array [
     undefined,
@@ -376,7 +386,7 @@ Array [
 ]
 `;
 
-exports[`handleSequenceMessage cancel failed 1`] = `
+exports[`handleSequenceResponse cancel failed 1`] = `
 Object {
   "cancel|pair|orderHash": Object {
     "liveOrder": Object {
@@ -385,6 +395,16 @@ Object {
     },
   },
 }
+`;
+
+exports[`handleSequenceResponse cancel failed 2`] = `
+Array [
+  Array [
+    "cancel",
+    "pair",
+    "orderHash",
+  ],
+]
 `;
 
 exports[`handleUserOrder 1`] = `

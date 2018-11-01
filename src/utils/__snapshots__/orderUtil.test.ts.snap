@@ -1,207 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`addOrderToDB 1`] = `
-Array [
-  Array [
-    Object {
-      "orderHash": "0xOrderHash",
-      "signedOrder": Object {
-        "exchangeAddress": "exchangeAddress",
-        "expirationTimeSeconds": "1234567890",
-        "feeRecipientAddress": "feeRecipientAddress",
-        "makerAddress": "makerAddress",
-        "makerAssetAmount": "123",
-        "makerAssetData": "makerAssetData",
-        "makerFee": "0",
-        "salt": "789",
-        "senderAddress": "senderAddress",
-        "signature": "signature",
-        "takerAddress": "takerAddress",
-        "takerAssetAmount": "456",
-        "takerAssetData": "takerAssetData",
-        "takerFee": "0",
-      },
-    },
-  ],
-]
-`;
-
-exports[`addOrderToDB 2`] = `
-Array [
-  Array [
-    Object {
-      "account": "0xAccount",
-      "amount": 456,
-      "currentSequence": 2,
-      "initialSequence": 1,
-      "orderHash": "0xOrderHash",
-      "pair": "pair",
-      "price": 0.123456789,
-      "side": "bid",
-    },
-  ],
-]
-`;
-
-exports[`addOrderToDB 3`] = `
-Array [
-  Array [
-    Object {
-      "account": "0xAccount",
-      "amount": 456,
-      "currentSequence": 2,
-      "initialSequence": 1,
-      "orderHash": "0xOrderHash",
-      "pair": "pair",
-      "price": 0.123456789,
-      "side": "bid",
-    },
-    "add",
-    "confirmed",
-    "orderProcessor",
-  ],
-]
-`;
-
-exports[`addOrderToDB in queue but no key value 1`] = `
-Array [
-  Array [
-    "orders|add",
-  ],
-]
-`;
-
-exports[`addOrderToDB not in queue 1`] = `
-Array [
-  Array [
-    "orders|add",
-  ],
-]
-`;
-
-exports[`addOrderToPersistence 1`] = `
-Array [
-  Array [
-    "orders|add|0xOrderHash",
-    "{\\"liveOrder\\":{\\"orderHash\\":\\"0xOrderHash\\"}}",
-  ],
-]
-`;
-
-exports[`addOrderToPersistence 2`] = `
-Array [
-  Array [
-    "orders|add",
-    "0xOrderHash",
-  ],
-]
-`;
-
-exports[`addOrderToPersistence 3`] = `
-Array [
-  Array [
-    Object {
-      "orderHash": "0xOrderHash",
-    },
-    "add",
-    "confirmed",
-    "relayer",
-  ],
-]
-`;
-
-exports[`cancelOrderInDB 1`] = `
-Array [
-  Array [
-    "0xOrderHash",
-  ],
-]
-`;
-
-exports[`cancelOrderInDB 2`] = `
-Array [
-  Array [
-    Object {
-      "account": "0xAccount",
-      "amount": 456,
-      "currentSequence": 2,
-      "initialSequence": 1,
-      "orderHash": "0xOrderHash",
-      "pair": "pair",
-      "price": 0.123456789,
-      "side": "bid",
-    },
-  ],
-]
-`;
-
-exports[`cancelOrderInDB 3`] = `
-Array [
-  Array [
-    Object {
-      "account": "0xAccount",
-      "amount": 456,
-      "currentSequence": 2,
-      "initialSequence": 1,
-      "orderHash": "0xOrderHash",
-      "pair": "pair",
-      "price": 0.123456789,
-      "side": "bid",
-    },
-    "cancel",
-    "confirmed",
-    "orderProcessor",
-  ],
-]
-`;
-
-exports[`cancelOrderInDB 4`] = `"orders|cancel|0xOrderHash"`;
-
-exports[`cancelOrderInDB no order 1`] = `
-Array [
-  Array [
-    "orders|cancel",
-  ],
-]
-`;
-
-exports[`cancelOrderInDB rawOrder failed 1`] = `"orders|cancel|0xOrderHash"`;
-
-exports[`cancelOrderInPersistence 1`] = `
-Array [
-  Array [
-    "orders|add|0xOrderHash",
-    "",
-  ],
-  Array [
-    "orders|cancel|0xOrderHash",
-    "0xOrderHash",
-  ],
-]
-`;
-
-exports[`cancelOrderInPersistence 2`] = `
-Array [
-  Array [
-    "orders|cancel",
-    "{\\"orderHash\\":\\"0xOrderHash\\"}",
-  ],
-]
-`;
-
-exports[`cancelOrderInPersistence 3`] = `
-Array [
-  Array [
-    Object {
-      "orderHash": "0xOrderHash",
-    },
-    "cancel",
-    "confirmed",
-    "relayer",
-  ],
-]
-`;
-
 exports[`constructNewLiveOrder 1`] = `
 Object {
   "account": "makerAddress",
@@ -255,15 +53,65 @@ Object {
 }
 `;
 
-exports[`updateOrderInDB dynamo udpate failed 1`] = `
+exports[`persistOrder 1`] = `
 Array [
   Array [
-    "orders|update",
+    "orders",
+    "0xOrderHash",
+    "{\\"method\\":\\"method\\",\\"liveOrder\\":{\\"orderHash\\":\\"0xOrderHash\\"},\\"signedOrder\\":\\"may or may not exist\\"}",
   ],
 ]
 `;
 
-exports[`updateOrderInDB dynamo udpate success 1`] = `
+exports[`persistOrder 2`] = `
+Array [
+  Array [
+    "orders",
+    "0xOrderHash",
+  ],
+]
+`;
+
+exports[`persistOrder 3`] = `
+Array [
+  Array [
+    Object {
+      "orderHash": "0xOrderHash",
+    },
+    "method",
+    "confirmed",
+    "relayer",
+  ],
+]
+`;
+
+exports[`processOrderQueue add/update 1`] = `
+Array [
+  Array [
+    Object {
+      "orderHash": "0xOrderHash",
+      "signedOrder": Object {
+        "exchangeAddress": "exchangeAddress",
+        "expirationTimeSeconds": "1234567890",
+        "feeRecipientAddress": "feeRecipientAddress",
+        "makerAddress": "makerAddress",
+        "makerAssetAmount": "123",
+        "makerAssetData": "makerAssetData",
+        "makerFee": "0",
+        "salt": "789",
+        "senderAddress": "senderAddress",
+        "signature": "signature",
+        "takerAddress": "takerAddress",
+        "takerAssetAmount": "456",
+        "takerAssetData": "takerAssetData",
+        "takerFee": "0",
+      },
+    },
+  ],
+]
+`;
+
+exports[`processOrderQueue add/update 2`] = `
 Array [
   Array [
     Object {
@@ -280,26 +128,102 @@ Array [
 ]
 `;
 
-exports[`updateOrderInDB dynamo udpate success 2`] = `
+exports[`processOrderQueue add/update 3`] = `
 Array [
   Array [
-    "orders|update",
+    Object {
+      "account": "0xAccount",
+      "amount": 456,
+      "currentSequence": 2,
+      "initialSequence": 1,
+      "orderHash": "0xOrderHash",
+      "pair": "pair",
+      "price": 0.123456789,
+      "side": "bid",
+    },
+    "add",
+    "confirmed",
+    "orderProcessor",
   ],
 ]
 `;
 
-exports[`updateOrderInDB for order in cancel queue 1`] = `
+exports[`processOrderQueue add/update 4`] = `
 Array [
   Array [
-    "orders|update",
+    "orders",
+    "0xOrderHash",
   ],
 ]
 `;
 
-exports[`updateOrderInDB not in queue 1`] = `
+exports[`processOrderQueue cancel 1`] = `
 Array [
   Array [
-    "orders|update",
+    "0xOrderHash",
+  ],
+]
+`;
+
+exports[`processOrderQueue cancel 2`] = `
+Array [
+  Array [
+    Object {
+      "account": "0xAccount",
+      "amount": 456,
+      "currentSequence": 2,
+      "initialSequence": 1,
+      "orderHash": "0xOrderHash",
+      "pair": "pair",
+      "price": 0.123456789,
+      "side": "bid",
+    },
+  ],
+]
+`;
+
+exports[`processOrderQueue cancel 3`] = `
+Array [
+  Array [
+    Object {
+      "account": "0xAccount",
+      "amount": 456,
+      "currentSequence": 2,
+      "initialSequence": 1,
+      "orderHash": "0xOrderHash",
+      "pair": "pair",
+      "price": 0.123456789,
+      "side": "bid",
+    },
+    "cancel",
+    "confirmed",
+    "orderProcessor",
+  ],
+]
+`;
+
+exports[`processOrderQueue cancel 4`] = `
+Array [
+  Array [
+    "orders",
+    "0xOrderHash",
+  ],
+]
+`;
+
+exports[`processOrderQueue empty queue 1`] = `
+Array [
+  Array [
+    "orders",
+  ],
+]
+`;
+
+exports[`processOrderQueue in queue but no key value 1`] = `
+Array [
+  Array [
+    "orders",
+    "0xOrderHash",
   ],
 ]
 `;

@@ -176,48 +176,17 @@ class DynamoUtil {
 			[CST.DB_SIDE]: { S: liveOrder.side },
 			[CST.DB_INITIAL_SEQ]: { N: liveOrder.initialSequence + '' },
 			[CST.DB_CURRENT_SEQ]: { N: liveOrder.currentSequence + '' },
-			[CST.DB_CREATED_AT]: { N: timestamp + '' },
+			[CST.DB_CREATED_AT]: { N: (liveOrder.createdAt || timestamp) + '' },
 			[CST.DB_UPDATED_AT]: { N: timestamp + '' }
 		};
 	}
 
-	public addLiveOrder(liveOrder: ILiveOrder) {
+	public updateLiveOrder(liveOrder: ILiveOrder) {
 		return this.putData({
 			TableName: `${CST.DB_ISRAFEL}.${CST.DB_LIVE_ORDERS}.${
 				this.live ? CST.DB_LIVE : CST.DB_DEV
 			}`,
 			Item: this.convertLiveOrderToDynamo(liveOrder)
-		});
-	}
-
-	public async updateLiveOrder(liveOrder: ILiveOrder) {
-		return this.updateData({
-			TableName: `${CST.DB_ISRAFEL}.${CST.DB_LIVE_ORDERS}.${
-				this.live ? CST.DB_LIVE : CST.DB_DEV
-			}`,
-			Key: {
-				[CST.DB_PAIR]: {
-					S: liveOrder.pair
-				},
-				[CST.DB_ORDER_HASH]: {
-					S: liveOrder.orderHash
-				}
-			},
-			ExpressionAttributeNames: {
-				[CST.DB_BALANCE]: CST.DB_BALANCE,
-				[CST.DB_UPDATED_AT]: CST.DB_UPDATED_AT,
-				[CST.DB_CURRENT_SEQ]: CST.DB_CURRENT_SEQ
-			},
-			ExpressionAttributeValues: {
-				[':' + CST.DB_BALANCE]: {
-					N: liveOrder.amount + ''
-				},
-				[':' + CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' },
-				[':' + CST.DB_CURRENT_SEQ]: { N: liveOrder.currentSequence + '' }
-			},
-			UpdateExpression: `SET ${CST.DB_BALANCE} = ${':' + CST.DB_BALANCE}, ${
-				CST.DB_UPDATED_AT
-			} = ${':' + CST.DB_UPDATED_AT}, ${CST.DB_CURRENT_SEQ} = ${':' + CST.DB_CURRENT_SEQ} `
 		});
 	}
 
@@ -278,8 +247,8 @@ class DynamoUtil {
 		return data.Items.map(ob => this.parseLiveOrder(ob));
 	}
 
-	public deleteRawOrderSignature(orderHash: string) {
-		return this.updateData({
+	public deleteRawOrder(orderHash: string) {
+		return this.deleteData({
 			TableName: `${CST.DB_ISRAFEL}.${CST.DB_RAW_ORDERS}.${
 				this.live ? CST.DB_LIVE : CST.DB_DEV
 			}`,
@@ -287,18 +256,7 @@ class DynamoUtil {
 				[CST.DB_ORDER_HASH]: {
 					S: orderHash
 				}
-			},
-			ExpressionAttributeNames: {
-				[CST.DB_0X_SIGNATURE]: CST.DB_0X_SIGNATURE,
-				[CST.DB_UPDATED_AT]: CST.DB_UPDATED_AT
-			},
-			ExpressionAttributeValues: {
-				[':' + CST.DB_0X_SIGNATURE]: { S: '' },
-				[':' + CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' }
-			},
-			UpdateExpression: `SET ${CST.DB_0X_SIGNATURE} = ${':' + CST.DB_0X_SIGNATURE}, ${
-				CST.DB_UPDATED_AT
-			} = ${':' + CST.DB_UPDATED_AT}`
+			}
 		});
 	}
 
@@ -331,7 +289,7 @@ class DynamoUtil {
 		};
 	}
 
-	public addRawOrder(rawOrder: IRawOrder) {
+	public updateRawOrder(rawOrder: IRawOrder) {
 		return this.putData({
 			TableName: `${CST.DB_ISRAFEL}.${CST.DB_RAW_ORDERS}.${
 				this.live ? CST.DB_LIVE : CST.DB_DEV
