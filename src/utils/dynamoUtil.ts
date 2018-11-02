@@ -434,9 +434,9 @@ class DynamoUtil {
 
 	public async getUserOrders(account: string, start: number, end: number = 0, pair: string = '') {
 		if (!end) end = util.getUTCNowTimestamp();
-		const startObj = moment.utc(start);
+		const startObj = moment.utc(start).startOf('month');
 		const months = [];
-		while (startObj.valueOf() < end) {
+		while (startObj.valueOf() <= end) {
 			months.push(startObj.format('YYYY-MM'));
 			startObj.add(1, 'month');
 		}
