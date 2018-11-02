@@ -94,7 +94,7 @@ export default class Web3Util {
 	): Promise<IRawOrder> {
 		if (this.wallet !== Wallet.MetaMask) Promise.reject('cannot sign');
 		const order = {
-			senderAddress: relayerAddr.toLowerCase(),
+			senderAddress: CST.DUMMY_ADDR,
 			makerAddress: userAddr.toLowerCase(),
 			takerAddress: relayerAddr.toLowerCase(),
 			makerFee: new BigNumber(0),

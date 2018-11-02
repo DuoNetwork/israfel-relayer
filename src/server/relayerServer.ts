@@ -43,31 +43,30 @@ class RelayerServer extends SequenceClient {
 		clearTimeout(cacheItem.timeout);
 		cacheItem.liveOrder.currentSequence = res.sequence;
 		const orderQueueItem: IOrderQueueItem = {
-			method: res.method,
 			liveOrder: cacheItem.liveOrder
 		};
 
 		if (res.method === CST.DB_ADD) {
 			cacheItem.liveOrder.initialSequence = res.sequence;
-			orderQueueItem.signedOrder = cacheItem.signedOrder as IStringSignedOrder;
+			orderQueueItem.signedOrder = (cacheItem.request as IWsAddOrderRequest)
+				.order as IStringSignedOrder;
 		}
 
-		const userOrder = await orderUtil.persistOrder(orderQueueItem);
-		if (userOrder) {
-			try {
-				this.handleUserOrder(cacheItem.ws, userOrder, res.method);
-			} catch (error) {
-				util.logError(error);
-			}
-
-			return true;
+		try {
+			const userOrder = await orderUtil.persistOrder(res.method, orderQueueItem);
+			if (userOrder)
+				try {
+					this.handleUserOrder(cacheItem.ws, userOrder, res.method);
+				} catch (error) {
+					util.logError(error);
+				}
+			else this.handleInvalidOrderRequest(cacheItem.ws, cacheItem.request);
+		} catch (error) {
+			// failed to persist, add back to cache for next retry
+			cacheItem.timeout = setTimeout(() => this.handleTimeout(cacheKey), 30000);
+			this.requestCache[cacheKey] = cacheItem;
+			this.requestSequence(res.method, res.pair, cacheItem.liveOrder.orderHash);
 		}
-
-		// failed to persist, add back to cache for next retry
-		cacheItem.timeout = setTimeout(() => this.handleTimeout(cacheKey), 30000);
-		this.requestCache[cacheKey] = cacheItem;
-		this.requestSequence(res.method, res.pair, cacheItem.liveOrder.orderHash);
-		return false;
 	}
 
 	public handleInvalidOrderRequest(ws: WebSocket, req: IWsOrderRequest) {
@@ -109,7 +108,7 @@ class RelayerServer extends SequenceClient {
 			return;
 		}
 
-		const stringSignedOrder: IStringSignedOrder = req.order as IStringSignedOrder;
+		const stringSignedOrder = req.order as IStringSignedOrder;
 
 		const orderHash = this.web3Util
 			? await this.web3Util.validateOrder(orderUtil.parseSignedOrder(stringSignedOrder))
@@ -119,10 +118,10 @@ class RelayerServer extends SequenceClient {
 			liveOrder = orderUtil.constructNewLiveOrder(stringSignedOrder, pair, orderHash);
 			this.requestCache[cacheKey] = {
 				ws: ws,
+				request: req,
 				pair: pair,
 				method: CST.DB_ADD,
 				liveOrder: liveOrder,
-				signedOrder: stringSignedOrder,
 				timeout: setTimeout(() => this.handleTimeout(cacheKey), 30000)
 			};
 			util.logDebug('request added to cache');
@@ -162,6 +161,7 @@ class RelayerServer extends SequenceClient {
 
 		this.requestCache[cacheKey] = {
 			ws: ws,
+			request: req,
 			pair: pair,
 			method: CST.DB_CANCEL,
 			liveOrder: liveOrder,

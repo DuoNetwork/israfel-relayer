@@ -14,12 +14,12 @@ test('scanServices', async () => {
 			{
 				[CST.DB_SERVICE]: { S: 'service1' },
 				[CST.DB_HOSTNAME]: { S: 'hostname1' },
-				[CST.DB_URL]: { S: 'url1' },
+				[CST.DB_URL]: { S: 'url1' }
 			},
 			{
 				[CST.DB_SERVICE]: { S: 'service2' },
 				[CST.DB_HOSTNAME]: { S: 'hostname2' },
-				[CST.DB_URL]: { N: 'url2' },
+				[CST.DB_URL]: { N: 'url2' }
 			}
 		]
 	};
@@ -39,12 +39,12 @@ test('getServices', async () => {
 			{
 				[CST.DB_SERVICE]: { S: 'service' },
 				[CST.DB_HOSTNAME]: { S: 'hostname1' },
-				[CST.DB_URL]: { S: 'url1' },
+				[CST.DB_URL]: { S: 'url1' }
 			},
 			{
 				[CST.DB_SERVICE]: { S: 'service' },
 				[CST.DB_HOSTNAME]: { S: 'hostname2' },
-				[CST.DB_URL]: { N: 'url2' },
+				[CST.DB_URL]: { N: 'url2' }
 			}
 		]
 	};
@@ -89,10 +89,10 @@ test('scanStatus', async () => {
 	expect(await dynamoUtil.scanStatus()).toMatchSnapshot();
 });
 
-test('updateLiveOrder new', async () => {
+test('addLiveOrder', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
-	await dynamoUtil.updateLiveOrder({
+	await dynamoUtil.addLiveOrder({
 		account: '0xAccount',
 		pair: 'pair',
 		orderHash: '0xOrderHash',
@@ -105,9 +105,9 @@ test('updateLiveOrder new', async () => {
 	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('updateLiveOrder existing', async () => {
+test('updateLiveOrder', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
+	dynamoUtil.updateData = jest.fn(() => Promise.resolve({}));
 	await dynamoUtil.updateLiveOrder({
 		account: '0xAccount',
 		pair: 'pair',
@@ -118,9 +118,9 @@ test('updateLiveOrder existing', async () => {
 		createdAt: 1234560000,
 		updatedAt: 1234560000,
 		initialSequence: 1,
-		currentSequence: 2,
+		currentSequence: 2
 	});
-	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.updateData as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('deleteLiveOrder', async () => {
@@ -211,16 +211,17 @@ test('getLiveOrders with orderHash', async () => {
 	}
 });
 
-test('deleteRawOrder', async () => {
-	dynamoUtil.deleteData = jest.fn(() => Promise.resolve({}));
-	await dynamoUtil.deleteRawOrder('0xOrderHash');
-	expect((dynamoUtil.deleteData as jest.Mock).mock.calls).toMatchSnapshot();
+test('deleteRawOrderSignature', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	dynamoUtil.updateData = jest.fn(() => Promise.resolve({}));
+	await dynamoUtil.deleteRawOrderSignature('0xOrderHash');
+	expect((dynamoUtil.updateData as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('updateRawOrder new', async () => {
+test('addRawOrder', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
-	await dynamoUtil.updateRawOrder({
+	await dynamoUtil.addRawOrder({
 		orderHash: '0xOrderHash',
 		signedOrder: {
 			senderAddress: 'senderAddress',
@@ -238,33 +239,6 @@ test('updateRawOrder new', async () => {
 			expirationTimeSeconds: '1234567890',
 			signature: 'signature'
 		}
-	});
-	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
-});
-
-test('updateRawOrder existing', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
-	await dynamoUtil.updateRawOrder({
-		orderHash: '0xOrderHash',
-		signedOrder: {
-			senderAddress: 'senderAddress',
-			makerAddress: 'makerAddress',
-			takerAddress: 'takerAddress',
-			makerFee: '0',
-			takerFee: '0',
-			makerAssetAmount: '123',
-			takerAssetAmount: '456',
-			makerAssetData: 'makerAssetData',
-			takerAssetData: 'takerAssetData',
-			salt: '789',
-			exchangeAddress: 'exchangeAddress',
-			feeRecipientAddress: 'feeRecipientAddress',
-			expirationTimeSeconds: '1234567890',
-			signature: 'signature'
-		},
-		createdAt: 1234560000,
-		updatedAt: 1234560000,
 	});
 	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
 });

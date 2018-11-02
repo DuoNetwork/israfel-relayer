@@ -19,6 +19,7 @@ export const DB_ADD = 'add';
 export const DB_CANCEL = 'cancel';
 export const DB_UPDATE = 'update';
 export const DB_FILL = 'fill';
+export const DB_EXPIRE = 'expire';
 export const DB_PENDING = 'pending';
 export const DB_CONFIRMED = 'confirmed';
 export const DB_USER = 'user';

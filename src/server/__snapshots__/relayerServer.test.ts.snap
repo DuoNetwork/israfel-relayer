@@ -8,23 +8,29 @@ Object {
     },
     "method": "add",
     "pair": "ZRX-WETH",
-    "signedOrder": Object {
-      "exchangeAddress": "exchangeAddress",
-      "expirationTimeSeconds": "1234567890",
-      "feeRecipientAddress": "feeRecipientAddress",
-      "makerAddress": "makerAddress",
-      "makerAssetAmount": "123",
-      "makerAssetData": "makerAssetData",
-      "makerFee": "0",
-      "salt": "789",
-      "senderAddress": "senderAddress",
-      "signature": "signature",
-      "takerAddress": "takerAddress",
-      "takerAssetAmount": "456",
-      "takerAssetData": "takerAssetData",
-      "takerFee": "0",
+    "request": Object {
+      "channel": "orders",
+      "method": "add",
+      "order": Object {
+        "exchangeAddress": "exchangeAddress",
+        "expirationTimeSeconds": "1234567890",
+        "feeRecipientAddress": "feeRecipientAddress",
+        "makerAddress": "makerAddress",
+        "makerAssetAmount": "123",
+        "makerAssetData": "makerAssetData",
+        "makerFee": "0",
+        "salt": "789",
+        "senderAddress": "senderAddress",
+        "signature": "signature",
+        "takerAddress": "takerAddress",
+        "takerAssetAmount": "456",
+        "takerAssetData": "takerAssetData",
+        "takerFee": "0",
+      },
+      "orderHash": "0xOrderHash",
+      "pair": "ZRX-WETH",
     },
-    "timeout": 23,
+    "timeout": 25,
     "ws": Object {},
   },
 }
@@ -178,7 +184,13 @@ Object {
     },
     "method": "cancel",
     "pair": "ZRX-WETH",
-    "timeout": 32,
+    "request": Object {
+      "channel": "orders",
+      "method": "cancel",
+      "orderHash": "0xOrderHash",
+      "pair": "ZRX-WETH",
+    },
+    "timeout": 34,
     "ws": Object {},
   },
 }
@@ -360,7 +372,10 @@ Object {
       "initialSequence": 1,
       "orderHash": "orderHash",
     },
-    "timeout": 9,
+    "request": Object {
+      "order": "signedOrder",
+    },
+    "timeout": 11,
   },
 }
 `;
@@ -371,6 +386,17 @@ Array [
     "add",
     "pair",
     "orderHash",
+  ],
+]
+`;
+
+exports[`handleSequenceResponse add invalid 1`] = `
+Array [
+  Array [
+    undefined,
+    Object {
+      "order": "signedOrder",
+    },
   ],
 ]
 `;
@@ -389,12 +415,23 @@ Array [
 
 exports[`handleSequenceResponse cancel failed 1`] = `
 Object {
+  "add|pair|orderHash": Object {
+    "liveOrder": Object {
+      "currentSequence": 1,
+      "initialSequence": 1,
+      "orderHash": "orderHash",
+    },
+    "request": Object {
+      "order": "signedOrder",
+    },
+    "timeout": 11,
+  },
   "cancel|pair|orderHash": Object {
     "liveOrder": Object {
       "currentSequence": 2,
       "orderHash": "orderHash",
     },
-    "timeout": 14,
+    "timeout": 16,
   },
 }
 `;

@@ -31,12 +31,13 @@ class OrderUtil {
 	}
 
 	public async getLiveOrderInPersistence(pair: string, orderHash: string) {
-		const cancelQueueString = await redisUtil.get(
-			`${CST.DB_ORDERS}|${CST.DB_CANCEL}|${orderHash}`
+		const cancelQueueString = await redisUtil.hashGet(
+			CST.DB_ORDERS,
+			`${CST.DB_CANCEL}|${orderHash}`
 		);
 		if (cancelQueueString) return null;
 
-		const addQueueString = await redisUtil.get(`${CST.DB_ORDERS}|${CST.DB_ADD}|${orderHash}`);
+		const addQueueString = await redisUtil.hashGet(CST.DB_ORDERS, `${CST.DB_ADD}|${orderHash}`);
 		if (addQueueString) {
 			const orderQueueItem: IOrderQueueItem = JSON.parse(addQueueString);
 			return orderQueueItem.liveOrder;
@@ -48,28 +49,34 @@ class OrderUtil {
 		return liveOrders[0];
 	}
 
-	public async persistOrder(orderQueueItem: IOrderQueueItem) {
-		try {
+	public async persistOrder(method: string, orderQueueItem: IOrderQueueItem) {
+		const liveOrder = await this.getLiveOrderInPersistence(
+			orderQueueItem.liveOrder.pair,
+			orderQueueItem.liveOrder.orderHash
+		);
+		if (method === CST.DB_ADD && liveOrder) {
 			util.logDebug(
-				`storing order queue item in redis ${orderQueueItem.liveOrder.orderHash}`
+				`order ${orderQueueItem.liveOrder.orderHash} already exist, ignore add request`
 			);
-			redisUtil.multi();
-			// store order in hash map
-			redisUtil.hashSet(
-				CST.DB_ORDERS,
-				orderQueueItem.liveOrder.orderHash,
-				JSON.stringify(orderQueueItem)
+			return null;
+		} else if (method !== CST.DB_ADD && !liveOrder) {
+			util.logDebug(
+				`order ${
+					orderQueueItem.liveOrder.orderHash
+				} does not exist, ignore ${method} request`
 			);
-			// push orderhash into queue
-			redisUtil.push(`${CST.DB_ORDERS}`, orderQueueItem.liveOrder.orderHash);
-			await redisUtil.exec();
-			util.logDebug(`done`);
-		} catch (error) {
-			util.logError(error);
 			return null;
 		}
 
-		const method = orderQueueItem.method;
+		util.logDebug(`storing order queue item in redis ${orderQueueItem.liveOrder.orderHash}`);
+		redisUtil.multi();
+		const key = `${method}|${orderQueueItem.liveOrder.orderHash}`;
+		// store order in hash map
+		redisUtil.hashSet(CST.DB_ORDERS, key, JSON.stringify(orderQueueItem));
+		// push orderhash into queue
+		redisUtil.push(`${CST.DB_ORDERS}`, key);
+		await redisUtil.exec();
+		util.logDebug(`done`);
 
 		return this.addUserOrderToDB(
 			orderQueueItem.liveOrder,
@@ -115,50 +122,49 @@ class OrderUtil {
 	}
 
 	public async processOrderQueue() {
-		const orderHash = await redisUtil.pop(CST.DB_ORDERS);
-		if (!orderHash) return false;
+		const queueKey = await redisUtil.pop(CST.DB_ORDERS);
+		if (!queueKey) return false;
 
-		const queueItemString = await redisUtil.hashGet(CST.DB_ORDERS, orderHash);
-		util.logDebug(`processing order: ${orderHash}`);
-		// when order is already processed, the queue item in hash map is deleted and null
-		// this could happen when an order is first added then canceled before it is saved to db
-		// the order in hash map would have been updated to cancel
-		// when the original request in queue is being processed, it will be treated as delete directly.
+		const queueItemString = await redisUtil.hashGet(CST.DB_ORDERS, queueKey);
+		util.logDebug(`processing order: ${queueKey}`);
 		if (!queueItemString) {
-			util.logDebug('already processed, ignore');
-			return true;
+			util.logDebug('empty queue item, ignore');
+			return false;
 		}
-
+		const [method, orderHash] = queueKey.split('|');
 		const orderQueueItem: IOrderQueueItem = JSON.parse(queueItemString);
 		try {
-			util.logDebug(`${orderQueueItem.method} order`);
-			if (orderQueueItem.method === CST.DB_CANCEL) {
-				await dynamoUtil.deleteRawOrder(orderHash);
-				util.logDebug(`deleted raw order`);
-				await dynamoUtil.deleteLiveOrder(orderQueueItem.liveOrder);
-				util.logDebug(`deleted live order`);
-			} else {
-				await dynamoUtil.updateRawOrder({
+			util.logDebug(`${method} order`);
+			if (method === CST.DB_ADD) {
+				await dynamoUtil.addRawOrder({
 					orderHash: orderHash,
 					signedOrder: orderQueueItem.signedOrder as IStringSignedOrder
 				});
 				util.logDebug(`added raw order`);
+				await dynamoUtil.addLiveOrder(orderQueueItem.liveOrder);
+				util.logDebug(`added live order`);
+			} else if (method === CST.DB_CANCEL) {
+				await dynamoUtil.deleteRawOrderSignature(orderHash);
+				util.logDebug(`deleted raw order`);
+				await dynamoUtil.deleteLiveOrder(orderQueueItem.liveOrder);
+				util.logDebug(`deleted live order`);
+			} else {
 				await dynamoUtil.updateLiveOrder(orderQueueItem.liveOrder);
 				util.logDebug(`added live order`);
 			}
-			redisUtil.hashDelete(CST.DB_ORDERS, orderHash);
+			redisUtil.hashDelete(CST.DB_ORDERS, queueKey);
 			util.logDebug(`removed redis data`);
 		} catch (err) {
-			util.logError(`error in processing ${orderQueueItem.method} for ${orderHash}`);
+			util.logError(`error in processing for ${queueKey}`);
 			util.logError(err);
-			await redisUtil.hashSet(CST.DB_ORDERS, orderHash, queueItemString);
-			redisUtil.putBack(CST.DB_ORDERS, orderHash);
+			await redisUtil.hashSet(CST.DB_ORDERS, queueKey, queueItemString);
+			redisUtil.putBack(CST.DB_ORDERS, queueKey);
 			return false;
 		}
 
 		await this.addUserOrderToDB(
 			orderQueueItem.liveOrder,
-			orderQueueItem.method,
+			method,
 			CST.DB_CONFIRMED,
 			CST.DB_ORDER_PROCESSOR
 		);

@@ -26,7 +26,7 @@ Object {
 }
 `;
 
-exports[`getLiveOrderInPersistence in add queue 1`] = `"test"`;
+exports[`getLiveOrderInPersistence in add queue 1`] = `"orders"`;
 
 exports[`getLiveOrderInPersistence only in db 1`] = `
 Object {
@@ -57,8 +57,8 @@ exports[`persistOrder 1`] = `
 Array [
   Array [
     "orders",
-    "0xOrderHash",
-    "{\\"method\\":\\"method\\",\\"liveOrder\\":{\\"orderHash\\":\\"0xOrderHash\\"},\\"signedOrder\\":\\"may or may not exist\\"}",
+    "method|0xOrderHash",
+    "{\\"liveOrder\\":{\\"orderHash\\":\\"0xOrderHash\\"},\\"signedOrder\\":\\"may or may not exist\\"}",
   ],
 ]
 `;
@@ -67,7 +67,7 @@ exports[`persistOrder 2`] = `
 Array [
   Array [
     "orders",
-    "0xOrderHash",
+    "method|0xOrderHash",
   ],
 ]
 `;
@@ -85,7 +85,7 @@ Array [
 ]
 `;
 
-exports[`processOrderQueue add/update 1`] = `
+exports[`processOrderQueue add 1`] = `
 Array [
   Array [
     Object {
@@ -111,7 +111,7 @@ Array [
 ]
 `;
 
-exports[`processOrderQueue add/update 2`] = `
+exports[`processOrderQueue add 2`] = `
 Array [
   Array [
     Object {
@@ -128,7 +128,7 @@ Array [
 ]
 `;
 
-exports[`processOrderQueue add/update 3`] = `
+exports[`processOrderQueue add 3`] = `
 Array [
   Array [
     Object {
@@ -148,11 +148,11 @@ Array [
 ]
 `;
 
-exports[`processOrderQueue add/update 4`] = `
+exports[`processOrderQueue add 4`] = `
 Array [
   Array [
     "orders",
-    "0xOrderHash",
+    "add|0xOrderHash",
   ],
 ]
 `;
@@ -206,7 +206,7 @@ exports[`processOrderQueue cancel 4`] = `
 Array [
   Array [
     "orders",
-    "0xOrderHash",
+    "cancel|0xOrderHash",
   ],
 ]
 `;
@@ -223,7 +223,53 @@ exports[`processOrderQueue in queue but no key value 1`] = `
 Array [
   Array [
     "orders",
-    "0xOrderHash",
+    "method|0xOrderHash",
+  ],
+]
+`;
+
+exports[`processOrderQueue update 1`] = `
+Array [
+  Array [
+    Object {
+      "account": "0xAccount",
+      "amount": 456,
+      "currentSequence": 2,
+      "initialSequence": 1,
+      "orderHash": "0xOrderHash",
+      "pair": "pair",
+      "price": 0.123456789,
+      "side": "bid",
+    },
+  ],
+]
+`;
+
+exports[`processOrderQueue update 2`] = `
+Array [
+  Array [
+    Object {
+      "account": "0xAccount",
+      "amount": 456,
+      "currentSequence": 2,
+      "initialSequence": 1,
+      "orderHash": "0xOrderHash",
+      "pair": "pair",
+      "price": 0.123456789,
+      "side": "bid",
+    },
+    "update",
+    "confirmed",
+    "orderProcessor",
+  ],
+]
+`;
+
+exports[`processOrderQueue update 3`] = `
+Array [
+  Array [
+    "orders",
+    "update|0xOrderHash",
   ],
 ]
 `;

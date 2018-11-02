@@ -45,7 +45,6 @@ export interface IStringSignedOrder {
 }
 
 export interface IOrderQueueItem {
-	method: string;
 	liveOrder: ILiveOrder;
 	signedOrder?: IStringSignedOrder;
 }
@@ -157,8 +156,8 @@ export interface ISequenceCacheItem {
 
 export interface IRelayerCacheItem extends ISequenceCacheItem {
 	ws: WebSocket;
+	request: IWsOrderRequest;
 	liveOrder: ILiveOrder;
-	signedOrder?: IStringSignedOrder;
 	timeout: NodeJS.Timeout
 }
 
