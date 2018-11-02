@@ -26,7 +26,7 @@ Object {
 }
 `;
 
-exports[`getLiveOrderInPersistence in add queue 1`] = `"orders"`;
+exports[`getLiveOrderInPersistence in add queue 1`] = `"orders|cache"`;
 
 exports[`getLiveOrderInPersistence only in db 1`] = `
 Object {
@@ -56,7 +56,7 @@ Object {
 exports[`persistOrder 1`] = `
 Array [
   Array [
-    "orders",
+    "orders|cache",
     "method|0xOrderHash",
     "{\\"liveOrder\\":{\\"orderHash\\":\\"0xOrderHash\\"},\\"signedOrder\\":\\"may or may not exist\\"}",
   ],
@@ -66,7 +66,7 @@ Array [
 exports[`persistOrder 2`] = `
 Array [
   Array [
-    "orders",
+    "orders|queue",
     "method|0xOrderHash",
   ],
 ]
@@ -151,7 +151,7 @@ Array [
 exports[`processOrderQueue add 4`] = `
 Array [
   Array [
-    "orders",
+    "orders|cache",
     "add|0xOrderHash",
   ],
 ]
@@ -205,7 +205,7 @@ Array [
 exports[`processOrderQueue cancel 4`] = `
 Array [
   Array [
-    "orders",
+    "orders|cache",
     "cancel|0xOrderHash",
   ],
 ]
@@ -214,7 +214,7 @@ Array [
 exports[`processOrderQueue empty queue 1`] = `
 Array [
   Array [
-    "orders",
+    "orders|queue",
   ],
 ]
 `;
@@ -222,7 +222,7 @@ Array [
 exports[`processOrderQueue in queue but no key value 1`] = `
 Array [
   Array [
-    "orders",
+    "orders|cache",
     "method|0xOrderHash",
   ],
 ]
@@ -268,7 +268,7 @@ Array [
 exports[`processOrderQueue update 3`] = `
 Array [
   Array [
-    "orders",
+    "orders|cache",
     "update|0xOrderHash",
   ],
 ]

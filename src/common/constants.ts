@@ -13,7 +13,7 @@ export const DB_ORDER_HASH = 'orderHash';
 export const DB_PRICE = 'price';
 export const DB_ACCOUNT = 'account';
 export const DB_ACCOUNT_YM = 'accountYearMonth';
-export const DB_PAIR_OH_SEQ = 'pairOrderHashSequence';
+export const DB_PAIR_OH_SEQ_STATUS = 'pairOrderHashSequenceStatus';
 export const DB_TYPE = 'type';
 export const DB_ADD = 'add';
 export const DB_CANCEL = 'cancel';
@@ -62,6 +62,8 @@ export const ORDERBOOK_SNAPSHOT = 'orderBookSnapshot';
 
 export const DB_ORDERS = 'orders';
 export const DB_ORDER_BOOKS = 'orderBooks';
+export const DB_QUEUE = 'queue';
+export const DB_CACHE = 'cache';
 
 export const AWS_DYNAMO_API_VERSION = '2012-10-08';
 
