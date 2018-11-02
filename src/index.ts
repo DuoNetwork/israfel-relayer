@@ -22,17 +22,19 @@ redisUtil.init(redisConfig);
 const config = require(`./keys/dynamo.${option.live ? CST.DB_LIVE : CST.DB_DEV}.json`);
 dynamoUtil.init(config, option.live, tool, osUtil.getHostName());
 
-const web3Util = new Web3Util(null, option.live, '');
+let web3Util: Web3Util | null = null;
+if ([CST.DB_ORDER_WATCHER, CST.DB_RELAYER].includes(tool))
+	web3Util = new Web3Util(null, option.live, '');
 
 switch (tool) {
 	case CST.SET_ALLOWANCE:
 		assetsUtil.setTokenAllowance(option);
 		break;
 	case CST.DB_ORDER_WATCHER:
-		orderWatcherServer.startOrderWatcher(web3Util, option);
+		orderWatcherServer.startOrderWatcher(web3Util as Web3Util, option);
 		break;
 	case CST.DB_RELAYER:
-		relayerServer.startServer(web3Util, option);
+		relayerServer.startServer(web3Util as Web3Util, option);
 		break;
 	case CST.DB_SEQUENCE:
 		sequenceServer.startServer(option);

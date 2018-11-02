@@ -4,9 +4,9 @@ import {
 	ILiveOrder,
 	IOrderBookSnapshotWs,
 	IOrderBookUpdate,
+	IOrderQueueItem,
 	IOrderWatcherCacheItem,
-	IStringSignedOrder,
-	IUpdateOrderQueueItem
+	IStringSignedOrder
 } from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import orderBookUtil from './orderBookUtil';
@@ -140,9 +140,7 @@ class RelayerUtil {
 					(orderState as OrderStateValid).orderRelevantState
 						.remainingFillableMakerAssetAmount
 			);
-		const updateQueueItem: IUpdateOrderQueueItem = {
-			pair,
-			sequence,
+		const updateQueueItem: IOrderQueueItem = {
 			liveOrder
 		};
 		redisUtil.push(`${CST.DB_ORDERS}|${CST.DB_UPDATE}`, JSON.stringify(updateQueueItem));
