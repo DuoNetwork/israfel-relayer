@@ -15,11 +15,6 @@ export const DB_ACCOUNT = 'account';
 export const DB_ACCOUNT_YM = 'accountYearMonth';
 export const DB_PAIR_OH_SEQ_STATUS = 'pairOrderHashSequenceStatus';
 export const DB_TYPE = 'type';
-export const DB_ADD = 'add';
-export const DB_CANCEL = 'cancel';
-export const DB_UPDATE = 'update';
-export const DB_FILL = 'fill';
-export const DB_EXPIRE = 'expire';
 export const DB_PENDING = 'pending';
 export const DB_CONFIRMED = 'confirmed';
 export const DB_USER = 'user';
@@ -29,7 +24,6 @@ export const DB_RELAYER = 'relayer';
 export const DB_SERVICES = 'services';
 export const DB_SERVICE = 'service';
 export const DB_URL = 'url';
-
 export const DB_SIDE = 'side';
 export const DB_ASK = 'ask';
 export const DB_BID = 'bid';
@@ -37,6 +31,16 @@ export const DB_BALANCE = 'balance';
 export const DB_CREATED_AT = 'createdAt';
 export const DB_UPDATED_AT = 'updatedAt';
 export const DB_UPDATED_BY = 'updatedBy';
+
+// initial action
+export const DB_ADD = 'add';
+// update actions
+export const DB_UPDATE = 'update';
+export const DB_PFILL = 'partialFill';
+// terminal actions
+export const DB_CANCEL = 'cancel';
+export const DB_FILL = 'fill';
+export const DB_EXPIRE = 'expire';
 
 export const DB_PROCESS = 'process';
 export const DB_HOSTNAME = 'hostname';
@@ -105,9 +109,7 @@ export const TOKEN_MAPPING: { [key: string]: string } = {
 	'0x0b1ba0af832d7c05fd64161e0db78e85978e8082': TOKEN_WETH
 };
 
-export const SUPPORTED_PAIRS = [
-	TOKEN_ZRX + '-' + TOKEN_WETH
-]
+export const SUPPORTED_PAIRS = [TOKEN_ZRX + '-' + TOKEN_WETH];
 
 export const PAIR_SEPARATOR = '-';
 export const TRADING_PAIRS = [TOKEN_ZRX + PAIR_SEPARATOR + TOKEN_WETH];
