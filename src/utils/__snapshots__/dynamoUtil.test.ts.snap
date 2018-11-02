@@ -169,14 +169,7 @@ exports[`deleteRawOrderSignature 1`] = `
 Array [
   Array [
     Object {
-      "ExpressionAttributeNames": Object {
-        "signature": "signature",
-        "updatedAt": "updatedAt",
-      },
       "ExpressionAttributeValues": Object {
-        ":signature": Object {
-          "S": "",
-        },
         ":updatedAt": Object {
           "N": "1234567890",
         },
@@ -187,7 +180,7 @@ Array [
         },
       },
       "TableName": "israfel.rawOrders.dev",
-      "UpdateExpression": "SET signature = :signature, updatedAt = :updatedAt",
+      "UpdateExpression": "SET updatedAt = :updatedAt REMOVE signature",
     },
   ],
 ]
@@ -308,7 +301,31 @@ Object {
 }
 `;
 
-exports[`getRawOrder 3`] = `[Error: multiple record for order hash 0xOrderHash]`;
+exports[`getRawOrder 3`] = `
+Object {
+  "createdAt": 1234567890,
+  "orderHash": "0xOrderHash",
+  "signedOrder": Object {
+    "exchangeAddress": "exchangeAddress",
+    "expirationTimeSeconds": "1234567890",
+    "feeRecipientAddress": "feeRecipientAddress",
+    "makerAddress": "makerAddress",
+    "makerAssetAmount": "123",
+    "makerAssetData": "makerAssetData",
+    "makerFee": "0",
+    "salt": "789",
+    "senderAddress": "senderAddress",
+    "signature": "",
+    "takerAddress": "takerAddress",
+    "takerAssetAmount": "456",
+    "takerAssetData": "takerAssetData",
+    "takerFee": "0",
+  },
+  "updatedAt": 1234567890,
+}
+`;
+
+exports[`getRawOrder 4`] = `[Error: multiple record for order hash 0xOrderHash]`;
 
 exports[`getServices 1`] = `Array []`;
 
@@ -493,11 +510,6 @@ exports[`updateLiveOrder 1`] = `
 Array [
   Array [
     Object {
-      "ExpressionAttributeNames": Object {
-        "balance": "balance",
-        "currentSequence": "currentSequence",
-        "updatedAt": "updatedAt",
-      },
       "ExpressionAttributeValues": Object {
         ":balance": Object {
           "N": "456",

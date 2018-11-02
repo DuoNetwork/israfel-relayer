@@ -286,6 +286,39 @@ test('getRawOrder', async () => {
 	expect(await dynamoUtil.getRawOrder('0xOrderHash')).toMatchSnapshot();
 
 	queryOutput = {
+		Items: [
+			{
+				[CST.DB_ORDER_HASH]: { S: '0xOrderHash' },
+				[CST.DB_0X_SENDER_ADDR]: { S: 'senderAddress' },
+				[CST.DB_0X_MAKER_ADDR]: { S: 'makerAddress' },
+				[CST.DB_0X_TAKER_ADDR]: { S: 'takerAddress' },
+				[CST.DB_0X_MAKER_FEE]: { S: '0' },
+				[CST.DB_0X_TAKER_FEE]: { S: '0' },
+				[CST.DB_0X_MAKER_ASSET_AMT]: {
+					S: '123'
+				},
+				[CST.DB_0X_TAKER_ASSET_AMT]: {
+					S: '456'
+				},
+				[CST.DB_0X_MAKER_ASSET_DATA]: { S: 'makerAssetData' },
+				[CST.DB_0X_TAKER_ASSET_DATA]: { S: 'takerAssetData' },
+				[CST.DB_0X_SALT]: { S: '789' },
+				[CST.DB_0X_EXCHANGE_ADDR]: { S: 'exchangeAddress' },
+				[CST.DB_0X_FEE_RECIPIENT_ADDR]: {
+					S: 'feeRecipientAddress'
+				},
+				[CST.DB_0X_EXPIRATION_TIME_SECONDS]: {
+					S: '1234567890'
+				},
+				[CST.DB_CREATED_AT]: { N: '1234567890' },
+				[CST.DB_UPDATED_AT]: { N: '1234567890' }
+			}
+		]
+	};
+	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
+	expect(await dynamoUtil.getRawOrder('0xOrderHash')).toMatchSnapshot();
+
+	queryOutput = {
 		Items: [{}, {}]
 	};
 	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));

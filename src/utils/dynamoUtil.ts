@@ -203,11 +203,6 @@ class DynamoUtil {
 					S: liveOrder.orderHash
 				}
 			},
-			ExpressionAttributeNames: {
-				[CST.DB_BALANCE]: CST.DB_BALANCE,
-				[CST.DB_UPDATED_AT]: CST.DB_UPDATED_AT,
-				[CST.DB_CURRENT_SEQ]: CST.DB_CURRENT_SEQ
-			},
 			ExpressionAttributeValues: {
 				[':' + CST.DB_BALANCE]: {
 					N: liveOrder.amount + ''
@@ -288,17 +283,12 @@ class DynamoUtil {
 					S: orderHash
 				}
 			},
-			ExpressionAttributeNames: {
-				[CST.DB_0X_SIGNATURE]: CST.DB_0X_SIGNATURE,
-				[CST.DB_UPDATED_AT]: CST.DB_UPDATED_AT
-			},
 			ExpressionAttributeValues: {
-				[':' + CST.DB_0X_SIGNATURE]: { S: '' },
 				[':' + CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' }
 			},
-			UpdateExpression: `SET ${CST.DB_0X_SIGNATURE} = ${':' + CST.DB_0X_SIGNATURE}, ${
-				CST.DB_UPDATED_AT
-			} = ${':' + CST.DB_UPDATED_AT}`
+			UpdateExpression: `SET ${CST.DB_UPDATED_AT} = ${':' + CST.DB_UPDATED_AT} REMOVE ${
+				CST.DB_0X_SIGNATURE
+			}`
 		});
 	}
 
@@ -344,7 +334,7 @@ class DynamoUtil {
 		return {
 			orderHash: data[CST.DB_ORDER_HASH].S || '',
 			signedOrder: {
-				signature: data[CST.DB_0X_SIGNATURE].S || '',
+				signature: data[CST.DB_0X_SIGNATURE] ? data[CST.DB_0X_SIGNATURE].S || '' : '',
 				senderAddress: data[CST.DB_0X_SENDER_ADDR].S || '',
 				makerAddress: data[CST.DB_0X_MAKER_ADDR].S || '',
 				takerAddress: data[CST.DB_0X_TAKER_ADDR].S || '',
