@@ -51,12 +51,22 @@ Array [
   Array [
     Object {},
     Object {
-      "status": "pending",
-      "test": "liveOrder",
-      "type": "add",
-      "updatedBy": "user",
+      "userOrder": "userOrder",
     },
     "add",
+  ],
+]
+`;
+
+exports[`handleAddOrderRequest 4`] = `
+Array [
+  Array [
+    Object {
+      "test": "liveOrder",
+    },
+    "add",
+    "pending",
+    "user",
   ],
 ]
 `;
@@ -211,12 +221,22 @@ Array [
   Array [
     Object {},
     Object {
-      "status": "pending",
-      "test": "liveOrder",
-      "type": "cancel",
-      "updatedBy": "user",
+      "userOrder": "userOrder",
     },
     "cancel",
+  ],
+]
+`;
+
+exports[`handleCancelOrderRequest 4`] = `
+Array [
+  Array [
+    Object {
+      "test": "liveOrder",
+    },
+    "cancel",
+    "pending",
+    "user",
   ],
 ]
 `;
