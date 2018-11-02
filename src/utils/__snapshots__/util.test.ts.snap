@@ -9,7 +9,6 @@ Object {
   "server": true,
   "spender": 789,
   "token": "token",
-  "type": "type",
 }
 `;
 

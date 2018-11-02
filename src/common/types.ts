@@ -148,7 +148,6 @@ export interface IOption {
 	amount: number;
 	debug: boolean;
 	server: boolean;
-	type: string;
 }
 
 export interface ISequenceCacheItem {

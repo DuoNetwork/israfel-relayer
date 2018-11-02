@@ -57,7 +57,6 @@ test('parseOptions', () => {
 		'amount=123',
 		'maker=456',
 		'spender=789',
-		'type=type',
 		'dummy=dummy',
 		'server'
 	];

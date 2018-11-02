@@ -43,8 +43,7 @@ class Util {
 		maker: 0,
 		spender: 1,
 		debug: false,
-		server: false,
-		type: CST.DB_ADD
+		server: false
 	};
 
 	public getUTCNowTimestamp() {
@@ -70,9 +69,6 @@ class Util {
 					break;
 				case 'spender':
 					option.spender = Number(args[1]) || option.spender;
-					break;
-				case 'type':
-					option.type = args[1] || option.type;
 					break;
 				default:
 					break;

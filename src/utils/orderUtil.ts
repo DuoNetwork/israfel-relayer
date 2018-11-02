@@ -189,16 +189,13 @@ class OrderUtil {
 
 	public async startProcessing(option: IOption) {
 		if (option.server) {
-			dynamoUtil.updateStatus(
-				option.type,
-				await redisUtil.getQueueLength(`${CST.DB_ORDERS}|${option.type}`)
-			);
+			dynamoUtil.updateStatus(CST.DB_ORDERS, await redisUtil.getQueueLength(CST.DB_ORDERS));
 
 			setInterval(
 				async () =>
 					dynamoUtil.updateStatus(
-						option.type,
-						await redisUtil.getQueueLength(`${CST.DB_ORDERS}|${option.type}`)
+						CST.DB_ORDERS,
+						await redisUtil.getQueueLength(CST.DB_ORDERS)
 					),
 				15000
 			);
