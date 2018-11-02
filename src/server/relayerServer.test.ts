@@ -85,7 +85,7 @@ test('handleSequenceResponse add failed', async () => {
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	relayerServer.requestSequence = jest.fn();
 	relayerServer.handleInvalidOrderRequest = jest.fn();
-	orderUtil.persistOrder = jest.fn(() => Promise.reject());
+	orderUtil.persistOrder = jest.fn(() => Promise.reject('handleSequenceResponse'));
 	await relayerServer.handleSequenceResponse(
 		{
 			channel: CST.DB_SEQUENCE,
@@ -139,7 +139,7 @@ test('handleSequenceResponse cancel failed', async () => {
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	relayerServer.requestSequence = jest.fn();
 	relayerServer.handleInvalidOrderRequest = jest.fn();
-	orderUtil.persistOrder = jest.fn(() => Promise.reject());
+	orderUtil.persistOrder = jest.fn(() => Promise.reject('handleSequenceResponse'));
 	await relayerServer.handleSequenceResponse(
 		{
 			channel: CST.DB_SEQUENCE,

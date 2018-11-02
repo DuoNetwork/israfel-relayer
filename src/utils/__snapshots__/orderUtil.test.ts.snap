@@ -1,5 +1,37 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`addUserOrderToDB 1`] = `
+Object {
+  "account": "0xAccount",
+  "amount": 456,
+  "currentSequence": 2,
+  "initialSequence": 1,
+  "orderHash": "0xOrderHash",
+  "pair": "pair",
+  "price": 0.123456789,
+  "side": "bid",
+  "status": "status",
+  "type": "type",
+  "updatedBy": "updatedBy",
+}
+`;
+
+exports[`addUserOrderToDB error 1`] = `
+Object {
+  "account": "0xAccount",
+  "amount": 456,
+  "currentSequence": 2,
+  "initialSequence": 1,
+  "orderHash": "0xOrderHash",
+  "pair": "pair",
+  "price": 0.123456789,
+  "side": "bid",
+  "status": "status",
+  "type": "type",
+  "updatedBy": "updatedBy",
+}
+`;
+
 exports[`constructNewLiveOrder 1`] = `
 Object {
   "account": "makerAddress",

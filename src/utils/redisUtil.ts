@@ -1,14 +1,14 @@
 import Redis from 'ioredis';
-import * as CST from '../common/constants';
-import { IOrderBookUpdate } from '../common/types';
+// import * as CST from '../common/constants';
+// import { IOrderBookUpdate } from '../common/types';
 import util from './util';
 
 export class RedisUtil {
 	private redisPub: Redis.Redis | null = null;
 	private redisSub: Redis.Redis | null = null;
-	private handleOrderBookUpdate:
-		| ((channel: string, orderBookUpdate: IOrderBookUpdate) => any)
-		| null = null;
+	// private handleOrderBookUpdate:
+	// 	| ((channel: string, orderBookUpdate: IOrderBookUpdate) => any)
+	// 	| null = null;
 
 	public init(redisKey: { host: string; password: string; servername: string }) {
 		this.redisPub = new Redis(6379, redisKey.host, {
@@ -26,23 +26,23 @@ export class RedisUtil {
 	}
 
 	public onMessage(channel: string, message: string, pattern: string = '') {
-		util.logDebug(pattern + channel);
-		const type = channel.split('|')[0];
-		switch (type) {
-			case CST.ORDERBOOK_UPDATE:
-				if (this.handleOrderBookUpdate)
-					this.handleOrderBookUpdate(channel, JSON.parse(message));
-				break;
-			default:
-				break;
-		}
+		util.logDebug(pattern + channel + message);
+		// const type = channel.split('|')[0];
+		// switch (type) {
+		// 	case CST.ORDERBOOK_UPDATE:
+		// 		if (this.handleOrderBookUpdate)
+		// 			this.handleOrderBookUpdate(channel, JSON.parse(message));
+		// 		break;
+		// 	default:
+		// 		break;
+		// }
 	}
 
-	public onOrderBooks(
-		handleOrderBookUpdate: (channel: string, orderBookUpdate: IOrderBookUpdate) => any
-	) {
-		this.handleOrderBookUpdate = handleOrderBookUpdate;
-	}
+	// public onOrderBooks(
+	// 	handleOrderBookUpdate: (channel: string, orderBookUpdate: IOrderBookUpdate) => any
+	// ) {
+	// 	this.handleOrderBookUpdate = handleOrderBookUpdate;
+	// }
 
 	public publish(channel: string, msg: string) {
 		if (this.redisPub) return this.redisPub.publish(channel, msg);

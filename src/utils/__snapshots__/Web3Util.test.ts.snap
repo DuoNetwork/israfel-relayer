@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`createRawOrderWithoutSalt 1`] = `
+Object {
+  "exchangeAddress": "exchangeaddr",
+  "expirationTimeSeconds": "1234567890",
+  "feeRecipientAddress": "relayeraddr",
+  "makerAddress": "useraddr",
+  "makerAssetAmount": "123000000000000000000",
+  "makerAssetData": "0xf47261b00000000000000000000000000000000000000000000000000000d327e5a0bb51",
+  "makerFee": "0",
+  "salt": "0",
+  "senderAddress": "0x0000000000000000000000000000000000000000",
+  "takerAddress": "relayeraddr",
+  "takerAssetAmount": "456000000000000000000",
+  "takerAssetData": "0xf47261b0000000000000000000000000000000000000000000000000000112d20ac31b51",
+  "takerFee": "0",
+}
+`;

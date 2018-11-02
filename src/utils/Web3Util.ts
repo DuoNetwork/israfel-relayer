@@ -3,6 +3,7 @@ import {
 	BigNumber,
 	ContractWrappers,
 	generatePseudoRandomSalt,
+	Order,
 	orderHashUtils,
 	RPCSubprovider,
 	signatureUtils,
@@ -83,6 +84,33 @@ export default class Web3Util {
 		return this.web3Wrapper.getNetworkIdAsync();
 	}
 
+	public static createRawOrderWithoutSalt(
+		userAddr: string,
+		relayerAddr: string,
+		makerAssetAddr: string,
+		takerAssetAddr: string,
+		makerAmt: number,
+		takerAmt: number,
+		expInSeconds: number,
+		exchangeAddr: string
+	): Order {
+		return {
+			senderAddress: CST.DUMMY_ADDR,
+			makerAddress: userAddr.toLowerCase(),
+			takerAddress: relayerAddr.toLowerCase(),
+			makerFee: new BigNumber(0),
+			takerFee: new BigNumber(0),
+			makerAssetAmount: Web3Wrapper.toBaseUnitAmount(new BigNumber(makerAmt), 18),
+			takerAssetAmount: Web3Wrapper.toBaseUnitAmount(new BigNumber(takerAmt), 18),
+			makerAssetData: assetDataUtils.encodeERC20AssetData(makerAssetAddr),
+			takerAssetData: assetDataUtils.encodeERC20AssetData(takerAssetAddr),
+			salt: new BigNumber(0),
+			exchangeAddress: exchangeAddr.toLowerCase(),
+			feeRecipientAddress: relayerAddr.toLowerCase(),
+			expirationTimeSeconds: new BigNumber(expInSeconds)
+		};
+	}
+
 	public async createRawOrder(
 		userAddr: string,
 		relayerAddr: string,
@@ -93,21 +121,17 @@ export default class Web3Util {
 		expInSeconds: number
 	): Promise<IRawOrder> {
 		if (this.wallet !== Wallet.MetaMask) Promise.reject('cannot sign');
-		const order = {
-			senderAddress: CST.DUMMY_ADDR,
-			makerAddress: userAddr.toLowerCase(),
-			takerAddress: relayerAddr.toLowerCase(),
-			makerFee: new BigNumber(0),
-			takerFee: new BigNumber(0),
-			makerAssetAmount: Web3Wrapper.toBaseUnitAmount(new BigNumber(makerAmt), 18),
-			takerAssetAmount: Web3Wrapper.toBaseUnitAmount(new BigNumber(takerAmt), 18),
-			makerAssetData: assetDataUtils.encodeERC20AssetData(makerAssetAddr),
-			takerAssetData: assetDataUtils.encodeERC20AssetData(takerAssetAddr),
-			salt: generatePseudoRandomSalt(),
-			exchangeAddress: this.contractWrappers.exchange.getContractAddress(),
-			feeRecipientAddress: relayerAddr.toLowerCase(),
-			expirationTimeSeconds: new BigNumber(expInSeconds)
-		};
+		const order = Web3Util.createRawOrderWithoutSalt(
+			userAddr,
+			relayerAddr,
+			makerAssetAddr,
+			takerAssetAddr,
+			makerAmt,
+			takerAmt,
+			expInSeconds,
+			this.contractWrappers.exchange.getContractAddress()
+		);
+		order.salt = generatePseudoRandomSalt();
 
 		const orderHash = orderHashUtils.getOrderHashHex(order);
 		const signature = await signatureUtils.ecSignOrderHashAsync(
@@ -121,10 +145,6 @@ export default class Web3Util {
 			signedOrder: { ...order, signature }
 		};
 	}
-
-	public static getRandomFutureDateInSeconds = () => {
-		return new BigNumber(Date.now() + CST.TEN_MINUTES_MS).div(CST.ONE_SECOND_MS).ceil();
-	};
 
 	public static stringToBN = (value: string): BigNumber => {
 		return new BigNumber(value);

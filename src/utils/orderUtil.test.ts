@@ -41,9 +41,15 @@ const liveOrder = {
 	currentSequence: 2
 };
 
-test('constructUserOrder', () => {
-	expect(orderUtil.constructUserOrder(liveOrder, 'type', 'status', 'updatedBy'));
-});
+test('addUserOrderToDB', async () => {
+	dynamoUtil.addUserOrder = jest.fn(() => Promise.resolve());
+	expect(await orderUtil.addUserOrderToDB(liveOrder, 'type', 'status', 'updatedBy')).toMatchSnapshot();
+})
+
+test('addUserOrderToDB error', async () => {
+	dynamoUtil.addUserOrder = jest.fn(() => Promise.reject('addUserOrderToDB'));
+	expect(await orderUtil.addUserOrderToDB(liveOrder, 'type', 'status', 'updatedBy')).toMatchSnapshot();
+})
 
 const addOrderQueueItem = {
 	liveOrder: liveOrder,
@@ -89,33 +95,60 @@ test('getLiveOrderInPersistence only in db', async () => {
 	expect(await orderUtil.getLiveOrderInPersistence('pair', '0xOrderHash')).toMatchSnapshot();
 });
 
-// test('persistOrder failed', async () => {
-// 	redisUtil.multi = jest.fn(() => Promise.resolve());
-// 	redisUtil.exec = jest.fn(() => Promise.resolve());
-// 	redisUtil.hashSet = jest.fn(() => Promise.resolve());
-// 	redisUtil.push = jest.fn(() => {
-// 		throw new Error('test');
-// 	});
-
-// 	expect(await orderUtil.persistOrder({} as any)).toBeNull();
-// });
-
 test('persistOrder', async () => {
+	orderUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve({}));
 	redisUtil.multi = jest.fn(() => Promise.resolve());
 	redisUtil.exec = jest.fn(() => Promise.resolve());
 	redisUtil.hashSet = jest.fn(() => Promise.resolve());
 	redisUtil.push = jest.fn();
-	orderUtil.addUserOrderToDB = jest.fn(() => Promise.resolve());
+	orderUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
 
-	await orderUtil.persistOrder('method', {
+	expect(await orderUtil.persistOrder('method', {
 		liveOrder: {
 			orderHash: '0xOrderHash'
 		} as any,
 		signedOrder: 'may or may not exist' as any
-	});
+	})).not.toBeNull();
 	expect((redisUtil.hashSet as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((redisUtil.push as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderUtil.addUserOrderToDB as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('persistOrder add existing', async () => {
+	orderUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve({}));
+	redisUtil.multi = jest.fn(() => Promise.resolve());
+	redisUtil.exec = jest.fn(() => Promise.resolve());
+	redisUtil.hashSet = jest.fn(() => Promise.resolve());
+	redisUtil.push = jest.fn();
+	orderUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
+
+	expect(await orderUtil.persistOrder('add', {
+		liveOrder: {
+			orderHash: '0xOrderHash'
+		} as any,
+		signedOrder: 'signedOrder' as any
+	})).toBeNull();
+	expect(redisUtil.hashSet as jest.Mock).not.toBeCalled()
+	expect(redisUtil.push as jest.Mock).not.toBeCalled()
+	expect(orderUtil.addUserOrderToDB as jest.Mock).not.toBeCalled()
+});
+
+test('persistOrder not add not existing', async () => {
+	orderUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
+	redisUtil.multi = jest.fn(() => Promise.resolve());
+	redisUtil.exec = jest.fn(() => Promise.resolve());
+	redisUtil.hashSet = jest.fn(() => Promise.resolve());
+	redisUtil.push = jest.fn();
+	orderUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
+
+	expect(await orderUtil.persistOrder('method', {
+		liveOrder: {
+			orderHash: '0xOrderHash'
+		} as any
+	})).toBeNull();
+	expect(redisUtil.hashSet as jest.Mock).not.toBeCalled()
+	expect(redisUtil.push as jest.Mock).not.toBeCalled()
+	expect(orderUtil.addUserOrderToDB as jest.Mock).not.toBeCalled()
 });
 
 test('processOrderQueue empty queue', async () => {
@@ -242,7 +275,7 @@ test('processOrderQueue failed', async () => {
 	redisUtil.hashDelete = jest.fn(() => Promise.resolve());
 	redisUtil.putBack = jest.fn();
 	redisUtil.hashSet = jest.fn(() => Promise.resolve());
-	dynamoUtil.addRawOrder = jest.fn(() => Promise.reject());
+	dynamoUtil.addRawOrder = jest.fn(() => Promise.reject('processOrderQueue'));
 	dynamoUtil.addLiveOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.updateLiveOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.deleteRawOrderSignature = jest.fn(() => Promise.resolve());
