@@ -125,7 +125,6 @@ class RelayerServer extends SequenceClient {
 				timeout: setTimeout(() => this.handleTimeout(cacheKey), 30000)
 			};
 			util.logDebug('request added to cache');
-			this.requestSequence(req.method, req.pair, req.orderHash);
 			this.handleUserOrder(
 				ws,
 				await orderUtil.addUserOrderToDB(
@@ -136,6 +135,7 @@ class RelayerServer extends SequenceClient {
 				),
 				CST.DB_ADD
 			);
+			this.requestSequence(req.method, req.pair, req.orderHash);
 		} else {
 			util.logDebug('invalid orderHash, ignore');
 			this.handleInvalidOrderRequest(ws, req);
@@ -168,12 +168,12 @@ class RelayerServer extends SequenceClient {
 			timeout: setTimeout(() => this.handleTimeout(cacheKey), 30000)
 		};
 		util.logDebug('request added to cache');
-		this.requestSequence(req.method, req.pair, req.orderHash);
 		this.handleUserOrder(
 			ws,
 			await orderUtil.addUserOrderToDB(liveOrder, CST.DB_CANCEL, CST.DB_PENDING, CST.DB_USER),
 			CST.DB_CANCEL
 		);
+		this.requestSequence(req.method, req.pair, req.orderHash);
 	}
 
 	public handleOrderRequest(ws: WebSocket, req: IWsOrderRequest) {
