@@ -1,17 +1,12 @@
-import { OrderState, OrderStateValid } from '0x.js';
 import * as CST from '../common/constants';
 import {
 	ILiveOrder,
 	IOrderBookSnapshotWs,
 	IOrderBookUpdate,
-	IOrderQueueItem,
-	IOrderWatcherCacheItem,
 	IStringSignedOrder
 } from '../common/types';
-import dynamoUtil from './dynamoUtil';
 import orderBookUtil from './orderBookUtil';
 import redisUtil from './redisUtil';
-import util from './util';
 import Web3Util from './Web3Util';
 
 class RelayerUtil {
@@ -21,9 +16,9 @@ class RelayerUtil {
 		orderBookUtil.calculateOrderBookSnapshot();
 		// this.orderBook = orderBookUtil.orderBook;
 		redisUtil.patternSubscribe(`${CST.ORDERBOOK_UPDATE}|*`);
-		redisUtil.onOrderBooks((channel, orderBookUpdate) =>
-			this.handleOrderBookUpdate(channel, orderBookUpdate)
-		);
+		// redisUtil.onOrderBooks((channel, orderBookUpdate) =>
+		// this.handleOrderBookUpdate(channel, orderBookUpdate)
+		// );
 	}
 
 	public handleOrderBookUpdate = (channel: string, orderBookUpdate: IOrderBookUpdate) => {
@@ -102,51 +97,6 @@ class RelayerUtil {
 			CST.ORDERBOOK_UPDATE + '|' + liveOrder.pair,
 			JSON.stringify(orderBookUpdate)
 		);
-	}
-
-	public async handleUpdateOrder(
-		sequence: number,
-		pair: string,
-		orderUpdateItem: IOrderWatcherCacheItem
-	): Promise<boolean> {
-		const orderState: OrderState = orderUpdateItem.orderState;
-		const { orderHash, isValid } = orderState;
-
-		const liveOrders: ILiveOrder[] = await dynamoUtil.getLiveOrders(pair, orderHash);
-		if (liveOrders.length < 1) {
-			util.logDebug('order does not exist');
-			return false;
-		}
-
-		const liveOrder: ILiveOrder = liveOrders[0];
-
-		const orderBookUpdate: IOrderBookUpdate = {
-			pair: pair,
-			price: liveOrder.price,
-			amount: -liveOrder.amount,
-			sequence: sequence
-		};
-
-		if (isValid)
-			orderBookUpdate.amount =
-				Web3Util.fromWei(
-					(orderState as OrderStateValid).orderRelevantState
-						.remainingFillableMakerAssetAmount
-				) - liveOrder.amount;
-
-		liveOrder.amount = !isValid
-			? 0
-			: Web3Util.fromWei(
-					(orderState as OrderStateValid).orderRelevantState
-						.remainingFillableMakerAssetAmount
-			);
-		const updateQueueItem: IOrderQueueItem = {
-			liveOrder
-		};
-		redisUtil.push(`${CST.DB_ORDERS}|${CST.DB_UPDATE}`, JSON.stringify(updateQueueItem));
-		redisUtil.publish(CST.ORDERBOOK_UPDATE + '|' + pair, JSON.stringify(orderBookUpdate));
-
-		return true;
 	}
 }
 const relayerUtil = new RelayerUtil();

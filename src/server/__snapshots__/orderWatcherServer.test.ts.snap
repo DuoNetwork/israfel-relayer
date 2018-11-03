@@ -1,0 +1,60 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`coldStart add cached order to watcher 1`] = `
+Array [
+  Array [
+    "cache",
+  ],
+]
+`;
+
+exports[`coldStart add cached order to watcher 2`] = `
+Array [
+  Array [
+    "orderHash1",
+  ],
+]
+`;
+
+exports[`coldStart cancel not to be added 1`] = `
+Array [
+  Array [
+    "cache",
+  ],
+]
+`;
+
+exports[`coldStart existing live order not to be added 1`] = `
+Array [
+  Array [
+    "cache",
+  ],
+]
+`;
+
+exports[`coldStart new live order not to be added 1`] = `
+Array [
+  Array [
+    "cache",
+  ],
+]
+`;
+
+exports[`coldStart new live order not to be added 2`] = `
+Array [
+  Array [
+    "orderHash1",
+  ],
+  Array [
+    "orderHash2",
+  ],
+]
+`;
+
+exports[`coldStart old order not to be added 1`] = `
+Array [
+  Array [
+    "cache",
+  ],
+]
+`;

@@ -11,7 +11,8 @@ import {
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderUtil from '../utils/orderUtil';
-import relayerUtil from '../utils/relayerUtil';
+import redisUtil from '../utils/redisUtil';
+// import relayerUtil from '../utils/relayerUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
@@ -29,7 +30,7 @@ class OrderWatcherServer extends SequenceClient {
 	) {
 		util.logDebug(cacheKey);
 		const { sequence, pair } = res;
-		if (!(await relayerUtil.handleUpdateOrder(sequence, pair, cahceItem)))
+		if (!(await orderUtil.UpdateOrderInPersistance(sequence, pair, cahceItem)))
 			if (this.orderWatcher) {
 				await this.orderWatcher.removeOrder(cahceItem.orderState.orderHash);
 				this.watchingOrders = this.watchingOrders.filter(
@@ -56,6 +57,51 @@ class OrderWatcherServer extends SequenceClient {
 		};
 	}
 
+	public async addIntoWatcher(orderHash: string) {
+		try {
+			const rawOrder: IRawOrder | null = await dynamoUtil.getRawOrder(orderHash);
+			if (rawOrder && this.orderWatcher) {
+				await this.orderWatcher.addOrderAsync(
+					orderUtil.parseSignedOrder(rawOrder.signedOrder as IStringSignedOrder)
+				);
+
+				util.logDebug('succsfully added ' + orderHash);
+			}
+		} catch (e) {
+			util.logDebug('failed to add ' + orderHash + 'error is ' + e);
+			this.watchingOrders = this.watchingOrders.filter(hash => hash !== orderHash);
+		}
+	}
+
+	public async coldStart(pair: string) {
+		util.logInfo('start order watcher for ' + pair);
+		if (!this.orderWatcher) {
+			util.logDebug('orderWatcher is not initiated');
+			return;
+		}
+		const ordersInCache = await redisUtil.hashGetAll(CST.DB_CACHE);
+		if (Object.keys(ordersInCache).length) {
+			util.logInfo('orders length in DB is ' + Object.keys(ordersInCache).length);
+			for (const cacheKey of Object.keys(ordersInCache)) {
+				const [method, orderHash] = cacheKey.split('|');
+				if (method !== CST.DB_CANCEL && !this.watchingOrders.includes(orderHash)) {
+					this.watchingOrders.push(orderHash);
+					await this.addIntoWatcher(orderHash);
+				}
+			}
+		}
+
+		const liveOrders: ILiveOrder[] = await dynamoUtil.getLiveOrders(pair);
+		if (liveOrders.length) {
+			util.logInfo('orders length in DB is ' + liveOrders.length);
+			for (const order of liveOrders)
+				if (!this.watchingOrders.includes(order.orderHash)) {
+					this.watchingOrders.push(order.orderHash);
+					await this.addIntoWatcher(order.orderHash);
+				}
+		}
+	}
+
 	public async startOrderWatcher(web3Util: Web3Util, option: IOption) {
 		this.web3Util = web3Util;
 		await this.connectToSequenceServer(option.server);
@@ -65,43 +111,34 @@ class OrderWatcherServer extends SequenceClient {
 		);
 
 		const pair = option.token + '-' + CST.TOKEN_WETH;
+
+		await this.coldStart(pair);
+		setInterval(() => this.coldStart(pair), CST.ONE_MINUTE_MS * 60);
+
 		if (option.server) {
 			dynamoUtil.updateStatus(pair);
 			setInterval(() => dynamoUtil.updateStatus(pair, this.watchingOrders.length), 10000);
 		}
 
-		util.logInfo('start order watcher for ' + pair);
-		const liveOrders: ILiveOrder[] = await dynamoUtil.getLiveOrders(pair);
-		util.logInfo('length in DB is ' + liveOrders.length);
+		this.orderWatcher.subscribe(async (err, orderState) => {
+			if (err || !orderState) {
+				util.logError(err ? err : 'orderState empty');
+				return;
+			}
 
-		if (this.orderWatcher) {
-			for (const order of liveOrders)
-				try {
-					const rawOrder: IRawOrder | null = await dynamoUtil.getRawOrder(
-						order.orderHash
-					);
-					if (rawOrder && rawOrder.signedOrder.signature) {
-						await this.orderWatcher.addOrderAsync(
-							orderUtil.parseSignedOrder(rawOrder.signedOrder as IStringSignedOrder)
-						);
+			util.logInfo(orderState.orderHash + ' : order state update');
 
-						this.watchingOrders.push(order.orderHash);
-						util.logDebug('succsfully added ' + order.orderHash);
-					}
-				} catch (e) {
-					util.logError('failed to add ' + order.orderHash + 'error is ' + e);
-				}
-
-			this.orderWatcher.subscribe(async (err, orderState) => {
-				if (err) {
-					util.logError(err);
-					return;
-				}
-
-				util.logDebug(JSON.stringify(orderState));
-				if (orderState) this.handleOrderWatcherUpdate(pair, orderState);
-			});
-		}
+			while (!this.sequenceWsClient) {
+				util.logInfo('starting reconnect to sequence server');
+				await this.connectToSequenceServer(option.server);
+			}
+			this.requestCache[`${CST.DB_UPDATE}|${pair}|${orderState.orderHash}`] = {
+				pair,
+				method: CST.DB_UPDATE,
+				orderState
+			};
+			this.requestSequence(CST.DB_UPDATE, pair, orderState.orderHash);
+		});
 	}
 }
 
