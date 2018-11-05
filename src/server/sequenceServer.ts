@@ -26,7 +26,7 @@ class SequenceServer {
 		};
 		if (
 			req.channel !== CST.DB_SEQUENCE ||
-			![CST.DB_ADD, CST.DB_CANCEL, CST.DB_UPDATE].includes(req.method) ||
+			![CST.DB_ADD, CST.DB_TERMINATE, CST.DB_UPDATE].includes(req.method) ||
 			!CST.SUPPORTED_PAIRS.includes(req.pair) ||
 			!req.orderHash
 		) {
