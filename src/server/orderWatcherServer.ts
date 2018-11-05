@@ -147,6 +147,7 @@ class OrderWatcherServer extends SequenceClient {
 				this.addIntoWatch(orderUpdate.liveOrder.orderHash, orderUpdate.signedOrder);
 				break;
 			case CST.DB_TERMINATE:
+				this.removeFromWatch(orderUpdate.liveOrder.orderHash);
 				break;
 			default:
 				break;
