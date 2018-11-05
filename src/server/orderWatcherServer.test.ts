@@ -1,8 +1,54 @@
-test('dummy', () => expect(true).toBeTruthy());
 // import * as CST from '../common/constants';
-// import dynamoUtil from '../utils/dynamoUtil';
+import dynamoUtil from '../utils/dynamoUtil';
 // import redisUtil from '../utils/redisUtil';
-// import orderWatcherServer from './orderWatcherServer';
+import orderWatcherServer from './orderWatcherServer';
+
+const signedOrder = {
+	senderAddress: 'senderAddress',
+	makerAddress: 'makerAddress',
+	takerAddress: 'takerAddress',
+	makerFee: '0',
+	takerFee: '0',
+	makerAssetAmount: '123',
+	takerAssetAmount: '456',
+	makerAssetData: 'makerAssetData',
+	takerAssetData: 'takerAssetData',
+	salt: '789',
+	exchangeAddress: 'exchangeAddress',
+	feeRecipientAddress: 'feeRecipientAddress',
+	expirationTimeSeconds: '1234567890',
+	signature: 'signature'
+};
+
+test('addIntoWatch with signed order', async () => {
+	(orderWatcherServer.orderWatcher as any) = {
+		addOrderAsync: jest.fn(() => Promise.resolve())
+	};
+	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({}));
+
+	await orderWatcherServer.addIntoWatch('orderHash', signedOrder);
+	expect(dynamoUtil.getRawOrder as jest.Mock).not.toBeCalled();
+	expect(
+		((orderWatcherServer.orderWatcher as any).addOrderAsync as jest.Mock).mock.calls
+	).toMatchSnapshot();
+});
+
+test('addIntoWatch no signed order', async () => {
+	(orderWatcherServer.orderWatcher as any) = {
+		addOrderAsync: jest.fn(() => Promise.resolve())
+	};
+
+	dynamoUtil.getRawOrder = jest.fn(() =>
+		Promise.resolve({
+			orderHash: 'orderHash',
+			signedOrder: signedOrder
+		})
+	);
+	await orderWatcherServer.addIntoWatch('orderHash');
+	expect(
+		((orderWatcherServer.orderWatcher as any).addOrderAsync as jest.Mock).mock.calls
+	).toMatchSnapshot();
+});
 
 // test('coldStart return if no orderWatcher', async () => {
 // 	orderWatcherServer.orderWatcher = null;
