@@ -3,7 +3,7 @@ import SequenceClient from './SequenceClient';
 
 class BasicSequenceClient extends SequenceClient {
 	public sequenceMethods = ['method'];
-	public handleSequenceResponse = jest.fn();
+	public handleSequenceResponse = jest.fn(() => Promise.resolve());
 }
 
 const testClient = new BasicSequenceClient();
@@ -19,7 +19,7 @@ test('requestSequence', () => {
 
 test('handleMessage invalid response', async () => {
 	expect(
-		testClient.handleMessage(
+		await testClient.handleMessage(
 			JSON.stringify({
 				channel: 'channel',
 				status: CST.WS_OK
@@ -27,7 +27,7 @@ test('handleMessage invalid response', async () => {
 		)
 	).toBeFalsy();
 	expect(
-		testClient.handleMessage(
+		await testClient.handleMessage(
 			JSON.stringify({
 				channel: CST.DB_SEQUENCE,
 				status: 'status'
@@ -35,7 +35,7 @@ test('handleMessage invalid response', async () => {
 		)
 	).toBeFalsy();
 	expect(
-		testClient.handleMessage(
+		await testClient.handleMessage(
 			JSON.stringify({
 				channel: CST.DB_SEQUENCE,
 				status: 'status'
@@ -43,7 +43,7 @@ test('handleMessage invalid response', async () => {
 		)
 	).toBeFalsy();
 	expect(
-		testClient.handleMessage(
+		await testClient.handleMessage(
 			JSON.stringify({
 				channel: CST.DB_SEQUENCE,
 				status: CST.WS_OK
@@ -51,7 +51,7 @@ test('handleMessage invalid response', async () => {
 		)
 	).toBeFalsy();
 	expect(
-		testClient.handleMessage(
+		await testClient.handleMessage(
 			JSON.stringify({
 				channel: CST.DB_SEQUENCE,
 				status: CST.WS_OK,
@@ -60,7 +60,7 @@ test('handleMessage invalid response', async () => {
 		)
 	).toBeFalsy();
 	expect(
-		testClient.handleMessage(
+		await testClient.handleMessage(
 			JSON.stringify({
 				channel: CST.DB_SEQUENCE,
 				status: CST.WS_OK,
@@ -69,7 +69,7 @@ test('handleMessage invalid response', async () => {
 		)
 	).toBeFalsy();
 	expect(
-		testClient.handleMessage(
+		await testClient.handleMessage(
 			JSON.stringify({
 				channel: CST.DB_SEQUENCE,
 				status: CST.WS_OK,
@@ -79,7 +79,7 @@ test('handleMessage invalid response', async () => {
 		)
 	).toBeFalsy();
 	expect(
-		testClient.handleMessage(
+		await testClient.handleMessage(
 			JSON.stringify({
 				channel: CST.DB_SEQUENCE,
 				status: CST.WS_OK,
@@ -90,7 +90,7 @@ test('handleMessage invalid response', async () => {
 		)
 	).toBeFalsy();
 	expect(
-		testClient.handleMessage(
+		await testClient.handleMessage(
 			JSON.stringify({
 				channel: CST.DB_SEQUENCE,
 				status: CST.WS_OK,
@@ -108,7 +108,7 @@ test('handleMessage invalid response', async () => {
 			}
 		}
 	} as any;
-	testClient.handleMessage(
+	await testClient.handleMessage(
 		JSON.stringify({
 			channel: CST.DB_SEQUENCE,
 			status: CST.WS_OK,
@@ -120,4 +120,26 @@ test('handleMessage invalid response', async () => {
 	);
 	expect(testClient.requestCache).toEqual({});
 	expect(testClient.handleSequenceResponse.mock.calls).toMatchSnapshot();
+});
+
+test('handleSequenceResponse failed', async () => {
+	testClient.handleSequenceResponse = jest.fn(() => Promise.reject());
+	testClient.requestCache = {
+		'method|pair|0xOrderHash': {
+			liveOrder: {
+				orderHash: '0xOrderHash'
+			}
+		}
+	} as any;
+	await testClient.handleMessage(
+		JSON.stringify({
+			channel: CST.DB_SEQUENCE,
+			status: CST.WS_OK,
+			sequence: 1,
+			method: 'method',
+			pair: 'pair',
+			orderHash: '0xOrderHash'
+		})
+	);
+	expect(testClient.requestCache).toMatchSnapshot();
 });

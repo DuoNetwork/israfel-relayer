@@ -11,14 +11,26 @@ Array [
       "sequence": 1,
       "status": "ok",
     },
-    "method|pair|0xOrderHash",
     Object {
       "liveOrder": Object {
+        "currentSequence": 1,
         "orderHash": "0xOrderHash",
       },
     },
   ],
 ]
+`;
+
+exports[`handleSequenceResponse failed 1`] = `
+Object {
+  "method|pair|0xOrderHash": Object {
+    "liveOrder": Object {
+      "currentSequence": 1,
+      "orderHash": "0xOrderHash",
+    },
+    "timeout": 7,
+  },
+}
 `;
 
 exports[`requestSequence 1`] = `

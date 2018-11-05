@@ -30,7 +30,7 @@ Object {
       "orderHash": "0xOrderHash",
       "pair": "ZRX-WETH",
     },
-    "timeout": 25,
+    "timeout": 19,
     "ws": Object {},
   },
 }
@@ -200,7 +200,7 @@ Object {
       "orderHash": "0xOrderHash",
       "pair": "ZRX-WETH",
     },
-    "timeout": 34,
+    "timeout": 28,
     "ws": Object {},
   },
 }
@@ -384,32 +384,6 @@ Array [
 ]
 `;
 
-exports[`handleSequenceResponse add failed 1`] = `
-Object {
-  "add|pair|orderHash": Object {
-    "liveOrder": Object {
-      "currentSequence": 1,
-      "initialSequence": 1,
-      "orderHash": "orderHash",
-    },
-    "request": Object {
-      "order": "signedOrder",
-    },
-    "timeout": 11,
-  },
-}
-`;
-
-exports[`handleSequenceResponse add failed 2`] = `
-Array [
-  Array [
-    "add",
-    "pair",
-    "orderHash",
-  ],
-]
-`;
-
 exports[`handleSequenceResponse add invalid 1`] = `
 Array [
   Array [
@@ -429,39 +403,6 @@ Array [
       "userOrder": "test",
     },
     "cancel",
-  ],
-]
-`;
-
-exports[`handleSequenceResponse cancel failed 1`] = `
-Object {
-  "add|pair|orderHash": Object {
-    "liveOrder": Object {
-      "currentSequence": 1,
-      "initialSequence": 1,
-      "orderHash": "orderHash",
-    },
-    "request": Object {
-      "order": "signedOrder",
-    },
-    "timeout": 11,
-  },
-  "cancel|pair|orderHash": Object {
-    "liveOrder": Object {
-      "currentSequence": 2,
-      "orderHash": "orderHash",
-    },
-    "timeout": 16,
-  },
-}
-`;
-
-exports[`handleSequenceResponse cancel failed 2`] = `
-Array [
-  Array [
-    "cancel",
-    "pair",
-    "orderHash",
   ],
 ]
 `;

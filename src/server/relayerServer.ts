@@ -19,14 +19,12 @@ import {
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderUtil from '../utils/orderUtil';
-// import relayerUtil from '../utils/relayerUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
 class RelayerServer extends SequenceClient {
 	public sequenceMethods = [CST.DB_ADD, CST.DB_CANCEL];
 	public web3Util: Web3Util | null = null;
-	// private live: boolean = false;
 	public relayerWsServer: WebSocket.Server | null = null;
 	public requestCache: { [methodPairOrderHash: string]: IRelayerCacheItem } = {};
 
@@ -37,11 +35,8 @@ class RelayerServer extends SequenceClient {
 
 	public async handleSequenceResponse(
 		res: IWsOrderSequenceResponse,
-		cacheKey: string,
 		cacheItem: IRelayerCacheItem
 	) {
-		clearTimeout(cacheItem.timeout);
-		cacheItem.liveOrder.currentSequence = res.sequence;
 		const orderQueueItem: IOrderQueueItem = {
 			liveOrder: cacheItem.liveOrder
 		};
@@ -52,21 +47,9 @@ class RelayerServer extends SequenceClient {
 				.order as IStringSignedOrder;
 		}
 
-		try {
-			const userOrder = await orderUtil.persistOrder(res.method, orderQueueItem);
-			if (userOrder)
-				try {
-					this.handleUserOrder(cacheItem.ws, userOrder, res.method);
-				} catch (error) {
-					util.logError(error);
-				}
-			else this.handleInvalidOrderRequest(cacheItem.ws, cacheItem.request);
-		} catch (error) {
-			// failed to persist, add back to cache for next retry
-			cacheItem.timeout = setTimeout(() => this.handleTimeout(cacheKey), 30000);
-			this.requestCache[cacheKey] = cacheItem;
-			this.requestSequence(res.method, res.pair, cacheItem.liveOrder.orderHash);
-		}
+		const userOrder = await orderUtil.persistOrder(res.method, orderQueueItem);
+		if (userOrder) this.handleUserOrder(cacheItem.ws, userOrder, res.method);
+		else this.handleInvalidOrderRequest(cacheItem.ws, cacheItem.request);
 	}
 
 	public handleInvalidOrderRequest(ws: WebSocket, req: IWsOrderRequest) {

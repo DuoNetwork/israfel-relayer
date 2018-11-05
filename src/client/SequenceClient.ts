@@ -14,7 +14,6 @@ export default abstract class SequenceClient {
 	public sequenceWsClient: WebSocket | null = null;
 	public abstract handleSequenceResponse(
 		res: IWsOrderSequenceResponse,
-		cacheKey: string,
 		cacheItem: ISequenceCacheItem
 	): any;
 	public sequenceMethods: string[] = [];
@@ -24,7 +23,12 @@ export default abstract class SequenceClient {
 		return `${re.method}|${re.pair}|${re.orderHash}`;
 	}
 
-	public handleMessage(m: string) {
+	public handleTimeout(cacheKey: string) {
+		util.logError(cacheKey);
+		return;
+	}
+
+	public async handleMessage(m: string) {
 		util.logDebug('received: ' + m);
 		const res: IWsResponse = JSON.parse(m);
 		if (res.channel !== CST.DB_SEQUENCE || res.status !== CST.WS_OK) return false;
@@ -34,14 +38,28 @@ export default abstract class SequenceClient {
 		if (!this.sequenceMethods.includes(method)) return false;
 		if (!sequence || !pair || !orderHash) return false;
 
-		const key = this.getCacheKey(osRes);
-		const cacheItem = this.requestCache[key];
+		const cacheKey = this.getCacheKey(osRes);
+		util.logDebug(cacheKey);
+		const cacheItem = this.requestCache[cacheKey];
 		if (!cacheItem) {
 			util.logDebug('request id does not exist');
 			return false;
 		}
-		delete this.requestCache[key];
-		return this.handleSequenceResponse(osRes, key, cacheItem);
+
+		delete this.requestCache[cacheKey];
+		clearTimeout(cacheItem.timeout);
+		cacheItem.liveOrder.currentSequence = sequence;
+
+		try {
+			await this.handleSequenceResponse(osRes, cacheItem);
+			return true;
+		} catch (error) {
+			// failed to persist, add back to cache for next retry
+			cacheItem.timeout = setTimeout(() => this.handleTimeout(cacheKey), 30000);
+			this.requestCache[cacheKey] = cacheItem;
+			this.requestSequence(res.method, res.pair, cacheItem.liveOrder.orderHash);
+			return false;
+		}
 	}
 
 	private reconnect(server: boolean) {

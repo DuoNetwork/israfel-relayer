@@ -1,4 +1,4 @@
-import { OrderState, SignedOrder } from '0x.js';
+import { SignedOrder } from '0x.js';
 import WebSocket from 'ws';
 
 export interface ILiveOrder {

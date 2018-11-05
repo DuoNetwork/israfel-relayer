@@ -29,35 +29,17 @@ class OrderWatcherServer extends SequenceClient {
 	public web3Util: Web3Util | null = null;
 	public watchingOrders: string[] = [];
 
-	public handleTimeout(cacheKey: string) {
-		util.logError(cacheKey);
-		return;
-	}
-
 	public async handleSequenceResponse(
 		res: IWsOrderSequenceResponse,
-		cacheKey: string,
 		cacheItem: ISequenceCacheItem
 	) {
-		util.logDebug(cacheKey);
-		clearTimeout(cacheItem.timeout);
-		cacheItem.liveOrder.currentSequence = res.sequence;
 		const orderQueueItem: IOrderQueueItem = {
 			liveOrder: cacheItem.liveOrder
 		};
-
-		try {
-			const userOrder = await orderUtil.persistOrder(res.method, orderQueueItem);
-			if (!userOrder) {
-				util.logInfo(`invalid orderHash ${res.orderHash}, ignore`);
-				this.removeFromWatch(res.orderHash);
-				return;
-			}
-		} catch (error) {
-			// failed to persist, add back to cache for next retry
-			cacheItem.timeout = setTimeout(() => this.handleTimeout(cacheKey), 30000);
-			this.requestCache[cacheKey] = cacheItem;
-			this.requestSequence(res.method, res.pair, cacheItem.liveOrder.orderHash);
+		const userOrder = await orderUtil.persistOrder(res.method, orderQueueItem);
+		if (!userOrder) {
+			util.logInfo(`invalid orderHash ${res.orderHash}, ignore`);
+			this.removeFromWatch(res.orderHash);
 		}
 	}
 
