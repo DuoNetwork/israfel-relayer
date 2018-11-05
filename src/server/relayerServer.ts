@@ -23,7 +23,7 @@ import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
 class RelayerServer extends SequenceClient {
-	public sequenceMethods = [CST.DB_ADD, CST.DB_CANCEL];
+	public sequenceMethods = [CST.DB_ADD, CST.DB_TERMINATE];
 	public web3Util: Web3Util | null = null;
 	public relayerWsServer: WebSocket.Server | null = null;
 	public requestCache: { [methodPairOrderHash: string]: IRelayerCacheItem } = {};
@@ -125,8 +125,8 @@ class RelayerServer extends SequenceClient {
 		}
 	}
 
-	public async handleCancelOrderRequest(ws: WebSocket, req: IWsOrderRequest) {
-		util.logDebug(`cancel order ${req.orderHash}`);
+	public async handleTerminateOrderRequest(ws: WebSocket, req: IWsOrderRequest) {
+		util.logDebug(`terminate order ${req.orderHash}`);
 		const { orderHash, pair } = req;
 		const cacheKey = this.getCacheKey(req);
 		if (this.requestCache[cacheKey]) {
@@ -146,21 +146,21 @@ class RelayerServer extends SequenceClient {
 			ws: ws,
 			request: req,
 			pair: pair,
-			method: CST.DB_CANCEL,
+			method: CST.DB_TERMINATE,
 			liveOrder: liveOrder,
 			timeout: setTimeout(() => this.handleTimeout(cacheKey), 30000)
 		};
 		util.logDebug('request added to cache');
 		this.handleUserOrder(
 			ws,
-			await orderUtil.addUserOrderToDB(liveOrder, CST.DB_CANCEL, CST.DB_PENDING, CST.DB_USER),
-			CST.DB_CANCEL
+			await orderUtil.addUserOrderToDB(liveOrder, CST.DB_TERMINATE, CST.DB_PENDING, CST.DB_USER),
+			CST.DB_TERMINATE
 		);
 		this.requestSequence(req.method, req.pair, req.orderHash);
 	}
 
 	public handleOrderRequest(ws: WebSocket, req: IWsOrderRequest) {
-		if (![CST.DB_ADD, CST.DB_CANCEL].includes(req.method) || !req.orderHash) {
+		if (![CST.DB_ADD, CST.DB_TERMINATE].includes(req.method) || !req.orderHash) {
 			const orderResponse: IWsOrderResponse = {
 				status: CST.WS_INVALID_REQ,
 				channel: req.channel,
@@ -187,8 +187,8 @@ class RelayerServer extends SequenceClient {
 
 		if (req.method === CST.DB_ADD)
 			return this.handleAddOrderRequest(ws, req as IWsAddOrderRequest);
-		// if (req.method === CST.DB_CANCEL)
-		else return this.handleCancelOrderRequest(ws, req as IWsOrderRequest);
+		// if (req.method === CST.DB_TERMINATE)
+		else return this.handleTerminateOrderRequest(ws, req as IWsOrderRequest);
 	}
 
 	public handleRelayerMessage(ws: WebSocket, m: string) {

@@ -31,25 +31,11 @@ class OrderUtil {
 	}
 
 	public async getLiveOrderInPersistence(pair: string, orderHash: string) {
-		const cancelQueueString = await redisUtil.hashGet(
+		const terminateQueueString = await redisUtil.hashGet(
 			`${CST.DB_ORDERS}|${CST.DB_CACHE}`,
-			`${CST.DB_CANCEL}|${orderHash}`
+			`${CST.DB_TERMINATE}|${orderHash}`
 		);
-		if (cancelQueueString) return null;
-
-		const expQueueString = await redisUtil.hashGet(
-			`${CST.DB_ORDERS}|${CST.DB_CACHE}`,
-			`${CST.DB_EXPIRE}|${orderHash}`
-		);
-
-		if (expQueueString) return null;
-
-		const fillQueueString = await redisUtil.hashGet(
-			`${CST.DB_ORDERS}|${CST.DB_CACHE}`,
-			`${CST.DB_FILL}|${orderHash}`
-		);
-
-		if (fillQueueString) return null;
+		if (terminateQueueString) return null;
 
 		const updateQueueString = await redisUtil.hashGet(
 			`${CST.DB_ORDERS}|${CST.DB_CACHE}`,
@@ -172,7 +158,7 @@ class OrderUtil {
 				util.logDebug(`added raw order`);
 				await dynamoUtil.addLiveOrder(orderQueueItem.liveOrder);
 				util.logDebug(`added live order`);
-			} else if (method === CST.DB_CANCEL) {
+			} else if (method === CST.DB_TERMINATE) {
 				await dynamoUtil.deleteRawOrderSignature(orderHash);
 				util.logDebug(`deleted raw order`);
 				await dynamoUtil.deleteLiveOrder(orderQueueItem.liveOrder);

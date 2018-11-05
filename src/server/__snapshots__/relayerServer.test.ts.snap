@@ -186,103 +186,6 @@ Array [
 ]
 `;
 
-exports[`handleCancelOrderRequest 1`] = `
-Object {
-  "cancel|ZRX-WETH|0xOrderHash": Object {
-    "liveOrder": Object {
-      "test": "liveOrder",
-    },
-    "method": "cancel",
-    "pair": "ZRX-WETH",
-    "request": Object {
-      "channel": "orders",
-      "method": "cancel",
-      "orderHash": "0xOrderHash",
-      "pair": "ZRX-WETH",
-    },
-    "timeout": 28,
-    "ws": Object {},
-  },
-}
-`;
-
-exports[`handleCancelOrderRequest 2`] = `
-Array [
-  Array [
-    "cancel",
-    "ZRX-WETH",
-    "0xOrderHash",
-  ],
-]
-`;
-
-exports[`handleCancelOrderRequest 3`] = `
-Array [
-  Array [
-    Object {},
-    Object {
-      "userOrder": "userOrder",
-    },
-    "cancel",
-  ],
-]
-`;
-
-exports[`handleCancelOrderRequest 4`] = `
-Array [
-  Array [
-    Object {
-      "test": "liveOrder",
-    },
-    "cancel",
-    "pending",
-    "user",
-  ],
-]
-`;
-
-exports[`handleCancelOrderRequest already cancelled 1`] = `
-Array [
-  Array [
-    Object {},
-    Object {
-      "channel": "orders",
-      "method": "cancel",
-      "orderHash": "0xOrderHash",
-      "pair": "ZRX-WETH",
-    },
-  ],
-]
-`;
-
-exports[`handleCancelOrderRequest exist in request cache 1`] = `
-Array [
-  Array [
-    Object {},
-    Object {
-      "channel": "orders",
-      "method": "cancel",
-      "orderHash": "0xOrderHash",
-      "pair": "ZRX-WETH",
-    },
-  ],
-]
-`;
-
-exports[`handleCancelOrderRequest invalid order 1`] = `
-Array [
-  Array [
-    Object {},
-    Object {
-      "channel": "orders",
-      "method": "cancel",
-      "orderHash": "0xOrderHash",
-      "pair": "ZRX-WETH",
-    },
-  ],
-]
-`;
-
 exports[`handleInvalidOrderRequest 1`] = `
 Array [
   Array [
@@ -298,20 +201,6 @@ Array [
     Object {
       "channel": "orders",
       "method": "add",
-      "orderHash": "0xOrderHash",
-      "pair": "ZRX-WETH",
-    },
-  ],
-]
-`;
-
-exports[`handleOrderRequest cancel 1`] = `
-Array [
-  Array [
-    Object {},
-    Object {
-      "channel": "orders",
-      "method": "cancel",
       "orderHash": "0xOrderHash",
       "pair": "ZRX-WETH",
     },
@@ -338,6 +227,20 @@ Array [
   ],
   Array [
     "{\\"status\\":\\"service not available\\",\\"channel\\":\\"orders\\",\\"method\\":\\"add\\",\\"orderHash\\":\\"0xOrderHash\\",\\"pair\\":\\"ZRX-WETH\\"}",
+  ],
+]
+`;
+
+exports[`handleOrderRequest terminate 1`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "channel": "orders",
+      "method": "terminate",
+      "orderHash": "0xOrderHash",
+      "pair": "ZRX-WETH",
+    },
   ],
 ]
 `;
@@ -395,14 +298,111 @@ Array [
 ]
 `;
 
-exports[`handleSequenceResponse cancel 1`] = `
+exports[`handleSequenceResponse terminate 1`] = `
 Array [
   Array [
     undefined,
     Object {
       "userOrder": "test",
     },
-    "cancel",
+    "terminate",
+  ],
+]
+`;
+
+exports[`handleTerminateOrderRequest 1`] = `
+Object {
+  "terminate|ZRX-WETH|0xOrderHash": Object {
+    "liveOrder": Object {
+      "test": "liveOrder",
+    },
+    "method": "terminate",
+    "pair": "ZRX-WETH",
+    "request": Object {
+      "channel": "orders",
+      "method": "terminate",
+      "orderHash": "0xOrderHash",
+      "pair": "ZRX-WETH",
+    },
+    "timeout": 28,
+    "ws": Object {},
+  },
+}
+`;
+
+exports[`handleTerminateOrderRequest 2`] = `
+Array [
+  Array [
+    "terminate",
+    "ZRX-WETH",
+    "0xOrderHash",
+  ],
+]
+`;
+
+exports[`handleTerminateOrderRequest 3`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "userOrder": "userOrder",
+    },
+    "terminate",
+  ],
+]
+`;
+
+exports[`handleTerminateOrderRequest 4`] = `
+Array [
+  Array [
+    Object {
+      "test": "liveOrder",
+    },
+    "terminate",
+    "pending",
+    "user",
+  ],
+]
+`;
+
+exports[`handleTerminateOrderRequest already terminated 1`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "channel": "orders",
+      "method": "terminate",
+      "orderHash": "0xOrderHash",
+      "pair": "ZRX-WETH",
+    },
+  ],
+]
+`;
+
+exports[`handleTerminateOrderRequest exist in request cache 1`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "channel": "orders",
+      "method": "terminate",
+      "orderHash": "0xOrderHash",
+      "pair": "ZRX-WETH",
+    },
+  ],
+]
+`;
+
+exports[`handleTerminateOrderRequest invalid order 1`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "channel": "orders",
+      "method": "terminate",
+      "orderHash": "0xOrderHash",
+      "pair": "ZRX-WETH",
+    },
   ],
 ]
 `;

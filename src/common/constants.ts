@@ -32,15 +32,12 @@ export const DB_CREATED_AT = 'createdAt';
 export const DB_UPDATED_AT = 'updatedAt';
 export const DB_UPDATED_BY = 'updatedBy';
 
-// initial action
 export const DB_ADD = 'add';
-// update actions
 export const DB_UPDATE = 'update';
-export const DB_PFILL = 'partialFill';
-// terminal actions
-export const DB_CANCEL = 'cancel';
-export const DB_FILL = 'fill';
-export const DB_EXPIRE = 'expire';
+export const DB_TERMINATE = 'terminate';
+// export const DB_CANCEL = 'cancel';
+// export const DB_FILL = 'fill';
+// export const DB_EXPIRE = 'expire';
 
 export const DB_PROCESS = 'process';
 export const DB_HOSTNAME = 'hostname';

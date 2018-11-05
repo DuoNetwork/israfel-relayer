@@ -71,7 +71,7 @@ const addOrderQueueItem = {
 	}
 };
 
-test('getLiveOrderInPersistence in cancel queue', async () => {
+test('getLiveOrderInPersistence in terminate queue', async () => {
 	redisUtil.hashGet = jest.fn(() => Promise.resolve('0xOrderHash'));
 	expect(await orderUtil.getLiveOrderInPersistence('pair', '0xOrderHash')).toBeNull();
 });
@@ -240,8 +240,8 @@ test('processOrderQueue update', async () => {
 	expect(isSuccess).toEqual(true);
 });
 
-test('processOrderQueue cancel', async () => {
-	redisUtil.pop = jest.fn(() => Promise.resolve('cancel|0xOrderHash'));
+test('processOrderQueue terminate', async () => {
+	redisUtil.pop = jest.fn(() => Promise.resolve('terminate|0xOrderHash'));
 	redisUtil.hashGet = jest.fn(() =>
 		Promise.resolve(
 			JSON.stringify({

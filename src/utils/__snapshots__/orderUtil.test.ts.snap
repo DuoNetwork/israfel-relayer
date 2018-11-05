@@ -189,60 +189,6 @@ Array [
 ]
 `;
 
-exports[`processOrderQueue cancel 1`] = `
-Array [
-  Array [
-    "0xOrderHash",
-  ],
-]
-`;
-
-exports[`processOrderQueue cancel 2`] = `
-Array [
-  Array [
-    Object {
-      "account": "0xAccount",
-      "amount": 456,
-      "currentSequence": 2,
-      "initialSequence": 1,
-      "orderHash": "0xOrderHash",
-      "pair": "pair",
-      "price": 0.123456789,
-      "side": "bid",
-    },
-  ],
-]
-`;
-
-exports[`processOrderQueue cancel 3`] = `
-Array [
-  Array [
-    Object {
-      "account": "0xAccount",
-      "amount": 456,
-      "currentSequence": 2,
-      "initialSequence": 1,
-      "orderHash": "0xOrderHash",
-      "pair": "pair",
-      "price": 0.123456789,
-      "side": "bid",
-    },
-    "cancel",
-    "confirmed",
-    "orderProcessor",
-  ],
-]
-`;
-
-exports[`processOrderQueue cancel 4`] = `
-Array [
-  Array [
-    "orders|cache",
-    "cancel|0xOrderHash",
-  ],
-]
-`;
-
 exports[`processOrderQueue empty queue 1`] = `
 Array [
   Array [
@@ -256,6 +202,60 @@ Array [
   Array [
     "orders|cache",
     "method|0xOrderHash",
+  ],
+]
+`;
+
+exports[`processOrderQueue terminate 1`] = `
+Array [
+  Array [
+    "0xOrderHash",
+  ],
+]
+`;
+
+exports[`processOrderQueue terminate 2`] = `
+Array [
+  Array [
+    Object {
+      "account": "0xAccount",
+      "amount": 456,
+      "currentSequence": 2,
+      "initialSequence": 1,
+      "orderHash": "0xOrderHash",
+      "pair": "pair",
+      "price": 0.123456789,
+      "side": "bid",
+    },
+  ],
+]
+`;
+
+exports[`processOrderQueue terminate 3`] = `
+Array [
+  Array [
+    Object {
+      "account": "0xAccount",
+      "amount": 456,
+      "currentSequence": 2,
+      "initialSequence": 1,
+      "orderHash": "0xOrderHash",
+      "pair": "pair",
+      "price": 0.123456789,
+      "side": "bid",
+    },
+    "terminate",
+    "confirmed",
+    "orderProcessor",
+  ],
+]
+`;
+
+exports[`processOrderQueue terminate 4`] = `
+Array [
+  Array [
+    "orders|cache",
+    "terminate|0xOrderHash",
   ],
 ]
 `;

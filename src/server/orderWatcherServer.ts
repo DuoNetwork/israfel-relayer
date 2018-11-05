@@ -24,7 +24,7 @@ import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
 class OrderWatcherServer extends SequenceClient {
-	public sequenceMethods = [CST.DB_UPDATE, CST.DB_EXPIRE];
+	public sequenceMethods = [CST.DB_UPDATE, CST.DB_TERMINATE];
 	public orderWatcher: OrderWatcher | null = null;
 	public web3Util: Web3Util | null = null;
 	public watchingOrders: string[] = [];
@@ -67,13 +67,12 @@ class OrderWatcherServer extends SequenceClient {
 			switch (error) {
 				case ExchangeContractErrs.OrderCancelExpired:
 				case ExchangeContractErrs.OrderFillExpired:
-					method = CST.DB_EXPIRE;
-					break;
 				case ExchangeContractErrs.OrderCancelled:
-					method = CST.DB_CANCEL;
+					method = CST.DB_TERMINATE;
 					break;
 				case ExchangeContractErrs.OrderRemainingFillAmountZero:
-					method = CST.DB_FILL;
+					liveOrder.amount = 0;
+					method = CST.DB_TERMINATE;
 					break;
 				default:
 					break;
@@ -137,7 +136,7 @@ class OrderWatcherServer extends SequenceClient {
 			util.logInfo('orders length in DB is ' + Object.keys(ordersInCache).length);
 			for (const cacheKey of Object.keys(ordersInCache)) {
 				const [method, orderHash] = cacheKey.split('|');
-				if (method !== CST.DB_CANCEL && !this.watchingOrders.includes(orderHash)) {
+				if (method !== CST.DB_TERMINATE && !this.watchingOrders.includes(orderHash)) {
 					this.watchingOrders.push(orderHash);
 					await this.addIntoWatch(orderHash);
 				}
@@ -162,7 +161,7 @@ class OrderWatcherServer extends SequenceClient {
 			case CST.DB_ADD:
 				this.addIntoWatch(orderUpdate.liveOrder.orderHash, orderUpdate.signedOrder);
 				break;
-			case CST.DB_CANCEL:
+			case CST.DB_TERMINATE:
 				break;
 			default:
 				break;
