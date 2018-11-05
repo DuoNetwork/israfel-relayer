@@ -4,6 +4,7 @@ import * as CST from '../common/constants';
 import {
 	ILiveOrder,
 	IOption,
+	IOrderUpdate,
 	IOrderWatcherCacheItem,
 	IRawOrder,
 	IStringSignedOrder,
@@ -57,19 +58,40 @@ class OrderWatcherServer extends SequenceClient {
 		};
 	}
 
-	public async addIntoWatcher(orderHash: string) {
+	public async addIntoWatching(orderHash: string, signedOrder?: IStringSignedOrder) {
 		try {
-			const rawOrder: IRawOrder | null = await dynamoUtil.getRawOrder(orderHash);
-			if (rawOrder && this.orderWatcher) {
-				await this.orderWatcher.addOrderAsync(
-					orderUtil.parseSignedOrder(rawOrder.signedOrder as IStringSignedOrder)
-				);
+			if (!signedOrder) {
+				const rawOrder: IRawOrder | null = await dynamoUtil.getRawOrder(orderHash);
+				if (!rawOrder) {
+					util.logDebug('no signed order specified, failed to add');
+					return;
+				}
+				signedOrder = rawOrder.signedOrder as IStringSignedOrder;
+			}
+			if (this.orderWatcher) {
+				await this.orderWatcher.addOrderAsync(orderUtil.parseSignedOrder(signedOrder));
 
 				util.logDebug('succsfully added ' + orderHash);
 			}
 		} catch (e) {
 			util.logDebug('failed to add ' + orderHash + 'error is ' + e);
 			this.watchingOrders = this.watchingOrders.filter(hash => hash !== orderHash);
+		}
+	}
+
+	public async removeFromWatching(orderHash: string) {
+		if (!this.watchingOrders.includes(orderHash)) {
+			util.logDebug('order is not currently watched');
+			return;
+		}
+		try {
+			if (this.orderWatcher) {
+				await this.orderWatcher.removeOrder(orderHash);
+				util.logDebug('succsfully removed ' + orderHash);
+				this.watchingOrders = this.watchingOrders.filter(hash => hash !== orderHash);
+			}
+		} catch (e) {
+			util.logDebug('failed to remove ' + orderHash + 'error is ' + e);
 		}
 	}
 
@@ -86,7 +108,7 @@ class OrderWatcherServer extends SequenceClient {
 				const [method, orderHash] = cacheKey.split('|');
 				if (method !== CST.DB_CANCEL && !this.watchingOrders.includes(orderHash)) {
 					this.watchingOrders.push(orderHash);
-					await this.addIntoWatcher(orderHash);
+					await this.addIntoWatching(orderHash);
 				}
 			}
 		}
@@ -97,10 +119,24 @@ class OrderWatcherServer extends SequenceClient {
 			for (const order of liveOrders)
 				if (!this.watchingOrders.includes(order.orderHash)) {
 					this.watchingOrders.push(order.orderHash);
-					await this.addIntoWatcher(order.orderHash);
+					await this.addIntoWatching(order.orderHash);
 				}
 		}
 	}
+
+	public handleOrderUpdate = (channel: string, orderUpdate: IOrderUpdate) => {
+		util.logInfo('receive update from channel: ' + channel);
+		const method = orderUpdate.method;
+		switch (method) {
+			case CST.DB_ADD:
+				this.addIntoWatching(orderUpdate.liveOrder.orderHash, orderUpdate.signedOrder);
+				break;
+			case CST.DB_CANCEL:
+				break;
+			default:
+				break;
+		}
+	};
 
 	public async startOrderWatcher(web3Util: Web3Util, option: IOption) {
 		this.web3Util = web3Util;
@@ -109,8 +145,11 @@ class OrderWatcherServer extends SequenceClient {
 			this.web3Util.web3Wrapper.getProvider(),
 			option.live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN
 		);
-
 		const pair = option.token + '-' + CST.TOKEN_WETH;
+
+		redisUtil.onOrderUpdate((channel, orderUpdate) =>
+			this.handleOrderUpdate(channel, orderUpdate)
+		);
 
 		await this.coldStart(pair);
 		setInterval(() => this.coldStart(pair), CST.ONE_MINUTE_MS * 60);

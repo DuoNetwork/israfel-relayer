@@ -1,14 +1,15 @@
 import Redis from 'ioredis';
-// import * as CST from '../common/constants';
-// import { IOrderBookUpdate } from '../common/types';
+import * as CST from '../common/constants';
+import { IOrderBookUpdate, IOrderUpdate } from '../common/types';
 import util from './util';
 
 export class RedisUtil {
 	private redisPub: Redis.Redis | null = null;
 	private redisSub: Redis.Redis | null = null;
-	// private handleOrderBookUpdate:
-	// 	| ((channel: string, orderBookUpdate: IOrderBookUpdate) => any)
-	// 	| null = null;
+	private handleOrderBookUpdate:
+		| ((channel: string, orderBookUpdate: IOrderBookUpdate) => any)
+		| null = null;
+	private handleOrderUpdate: ((channel: string, orderUpdate: IOrderUpdate) => any) | null = null;
 
 	public init(redisKey: { host: string; password: string; servername: string }) {
 		this.redisPub = new Redis(6379, redisKey.host, {
@@ -27,15 +28,18 @@ export class RedisUtil {
 
 	public onMessage(channel: string, message: string, pattern: string = '') {
 		util.logDebug(pattern + channel + message);
-		// const type = channel.split('|')[0];
-		// switch (type) {
-		// 	case CST.ORDERBOOK_UPDATE:
-		// 		if (this.handleOrderBookUpdate)
-		// 			this.handleOrderBookUpdate(channel, JSON.parse(message));
-		// 		break;
-		// 	default:
-		// 		break;
-		// }
+		const type = channel.split('|')[0];
+		switch (type) {
+			case CST.ORDERBOOK_UPDATE:
+				if (this.handleOrderBookUpdate)
+					this.handleOrderBookUpdate(channel, JSON.parse(message));
+				break;
+			case CST.ORDER_UPDATE:
+				if (this.handleOrderUpdate) this.handleOrderUpdate(channel, JSON.parse(message));
+				break;
+			default:
+				break;
+		}
 	}
 
 	// public onOrderBooks(
@@ -43,6 +47,9 @@ export class RedisUtil {
 	// ) {
 	// 	this.handleOrderBookUpdate = handleOrderBookUpdate;
 	// }
+	public onOrderUpdate(handleOrderUpdate: (channel: string, orderUpdate: IOrderUpdate) => any) {
+		this.handleOrderUpdate = handleOrderUpdate;
+	}
 
 	public publish(channel: string, msg: string) {
 		if (this.redisPub) return this.redisPub.publish(channel, msg);

@@ -7,17 +7,17 @@ test('coldStart return if no orderWatcher', async () => {
 	orderWatcherServer.orderWatcher = null;
 
 	redisUtil.hashGetAll = jest.fn(() => Promise.resolve());
-	orderWatcherServer.addIntoWatcher = jest.fn(() => Promise.resolve());
+	orderWatcherServer.addIntoWatching = jest.fn(() => Promise.resolve());
 	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([]));
 	await orderWatcherServer.coldStart('pair');
 	expect(redisUtil.hashGetAll as jest.Mock).not.toBeCalled();
-	expect(orderWatcherServer.addIntoWatcher as jest.Mock).not.toBeCalled();
+	expect(orderWatcherServer.addIntoWatching as jest.Mock).not.toBeCalled();
 	expect(dynamoUtil.getLiveOrders as jest.Mock).not.toBeCalled();
 });
 
 test('coldStart cancel not to be added', async () => {
 	(orderWatcherServer.orderWatcher as any) = {};
-	orderWatcherServer.addIntoWatcher = jest.fn(() => Promise.resolve());
+	orderWatcherServer.addIntoWatching = jest.fn(() => Promise.resolve());
 
 	redisUtil.hashGetAll = jest.fn(() =>
 		Promise.resolve({
@@ -27,12 +27,12 @@ test('coldStart cancel not to be added', async () => {
 	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([]));
 	await orderWatcherServer.coldStart('pair');
 	expect((redisUtil.hashGetAll as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(orderWatcherServer.addIntoWatcher as jest.Mock).not.toBeCalled();
+	expect(orderWatcherServer.addIntoWatching as jest.Mock).not.toBeCalled();
 });
 
 test('coldStart old order not to be added', async () => {
 	(orderWatcherServer.orderWatcher as any) = {};
-	orderWatcherServer.addIntoWatcher = jest.fn(() => Promise.resolve());
+	orderWatcherServer.addIntoWatching = jest.fn(() => Promise.resolve());
 
 	orderWatcherServer.watchingOrders = ['orderHash'];
 
@@ -44,12 +44,12 @@ test('coldStart old order not to be added', async () => {
 	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([]));
 	await orderWatcherServer.coldStart('pair');
 	expect((redisUtil.hashGetAll as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(orderWatcherServer.addIntoWatcher as jest.Mock).not.toBeCalled();
+	expect(orderWatcherServer.addIntoWatching as jest.Mock).not.toBeCalled();
 });
 
 test('coldStart add cached order to watcher', async () => {
 	(orderWatcherServer.orderWatcher as any) = {};
-	orderWatcherServer.addIntoWatcher = jest.fn(() => Promise.resolve());
+	orderWatcherServer.addIntoWatching = jest.fn(() => Promise.resolve());
 	orderWatcherServer.watchingOrders = ['orderHash'];
 
 	redisUtil.hashGetAll = jest.fn(() =>
@@ -60,23 +60,23 @@ test('coldStart add cached order to watcher', async () => {
 	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([]));
 	await orderWatcherServer.coldStart('pair');
 	expect((redisUtil.hashGetAll as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((orderWatcherServer.addIntoWatcher as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderWatcherServer.addIntoWatching as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('coldStart existing live order not to be added', async () => {
 	(orderWatcherServer.orderWatcher as any) = {};
-	orderWatcherServer.addIntoWatcher = jest.fn(() => Promise.resolve());
+	orderWatcherServer.addIntoWatching = jest.fn(() => Promise.resolve());
 	orderWatcherServer.watchingOrders = ['orderHash'];
 	redisUtil.hashGetAll = jest.fn(() => Promise.resolve({}));
 	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([{ orderHash: 'orderHash' }]));
 	await orderWatcherServer.coldStart('pair');
 	expect((redisUtil.hashGetAll as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(orderWatcherServer.addIntoWatcher as jest.Mock).not.toBeCalled();
+	expect(orderWatcherServer.addIntoWatching as jest.Mock).not.toBeCalled();
 });
 
 test('coldStart new live order not to be added', async () => {
 	(orderWatcherServer.orderWatcher as any) = {};
-	orderWatcherServer.addIntoWatcher = jest.fn(() => Promise.resolve());
+	orderWatcherServer.addIntoWatching = jest.fn(() => Promise.resolve());
 	orderWatcherServer.watchingOrders = ['orderHash'];
 	redisUtil.hashGetAll = jest.fn(() => Promise.resolve({}));
 	dynamoUtil.getLiveOrders = jest.fn(() =>
@@ -84,5 +84,5 @@ test('coldStart new live order not to be added', async () => {
 	);
 	await orderWatcherServer.coldStart('pair');
 	expect((redisUtil.hashGetAll as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((orderWatcherServer.addIntoWatcher as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderWatcherServer.addIntoWatching as jest.Mock).mock.calls).toMatchSnapshot();
 });

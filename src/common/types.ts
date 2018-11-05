@@ -80,6 +80,10 @@ export interface IOrderBookUpdate {
 	amount: number;
 }
 
+export interface IOrderUpdate extends IOrderQueueItem {
+	method: string;
+}
+
 export interface IWsRequest {
 	method: string;
 	channel: string;
