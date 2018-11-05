@@ -12,14 +12,14 @@ import redisUtil from './redisUtil';
 import util from './util';
 import web3Util from './Web3Util';
 
-class OrderUtil {
+class OrderPersistenceUtil {
 	public async addUserOrderToDB(
 		liveOrder: ILiveOrder,
 		type: string,
 		status: string,
 		updatedBy: string
 	) {
-		const userOrder = orderUtil.constructUserOrder(liveOrder, type, status, updatedBy);
+		const userOrder = this.constructUserOrder(liveOrder, type, status, updatedBy);
 		try {
 			await dynamoUtil.addUserOrder(userOrder);
 			util.logDebug(`added user order ${liveOrder.orderHash}|${type}|${status}|${updatedBy}`);
@@ -59,6 +59,31 @@ class OrderUtil {
 		if (liveOrders.length < 1) return null;
 
 		return liveOrders[0];
+	}
+
+	public async getAllLiveOrdersInPersistence(pair: string) {
+		const redisOrders = await redisUtil.hashGetAll(`${CST.DB_ORDERS}|${CST.DB_CACHE}`);
+		const dynamoOrders = await dynamoUtil.getLiveOrders(pair);
+
+		const addOrders: { [orderHash: string]: ILiveOrder } = {};
+		const updateOrders: { [orderHash: string]: ILiveOrder } = {};
+		const terminateOrders: { [orderHash: string]: ILiveOrder } = {};
+		for (const key in redisOrders) {
+			const [method, orderHash] = key.split('|');
+			const orderQueueItem: IOrderQueueItem = JSON.parse(redisOrders[key]);
+			if (method === CST.DB_TERMINATE) terminateOrders[orderHash] = orderQueueItem.liveOrder;
+			else if (method === CST.DB_ADD) addOrders[orderHash] = orderQueueItem.liveOrder;
+			else updateOrders[orderHash] = orderQueueItem.liveOrder;
+		}
+
+		const allOrders: { [orderHash: string]: ILiveOrder } = {};
+		dynamoOrders.forEach(o => (allOrders[o.orderHash] = o));
+		Object.assign(allOrders, addOrders);
+		Object.assign(allOrders, updateOrders);
+		for (const orderHash in terminateOrders)
+			if (allOrders[orderHash]) delete allOrders[orderHash];
+
+		return allOrders;
 	}
 
 	public async persistOrder(method: string, orderQueueItem: IOrderQueueItem) {
@@ -144,7 +169,7 @@ class OrderUtil {
 		util.logDebug(`processing order: ${queueKey}`);
 		if (!queueItemString) {
 			util.logDebug('empty queue item, ignore');
-			return false;
+			return true;
 		}
 		const [method, orderHash] = queueKey.split('|');
 		const orderQueueItem: IOrderQueueItem = JSON.parse(queueItemString);
@@ -232,5 +257,5 @@ class OrderUtil {
 		loop();
 	}
 }
-const orderUtil = new OrderUtil();
-export default orderUtil;
+const orderPersistenceUtil = new OrderPersistenceUtil();
+export default orderPersistenceUtil;

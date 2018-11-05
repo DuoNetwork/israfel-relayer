@@ -1,5 +1,5 @@
 import * as CST from '../common/constants';
-import orderUtil from '../utils/orderUtil';
+import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import relayerServer from './relayerServer';
 
 test('handleInvalidOrderRequest', () => {
@@ -24,7 +24,7 @@ test('handleUserOrder', async () => {
 });
 
 test('handleSequenceResponse add', async () => {
-	orderUtil.persistOrder = jest.fn(() => Promise.resolve({ userOrder: 'test' }));
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve({ userOrder: 'test' }));
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	relayerServer.handleInvalidOrderRequest = jest.fn();
 	relayerServer.requestSequence = jest.fn();
@@ -55,7 +55,7 @@ test('handleSequenceResponse add invalid', async () => {
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	relayerServer.requestSequence = jest.fn();
 	relayerServer.handleInvalidOrderRequest = jest.fn();
-	orderUtil.persistOrder = jest.fn(() => Promise.resolve(null));
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	await relayerServer.handleSequenceResponse(
 		{
 			channel: CST.DB_SEQUENCE,
@@ -80,7 +80,7 @@ test('handleSequenceResponse add invalid', async () => {
 });
 
 test('handleSequenceResponse terminate', async () => {
-	orderUtil.persistOrder = jest.fn(() => Promise.resolve({ userOrder: 'test' }));
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve({ userOrder: 'test' }));
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	relayerServer.handleInvalidOrderRequest = jest.fn();
 	await relayerServer.handleSequenceResponse(
@@ -122,7 +122,7 @@ const signedOrder = {
 test('handleAddOrderRequest invalid order', async () => {
 	relayerServer.handleInvalidOrderRequest = jest.fn();
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
-	orderUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
+	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
@@ -168,7 +168,7 @@ test('handleAddOrderRequest exist in persistence', async () => {
 	relayerServer.handleInvalidOrderRequest = jest.fn();
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	relayerServer.requestCache = {};
-	orderUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve({}));
+	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve({}));
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
@@ -187,11 +187,11 @@ test('handleAddOrderRequest', async () => {
 	relayerServer.web3Util = {
 		validateOrder: jest.fn(() => '0xOrderHash')
 	} as any;
-	orderUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
-	orderUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({
+	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({
 		userOrder: 'userOrder'
 	}))
-	orderUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' }));
+	orderPersistenceUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' }));
 	relayerServer.requestCache = {};
 	relayerServer.requestSequence = jest.fn();
 	await relayerServer.handleAddOrderRequest({} as any, {
@@ -204,14 +204,14 @@ test('handleAddOrderRequest', async () => {
 	expect(relayerServer.requestCache).toMatchSnapshot();
 	expect((relayerServer.requestSequence as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((orderUtil.addUserOrderToDB as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderPersistenceUtil.addUserOrderToDB as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(relayerServer.handleInvalidOrderRequest as jest.Mock).not.toBeCalled();
 });
 
 test('handleTerminateOrderRequest invalid order', async () => {
 	relayerServer.handleInvalidOrderRequest = jest.fn();
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
-	orderUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
+	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
 	relayerServer.requestSequence = jest.fn();
 	await relayerServer.handleTerminateOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
@@ -247,7 +247,7 @@ test('handleTerminateOrderRequest already terminated', async () => {
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	relayerServer.requestCache = {};
 	relayerServer.requestSequence = jest.fn();
-	orderUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
+	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
 	await relayerServer.handleTerminateOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_TERMINATE,
@@ -262,10 +262,10 @@ test('handleTerminateOrderRequest already terminated', async () => {
 test('handleTerminateOrderRequest', async () => {
 	relayerServer.handleInvalidOrderRequest = jest.fn();
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
-	orderUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve({ test: 'liveOrder' }));
+	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve({ test: 'liveOrder' }));
 	relayerServer.requestSequence = jest.fn();
 	relayerServer.requestCache = {};
-	orderUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({
 		userOrder: 'userOrder'
 	}))
 	await relayerServer.handleTerminateOrderRequest({} as any, {
@@ -278,7 +278,7 @@ test('handleTerminateOrderRequest', async () => {
 	expect((relayerServer.requestSequence as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(relayerServer.handleInvalidOrderRequest as jest.Mock).not.toBeCalled();
 	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((orderUtil.addUserOrderToDB as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderPersistenceUtil.addUserOrderToDB as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleOrderRequest invalid requests', async () => {

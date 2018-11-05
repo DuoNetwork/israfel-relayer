@@ -8,7 +8,6 @@ import {
 import SequenceClient from '../client/SequenceClient';
 import * as CST from '../common/constants';
 import {
-	ILiveOrder,
 	IOption,
 	IOrderQueueItem,
 	IOrderUpdate,
@@ -18,7 +17,7 @@ import {
 	IWsOrderSequenceResponse
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
-import orderUtil from '../utils/orderUtil';
+import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import redisUtil from '../utils/redisUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
@@ -36,7 +35,7 @@ class OrderWatcherServer extends SequenceClient {
 		const orderQueueItem: IOrderQueueItem = {
 			liveOrder: cacheItem.liveOrder
 		};
-		const userOrder = await orderUtil.persistOrder(res.method, orderQueueItem);
+		const userOrder = await orderPersistenceUtil.persistOrder(res.method, orderQueueItem);
 		if (!userOrder) {
 			util.logInfo(`invalid orderHash ${res.orderHash}, ignore`);
 			this.removeFromWatch(res.orderHash);
@@ -49,7 +48,7 @@ class OrderWatcherServer extends SequenceClient {
 			return;
 		}
 
-		const liveOrder = await orderUtil.getLiveOrderInPersistence(pair, orderState.orderHash);
+		const liveOrder = await orderPersistenceUtil.getLiveOrderInPersistence(pair, orderState.orderHash);
 		if (!liveOrder) {
 			util.logInfo(`invalid orderHash ${orderState.orderHash}, ignore`);
 			this.removeFromWatch(orderState.orderHash);
@@ -100,7 +99,7 @@ class OrderWatcherServer extends SequenceClient {
 				signedOrder = rawOrder.signedOrder as IStringSignedOrder;
 			}
 			if (this.orderWatcher) {
-				await this.orderWatcher.addOrderAsync(orderUtil.parseSignedOrder(signedOrder));
+				await this.orderWatcher.addOrderAsync(orderPersistenceUtil.parseSignedOrder(signedOrder));
 				util.logDebug('succsfully added ' + orderHash);
 			}
 		} catch (e) {
@@ -109,14 +108,14 @@ class OrderWatcherServer extends SequenceClient {
 		}
 	}
 
-	public async removeFromWatch(orderHash: string) {
+	public removeFromWatch(orderHash: string) {
 		if (!this.watchingOrders.includes(orderHash)) {
 			util.logDebug('order is not currently watched');
 			return;
 		}
 		try {
 			if (this.orderWatcher) {
-				await this.orderWatcher.removeOrder(orderHash);
+				this.orderWatcher.removeOrder(orderHash);
 				util.logDebug('succsfully removed ' + orderHash);
 				this.watchingOrders = this.watchingOrders.filter(hash => hash !== orderHash);
 			}
@@ -125,33 +124,19 @@ class OrderWatcherServer extends SequenceClient {
 		}
 	}
 
-	public async coldStart(pair: string) {
-		util.logInfo('start order watcher for ' + pair);
+	public async reloadLiveOrders(pair: string) {
+		util.logInfo('reload orders to watch for ' + pair);
 		if (!this.orderWatcher) {
 			util.logDebug('orderWatcher is not initiated');
 			return;
 		}
-		const ordersInCache = await redisUtil.hashGetAll(CST.DB_CACHE);
-		if (Object.keys(ordersInCache).length) {
-			util.logInfo('orders length in DB is ' + Object.keys(ordersInCache).length);
-			for (const cacheKey of Object.keys(ordersInCache)) {
-				const [method, orderHash] = cacheKey.split('|');
-				if (method !== CST.DB_TERMINATE && !this.watchingOrders.includes(orderHash)) {
-					this.watchingOrders.push(orderHash);
-					await this.addIntoWatch(orderHash);
-				}
-			}
-		}
 
-		const liveOrders: ILiveOrder[] = await dynamoUtil.getLiveOrders(pair);
-		if (liveOrders.length) {
-			util.logInfo('orders length in DB is ' + liveOrders.length);
-			for (const order of liveOrders)
-				if (!this.watchingOrders.includes(order.orderHash)) {
-					this.watchingOrders.push(order.orderHash);
-					await this.addIntoWatch(order.orderHash);
-				}
-		}
+		const allOrders = orderPersistenceUtil.getAllLiveOrdersInPersistence(pair);
+		for (const orderHash in allOrders)
+			if (!this.watchingOrders.includes(orderHash)) {
+				this.watchingOrders.push(orderHash);
+				await this.addIntoWatch(orderHash);
+			}
 	}
 
 	public handleOrderUpdate = (channel: string, orderUpdate: IOrderUpdate) => {
@@ -181,8 +166,8 @@ class OrderWatcherServer extends SequenceClient {
 			this.handleOrderUpdate(channel, orderUpdate)
 		);
 
-		await this.coldStart(pair);
-		setInterval(() => this.coldStart(pair), CST.ONE_MINUTE_MS * 60);
+		await this.reloadLiveOrders(pair);
+		setInterval(() => this.reloadLiveOrders(pair), CST.ONE_MINUTE_MS * 60);
 
 		if (option.server) {
 			dynamoUtil.updateStatus(pair);

@@ -4,7 +4,7 @@
 // import assetsUtil from '../utils/assetUtil';
 // import dynamoUtil from '../utils/dynamoUtil';
 // import orderbookUtil from '../utils/orderBookUtil';
-// import orderUtil from '../utils/orderUtil';
+// import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 
 // class OrderMatcher {
 // 	public async scanToMatchOrder(
@@ -24,7 +24,7 @@
 // 					console.log('#### look for askToMatch!', askToMatch);
 
 // 					if (askToMatch) {
-// 						const signedOrder: SignedOrder = orderUtil.parseSignedOrder(
+// 						const signedOrder: SignedOrder = orderPersistenceUtil.parseSignedOrder(
 // 							askToMatch.signedOrder
 // 						);
 // 						if (signedOrder.takerAssetAmount.equals(newOrder.makerAssetAmount)) {

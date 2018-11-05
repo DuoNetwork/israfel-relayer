@@ -3,9 +3,8 @@ import { IOption } from './common/types';
 import orderWatcherServer from './server/orderWatcherServer';
 import relayerServer from './server/relayerServer';
 import sequenceServer from './server/sequenceServer';
-import assetsUtil from './utils/assetUtil';
 import dynamoUtil from './utils/dynamoUtil';
-import orderUtil from './utils/orderUtil';
+import orderPersistenceUtil from './utils/orderPersistenceUtil';
 import osUtil from './utils/osUtil';
 import redisUtil from './utils/redisUtil';
 import util from './utils/util';
@@ -27,9 +26,6 @@ if ([CST.DB_ORDER_WATCHER, CST.DB_RELAYER].includes(tool))
 	web3Util = new Web3Util(null, option.live, '');
 
 switch (tool) {
-	case CST.SET_ALLOWANCE:
-		assetsUtil.setTokenAllowance(option);
-		break;
 	case CST.DB_ORDER_WATCHER:
 		orderWatcherServer.startOrderWatcher(web3Util as Web3Util, option);
 		break;
@@ -40,7 +36,7 @@ switch (tool) {
 		sequenceServer.startServer(option);
 		break;
 	case CST.DB_ORDERS:
-		orderUtil.startProcessing(option);
+		orderPersistenceUtil.startProcessing(option);
 		break;
 	default:
 		break;

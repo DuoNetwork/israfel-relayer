@@ -18,7 +18,7 @@ import {
 	IWsUserOrderResponse
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
-import orderUtil from '../utils/orderUtil';
+import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
@@ -47,7 +47,7 @@ class RelayerServer extends SequenceClient {
 				.order as IStringSignedOrder;
 		}
 
-		const userOrder = await orderUtil.persistOrder(res.method, orderQueueItem);
+		const userOrder = await orderPersistenceUtil.persistOrder(res.method, orderQueueItem);
 		if (userOrder) this.handleUserOrder(cacheItem.ws, userOrder, res.method);
 		else this.handleInvalidOrderRequest(cacheItem.ws, cacheItem.request);
 	}
@@ -84,7 +84,7 @@ class RelayerServer extends SequenceClient {
 			return;
 		}
 
-		let liveOrder = await orderUtil.getLiveOrderInPersistence(req.pair, req.orderHash);
+		let liveOrder = await orderPersistenceUtil.getLiveOrderInPersistence(req.pair, req.orderHash);
 		if (liveOrder) {
 			util.logDebug('existing order, ignore');
 			this.handleInvalidOrderRequest(ws, req);
@@ -94,11 +94,11 @@ class RelayerServer extends SequenceClient {
 		const stringSignedOrder = req.order as IStringSignedOrder;
 
 		const orderHash = this.web3Util
-			? await this.web3Util.validateOrder(orderUtil.parseSignedOrder(stringSignedOrder))
+			? await this.web3Util.validateOrder(orderPersistenceUtil.parseSignedOrder(stringSignedOrder))
 			: '';
 		if (orderHash && orderHash === req.orderHash) {
 			const pair = req.pair;
-			liveOrder = orderUtil.constructNewLiveOrder(stringSignedOrder, pair, orderHash);
+			liveOrder = orderPersistenceUtil.constructNewLiveOrder(stringSignedOrder, pair, orderHash);
 			this.requestCache[cacheKey] = {
 				ws: ws,
 				request: req,
@@ -110,7 +110,7 @@ class RelayerServer extends SequenceClient {
 			util.logDebug('request added to cache');
 			this.handleUserOrder(
 				ws,
-				await orderUtil.addUserOrderToDB(
+				await orderPersistenceUtil.addUserOrderToDB(
 					liveOrder,
 					CST.DB_ADD,
 					CST.DB_PENDING,
@@ -135,7 +135,7 @@ class RelayerServer extends SequenceClient {
 			return;
 		}
 
-		const liveOrder = await orderUtil.getLiveOrderInPersistence(pair, orderHash);
+		const liveOrder = await orderPersistenceUtil.getLiveOrderInPersistence(pair, orderHash);
 		if (!liveOrder) {
 			util.logDebug('non-existing order, ignore');
 			this.handleInvalidOrderRequest(ws, req);
@@ -153,7 +153,7 @@ class RelayerServer extends SequenceClient {
 		util.logDebug('request added to cache');
 		this.handleUserOrder(
 			ws,
-			await orderUtil.addUserOrderToDB(liveOrder, CST.DB_TERMINATE, CST.DB_PENDING, CST.DB_USER),
+			await orderPersistenceUtil.addUserOrderToDB(liveOrder, CST.DB_TERMINATE, CST.DB_PENDING, CST.DB_USER),
 			CST.DB_TERMINATE
 		);
 		this.requestSequence(req.method, req.pair, req.orderHash);
