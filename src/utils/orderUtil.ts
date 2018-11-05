@@ -1,17 +1,9 @@
-import {
-	ExchangeContractErrs,
-	OrderState,
-	OrderStateInvalid,
-	OrderStateValid,
-	SignedOrder
-} from '0x.js';
+import { SignedOrder } from '0x.js';
 import * as CST from '../common/constants';
 import {
 	ILiveOrder,
 	IOption,
-	IOrderBookUpdate,
 	IOrderQueueItem,
-	IOrderWatcherCacheItem,
 	IStringSignedOrder,
 	IUserOrder
 } from '../common/types';
@@ -44,6 +36,29 @@ class OrderUtil {
 			`${CST.DB_CANCEL}|${orderHash}`
 		);
 		if (cancelQueueString) return null;
+
+		const expQueueString = await redisUtil.hashGet(
+			`${CST.DB_ORDERS}|${CST.DB_CACHE}`,
+			`${CST.DB_EXPIRE}|${orderHash}`
+		);
+
+		if (expQueueString) return null;
+
+		const fillQueueString = await redisUtil.hashGet(
+			`${CST.DB_ORDERS}|${CST.DB_CACHE}`,
+			`${CST.DB_FILL}|${orderHash}`
+		);
+
+		if (fillQueueString) return null;
+
+		const updateQueueString = await redisUtil.hashGet(
+			`${CST.DB_ORDERS}|${CST.DB_CACHE}`,
+			`${CST.DB_UPDATE}|${orderHash}`
+		);
+		if (updateQueueString) {
+			const orderQueueItem: IOrderQueueItem = JSON.parse(updateQueueString);
+			return orderQueueItem.liveOrder;
+		}
 
 		const addQueueString = await redisUtil.hashGet(
 			`${CST.DB_ORDERS}|${CST.DB_CACHE}`,
@@ -80,7 +95,7 @@ class OrderUtil {
 		}
 
 		util.logDebug(`storing order queue item in redis ${orderQueueItem.liveOrder.orderHash}`);
-		redisUtil.multi();
+		await redisUtil.multi();
 		const key = `${method}|${orderQueueItem.liveOrder.orderHash}`;
 		// store order in hash map
 		redisUtil.hashSet(`${CST.DB_ORDERS}|${CST.DB_CACHE}`, key, JSON.stringify(orderQueueItem));
@@ -95,72 +110,6 @@ class OrderUtil {
 			CST.DB_CONFIRMED,
 			method === CST.DB_UPDATE ? CST.DB_ORDER_WATCHER : CST.DB_RELAYER
 		);
-	}
-
-	public async UpdateOrderInPersistance(
-		sequence: number,
-		pair: string,
-		orderUpdateItem: IOrderWatcherCacheItem
-	): Promise<boolean> {
-		const orderState: OrderState = orderUpdateItem.orderState;
-		const { orderHash, isValid } = orderState;
-
-		const liveOrders: ILiveOrder[] = await dynamoUtil.getLiveOrders(pair, orderHash);
-		if (liveOrders.length < 1) {
-			util.logDebug('order does not exist');
-			return false;
-		}
-
-		const liveOrder: ILiveOrder = liveOrders[0];
-
-		let method;
-		if (!isValid) {
-			const error = (orderState as OrderStateInvalid).error;
-			if (
-				error === ExchangeContractErrs.OrderCancelExpired ||
-				error === ExchangeContractErrs.OrderFillExpired
-			)
-				method = CST.DB_EXPIRE;
-			else if (error === ExchangeContractErrs.OrderCancelled) method = CST.DB_CANCEL;
-			else if (error === ExchangeContractErrs.OrderRemainingFillAmountZero)
-				method = CST.DB_FILL;
-			else method = CST.DB_UPDATE;
-		}
-
-		const orderBookUpdate: IOrderBookUpdate = {
-			pair: pair,
-			price: liveOrder.price,
-			amount: -liveOrder.amount,
-			sequence: sequence
-		};
-
-		if (isValid)
-			orderBookUpdate.amount =
-				web3Util.fromWei(
-					(orderState as OrderStateValid).orderRelevantState
-						.remainingFillableMakerAssetAmount
-				) - liveOrder.amount;
-
-		liveOrder.amount = !isValid
-			? 0
-			: web3Util.fromWei(
-					(orderState as OrderStateValid).orderRelevantState
-						.remainingFillableMakerAssetAmount
-			);
-		const updateQueueItem: IOrderQueueItem = {
-			liveOrder
-		};
-		redisUtil.multi();
-		redisUtil.push(`${CST.DB_QUEUE}`, `${method}|${orderState.orderHash}`);
-		redisUtil.hashSet(
-			`${CST.DB_CACHE}`,
-			`${method}|${orderState.orderHash}`,
-			JSON.stringify(updateQueueItem)
-		);
-		redisUtil.publish(CST.ORDERBOOK_UPDATE + '|' + pair, JSON.stringify(orderBookUpdate));
-		await redisUtil.exec();
-
-		return true;
 	}
 
 	public constructUserOrder(

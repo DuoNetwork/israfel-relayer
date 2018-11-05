@@ -156,17 +156,13 @@ export interface IOption {
 export interface ISequenceCacheItem {
 	pair: string;
 	method: string;
+	liveOrder: ILiveOrder;
+	timeout: NodeJS.Timeout
 }
 
 export interface IRelayerCacheItem extends ISequenceCacheItem {
 	ws: WebSocket;
 	request: IWsOrderRequest;
-	liveOrder: ILiveOrder;
-	timeout: NodeJS.Timeout
-}
-
-export interface IOrderWatcherCacheItem extends ISequenceCacheItem {
-	orderState: OrderState;
 }
 
 export interface IStatus {

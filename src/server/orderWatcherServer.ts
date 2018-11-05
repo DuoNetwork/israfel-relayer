@@ -1,47 +1,64 @@
-import { OrderState, OrderWatcher } from '0x.js';
+import {
+	ExchangeContractErrs,
+	OrderState,
+	OrderStateInvalid,
+	OrderStateValid,
+	OrderWatcher
+} from '0x.js';
 import SequenceClient from '../client/SequenceClient';
 import * as CST from '../common/constants';
 import {
 	ILiveOrder,
 	IOption,
+	IOrderQueueItem,
 	IOrderUpdate,
-	IOrderWatcherCacheItem,
 	IRawOrder,
+	ISequenceCacheItem,
 	IStringSignedOrder,
 	IWsOrderSequenceResponse
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderUtil from '../utils/orderUtil';
 import redisUtil from '../utils/redisUtil';
-// import relayerUtil from '../utils/relayerUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
 class OrderWatcherServer extends SequenceClient {
 	public sequenceMethods = [CST.DB_UPDATE, CST.DB_EXPIRE];
 	public orderWatcher: OrderWatcher | null = null;
-	public requestCache: { [methodPairOrderHash: string]: IOrderWatcherCacheItem } = {};
 	public web3Util: Web3Util | null = null;
 	public watchingOrders: string[] = [];
+
+	public handleTimeout(cacheKey: string) {
+		util.logError(cacheKey);
+		return;
+	}
 
 	public async handleSequenceResponse(
 		res: IWsOrderSequenceResponse,
 		cacheKey: string,
-		cahceItem: IOrderWatcherCacheItem
+		cacheItem: ISequenceCacheItem
 	) {
 		util.logDebug(cacheKey);
-		const { sequence, pair } = res;
-		if (!(await orderUtil.UpdateOrderInPersistance(sequence, pair, cahceItem)))
-			if (this.orderWatcher) {
-				await this.orderWatcher.removeOrder(cahceItem.orderState.orderHash);
-				this.watchingOrders = this.watchingOrders.filter(
-					hash => hash !== cahceItem.orderState.orderHash
-				);
-			}
-	}
+		clearTimeout(cacheItem.timeout);
+		cacheItem.liveOrder.currentSequence = res.sequence;
+		const orderQueueItem: IOrderQueueItem = {
+			liveOrder: cacheItem.liveOrder
+		};
 
-	public unsubOrderWatcher() {
-		if (this.orderWatcher) this.orderWatcher.unsubscribe();
+		try {
+			const userOrder = await orderUtil.persistOrder(res.method, orderQueueItem);
+			if (!userOrder) {
+				util.logInfo(`invalid orderHash ${res.orderHash}, ignore`);
+				this.removeFromWatch(res.orderHash);
+				return;
+			}
+		} catch (error) {
+			// failed to persist, add back to cache for next retry
+			cacheItem.timeout = setTimeout(() => this.handleTimeout(cacheKey), 30000);
+			this.requestCache[cacheKey] = cacheItem;
+			this.requestSequence(res.method, res.pair, cacheItem.liveOrder.orderHash);
+		}
 	}
 
 	public async handleOrderWatcherUpdate(pair: string, orderState: OrderState) {
@@ -50,15 +67,48 @@ class OrderWatcherServer extends SequenceClient {
 			return;
 		}
 
-		this.requestSequence(CST.DB_UPDATE, pair, orderState.orderHash);
-		this.requestCache[`${CST.DB_UPDATE}|${pair}|${orderState.orderHash}`] = {
-			pair,
-			method: CST.DB_UPDATE,
-			orderState
+		const liveOrder = await orderUtil.getLiveOrderInPersistence(pair, orderState.orderHash);
+		if (!liveOrder) {
+			util.logInfo(`invalid orderHash ${orderState.orderHash}, ignore`);
+			this.removeFromWatch(orderState.orderHash);
+			return;
+		}
+
+		let method = CST.DB_UPDATE;
+		if (orderState.isValid) {
+			const remainingAmount = Web3Util.fromWei(
+				(orderState as OrderStateValid).orderRelevantState.remainingFillableMakerAssetAmount
+			);
+			liveOrder.amount = remainingAmount;
+		} else {
+			const error = (orderState as OrderStateInvalid).error;
+			switch (error) {
+				case ExchangeContractErrs.OrderCancelExpired:
+				case ExchangeContractErrs.OrderFillExpired:
+					method = CST.DB_EXPIRE;
+					break;
+				case ExchangeContractErrs.OrderCancelled:
+					method = CST.DB_CANCEL;
+					break;
+				case ExchangeContractErrs.OrderRemainingFillAmountZero:
+					method = CST.DB_FILL;
+					break;
+				default:
+					break;
+			}
+		}
+		const cacheKey = `${method}|${pair}|${orderState.orderHash}`;
+		this.requestCache[cacheKey] = {
+			pair: pair,
+			method: method,
+			liveOrder: liveOrder,
+			timeout: setTimeout(() => this.handleTimeout(cacheKey), 30000)
 		};
+		util.logDebug('request added to cache');
+		this.requestSequence(method, pair, orderState.orderHash);
 	}
 
-	public async addIntoWatching(orderHash: string, signedOrder?: IStringSignedOrder) {
+	public async addIntoWatch(orderHash: string, signedOrder?: IStringSignedOrder) {
 		try {
 			if (!signedOrder) {
 				const rawOrder: IRawOrder | null = await dynamoUtil.getRawOrder(orderHash);
@@ -70,7 +120,6 @@ class OrderWatcherServer extends SequenceClient {
 			}
 			if (this.orderWatcher) {
 				await this.orderWatcher.addOrderAsync(orderUtil.parseSignedOrder(signedOrder));
-
 				util.logDebug('succsfully added ' + orderHash);
 			}
 		} catch (e) {
@@ -79,7 +128,7 @@ class OrderWatcherServer extends SequenceClient {
 		}
 	}
 
-	public async removeFromWatching(orderHash: string) {
+	public async removeFromWatch(orderHash: string) {
 		if (!this.watchingOrders.includes(orderHash)) {
 			util.logDebug('order is not currently watched');
 			return;
@@ -108,7 +157,7 @@ class OrderWatcherServer extends SequenceClient {
 				const [method, orderHash] = cacheKey.split('|');
 				if (method !== CST.DB_CANCEL && !this.watchingOrders.includes(orderHash)) {
 					this.watchingOrders.push(orderHash);
-					await this.addIntoWatching(orderHash);
+					await this.addIntoWatch(orderHash);
 				}
 			}
 		}
@@ -119,7 +168,7 @@ class OrderWatcherServer extends SequenceClient {
 			for (const order of liveOrders)
 				if (!this.watchingOrders.includes(order.orderHash)) {
 					this.watchingOrders.push(order.orderHash);
-					await this.addIntoWatching(order.orderHash);
+					await this.addIntoWatch(order.orderHash);
 				}
 		}
 	}
@@ -129,7 +178,7 @@ class OrderWatcherServer extends SequenceClient {
 		const method = orderUpdate.method;
 		switch (method) {
 			case CST.DB_ADD:
-				this.addIntoWatching(orderUpdate.liveOrder.orderHash, orderUpdate.signedOrder);
+				this.addIntoWatch(orderUpdate.liveOrder.orderHash, orderUpdate.signedOrder);
 				break;
 			case CST.DB_CANCEL:
 				break;
@@ -165,18 +214,7 @@ class OrderWatcherServer extends SequenceClient {
 				return;
 			}
 
-			util.logInfo(orderState.orderHash + ' : order state update');
-
-			while (!this.sequenceWsClient) {
-				util.logInfo('starting reconnect to sequence server');
-				await this.connectToSequenceServer(option.server);
-			}
-			this.requestCache[`${CST.DB_UPDATE}|${pair}|${orderState.orderHash}`] = {
-				pair,
-				method: CST.DB_UPDATE,
-				orderState
-			};
-			this.requestSequence(CST.DB_UPDATE, pair, orderState.orderHash);
+			this.handleOrderWatcherUpdate(pair, orderState);
 		});
 	}
 }
