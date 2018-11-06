@@ -56,6 +56,11 @@ export class RedisUtil {
 		return Promise.resolve(0);
 	}
 
+	public increment(key: string) {
+		if (this.redisSub) return this.redisSub.incr(key);
+		return Promise.reject();
+	}
+
 	public set(key: string, value: string) {
 		if (this.redisSub) return this.redisSub.set(key, value);
 		return Promise.resolve('');
