@@ -1,5 +1,4 @@
 import { SignedOrder } from '0x.js';
-import WebSocket from 'ws';
 
 export interface ILiveOrder {
 	account: string;
@@ -117,10 +116,6 @@ export interface IWsUserOrderResponse extends IWsOrderResponse {
 	userOrder: IUserOrder;
 }
 
-export interface IWsOrderSequenceResponse extends IWsOrderResponse {
-	sequence: number;
-}
-
 export interface ISubscribeOrderBookRequest {
 	method: string;
 	channel: string;
@@ -157,25 +152,12 @@ export interface IOption {
 	server: boolean;
 }
 
-export interface ISequenceCacheItem {
-	pair: string;
-	method: string;
-	liveOrder: ILiveOrder;
-	timeout: NodeJS.Timeout
-}
-
-export interface IRelayerCacheItem extends ISequenceCacheItem {
-	ws: WebSocket;
-	request: IWsOrderRequest;
-}
-
 export interface IStatus {
 	hostname: string;
 	updatedAt: number;
 	pair: string;
 	tool: string;
 	count?: number;
-	sequence?: number;
 }
 
 export interface IService {

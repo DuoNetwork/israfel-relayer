@@ -2,7 +2,6 @@ import * as CST from './common/constants';
 import { IOption } from './common/types';
 import orderWatcherServer from './server/orderWatcherServer';
 import relayerServer from './server/relayerServer';
-import sequenceServer from './server/sequenceServer';
 import dynamoUtil from './utils/dynamoUtil';
 import orderPersistenceUtil from './utils/orderPersistenceUtil';
 import osUtil from './utils/osUtil';
@@ -31,9 +30,6 @@ switch (tool) {
 		break;
 	case CST.DB_RELAYER:
 		relayerServer.startServer(web3Util as Web3Util, option);
-		break;
-	case CST.DB_SEQUENCE:
-		sequenceServer.startServer(option);
 		break;
 	case CST.DB_ORDERS:
 		orderPersistenceUtil.startProcessing(option);

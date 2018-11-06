@@ -5,53 +5,25 @@ import {
 	OrderStateValid,
 	OrderWatcher
 } from '0x.js';
-import SequenceClient from '../client/SequenceClient';
 import * as CST from '../common/constants';
-import {
-	IOption,
-	IOrderQueueItem,
-	IOrderUpdate,
-	IRawOrder,
-	ISequenceCacheItem,
-	IStringSignedOrder,
-	IWsOrderSequenceResponse
-} from '../common/types';
+import { IOption, IOrderUpdate, IRawOrder, IStringSignedOrder } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import redisUtil from '../utils/redisUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
-class OrderWatcherServer extends SequenceClient {
-	public sequenceMethods = [CST.DB_UPDATE, CST.DB_TERMINATE];
+class OrderWatcherServer {
 	public orderWatcher: OrderWatcher | null = null;
 	public web3Util: Web3Util | null = null;
 	public watchingOrders: string[] = [];
 
-	public async handleSequenceResponse(
-		res: IWsOrderSequenceResponse,
-		cacheItem: ISequenceCacheItem
-	) {
-		const orderQueueItem: IOrderQueueItem = {
-			liveOrder: cacheItem.liveOrder
-		};
-		const userOrder = await orderPersistenceUtil.persistOrder(res.method, orderQueueItem);
-		if (!userOrder) {
-			util.logInfo(`invalid orderHash ${res.orderHash}, ignore`);
-			this.removeFromWatch(res.orderHash);
-		}
-	}
-
 	public async handleOrderWatcherUpdate(pair: string, orderState: OrderState) {
-		if (!this.sequenceWsClient) {
-			util.logError('sequence service is unavailable');
-			return;
-		}
-
-		const liveOrder = await orderPersistenceUtil.getLiveOrderInPersistence(pair, orderState.orderHash);
+		const orderHash = orderState.orderHash;
+		const liveOrder = await orderPersistenceUtil.getLiveOrderInPersistence(pair, orderHash);
 		if (!liveOrder) {
-			util.logInfo(`invalid orderHash ${orderState.orderHash}, ignore`);
-			this.removeFromWatch(orderState.orderHash);
+			util.logInfo(`invalid orderHash ${orderHash}, ignore`);
+			this.removeFromWatch(orderHash);
 			return;
 		}
 
@@ -77,15 +49,23 @@ class OrderWatcherServer extends SequenceClient {
 					break;
 			}
 		}
-		const cacheKey = `${method}|${pair}|${orderState.orderHash}`;
-		this.requestCache[cacheKey] = {
-			pair: pair,
-			method: method,
-			liveOrder: liveOrder,
-			timeout: setTimeout(() => this.handleTimeout(cacheKey), 30000)
-		};
-		util.logDebug('request added to cache');
-		this.requestSequence(method, pair, orderState.orderHash);
+
+		let userOrder = null;
+		let done = false;
+		while (!done)
+			try {
+				userOrder = await orderPersistenceUtil.persistOrder(method, {
+					liveOrder: liveOrder
+				});
+				done = true;
+			} catch (error) {
+				await util.sleep(2000);
+			}
+
+		if (!userOrder) {
+			util.logInfo(`invalid orderHash ${orderHash}, ignore`);
+			this.removeFromWatch(orderHash);
+		}
 	}
 
 	public async addIntoWatch(orderHash: string, signedOrder?: IStringSignedOrder) {
@@ -99,7 +79,9 @@ class OrderWatcherServer extends SequenceClient {
 				signedOrder = rawOrder.signedOrder as IStringSignedOrder;
 			}
 			if (this.orderWatcher) {
-				await this.orderWatcher.addOrderAsync(orderPersistenceUtil.parseSignedOrder(signedOrder));
+				await this.orderWatcher.addOrderAsync(
+					orderPersistenceUtil.parseSignedOrder(signedOrder)
+				);
 				util.logDebug('succsfully added ' + orderHash);
 			}
 		} catch (e) {
@@ -156,7 +138,6 @@ class OrderWatcherServer extends SequenceClient {
 
 	public async startOrderWatcher(web3Util: Web3Util, option: IOption) {
 		this.web3Util = web3Util;
-		await this.connectToSequenceServer(option.server);
 		this.orderWatcher = new OrderWatcher(
 			this.web3Util.web3Wrapper.getProvider(),
 			option.live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN

@@ -120,7 +120,7 @@ class DynamoUtil {
 		return data.Items.map(ob => this.parseService(ob));
 	}
 
-	public updateStatus(process: string, count: number = 0, sequence: number = 0) {
+	public updateStatus(process: string, count: number = 0) {
 		const params: PutItemInput = {
 			TableName: `${CST.DB_ISRAFEL}.${CST.DB_STATUS}.${this.live ? CST.DB_LIVE : CST.DB_DEV}`,
 			Item: {
@@ -134,7 +134,6 @@ class DynamoUtil {
 			}
 		};
 		if (count) params.Item[CST.DB_COUNT] = { N: count + '' };
-		if (sequence) params.Item[CST.DB_SEQUENCE] = { N: sequence + '' };
 		return this.putData(params).catch(error => util.logError('Error insert status: ' + error));
 	}
 
@@ -148,8 +147,6 @@ class DynamoUtil {
 		};
 		const count = data[CST.DB_COUNT] ? Number(data[CST.DB_COUNT].N) : 0;
 		if (count) status.count = count;
-		const sequence = data[CST.DB_SEQUENCE] ? Number(data[CST.DB_SEQUENCE].N) : 0;
-		if (sequence) status.sequence = sequence;
 
 		return status;
 	}

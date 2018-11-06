@@ -493,7 +493,6 @@ Array [
     "count": 123,
     "hostname": "hostname",
     "pair": "pair",
-    "sequence": 456,
     "tool": "tool",
     "updatedAt": 1234567890,
   },
@@ -565,28 +564,6 @@ Array [
         },
         "process": Object {
           "S": "tool|someProcess|hostname",
-        },
-        "updatedAt": Object {
-          "N": "1234567890",
-        },
-      },
-      "TableName": "israfel.status.dev",
-    },
-  ],
-  Array [
-    Object {
-      "Item": Object {
-        "count": Object {
-          "N": "123",
-        },
-        "hostname": Object {
-          "S": "hostname",
-        },
-        "process": Object {
-          "S": "tool|someProcess|hostname",
-        },
-        "sequence": Object {
-          "N": "456",
         },
         "updatedAt": Object {
           "N": "1234567890",

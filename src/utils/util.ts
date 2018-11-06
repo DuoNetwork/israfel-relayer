@@ -91,6 +91,12 @@ class Util {
 			return false;
 		}
 	}
+
+	public sleep(ms: number) {
+		return new Promise(resolve => {
+			setTimeout(resolve, ms);
+		});
+	}
 }
 
 const util = new Util();
