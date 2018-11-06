@@ -31,25 +31,21 @@ class OrderPersistenceUtil {
 	}
 
 	public async getLiveOrderInPersistence(pair: string, orderHash: string) {
-		const terminateQueueString = await redisUtil.hashGet(
+		const queueStrings = await redisUtil.hashMultiGet(
 			`${CST.DB_ORDERS}|${CST.DB_CACHE}`,
-			`${CST.DB_TERMINATE}|${orderHash}`
+			`${CST.DB_TERMINATE}|${orderHash}`,
+			`${CST.DB_UPDATE}|${orderHash}`,
+			`${CST.DB_ADD}|${orderHash}`
 		);
-		if (terminateQueueString) return null;
+		if (queueStrings[`${CST.DB_TERMINATE}|${orderHash}`]) return null;
 
-		const updateQueueString = await redisUtil.hashGet(
-			`${CST.DB_ORDERS}|${CST.DB_CACHE}`,
-			`${CST.DB_UPDATE}|${orderHash}`
-		);
+		const updateQueueString = queueStrings[`${CST.DB_UPDATE}|${orderHash}`];
 		if (updateQueueString) {
 			const orderQueueItem: IOrderQueueItem = JSON.parse(updateQueueString);
 			return orderQueueItem.liveOrder;
 		}
 
-		const addQueueString = await redisUtil.hashGet(
-			`${CST.DB_ORDERS}|${CST.DB_CACHE}`,
-			`${CST.DB_ADD}|${orderHash}`
-		);
+		const addQueueString = queueStrings[`${CST.DB_ADD}|${orderHash}`];
 		if (addQueueString) {
 			const orderQueueItem: IOrderQueueItem = JSON.parse(addQueueString);
 			return orderQueueItem.liveOrder;

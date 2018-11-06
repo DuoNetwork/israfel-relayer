@@ -58,7 +58,9 @@ Object {
 }
 `;
 
-exports[`getLiveOrderInPersistence in add queue 1`] = `"orders|cache"`;
+exports[`getLiveOrderInPersistence in add queue 1`] = `"liveOrder"`;
+
+exports[`getLiveOrderInPersistence in update queue 1`] = `"liveOrder"`;
 
 exports[`getLiveOrderInPersistence only in db 1`] = `
 Object {

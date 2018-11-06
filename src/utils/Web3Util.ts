@@ -16,7 +16,6 @@ import { MnemonicWalletSubprovider } from '@0xproject/subproviders';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
 import * as CST from '../common/constants';
 import { IRawOrder, IStringSignedOrder } from '../common/types';
-import infura from '../keys/infura.json';
 import util from './util';
 
 export enum Wallet {
@@ -37,6 +36,7 @@ export default class Web3Util {
 			this.web3Wrapper = new Web3Wrapper(window.web3.currentProvider);
 			this.wallet = Wallet.MetaMask;
 		} else {
+			const infura = require('../keys/infura.json');
 			const pe = new Web3ProviderEngine();
 			pe.addProvider(
 				new RPCSubprovider(

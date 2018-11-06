@@ -76,6 +76,16 @@ export class RedisUtil {
 		return Promise.resolve(null);
 	}
 
+	public async hashMultiGet(key: string, ...fields: string[]) {
+		if (this.redisSub) {
+			const values: Array<string | null> = await this.redisSub.hmget(key, ...fields);
+			const output: { [field: string]: string | null } = {};
+			fields.forEach((f, i) => (output[f] = values[i]));
+			return output;
+		}
+		return Promise.resolve({});
+	}
+
 	public hashGetAll(key: string): Promise<any> {
 		if (this.redisSub) return this.redisSub.hgetall(key);
 		return Promise.resolve(null);
