@@ -193,8 +193,10 @@ class OrderPersistenceUtil {
 		} catch (err) {
 			util.logError(`error in processing for ${queueKey}`);
 			util.logError(err);
-			await redisUtil.hashSet(`${CST.DB_ORDERS}|${CST.DB_CACHE}`, queueKey, queueItemString);
+			await redisUtil.multi();
+			redisUtil.hashSet(`${CST.DB_ORDERS}|${CST.DB_CACHE}`, queueKey, queueItemString);
 			redisUtil.putBack(`${CST.DB_ORDERS}|${CST.DB_QUEUE}`, queueKey);
+			await redisUtil.exec();
 			return false;
 		}
 

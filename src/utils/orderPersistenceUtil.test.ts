@@ -324,6 +324,8 @@ test('processOrderQueue terminate', async () => {
 });
 
 test('processOrderQueue failed', async () => {
+	redisUtil.multi = jest.fn(() => Promise.resolve());
+	redisUtil.exec = jest.fn(() => Promise.resolve());
 	redisUtil.pop = jest.fn(() => Promise.resolve('add|0xOrderHash'));
 	redisUtil.hashGet = jest.fn(() => Promise.resolve(JSON.stringify(addOrderQueueItem)));
 	redisUtil.hashDelete = jest.fn(() => Promise.resolve());
