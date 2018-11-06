@@ -143,8 +143,31 @@ test('getLiveOrderInPersistence only in db', async () => {
 	).toMatchSnapshot();
 });
 
-test('persistOrder', async () => {
+test('persistOrder add', async () => {
+	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
+	redisUtil.increment = jest.fn(() => Promise.resolve(123));
+	redisUtil.multi = jest.fn(() => Promise.resolve());
+	redisUtil.exec = jest.fn(() => Promise.resolve());
+	redisUtil.hashSet = jest.fn(() => Promise.resolve());
+	redisUtil.push = jest.fn();
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
+
+	expect(
+		await orderPersistenceUtil.persistOrder(CST.DB_ADD, {
+			liveOrder: {
+				orderHash: '0xOrderHash'
+			} as any,
+			signedOrder: 'may or may not exist' as any
+		})
+	).not.toBeNull();
+	expect((redisUtil.hashSet as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((redisUtil.push as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderPersistenceUtil.addUserOrderToDB as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('persistOrder not add', async () => {
 	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve({}));
+	redisUtil.increment = jest.fn(() => Promise.resolve(123));
 	redisUtil.multi = jest.fn(() => Promise.resolve());
 	redisUtil.exec = jest.fn(() => Promise.resolve());
 	redisUtil.hashSet = jest.fn(() => Promise.resolve());

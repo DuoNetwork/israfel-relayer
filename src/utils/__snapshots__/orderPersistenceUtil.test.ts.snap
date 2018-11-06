@@ -87,17 +87,51 @@ Object {
 }
 `;
 
-exports[`persistOrder 1`] = `
+exports[`persistOrder add 1`] = `
 Array [
   Array [
     "orders|cache",
-    "method|0xOrderHash",
-    "{\\"liveOrder\\":{\\"orderHash\\":\\"0xOrderHash\\"},\\"signedOrder\\":\\"may or may not exist\\"}",
+    "add|0xOrderHash",
+    "{\\"liveOrder\\":{\\"orderHash\\":\\"0xOrderHash\\",\\"currentSequence\\":123,\\"initialSequence\\":123},\\"signedOrder\\":\\"may or may not exist\\"}",
   ],
 ]
 `;
 
-exports[`persistOrder 2`] = `
+exports[`persistOrder add 2`] = `
+Array [
+  Array [
+    "orders|queue",
+    "add|0xOrderHash",
+  ],
+]
+`;
+
+exports[`persistOrder add 3`] = `
+Array [
+  Array [
+    Object {
+      "currentSequence": 123,
+      "initialSequence": 123,
+      "orderHash": "0xOrderHash",
+    },
+    "add",
+    "confirmed",
+    "relayer",
+  ],
+]
+`;
+
+exports[`persistOrder not add 1`] = `
+Array [
+  Array [
+    "orders|cache",
+    "method|0xOrderHash",
+    "{\\"liveOrder\\":{\\"orderHash\\":\\"0xOrderHash\\",\\"currentSequence\\":123},\\"signedOrder\\":\\"may or may not exist\\"}",
+  ],
+]
+`;
+
+exports[`persistOrder not add 2`] = `
 Array [
   Array [
     "orders|queue",
@@ -106,10 +140,11 @@ Array [
 ]
 `;
 
-exports[`persistOrder 3`] = `
+exports[`persistOrder not add 3`] = `
 Array [
   Array [
     Object {
+      "currentSequence": 123,
       "orderHash": "0xOrderHash",
     },
     "method",

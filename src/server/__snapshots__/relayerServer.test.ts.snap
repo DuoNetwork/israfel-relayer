@@ -1,52 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`handleAddOrderRequest 1`] = `
-Object {
-  "add|ZRX-WETH|0xOrderHash": Object {
-    "liveOrder": Object {
-      "test": "liveOrder",
-    },
-    "method": "add",
-    "pair": "ZRX-WETH",
-    "request": Object {
-      "channel": "orders",
-      "method": "add",
-      "order": Object {
-        "exchangeAddress": "exchangeAddress",
-        "expirationTimeSeconds": "1234567890",
-        "feeRecipientAddress": "feeRecipientAddress",
-        "makerAddress": "makerAddress",
-        "makerAssetAmount": "123",
-        "makerAssetData": "makerAssetData",
-        "makerFee": "0",
-        "salt": "789",
-        "senderAddress": "senderAddress",
-        "signature": "signature",
-        "takerAddress": "takerAddress",
-        "takerAssetAmount": "456",
-        "takerAssetData": "takerAssetData",
-        "takerFee": "0",
-      },
-      "orderHash": "0xOrderHash",
-      "pair": "ZRX-WETH",
-    },
-    "timeout": 19,
-    "ws": Object {},
-  },
-}
-`;
-
-exports[`handleAddOrderRequest 2`] = `
-Array [
-  Array [
-    "add",
-    "ZRX-WETH",
-    "0xOrderHash",
-  ],
-]
-`;
-
-exports[`handleAddOrderRequest 3`] = `
 Array [
   Array [
     Object {},
@@ -54,79 +8,6 @@ Array [
       "userOrder": "userOrder",
     },
     "add",
-  ],
-]
-`;
-
-exports[`handleAddOrderRequest 4`] = `
-Array [
-  Array [
-    Object {
-      "test": "liveOrder",
-    },
-    "add",
-    "pending",
-    "user",
-  ],
-]
-`;
-
-exports[`handleAddOrderRequest exist in persistence 1`] = `
-Array [
-  Array [
-    Object {},
-    Object {
-      "channel": "orders",
-      "method": "add",
-      "order": Object {
-        "exchangeAddress": "exchangeAddress",
-        "expirationTimeSeconds": "1234567890",
-        "feeRecipientAddress": "feeRecipientAddress",
-        "makerAddress": "makerAddress",
-        "makerAssetAmount": "123",
-        "makerAssetData": "makerAssetData",
-        "makerFee": "0",
-        "salt": "789",
-        "senderAddress": "senderAddress",
-        "signature": "signature",
-        "takerAddress": "takerAddress",
-        "takerAssetAmount": "456",
-        "takerAssetData": "takerAssetData",
-        "takerFee": "0",
-      },
-      "orderHash": "0xOrderHash",
-      "pair": "ZRX-WETH",
-    },
-  ],
-]
-`;
-
-exports[`handleAddOrderRequest exist in request cache 1`] = `
-Array [
-  Array [
-    Object {},
-    Object {
-      "channel": "orders",
-      "method": "add",
-      "order": Object {
-        "exchangeAddress": "exchangeAddress",
-        "expirationTimeSeconds": "1234567890",
-        "feeRecipientAddress": "feeRecipientAddress",
-        "makerAddress": "makerAddress",
-        "makerAssetAmount": "123",
-        "makerAssetData": "makerAssetData",
-        "makerFee": "0",
-        "salt": "789",
-        "senderAddress": "senderAddress",
-        "signature": "signature",
-        "takerAddress": "takerAddress",
-        "takerAssetAmount": "456",
-        "takerAssetData": "takerAssetData",
-        "takerFee": "0",
-      },
-      "orderHash": "0xOrderHash",
-      "pair": "ZRX-WETH",
-    },
   ],
 ]
 `;
@@ -157,6 +38,7 @@ Array [
       "orderHash": "0xOrderHash",
       "pair": "ZRX-WETH",
     },
+    "invalid order",
   ],
   Array [
     Object {},
@@ -182,14 +64,77 @@ Array [
       "orderHash": "0xInvalidHash",
       "pair": "ZRX-WETH",
     },
+    "invalid order",
   ],
 ]
 `;
 
-exports[`handleInvalidOrderRequest 1`] = `
+exports[`handleAddOrderRequest invalid persist 1`] = `
 Array [
   Array [
-    "{\\"method\\":\\"add\\",\\"channel\\":\\"orders\\",\\"status\\":\\"invalid order\\",\\"pair\\":\\"ZRX-WETH\\",\\"orderHash\\":\\"0xOrderHash\\"}",
+    Object {},
+    Object {
+      "channel": "orders",
+      "method": "add",
+      "order": Object {
+        "exchangeAddress": "exchangeAddress",
+        "expirationTimeSeconds": "1234567890",
+        "feeRecipientAddress": "feeRecipientAddress",
+        "makerAddress": "makerAddress",
+        "makerAssetAmount": "123",
+        "makerAssetData": "makerAssetData",
+        "makerFee": "0",
+        "salt": "789",
+        "senderAddress": "senderAddress",
+        "signature": "signature",
+        "takerAddress": "takerAddress",
+        "takerAssetAmount": "456",
+        "takerAssetData": "takerAssetData",
+        "takerFee": "0",
+      },
+      "orderHash": "0xOrderHash",
+      "pair": "ZRX-WETH",
+    },
+    "invalid order",
+  ],
+]
+`;
+
+exports[`handleAddOrderRequest persist error 1`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "channel": "orders",
+      "method": "add",
+      "order": Object {
+        "exchangeAddress": "exchangeAddress",
+        "expirationTimeSeconds": "1234567890",
+        "feeRecipientAddress": "feeRecipientAddress",
+        "makerAddress": "makerAddress",
+        "makerAssetAmount": "123",
+        "makerAssetData": "makerAssetData",
+        "makerFee": "0",
+        "salt": "789",
+        "senderAddress": "senderAddress",
+        "signature": "signature",
+        "takerAddress": "takerAddress",
+        "takerAssetAmount": "456",
+        "takerAssetData": "takerAssetData",
+        "takerFee": "0",
+      },
+      "orderHash": "0xOrderHash",
+      "pair": "ZRX-WETH",
+    },
+    "error",
+  ],
+]
+`;
+
+exports[`handleErrorOrderRequest 1`] = `
+Array [
+  Array [
+    "{\\"method\\":\\"add\\",\\"channel\\":\\"orders\\",\\"status\\":\\"status\\",\\"pair\\":\\"ZRX-WETH\\",\\"orderHash\\":\\"0xOrderHash\\"}",
   ],
 ]
 `;
@@ -208,28 +153,7 @@ Array [
 ]
 `;
 
-exports[`handleOrderRequest invalid requests 1`] = `
-Array [
-  Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"orders\\",\\"method\\":\\"\\",\\"orderHash\\":\\"\\",\\"pair\\":\\"\\"}",
-  ],
-  Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"orders\\",\\"method\\":\\"test\\",\\"orderHash\\":\\"\\",\\"pair\\":\\"\\"}",
-  ],
-  Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"orders\\",\\"method\\":\\"add\\",\\"orderHash\\":\\"\\",\\"pair\\":\\"\\"}",
-  ],
-  Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"orders\\",\\"method\\":\\"add\\",\\"orderHash\\":\\"\\",\\"pair\\":\\"test\\"}",
-  ],
-  Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"orders\\",\\"method\\":\\"add\\",\\"orderHash\\":\\"\\",\\"pair\\":\\"ZRX-WETH\\"}",
-  ],
-  Array [
-    "{\\"status\\":\\"service not available\\",\\"channel\\":\\"orders\\",\\"method\\":\\"add\\",\\"orderHash\\":\\"0xOrderHash\\",\\"pair\\":\\"ZRX-WETH\\"}",
-  ],
-]
-`;
+exports[`handleOrderRequest invalid requests 1`] = `Array []`;
 
 exports[`handleOrderRequest terminate 1`] = `
 Array [
@@ -275,72 +199,7 @@ Array [
 ]
 `;
 
-exports[`handleSequenceResponse add 1`] = `
-Array [
-  Array [
-    undefined,
-    Object {
-      "userOrder": "test",
-    },
-    "add",
-  ],
-]
-`;
-
-exports[`handleSequenceResponse add invalid 1`] = `
-Array [
-  Array [
-    undefined,
-    Object {
-      "order": "signedOrder",
-    },
-  ],
-]
-`;
-
-exports[`handleSequenceResponse terminate 1`] = `
-Array [
-  Array [
-    undefined,
-    Object {
-      "userOrder": "test",
-    },
-    "terminate",
-  ],
-]
-`;
-
 exports[`handleTerminateOrderRequest 1`] = `
-Object {
-  "terminate|ZRX-WETH|0xOrderHash": Object {
-    "liveOrder": Object {
-      "test": "liveOrder",
-    },
-    "method": "terminate",
-    "pair": "ZRX-WETH",
-    "request": Object {
-      "channel": "orders",
-      "method": "terminate",
-      "orderHash": "0xOrderHash",
-      "pair": "ZRX-WETH",
-    },
-    "timeout": 28,
-    "ws": Object {},
-  },
-}
-`;
-
-exports[`handleTerminateOrderRequest 2`] = `
-Array [
-  Array [
-    "terminate",
-    "ZRX-WETH",
-    "0xOrderHash",
-  ],
-]
-`;
-
-exports[`handleTerminateOrderRequest 3`] = `
 Array [
   Array [
     Object {},
@@ -348,47 +207,6 @@ Array [
       "userOrder": "userOrder",
     },
     "terminate",
-  ],
-]
-`;
-
-exports[`handleTerminateOrderRequest 4`] = `
-Array [
-  Array [
-    Object {
-      "test": "liveOrder",
-    },
-    "terminate",
-    "pending",
-    "user",
-  ],
-]
-`;
-
-exports[`handleTerminateOrderRequest already terminated 1`] = `
-Array [
-  Array [
-    Object {},
-    Object {
-      "channel": "orders",
-      "method": "terminate",
-      "orderHash": "0xOrderHash",
-      "pair": "ZRX-WETH",
-    },
-  ],
-]
-`;
-
-exports[`handleTerminateOrderRequest exist in request cache 1`] = `
-Array [
-  Array [
-    Object {},
-    Object {
-      "channel": "orders",
-      "method": "terminate",
-      "orderHash": "0xOrderHash",
-      "pair": "ZRX-WETH",
-    },
   ],
 ]
 `;
@@ -403,6 +221,34 @@ Array [
       "orderHash": "0xOrderHash",
       "pair": "ZRX-WETH",
     },
+    "invalid order",
+  ],
+  Array [
+    Object {},
+    Object {
+      "channel": "orders",
+      "method": "terminate",
+      "orderHash": "0xOrderHash",
+      "pair": "ZRX-WETH",
+      "userOrder": "userOrder",
+    },
+    "invalid order",
+  ],
+]
+`;
+
+exports[`handleTerminateOrderRequest persist error 1`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "channel": "orders",
+      "method": "terminate",
+      "orderHash": "0xOrderHash",
+      "pair": "ZRX-WETH",
+      "userOrder": "userOrder",
+    },
+    "error",
   ],
 ]
 `;

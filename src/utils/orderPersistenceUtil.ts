@@ -83,27 +83,23 @@ class OrderPersistenceUtil {
 	}
 
 	public async persistOrder(method: string, orderQueueItem: IOrderQueueItem) {
-		const liveOrder = await this.getLiveOrderInPersistence(
-			orderQueueItem.liveOrder.pair,
-			orderQueueItem.liveOrder.orderHash
-		);
+		const { pair, orderHash } = orderQueueItem.liveOrder;
+		const liveOrder = await this.getLiveOrderInPersistence(pair, orderHash);
 		if (method === CST.DB_ADD && liveOrder) {
-			util.logDebug(
-				`order ${orderQueueItem.liveOrder.orderHash} already exist, ignore add request`
-			);
+			util.logDebug(`order ${orderHash} already exist, ignore add request`);
 			return null;
 		} else if (method !== CST.DB_ADD && !liveOrder) {
-			util.logDebug(
-				`order ${
-					orderQueueItem.liveOrder.orderHash
-				} does not exist, ignore ${method} request`
-			);
+			util.logDebug(`order ${orderHash} does not exist, ignore ${method} request`);
 			return null;
 		}
 
-		util.logDebug(`storing order queue item in redis ${orderQueueItem.liveOrder.orderHash}`);
+		const sequence = await redisUtil.increment(`${CST.DB_SEQUENCE}|${pair}`);
+		orderQueueItem.liveOrder.currentSequence = sequence;
+		if (method === CST.DB_ADD) orderQueueItem.liveOrder.initialSequence = sequence;
+
+		util.logDebug(`storing order queue item in redis ${orderHash}`);
 		await redisUtil.multi();
-		const key = `${method}|${orderQueueItem.liveOrder.orderHash}`;
+		const key = `${method}|${orderHash}`;
 		// store order in hash map
 		redisUtil.hashSet(`${CST.DB_ORDERS}|${CST.DB_CACHE}`, key, JSON.stringify(orderQueueItem));
 		// push orderhash into queue
