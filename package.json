@@ -10,7 +10,6 @@
 		"relayer": "ts-node ./src/index relayer",
 		"pruneOrder": "ts-node ./src/index pruneOrder",
 		"orderWatcher": "ts-node ./src/index orderWatcher",
-		"sequence": "ts-node ./src/index sequence",
 		"orders": "ts-node ./src/index orders"
 	},
 	"jest": {
