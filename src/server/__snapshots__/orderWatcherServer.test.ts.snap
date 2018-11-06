@@ -45,3 +45,47 @@ Array [
   ],
 ]
 `;
+
+exports[`handle orderUpdate ADD 1`] = `
+Array [
+  Array [
+    "orderHash1",
+    Object {
+      "exchangeAddress": "exchangeAddress",
+      "expirationTimeSeconds": "1234567890",
+      "feeRecipientAddress": "feeRecipientAddress",
+      "makerAddress": "makerAddress",
+      "makerAssetAmount": "123",
+      "makerAssetData": "makerAssetData",
+      "makerFee": "0",
+      "salt": "789",
+      "senderAddress": "senderAddress",
+      "signature": "signature",
+      "takerAddress": "takerAddress",
+      "takerAssetAmount": "456",
+      "takerAssetData": "takerAssetData",
+      "takerFee": "0",
+    },
+  ],
+]
+`;
+
+exports[`handle orderUpdate terminate 1`] = `
+Array [
+  Array [
+    "orderHash1",
+  ],
+]
+`;
+
+exports[`reloadLiveOrders 1`] = `Array []`;
+
+exports[`reloadLiveOrders 2`] = `Array []`;
+
+exports[`remove from watch, exisitng order 1`] = `
+Array [
+  Array [
+    "orderHash",
+  ],
+]
+`;
