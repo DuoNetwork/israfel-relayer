@@ -124,7 +124,7 @@ class OrderPersistenceUtil {
 		if (publish)
 			redisUtil.publish(
 				`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${pair}`,
-				JSON.stringify(orderQueueItem)
+				JSON.stringify(orderPersistRequest)
 			);
 
 		return this.addUserOrderToDB(

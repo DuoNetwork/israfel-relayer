@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 import * as CST from '../common/constants';
-import { IOrderBookUpdate, IOrderQueueItem } from '../common/types';
+import { IOrderBookUpdate, IOrderPersistRequest } from '../common/types';
 import util from './util';
 
 export class RedisUtil {
@@ -10,7 +10,7 @@ export class RedisUtil {
 		| ((channel: string, orderBookUpdate: IOrderBookUpdate) => any)
 		| null = null;
 	private handleOrderUpdate:
-		| ((channel: string, orderQueueItem: IOrderQueueItem) => any)
+		| ((channel: string, orderPersistRequest: IOrderPersistRequest) => any)
 		| null = null;
 
 	public init(redisKey: { host: string; password: string; servername: string }) {
@@ -50,7 +50,7 @@ export class RedisUtil {
 	// 	this.handleOrderBookUpdate = handleOrderBookUpdate;
 	// }
 	public onOrderUpdate(
-		handleOrderUpdate: (channel: string, orderUpdate: IOrderQueueItem) => any
+		handleOrderUpdate: (channel: string, orderPersistRequest: IOrderPersistRequest) => any
 	) {
 		this.handleOrderUpdate = handleOrderUpdate;
 	}

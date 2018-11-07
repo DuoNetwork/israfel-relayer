@@ -121,16 +121,18 @@ test('reloadLiveOrders', async () => {
 	expect((orderWatcherServer.addIntoWatch as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-const orderUpdate = {
+const orderPersistRequest = {
 	method: 'method',
-	liveOrder: liveOrder1,
+	pair: 'pair1',
+	orderHash: 'orderHash1',
+	amount: 456,
 	signedOrder: signedOrder
 };
 test('handle orderUpdate no method', async () => {
 	orderWatcherServer.orderWatcher = null;
 	orderWatcherServer.addIntoWatch = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
-	await orderWatcherServer.handleOrderUpdate('channel', orderUpdate);
+	await orderWatcherServer.handleOrderUpdate('channel', orderPersistRequest);
 	expect(orderWatcherServer.addIntoWatch as jest.Mock).not.toBeCalled();
 	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
 });
@@ -139,8 +141,8 @@ test('handle orderUpdate ADD', async () => {
 	orderWatcherServer.orderWatcher = null;
 	orderWatcherServer.addIntoWatch = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
-	orderUpdate.method = CST.DB_ADD;
-	await orderWatcherServer.handleOrderUpdate('channel', orderUpdate);
+	orderPersistRequest.method = CST.DB_ADD;
+	await orderWatcherServer.handleOrderUpdate('channel', orderPersistRequest);
 	expect((orderWatcherServer.addIntoWatch as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
 });
@@ -149,8 +151,8 @@ test('handle orderUpdate terminate', async () => {
 	orderWatcherServer.orderWatcher = null;
 	orderWatcherServer.addIntoWatch = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
-	orderUpdate.method = CST.DB_TERMINATE;
-	await orderWatcherServer.handleOrderUpdate('channel', orderUpdate);
+	orderPersistRequest.method = CST.DB_TERMINATE;
+	await orderWatcherServer.handleOrderUpdate('channel', orderPersistRequest);
 	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(orderWatcherServer.addIntoWatch as jest.Mock).not.toBeCalled();
 });

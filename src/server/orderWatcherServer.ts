@@ -6,13 +6,7 @@ import {
 	OrderWatcher
 } from '0x.js';
 import * as CST from '../common/constants';
-import {
-	IOption,
-	IOrderPersistRequest,
-	IOrderQueueItem,
-	IRawOrder,
-	IStringSignedOrder
-} from '../common/types';
+import { IOption, IOrderPersistRequest, IRawOrder, IStringSignedOrder } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import redisUtil from '../utils/redisUtil';
@@ -122,15 +116,15 @@ class OrderWatcherServer {
 			}
 	}
 
-	public handleOrderUpdate = (channel: string, orderQueueItem: IOrderQueueItem) => {
+	public handleOrderUpdate = (channel: string, orderPersistRequest: IOrderPersistRequest) => {
 		util.logInfo('receive update from channel: ' + channel);
-		const method = orderQueueItem.method;
+		const method = orderPersistRequest.method;
 		switch (method) {
 			case CST.DB_ADD:
-				this.addIntoWatch(orderQueueItem.liveOrder.orderHash, orderQueueItem.signedOrder);
+				this.addIntoWatch(orderPersistRequest.orderHash, orderPersistRequest.signedOrder);
 				break;
 			case CST.DB_TERMINATE:
-				this.removeFromWatch(orderQueueItem.liveOrder.orderHash);
+				this.removeFromWatch(orderPersistRequest.orderHash);
 				break;
 			default:
 				break;
@@ -145,8 +139,8 @@ class OrderWatcherServer {
 		);
 		const pair = option.token + '-' + CST.TOKEN_WETH;
 
-		redisUtil.onOrderUpdate((channel, orderUpdate) =>
-			this.handleOrderUpdate(channel, orderUpdate)
+		redisUtil.onOrderUpdate((channel, orderPersistRequest) =>
+			this.handleOrderUpdate(channel, orderPersistRequest)
 		);
 
 		await this.reloadLiveOrders(pair);

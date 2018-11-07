@@ -110,7 +110,7 @@ exports[`persistOrder add 3`] = `
 Array [
   Array [
     "orders|pubsub|pair",
-    "{\\"method\\":\\"add\\",\\"liveOrder\\":{\\"test\\":\\"liveOrder\\",\\"initialSequence\\":123,\\"currentSequence\\":123},\\"signedOrder\\":\\"may or may not exist\\"}",
+    "{\\"method\\":\\"add\\",\\"pair\\":\\"pair\\",\\"orderHash\\":\\"0xOrderHash\\",\\"amount\\":-1,\\"signedOrder\\":\\"may or may not exist\\"}",
   ],
 ]
 `;
@@ -153,7 +153,7 @@ exports[`persistOrder not add 3`] = `
 Array [
   Array [
     "orders|pubsub|pair",
-    "{\\"method\\":\\"method\\",\\"liveOrder\\":{\\"currentSequence\\":123,\\"amount\\":123}}",
+    "{\\"method\\":\\"method\\",\\"pair\\":\\"pair\\",\\"orderHash\\":\\"0xOrderHash\\",\\"amount\\":123}",
   ],
 ]
 `;
