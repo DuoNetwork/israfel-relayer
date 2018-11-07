@@ -8,9 +8,9 @@ import {
 	RPCSubprovider,
 	signatureUtils,
 	SignedOrder,
-	SignerType,
 	Web3ProviderEngine
 } from '0x.js';
+import { getContractAddressesForNetworkOrThrow } from '@0x/contract-addresses';
 import { schemas, SchemaValidator } from '@0xproject/json-schemas';
 import { MnemonicWalletSubprovider } from '@0xproject/subproviders';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
@@ -30,8 +30,10 @@ export default class Web3Util {
 	public web3Wrapper: Web3Wrapper;
 	public wallet: Wallet = Wallet.None;
 	public accountIndex: number = 0;
+	public live: boolean = false;
 
 	constructor(window: any, live: boolean, mnemonic: string) {
+		this.live = live;
 		if (window && typeof window.web3 !== 'undefined') {
 			this.web3Wrapper = new Web3Wrapper(window.web3.currentProvider);
 			this.wallet = Wallet.MetaMask;
@@ -129,16 +131,15 @@ export default class Web3Util {
 			makerAmt,
 			takerAmt,
 			expInSeconds,
-			this.contractWrappers.exchange.getContractAddress()
+			this.contractWrappers.exchange.address
 		);
 		order.salt = generatePseudoRandomSalt();
 
 		const orderHash = orderHashUtils.getOrderHashHex(order);
-		const signature = await signatureUtils.ecSignOrderHashAsync(
+		const signature = await signatureUtils.ecSignHashAsync(
 			this.web3Wrapper.getProvider(),
 			orderHash,
-			order.makerAddress,
-			SignerType.Metamask
+			order.makerAddress
 		);
 		return {
 			orderHash: orderHash,
@@ -206,11 +207,12 @@ export default class Web3Util {
 	}
 
 	public getTokenAddressFromName(tokenName: string): string {
+		const contractAddresses = getContractAddressesForNetworkOrThrow(this.live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN);
 		switch (tokenName) {
 			case CST.TOKEN_ZRX:
-				return this.contractWrappers.exchange.getZRXTokenAddress();
+				return contractAddresses.zrxToken;
 			case CST.TOKEN_WETH:
-				const ethTokenAddr = this.contractWrappers.etherToken.getContractAddressIfExists();
+				const ethTokenAddr = contractAddresses.etherToken;
 				if (!ethTokenAddr) {
 					util.logInfo('no eth token address');
 					return '';
