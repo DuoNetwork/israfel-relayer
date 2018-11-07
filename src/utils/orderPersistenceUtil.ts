@@ -122,10 +122,14 @@ class OrderPersistenceUtil {
 		util.logDebug(`done`);
 
 		if (publish)
-			redisUtil.publish(
-				`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${pair}`,
-				JSON.stringify(orderPersistRequest)
-			);
+			try {
+				redisUtil.publish(
+					`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${pair}`,
+					JSON.stringify(orderPersistRequest)
+				);
+			} catch (error) {
+				util.logError(error);
+			}
 
 		return this.addUserOrderToDB(
 			orderQueueItem.liveOrder,
