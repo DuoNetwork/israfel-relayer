@@ -23,24 +23,24 @@ const signedOrder = {
 };
 
 test('addIntoWatch with signed order', async () => {
+	const addOrderAsync = jest.fn(() => Promise.resolve());
 	orderWatcherServer.orderWatcher = {
-		addOrderAsync: jest.fn(() => Promise.resolve())
+		addOrderAsync: addOrderAsync
 	} as any;
 	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({}));
-
+	orderWatcherServer.watchingOrders = [];
 	await orderWatcherServer.addIntoWatch('orderHash', signedOrder);
 	expect(dynamoUtil.getRawOrder as jest.Mock).not.toBeCalled();
-	expect(
-		((orderWatcherServer.orderWatcher as any).addOrderAsync as jest.Mock).mock.calls
-	).toMatchSnapshot();
+	expect(addOrderAsync.mock.calls).toMatchSnapshot();
+	expect(orderWatcherServer.watchingOrders).toMatchSnapshot();
 });
 
 test('addIntoWatch no signed order', async () => {
+	const addOrderAsync = jest.fn(() => Promise.resolve());
 	orderWatcherServer.orderWatcher = {
-		addOrderAsync: jest.fn(() => Promise.resolve())
+		addOrderAsync: addOrderAsync
 	} as any;
 	orderWatcherServer.watchingOrders = [];
-
 	dynamoUtil.getRawOrder = jest.fn(() =>
 		Promise.resolve({
 			orderHash: 'orderHash',
@@ -48,48 +48,46 @@ test('addIntoWatch no signed order', async () => {
 		})
 	);
 	await orderWatcherServer.addIntoWatch('orderHash');
-	expect(
-		((orderWatcherServer.orderWatcher as any).addOrderAsync as jest.Mock).mock.calls
-	).toMatchSnapshot();
+	expect(addOrderAsync.mock.calls).toMatchSnapshot();
 	expect((dynamoUtil.getRawOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(orderWatcherServer.watchingOrders).toMatchSnapshot();
 });
 
 test('addIntoWatch no signed order and no rawOrder', async () => {
+	const addOrderAsync = jest.fn(() => Promise.resolve());
 	orderWatcherServer.orderWatcher = {
-		addOrderAsync: jest.fn(() => Promise.resolve())
+		addOrderAsync: addOrderAsync
 	} as any;
 	orderWatcherServer.watchingOrders = [];
 
 	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve());
 	await orderWatcherServer.addIntoWatch('orderHash');
-	expect(
-		((orderWatcherServer.orderWatcher as any).addOrderAsync as jest.Mock).mock.calls
-	).toMatchSnapshot();
+	expect(addOrderAsync).not.toBeCalled();
+	expect(orderWatcherServer.watchingOrders).toEqual([])
 });
 
 test('remove from watch, not a existing order', async () => {
+	const removeOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.orderWatcher = {
-		removeOrder: jest.fn(() => Promise.resolve())
+		removeOrder: removeOrder
 	} as any;
 	orderWatcherServer.watchingOrders = [];
 
 	orderWatcherServer.removeFromWatch('orderHash');
-	expect((orderWatcherServer.orderWatcher as any).removeOrder as jest.Mock).not.toBeCalled();
+	expect(removeOrder).not.toBeCalled();
+	expect(orderWatcherServer.watchingOrders).toEqual([]);
 });
 
 test('remove from watch, exisitng order', async () => {
+	const removeOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.orderWatcher = {
-		removeOrder: jest.fn(() => Promise.resolve())
+		removeOrder: removeOrder
 	} as any;
 
 	orderWatcherServer.watchingOrders = ['orderHash'];
-
 	await orderWatcherServer.removeFromWatch('orderHash');
-	expect(
-		((orderWatcherServer.orderWatcher as any).removeOrder as jest.Mock).mock.calls
-	).toMatchSnapshot();
-	expect(orderWatcherServer.watchingOrders.length).toBe(0);
+	expect(removeOrder.mock.calls).toMatchSnapshot();
+	expect(orderWatcherServer.watchingOrders).toEqual([]);
 });
 
 const orderPersistRequest = {
@@ -99,7 +97,7 @@ const orderPersistRequest = {
 	amount: 456,
 	signedOrder: signedOrder
 };
-test('handle orderUpdate no method', async () => {
+test('handle orderUpdate invalid method', async () => {
 	orderWatcherServer.orderWatcher = null;
 	orderWatcherServer.addIntoWatch = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
@@ -108,7 +106,7 @@ test('handle orderUpdate no method', async () => {
 	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
 });
 
-test('handle orderUpdate ADD', async () => {
+test('handle orderUpdate add', async () => {
 	orderWatcherServer.orderWatcher = null;
 	orderWatcherServer.addIntoWatch = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
@@ -132,20 +130,15 @@ const orderStateValid: OrderState = {
 	isValid: true,
 	orderHash: 'orderHash',
 	orderRelevantState: {
-		makerBalance: new BigNumber(123),
-		makerProxyAllowance: new BigNumber(234),
-		makerFeeBalance: new BigNumber(345),
-		makerFeeProxyAllowance: new BigNumber(345),
-		filledTakerAssetAmount: new BigNumber(456),
-		remainingFillableMakerAssetAmount: new BigNumber(567),
-		remainingFillableTakerAssetAmount: new BigNumber(678)
-	}
+		remainingFillableMakerAssetAmount: new BigNumber(567)
+	} as any
 };
 
 test('handleOrderWatcherUpdate isValid no userOrder', async () => {
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
 	await orderWatcherServer.handleOrderWatcherUpdate('pair', orderStateValid);
+	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
@@ -168,6 +161,7 @@ test('handleOrderWatcherUpdate isValid userOrder', async () => {
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(userOrder));
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
 	await orderWatcherServer.handleOrderWatcherUpdate('pair', orderStateValid);
+	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
 });
 

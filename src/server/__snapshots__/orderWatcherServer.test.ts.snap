@@ -37,8 +37,6 @@ Array [
 ]
 `;
 
-exports[`addIntoWatch no signed order and no rawOrder 1`] = `Array []`;
-
 exports[`addIntoWatch with signed order 1`] = `
 Array [
   Array [
@@ -62,7 +60,13 @@ Array [
 ]
 `;
 
-exports[`handle orderUpdate ADD 1`] = `
+exports[`addIntoWatch with signed order 2`] = `
+Array [
+  "orderHash",
+]
+`;
+
+exports[`handle orderUpdate add 1`] = `
 Array [
   Array [
     "orderHash",
@@ -161,7 +165,35 @@ Array [
 exports[`handleOrderWatcherUpdate isValid no userOrder 1`] = `
 Array [
   Array [
+    Object {
+      "amount": 5.67e-16,
+      "method": "update",
+      "orderHash": "orderHash",
+      "pair": "pair",
+    },
+    false,
+  ],
+]
+`;
+
+exports[`handleOrderWatcherUpdate isValid no userOrder 2`] = `
+Array [
+  Array [
     "orderHash",
+  ],
+]
+`;
+
+exports[`handleOrderWatcherUpdate isValid userOrder 1`] = `
+Array [
+  Array [
+    Object {
+      "amount": 5.67e-16,
+      "method": "update",
+      "orderHash": "orderHash",
+      "pair": "pair",
+    },
+    false,
   ],
 ]
 `;

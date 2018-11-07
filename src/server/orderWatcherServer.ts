@@ -103,7 +103,7 @@ class OrderWatcherServer {
 	}
 
 	public handleOrderUpdate = (channel: string, orderPersistRequest: IOrderPersistRequest) => {
-		util.logInfo('receive update from channel: ' + channel);
+		util.logDebug('receive update from channel: ' + channel);
 		const method = orderPersistRequest.method;
 		switch (method) {
 			case CST.DB_ADD:
