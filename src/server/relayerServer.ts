@@ -23,11 +23,6 @@ class RelayerServer {
 	public web3Util: Web3Util | null = null;
 	public relayerWsServer: WebSocket.Server | null = null;
 
-	public handleTimeout(cacheKey: string) {
-		util.logError(cacheKey);
-		return;
-	}
-
 	public handleErrorOrderRequest(ws: WebSocket, req: IWsOrderRequest, status: string) {
 		const orderResponse: IWsOrderResponse = {
 			method: req.method,
