@@ -61,33 +61,33 @@ export class RedisUtil {
 	}
 
 	public increment(key: string) {
-		if (this.redisSub) return this.redisSub.incr(key);
+		if (this.redisPub) return this.redisPub.incr(key);
 		return Promise.reject();
 	}
 
 	public set(key: string, value: string) {
-		if (this.redisSub) return this.redisSub.set(key, value);
+		if (this.redisPub) return this.redisPub.set(key, value);
 		return Promise.resolve('');
 	}
 
 	public get(key: string) {
-		if (this.redisSub) return this.redisSub.get(key);
+		if (this.redisPub) return this.redisPub.get(key);
 		return Promise.resolve('');
 	}
 
 	public hashSet(key: string, field: string, value: string) {
-		if (this.redisSub) return this.redisSub.hset(key, field, value);
+		if (this.redisPub) return this.redisPub.hset(key, field, value);
 		return Promise.resolve(0);
 	}
 
 	public hashGet(key: string, field: string): Promise<string | null> {
-		if (this.redisSub) return this.redisSub.hget(key, field);
+		if (this.redisPub) return this.redisPub.hget(key, field);
 		return Promise.resolve(null);
 	}
 
 	public async hashMultiGet(key: string, ...fields: string[]) {
-		if (this.redisSub) {
-			const values: Array<string | null> = await this.redisSub.hmget(key, ...fields);
+		if (this.redisPub) {
+			const values: Array<string | null> = await this.redisPub.hmget(key, ...fields);
 			const output: { [field: string]: string | null } = {};
 			fields.forEach((f, i) => (output[f] = values[i]));
 			return output;
@@ -96,12 +96,12 @@ export class RedisUtil {
 	}
 
 	public hashGetAll(key: string): Promise<any> {
-		if (this.redisSub) return this.redisSub.hgetall(key);
+		if (this.redisPub) return this.redisPub.hgetall(key);
 		return Promise.resolve(null);
 	}
 
 	public hashDelete(key: string, field: string) {
-		if (this.redisSub) return this.redisSub.hdel(key, field);
+		if (this.redisPub) return this.redisPub.hdel(key, field);
 	}
 
 	public subscribe(channel: string) {
@@ -121,30 +121,30 @@ export class RedisUtil {
 	}
 
 	public push(key: string, ...values: string[]) {
-		if (this.redisSub) this.redisSub.lpush(key, values);
+		if (this.redisPub) this.redisPub.lpush(key, values);
 	}
 
 	public putBack(key: string, ...values: string[]) {
-		if (this.redisSub) this.redisSub.rpush(key, values);
+		if (this.redisPub) this.redisPub.rpush(key, values);
 	}
 
 	public pop(key: string) {
-		if (this.redisSub) return this.redisSub.rpop(key);
+		if (this.redisPub) return this.redisPub.rpop(key);
 		return Promise.resolve('');
 	}
 
 	public multi() {
-		if (this.redisSub) return this.redisSub.multi({ pipeline: false });
+		if (this.redisPub) return this.redisPub.multi({ pipeline: false });
 		return Promise.resolve('');
 	}
 
 	public exec() {
-		if (this.redisSub) return this.redisSub.exec();
+		if (this.redisPub) return this.redisPub.exec();
 		return Promise.resolve('');
 	}
 
 	public getQueueLength(key: string) {
-		if (this.redisSub) return this.redisSub.llen(key);
+		if (this.redisPub) return this.redisPub.llen(key);
 		return Promise.resolve(0);
 	}
 }

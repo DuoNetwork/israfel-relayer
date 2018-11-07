@@ -25,6 +25,7 @@ class OrderWatcherServer {
 			orderHash: orderState.orderHash,
 			amount: -1
 		};
+		util.logDebug(JSON.stringify(orderState));
 		if (orderState.isValid) {
 			const remainingAmount = Web3Util.fromWei(
 				(orderState as OrderStateValid).orderRelevantState.remainingFillableMakerAssetAmount
@@ -129,14 +130,19 @@ class OrderWatcherServer {
 			this.handleOrderUpdate(channel, orderPersistRequest)
 		);
 
+		redisUtil.patternSubscribe(`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${pair}|*`);
+
 		const allOrders = await orderPersistenceUtil.getAllLiveOrdersInPersistence(pair);
+		util.logInfo('loaded live orders');
 		for (const orderHash in allOrders) await this.addIntoWatch(orderHash);
+		util.logInfo('added live orders into watch');
 		setInterval(async () => {
 			const oldOrders = this.watchingOrders;
 
 			const currentOrdersOrderHash = Object.keys(
 				await orderPersistenceUtil.getAllLiveOrdersInPersistence(pair)
 			);
+			util.logInfo('loaded live orders');
 			const ordersToRemove = oldOrders.filter(
 				orderHash => !currentOrdersOrderHash.includes(orderHash)
 			);
