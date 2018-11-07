@@ -58,6 +58,24 @@ Object {
 }
 `;
 
+exports[`getAllLiveOrdersInPersistence add and update in redis 1`] = `
+Object {
+  "0xOrderHash": "update",
+}
+`;
+
+exports[`getAllLiveOrdersInPersistence only add in redis 1`] = `
+Object {
+  "0xOrderHash": "add",
+}
+`;
+
+exports[`getAllLiveOrdersInPersistence update in redis and exist in db 1`] = `
+Object {
+  "0xOrderHash": "update",
+}
+`;
+
 exports[`getLiveOrderInPersistence in add queue 1`] = `"liveOrder"`;
 
 exports[`getLiveOrderInPersistence in update queue 1`] = `"liveOrder"`;

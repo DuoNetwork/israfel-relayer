@@ -408,3 +408,96 @@ test('processOrderQueue failed', async () => {
 	);
 	expect(isSuccess).toEqual(false);
 });
+
+test('getAllLiveOrdersInPersistence only add in redis', async () => {
+	redisUtil.hashGetAll = jest.fn(() =>
+		Promise.resolve({
+			'add|0xOrderHash': JSON.stringify({ liveOrder: 'add' })
+		})
+	);
+	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([]));
+	expect(await orderPersistenceUtil.getAllLiveOrdersInPersistence('pair')).toMatchSnapshot();
+});
+
+test('getAllLiveOrdersInPersistence add and update in redis', async () => {
+	redisUtil.hashGetAll = jest.fn(() =>
+		Promise.resolve({
+			'add|0xOrderHash': JSON.stringify({ liveOrder: 'add' }),
+			'update|0xOrderHash': JSON.stringify({ liveOrder: 'update' })
+		})
+	);
+	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([]));
+	expect(await orderPersistenceUtil.getAllLiveOrdersInPersistence('pair')).toMatchSnapshot();
+});
+
+test('getAllLiveOrdersInPersistence add and terminate in redis', async () => {
+	redisUtil.hashGetAll = jest.fn(() =>
+		Promise.resolve({
+			'add|0xOrderHash': JSON.stringify({ liveOrder: 'add' }),
+			'terminate|0xOrderHash': JSON.stringify({ liveOrder: 'terminate' })
+		})
+	);
+	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([]));
+	expect(await orderPersistenceUtil.getAllLiveOrdersInPersistence('pair')).toEqual({});
+});
+
+test('getAllLiveOrdersInPersistence add, update and terminate in redis', async () => {
+	redisUtil.hashGetAll = jest.fn(() =>
+		Promise.resolve({
+			'add|0xOrderHash': JSON.stringify({ liveOrder: 'add' }),
+			'update|0xOrderHash': JSON.stringify({ liveOrder: 'update' }),
+			'terminate|0xOrderHash': JSON.stringify({ liveOrder: 'terminate' })
+		})
+	);
+	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([]));
+	expect(await orderPersistenceUtil.getAllLiveOrdersInPersistence('pair')).toEqual({});
+});
+
+test('getAllLiveOrdersInPersistence update in redis and exist in db', async () => {
+	redisUtil.hashGetAll = jest.fn(() =>
+		Promise.resolve({
+			'update|0xOrderHash': JSON.stringify({ liveOrder: 'update' })
+		})
+	);
+	dynamoUtil.getLiveOrders = jest.fn(() =>
+		Promise.resolve([
+			{
+				orderHash: '0xOrderHash'
+			}
+		])
+	);
+	expect(await orderPersistenceUtil.getAllLiveOrdersInPersistence('pair')).toMatchSnapshot();
+});
+
+test('getAllLiveOrdersInPersistence update and temrinate in redis and exist in db', async () => {
+	redisUtil.hashGetAll = jest.fn(() =>
+		Promise.resolve({
+			'update|0xOrderHash': JSON.stringify({ liveOrder: 'update' }),
+			'terminate|0xOrderHash': JSON.stringify({ liveOrder: 'terminate' })
+		})
+	);
+	dynamoUtil.getLiveOrders = jest.fn(() =>
+		Promise.resolve([
+			{
+				orderHash: '0xOrderHash'
+			}
+		])
+	);
+	expect(await orderPersistenceUtil.getAllLiveOrdersInPersistence('pair')).toEqual({});
+});
+
+test('getAllLiveOrdersInPersistence temrinate in redis and exist in db', async () => {
+	redisUtil.hashGetAll = jest.fn(() =>
+		Promise.resolve({
+			'terminate|0xOrderHash': JSON.stringify({ liveOrder: 'terminate' })
+		})
+	);
+	dynamoUtil.getLiveOrders = jest.fn(() =>
+		Promise.resolve([
+			{
+				orderHash: '0xOrderHash'
+			}
+		])
+	);
+	expect(await orderPersistenceUtil.getAllLiveOrdersInPersistence('pair')).toEqual({});
+});
