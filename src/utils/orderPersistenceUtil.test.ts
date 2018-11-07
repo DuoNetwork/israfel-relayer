@@ -151,16 +151,16 @@ test('persistOrder add', async () => {
 	redisUtil.hashSet = jest.fn(() => Promise.resolve());
 	redisUtil.push = jest.fn();
 	redisUtil.publish = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' }));
 	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
 
 	expect(
 		await orderPersistenceUtil.persistOrder(
 			{
 				method: CST.DB_ADD,
-				liveOrder: {
-					pair: 'pair',
-					orderHash: '0xOrderHash'
-				} as any,
+				pair: 'pair',
+				orderHash: '0xOrderHash',
+				amount: -1,
 				signedOrder: 'may or may not exist' as any
 			},
 			true
@@ -186,11 +186,9 @@ test('persistOrder not add', async () => {
 		await orderPersistenceUtil.persistOrder(
 			{
 				method: 'method',
-				liveOrder: {
-					pair: 'pair',
-					orderHash: '0xOrderHash'
-				} as any,
-				signedOrder: 'may or may not exist' as any
+				pair: 'pair',
+				orderHash: '0xOrderHash',
+				amount: 123
 			},
 			true
 		)
@@ -214,10 +212,9 @@ test('persistOrder add existing', async () => {
 		await orderPersistenceUtil.persistOrder(
 			{
 				method: CST.DB_ADD,
-				liveOrder: {
-					pair: 'pair',
-					orderHash: '0xOrderHash'
-				} as any,
+				pair: 'pair',
+				orderHash: '0xOrderHash',
+				amount: -1,
 				signedOrder: 'signedOrder' as any
 			},
 			true
@@ -242,10 +239,9 @@ test('persistOrder not add not existing', async () => {
 		await orderPersistenceUtil.persistOrder(
 			{
 				method: 'method',
-				liveOrder: {
-					pair: 'pair',
-					orderHash: '0xOrderHash'
-				} as any
+				pair: 'pair',
+				orderHash: '0xOrderHash',
+				amount: -1
 			},
 			true
 		)

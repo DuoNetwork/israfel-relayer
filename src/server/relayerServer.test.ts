@@ -74,7 +74,6 @@ test('handleAddOrderRequest invalid persist', async () => {
 	relayerServer.web3Util = {
 		validateOrder: jest.fn(() => '0xOrderHash')
 	} as any;
-	orderPersistenceUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' }));
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
@@ -93,7 +92,6 @@ test('handleAddOrderRequest persist error', async () => {
 	relayerServer.web3Util = {
 		validateOrder: jest.fn(() => '0xOrderHash')
 	} as any;
-	orderPersistenceUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' }));
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.reject('handleAddOrderRequest'));
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
@@ -112,7 +110,6 @@ test('handleAddOrderRequest', async () => {
 	relayerServer.web3Util = {
 		validateOrder: jest.fn(() => '0xOrderHash')
 	} as any;
-	orderPersistenceUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' }));
 	orderPersistenceUtil.persistOrder = jest.fn(() =>
 		Promise.resolve({
 			userOrder: 'userOrder'

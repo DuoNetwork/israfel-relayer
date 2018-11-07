@@ -6,7 +6,13 @@ import {
 	OrderWatcher
 } from '0x.js';
 import * as CST from '../common/constants';
-import { IOption, IOrderQueueItem, IRawOrder, IStringSignedOrder } from '../common/types';
+import {
+	IOption,
+	IOrderPersistRequest,
+	IOrderQueueItem,
+	IRawOrder,
+	IStringSignedOrder
+} from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import redisUtil from '../utils/redisUtil';
@@ -19,31 +25,28 @@ class OrderWatcherServer {
 	public watchingOrders: string[] = [];
 
 	public async handleOrderWatcherUpdate(pair: string, orderState: OrderState) {
-		const orderHash = orderState.orderHash;
-		const liveOrder = await orderPersistenceUtil.getLiveOrderInPersistence(pair, orderHash);
-		if (!liveOrder) {
-			util.logInfo(`invalid orderHash ${orderHash}, ignore`);
-			this.removeFromWatch(orderHash);
-			return;
-		}
-
-		let method = CST.DB_UPDATE;
+		const orderPersistRequest: IOrderPersistRequest = {
+			method: CST.DB_UPDATE,
+			pair: pair,
+			orderHash: orderState.orderHash,
+			amount: -1
+		};
 		if (orderState.isValid) {
 			const remainingAmount = Web3Util.fromWei(
 				(orderState as OrderStateValid).orderRelevantState.remainingFillableMakerAssetAmount
 			);
-			liveOrder.amount = remainingAmount;
+			orderPersistRequest.amount = remainingAmount;
 		} else {
 			const error = (orderState as OrderStateInvalid).error;
 			switch (error) {
 				case ExchangeContractErrs.OrderCancelExpired:
 				case ExchangeContractErrs.OrderFillExpired:
 				case ExchangeContractErrs.OrderCancelled:
-					method = CST.DB_TERMINATE;
+					orderPersistRequest.method = CST.DB_TERMINATE;
 					break;
 				case ExchangeContractErrs.OrderRemainingFillAmountZero:
-					liveOrder.amount = 0;
-					method = CST.DB_TERMINATE;
+					orderPersistRequest.amount = 0;
+					orderPersistRequest.method = CST.DB_TERMINATE;
 					break;
 				default:
 					break;
@@ -54,21 +57,15 @@ class OrderWatcherServer {
 		let done = false;
 		while (!done)
 			try {
-				userOrder = await orderPersistenceUtil.persistOrder(
-					{
-						method: method,
-						liveOrder: liveOrder
-					},
-					false
-				);
+				userOrder = await orderPersistenceUtil.persistOrder(orderPersistRequest, false);
 				done = true;
 			} catch (error) {
 				await util.sleep(2000);
 			}
 
 		if (!userOrder) {
-			util.logInfo(`invalid orderHash ${orderHash}, ignore`);
-			this.removeFromWatch(orderHash);
+			util.logInfo(`invalid orderHash ${orderPersistRequest.orderHash}, ignore`);
+			this.removeFromWatch(orderPersistRequest.orderHash);
 		}
 	}
 

@@ -62,11 +62,9 @@ class RelayerServer {
 				const userOrder = await orderPersistenceUtil.persistOrder(
 					{
 						method: req.method,
-						liveOrder: orderPersistenceUtil.constructNewLiveOrder(
-							stringSignedOrder,
-							req.pair,
-							orderHash
-						),
+						pair: req.pair,
+						orderHash: orderHash,
+						amount: -1,
 						signedOrder: stringSignedOrder
 					},
 					true
@@ -90,7 +88,9 @@ class RelayerServer {
 				const userOrder = await orderPersistenceUtil.persistOrder(
 					{
 						method: req.method,
-						liveOrder: req.userOrder
+						pair: req.pair,
+						orderHash: req.orderHash,
+						amount: 0,
 					},
 					true
 				);

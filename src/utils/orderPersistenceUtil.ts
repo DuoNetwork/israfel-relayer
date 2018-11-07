@@ -3,6 +3,7 @@ import * as CST from '../common/constants';
 import {
 	ILiveOrder,
 	IOption,
+	IOrderPersistRequest,
 	IOrderQueueItem,
 	IStringSignedOrder,
 	IUserOrder
@@ -82,10 +83,9 @@ class OrderPersistenceUtil {
 		return allOrders;
 	}
 
-	public async persistOrder(orderQueueItem: IOrderQueueItem, publish: boolean) {
-		const { pair, orderHash } = orderQueueItem.liveOrder;
-		const method = orderQueueItem.method;
-		const liveOrder = await this.getLiveOrderInPersistence(pair, orderHash);
+	public async persistOrder(orderPersistRequest: IOrderPersistRequest, publish: boolean) {
+		const { pair, orderHash, method, amount } = orderPersistRequest;
+		let liveOrder = await this.getLiveOrderInPersistence(pair, orderHash);
 		if (method === CST.DB_ADD && liveOrder) {
 			util.logDebug(`order ${orderHash} already exist, ignore add request`);
 			return null;
@@ -95,8 +95,21 @@ class OrderPersistenceUtil {
 		}
 
 		const sequence = await redisUtil.increment(`${CST.DB_SEQUENCE}|${pair}`);
+		if (method === CST.DB_ADD) {
+			liveOrder = this.constructNewLiveOrder(
+				orderPersistRequest.signedOrder as IStringSignedOrder,
+				pair,
+				orderHash
+			);
+			liveOrder.initialSequence = sequence;
+		}
+		const orderQueueItem: IOrderQueueItem = {
+			method: method,
+			liveOrder: liveOrder as ILiveOrder
+		};
 		orderQueueItem.liveOrder.currentSequence = sequence;
-		if (method === CST.DB_ADD) orderQueueItem.liveOrder.initialSequence = sequence;
+		if (method === CST.DB_ADD) orderQueueItem.signedOrder = orderPersistRequest.signedOrder;
+		else if (amount !== -1) orderQueueItem.liveOrder.amount = amount;
 
 		util.logDebug(`storing order queue item in redis ${orderHash}`);
 		await redisUtil.multi();

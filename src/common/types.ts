@@ -43,6 +43,14 @@ export interface IStringSignedOrder {
 	signature: string;
 }
 
+export interface IOrderPersistRequest {
+	method: string;
+	pair: string;
+	orderHash: string;
+	amount: number;
+	signedOrder?: IStringSignedOrder;
+}
+
 export interface IOrderQueueItem {
 	method: string;
 	liveOrder: ILiveOrder;
