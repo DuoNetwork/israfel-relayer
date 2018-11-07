@@ -28,7 +28,7 @@ Array [
 exports[`handle orderUpdate ADD 1`] = `
 Array [
   Array [
-    "orderHash1",
+    "orderHash",
     Object {
       "exchangeAddress": "exchangeAddress",
       "expirationTimeSeconds": "1234567890",
@@ -52,7 +52,7 @@ Array [
 exports[`handle orderUpdate terminate 1`] = `
 Array [
   Array [
-    "orderHash1",
+    "orderHash",
   ],
 ]
 `;
@@ -72,10 +72,6 @@ Array [
   ],
 ]
 `;
-
-exports[`reloadLiveOrders 1`] = `Array []`;
-
-exports[`reloadLiveOrders 2`] = `Array []`;
 
 exports[`remove from watch, exisitng order 1`] = `
 Array [

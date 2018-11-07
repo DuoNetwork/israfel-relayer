@@ -1,4 +1,4 @@
-import {BigNumber, OrderState} from '0x.js';
+import { BigNumber, OrderState } from '0x.js';
 import * as CST from '../common/constants';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
@@ -22,9 +22,9 @@ const signedOrder = {
 };
 
 test('addIntoWatch with signed order', async () => {
-	(orderWatcherServer.orderWatcher as any) = {
+	orderWatcherServer.orderWatcher = {
 		addOrderAsync: jest.fn(() => Promise.resolve())
-	};
+	} as any;
 	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({}));
 
 	await orderWatcherServer.addIntoWatch('orderHash', signedOrder);
@@ -35,9 +35,9 @@ test('addIntoWatch with signed order', async () => {
 });
 
 test('addIntoWatch no signed order', async () => {
-	(orderWatcherServer.orderWatcher as any) = {
+	orderWatcherServer.orderWatcher = {
 		addOrderAsync: jest.fn(() => Promise.resolve())
-	};
+	} as any;
 
 	dynamoUtil.getRawOrder = jest.fn(() =>
 		Promise.resolve({
@@ -52,9 +52,9 @@ test('addIntoWatch no signed order', async () => {
 });
 
 test('remove from watch, not a existing order', async () => {
-	(orderWatcherServer.orderWatcher as any) = {
+	orderWatcherServer.orderWatcher = {
 		removeOrder: jest.fn(() => Promise.resolve())
-	};
+	} as any;
 	orderWatcherServer.watchingOrders = [];
 
 	orderWatcherServer.removeFromWatch('orderHash');
@@ -62,9 +62,9 @@ test('remove from watch, not a existing order', async () => {
 });
 
 test('remove from watch, exisitng order', async () => {
-	(orderWatcherServer.orderWatcher as any) = {
+	orderWatcherServer.orderWatcher = {
 		removeOrder: jest.fn(() => Promise.resolve())
-	};
+	} as any;
 
 	orderWatcherServer.watchingOrders = ['orderHash'];
 
@@ -75,54 +75,10 @@ test('remove from watch, exisitng order', async () => {
 	expect(orderWatcherServer.watchingOrders.length).toBe(0);
 });
 
-test('reloadLiveOrders, no orderWatcher initiated', async () => {
-	(orderWatcherServer.orderWatcher as any) = null;
-	orderPersistenceUtil.getAllLiveOrdersInPersistence = jest.fn(() => Promise.resolve());
-
-	await orderWatcherServer.reloadLiveOrders('pair');
-	expect(orderPersistenceUtil.getAllLiveOrdersInPersistence as jest.Mock).not.toBeCalled();
-});
-
-const liveOrder1 = {
-	account: 'account1',
-	pair: 'pair1',
-	orderHash: 'orderHash1',
-	price: 123,
-	amount: 456,
-	side: 'sell1',
-	initialSequence: 1,
-	currentSequence: 2
-};
-const liveOrder2 = {
-	account: 'account2',
-	pair: 'pair2',
-	orderHash: 'orderHash2',
-	price: 123,
-	amount: 456,
-	side: 'buy',
-	initialSequence: 3,
-	currentSequence: 4
-};
-test('reloadLiveOrders', async () => {
-	(orderWatcherServer.orderWatcher as any) = null;
-	orderPersistenceUtil.getAllLiveOrdersInPersistence = jest.fn(() =>
-		Promise.resolve({
-			orderHash1: liveOrder1,
-			orderHash2: liveOrder2
-		})
-	);
-
-	orderWatcherServer.addIntoWatch = jest.fn(() => Promise.resolve());
-
-	await orderWatcherServer.reloadLiveOrders('pair');
-	expect(orderWatcherServer.watchingOrders).toMatchSnapshot();
-	expect((orderWatcherServer.addIntoWatch as jest.Mock).mock.calls).toMatchSnapshot();
-});
-
 const orderPersistRequest = {
 	method: 'method',
-	pair: 'pair1',
-	orderHash: 'orderHash1',
+	pair: 'pair',
+	orderHash: 'orderHash',
 	amount: 456,
 	signedOrder: signedOrder
 };

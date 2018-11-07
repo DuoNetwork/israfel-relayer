@@ -65,20 +65,20 @@ class OrderWatcherServer {
 
 	public async addIntoWatch(orderHash: string, signedOrder?: IStringSignedOrder) {
 		try {
-			if (!signedOrder) {
-				const rawOrder: IRawOrder | null = await dynamoUtil.getRawOrder(orderHash);
-				if (!rawOrder) {
-					util.logDebug('no signed order specified, failed to add');
-					return;
-				}
-				signedOrder = rawOrder.signedOrder as IStringSignedOrder;
-			}
 			if (this.orderWatcher && !this.watchingOrders.includes(orderHash)) {
+				if (!signedOrder) {
+					const rawOrder: IRawOrder | null = await dynamoUtil.getRawOrder(orderHash);
+					if (!rawOrder) {
+						util.logDebug('no signed order specified, failed to add');
+						return;
+					}
+					signedOrder = rawOrder.signedOrder as IStringSignedOrder;
+				}
 				await this.orderWatcher.addOrderAsync(
 					orderPersistenceUtil.parseSignedOrder(signedOrder)
 				);
 				this.watchingOrders.push(orderHash);
-				util.logDebug('succsfully added ' + orderHash);
+				util.logDebug('successfully added ' + orderHash);
 			}
 		} catch (e) {
 			util.logDebug('failed to add ' + orderHash + 'error is ' + e);
@@ -92,25 +92,14 @@ class OrderWatcherServer {
 			return;
 		}
 		try {
-			if (this.orderWatcher) {
+			if (this.orderWatcher && this.watchingOrders.includes(orderHash)) {
 				this.orderWatcher.removeOrder(orderHash);
-				util.logDebug('succsfully removed ' + orderHash);
+				util.logDebug('successfully removed ' + orderHash);
 				this.watchingOrders = this.watchingOrders.filter(hash => hash !== orderHash);
 			}
 		} catch (e) {
 			util.logDebug('failed to remove ' + orderHash + 'error is ' + e);
 		}
-	}
-
-	public async reloadLiveOrders(pair: string): Promise<object> {
-		util.logInfo('reload orders to watch for ' + pair);
-		if (!this.orderWatcher) {
-			util.logDebug('orderWatcher is not initiated');
-			return {};
-		}
-
-		const allOrders = await orderPersistenceUtil.getAllLiveOrdersInPersistence(pair);
-		return allOrders;
 	}
 
 	public handleOrderUpdate = (channel: string, orderPersistRequest: IOrderPersistRequest) => {
@@ -140,12 +129,14 @@ class OrderWatcherServer {
 			this.handleOrderUpdate(channel, orderPersistRequest)
 		);
 
-		const allOrders = await this.reloadLiveOrders(pair);
+		const allOrders = await orderPersistenceUtil.getAllLiveOrdersInPersistence(pair);
 		for (const orderHash in allOrders) await this.addIntoWatch(orderHash);
 		setInterval(async () => {
 			const oldOrders = this.watchingOrders;
 
-			const currentOrdersOrderHash = Object.keys(await this.reloadLiveOrders(pair));
+			const currentOrdersOrderHash = Object.keys(
+				await orderPersistenceUtil.getAllLiveOrdersInPersistence(pair)
+			);
 			const ordersToRemove = oldOrders.filter(
 				orderHash => !currentOrdersOrderHash.includes(orderHash)
 			);
@@ -167,7 +158,6 @@ class OrderWatcherServer {
 			this.handleOrderWatcherUpdate(pair, orderState);
 		});
 	}
-
 }
 
 const orderWatcherServer = new OrderWatcherServer();
