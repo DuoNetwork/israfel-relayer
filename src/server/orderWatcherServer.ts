@@ -73,10 +73,11 @@ class OrderWatcherServer {
 				}
 				signedOrder = rawOrder.signedOrder as IStringSignedOrder;
 			}
-			if (this.orderWatcher) {
+			if (this.orderWatcher && !this.watchingOrders.includes(orderHash)) {
 				await this.orderWatcher.addOrderAsync(
 					orderPersistenceUtil.parseSignedOrder(signedOrder)
 				);
+				this.watchingOrders.push(orderHash);
 				util.logDebug('succsfully added ' + orderHash);
 			}
 		} catch (e) {
@@ -101,19 +102,15 @@ class OrderWatcherServer {
 		}
 	}
 
-	public async reloadLiveOrders(pair: string) {
+	public async reloadLiveOrders(pair: string): Promise<object> {
 		util.logInfo('reload orders to watch for ' + pair);
 		if (!this.orderWatcher) {
 			util.logDebug('orderWatcher is not initiated');
-			return;
+			return {};
 		}
 
-		const allOrders = orderPersistenceUtil.getAllLiveOrdersInPersistence(pair);
-		for (const orderHash in allOrders)
-			if (!this.watchingOrders.includes(orderHash)) {
-				this.watchingOrders.push(orderHash);
-				await this.addIntoWatch(orderHash);
-			}
+		const allOrders = await orderPersistenceUtil.getAllLiveOrdersInPersistence(pair);
+		return allOrders;
 	}
 
 	public handleOrderUpdate = (channel: string, orderPersistRequest: IOrderPersistRequest) => {
@@ -143,8 +140,18 @@ class OrderWatcherServer {
 			this.handleOrderUpdate(channel, orderPersistRequest)
 		);
 
-		await this.reloadLiveOrders(pair);
-		setInterval(() => this.reloadLiveOrders(pair), CST.ONE_MINUTE_MS * 60);
+		const allOrders = await this.reloadLiveOrders(pair);
+		for (const orderHash in allOrders) await this.addIntoWatch(orderHash);
+		setInterval(async () => {
+			const oldOrders = this.watchingOrders;
+
+			const currentOrdersOrderHash = Object.keys(await this.reloadLiveOrders(pair));
+			const ordersToRemove = oldOrders.filter(
+				orderHash => !currentOrdersOrderHash.includes(orderHash)
+			);
+			for (const orderHash of ordersToRemove) await this.removeFromWatch(orderHash);
+			for (const orderHash of currentOrdersOrderHash) await this.addIntoWatch(orderHash);
+		}, CST.ONE_MINUTE_MS * 60);
 
 		if (option.server) {
 			dynamoUtil.updateStatus(pair);
@@ -160,6 +167,7 @@ class OrderWatcherServer {
 			this.handleOrderWatcherUpdate(pair, orderState);
 		});
 	}
+
 }
 
 const orderWatcherServer = new OrderWatcherServer();

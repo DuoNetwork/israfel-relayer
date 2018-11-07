@@ -1,11 +1,8 @@
+import {BigNumber, OrderState} from '0x.js';
 import * as CST from '../common/constants';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
-// import Web3Util from '../utils/Web3Util';
 import orderWatcherServer from './orderWatcherServer';
-// import redisUtil from '../utils/redisUtil';
-
-// const web3Util = new Web3Util(null, false, '');
 
 const signedOrder = {
 	senderAddress: 'senderAddress',
@@ -58,8 +55,9 @@ test('remove from watch, not a existing order', async () => {
 	(orderWatcherServer.orderWatcher as any) = {
 		removeOrder: jest.fn(() => Promise.resolve())
 	};
+	orderWatcherServer.watchingOrders = [];
 
-	await orderWatcherServer.removeFromWatch('orderHash');
+	orderWatcherServer.removeFromWatch('orderHash');
 	expect((orderWatcherServer.orderWatcher as any).removeOrder as jest.Mock).not.toBeCalled();
 });
 
@@ -157,17 +155,30 @@ test('handle orderUpdate terminate', async () => {
 	expect(orderWatcherServer.addIntoWatch as jest.Mock).not.toBeCalled();
 });
 
-// const option = {
-// 	live: false,
-// 	token: 'token',
-// 	maker: 1,
-// 	spender: 2,
-// 	amount: 3,
-// 	debug: false,
-// 	server: false
-// };
-// test('start order watcher', async () => {
-// 	orderWatcherServer.web3Util = web3Util;
-// 	orderWatcherServer.web3Util.web3Wrapper.getProvider = jest.fn(() => 'provider');
-// 	redisUtil.onOrderUpdate = jest.fn(()=> Promise.resolve());
-// });
+const orderStateValid: OrderState = {
+	isValid: true,
+	orderHash: 'orderHash',
+	orderRelevantState: {
+		makerBalance: new BigNumber(123),
+		makerProxyAllowance: new BigNumber(234),
+		makerFeeBalance: new BigNumber(345),
+		makerFeeProxyAllowance: new BigNumber(345),
+		filledTakerAssetAmount: new BigNumber(456),
+		remainingFillableMakerAssetAmount: new BigNumber(567),
+		remainingFillableTakerAssetAmount: new BigNumber(678)
+	}
+};
+
+test('handleOrderWatcherUpdate no liveOrder', async () => {
+	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve());
+	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+	await orderWatcherServer.handleOrderWatcherUpdate('pair', orderStateValid);
+	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderWatcherUpdate ', async () => {
+	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve());
+	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+	await orderWatcherServer.handleOrderWatcherUpdate('pair', orderStateValid);
+	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
+});

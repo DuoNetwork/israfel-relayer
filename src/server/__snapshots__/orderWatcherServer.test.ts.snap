@@ -1,27 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`addIntoWatch no signed order 1`] = `
-Array [
-  Array [
-    Object {
-      "exchangeAddress": "exchangeAddress",
-      "expirationTimeSeconds": "1234567890",
-      "feeRecipientAddress": "feeRecipientAddress",
-      "makerAddress": "makerAddress",
-      "makerAssetAmount": "123",
-      "makerAssetData": "makerAssetData",
-      "makerFee": "0",
-      "salt": "789",
-      "senderAddress": "senderAddress",
-      "signature": "signature",
-      "takerAddress": "takerAddress",
-      "takerAssetAmount": "456",
-      "takerAssetData": "takerAssetData",
-      "takerFee": "0",
-    },
-  ],
-]
-`;
+exports[`addIntoWatch no signed order 1`] = `Array []`;
 
 exports[`addIntoWatch with signed order 1`] = `
 Array [
@@ -74,6 +53,22 @@ exports[`handle orderUpdate terminate 1`] = `
 Array [
   Array [
     "orderHash1",
+  ],
+]
+`;
+
+exports[`handleOrderWatcherUpdate  1`] = `
+Array [
+  Array [
+    "orderHash",
+  ],
+]
+`;
+
+exports[`handleOrderWatcherUpdate no liveOrder 1`] = `
+Array [
+  Array [
+    "orderHash",
   ],
 ]
 `;
