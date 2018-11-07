@@ -82,8 +82,9 @@ class OrderPersistenceUtil {
 		return allOrders;
 	}
 
-	public async persistOrder(method: string, orderQueueItem: IOrderQueueItem) {
+	public async persistOrder(orderQueueItem: IOrderQueueItem, publish: boolean) {
 		const { pair, orderHash } = orderQueueItem.liveOrder;
+		const method = orderQueueItem.method;
 		const liveOrder = await this.getLiveOrderInPersistence(pair, orderHash);
 		if (method === CST.DB_ADD && liveOrder) {
 			util.logDebug(`order ${orderHash} already exist, ignore add request`);
@@ -106,6 +107,12 @@ class OrderPersistenceUtil {
 		redisUtil.push(`${CST.DB_ORDERS}|${CST.DB_QUEUE}`, key);
 		await redisUtil.exec();
 		util.logDebug(`done`);
+
+		if (publish)
+			redisUtil.publish(
+				`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${pair}`,
+				JSON.stringify(orderQueueItem)
+			);
 
 		return this.addUserOrderToDB(
 			orderQueueItem.liveOrder,

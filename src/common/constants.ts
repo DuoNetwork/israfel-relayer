@@ -65,6 +65,7 @@ export const DB_ORDERS = 'orders';
 export const DB_ORDER_BOOKS = 'orderBooks';
 export const DB_QUEUE = 'queue';
 export const DB_CACHE = 'cache';
+export const DB_PUBSUB = 'pubsub';
 
 export const AWS_DYNAMO_API_VERSION = '2012-10-08';
 

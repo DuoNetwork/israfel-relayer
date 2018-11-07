@@ -44,6 +44,7 @@ export interface IStringSignedOrder {
 }
 
 export interface IOrderQueueItem {
+	method: string;
 	liveOrder: ILiveOrder;
 	signedOrder?: IStringSignedOrder;
 }
@@ -77,10 +78,6 @@ export interface IOrderBookUpdate {
 	pair: string;
 	price: number;
 	amount: number;
-}
-
-export interface IOrderUpdate extends IOrderQueueItem {
-	method: string;
 }
 
 export interface IWsRequest {

@@ -60,9 +60,7 @@ test('remove from watch, not a existing order', async () => {
 	};
 
 	await orderWatcherServer.removeFromWatch('orderHash');
-	expect(
-		(orderWatcherServer.orderWatcher as any).removeOrder as jest.Mock
-	).not.toBeCalled();
+	expect((orderWatcherServer.orderWatcher as any).removeOrder as jest.Mock).not.toBeCalled();
 });
 
 test('remove from watch, exisitng order', async () => {
@@ -93,7 +91,7 @@ const liveOrder1 = {
 	orderHash: 'orderHash1',
 	price: 123,
 	amount: 456,
-	side: "sell1",
+	side: 'sell1',
 	initialSequence: 1,
 	currentSequence: 2
 };
@@ -103,21 +101,20 @@ const liveOrder2 = {
 	orderHash: 'orderHash2',
 	price: 123,
 	amount: 456,
-	side: "buy",
+	side: 'buy',
 	initialSequence: 3,
 	currentSequence: 4
-}
+};
 test('reloadLiveOrders', async () => {
 	(orderWatcherServer.orderWatcher as any) = null;
-	orderPersistenceUtil.getAllLiveOrdersInPersistence = jest.fn(() => Promise.resolve(
-		{
-			"orderHash1": liveOrder1,
-			"orderHash2": liveOrder2,
-		}
-	));
+	orderPersistenceUtil.getAllLiveOrdersInPersistence = jest.fn(() =>
+		Promise.resolve({
+			orderHash1: liveOrder1,
+			orderHash2: liveOrder2
+		})
+	);
 
 	orderWatcherServer.addIntoWatch = jest.fn(() => Promise.resolve());
-
 
 	await orderWatcherServer.reloadLiveOrders('pair');
 	expect(orderWatcherServer.watchingOrders).toMatchSnapshot();
@@ -128,7 +125,7 @@ const orderUpdate = {
 	method: 'method',
 	liveOrder: liveOrder1,
 	signedOrder: signedOrder
-}
+};
 test('handle orderUpdate no method', async () => {
 	orderWatcherServer.orderWatcher = null;
 	orderWatcherServer.addIntoWatch = jest.fn(() => Promise.resolve());
@@ -158,7 +155,6 @@ test('handle orderUpdate terminate', async () => {
 	expect(orderWatcherServer.addIntoWatch as jest.Mock).not.toBeCalled();
 });
 
-
 // const option = {
 // 	live: false,
 // 	token: 'token',
@@ -173,4 +169,3 @@ test('handle orderUpdate terminate', async () => {
 // 	orderWatcherServer.web3Util.web3Wrapper.getProvider = jest.fn(() => 'provider');
 // 	redisUtil.onOrderUpdate = jest.fn(()=> Promise.resolve());
 // });
-

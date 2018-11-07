@@ -150,18 +150,25 @@ test('persistOrder add', async () => {
 	redisUtil.exec = jest.fn(() => Promise.resolve());
 	redisUtil.hashSet = jest.fn(() => Promise.resolve());
 	redisUtil.push = jest.fn();
+	redisUtil.publish = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
 
 	expect(
-		await orderPersistenceUtil.persistOrder(CST.DB_ADD, {
-			liveOrder: {
-				orderHash: '0xOrderHash'
-			} as any,
-			signedOrder: 'may or may not exist' as any
-		})
+		await orderPersistenceUtil.persistOrder(
+			{
+				method: CST.DB_ADD,
+				liveOrder: {
+					pair: 'pair',
+					orderHash: '0xOrderHash'
+				} as any,
+				signedOrder: 'may or may not exist' as any
+			},
+			true
+		)
 	).not.toBeNull();
 	expect((redisUtil.hashSet as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((redisUtil.push as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((redisUtil.publish as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderPersistenceUtil.addUserOrderToDB as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
@@ -172,18 +179,25 @@ test('persistOrder not add', async () => {
 	redisUtil.exec = jest.fn(() => Promise.resolve());
 	redisUtil.hashSet = jest.fn(() => Promise.resolve());
 	redisUtil.push = jest.fn();
+	redisUtil.publish = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
 
 	expect(
-		await orderPersistenceUtil.persistOrder('method', {
-			liveOrder: {
-				orderHash: '0xOrderHash'
-			} as any,
-			signedOrder: 'may or may not exist' as any
-		})
+		await orderPersistenceUtil.persistOrder(
+			{
+				method: 'method',
+				liveOrder: {
+					pair: 'pair',
+					orderHash: '0xOrderHash'
+				} as any,
+				signedOrder: 'may or may not exist' as any
+			},
+			true
+		)
 	).not.toBeNull();
 	expect((redisUtil.hashSet as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((redisUtil.push as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((redisUtil.publish as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderPersistenceUtil.addUserOrderToDB as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
@@ -193,18 +207,25 @@ test('persistOrder add existing', async () => {
 	redisUtil.exec = jest.fn(() => Promise.resolve());
 	redisUtil.hashSet = jest.fn(() => Promise.resolve());
 	redisUtil.push = jest.fn();
+	redisUtil.publish = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
 
 	expect(
-		await orderPersistenceUtil.persistOrder('add', {
-			liveOrder: {
-				orderHash: '0xOrderHash'
-			} as any,
-			signedOrder: 'signedOrder' as any
-		})
+		await orderPersistenceUtil.persistOrder(
+			{
+				method: CST.DB_ADD,
+				liveOrder: {
+					pair: 'pair',
+					orderHash: '0xOrderHash'
+				} as any,
+				signedOrder: 'signedOrder' as any
+			},
+			true
+		)
 	).toBeNull();
 	expect(redisUtil.hashSet as jest.Mock).not.toBeCalled();
 	expect(redisUtil.push as jest.Mock).not.toBeCalled();
+	expect(redisUtil.publish as jest.Mock).not.toBeCalled();
 	expect(orderPersistenceUtil.addUserOrderToDB as jest.Mock).not.toBeCalled();
 });
 
@@ -214,17 +235,24 @@ test('persistOrder not add not existing', async () => {
 	redisUtil.exec = jest.fn(() => Promise.resolve());
 	redisUtil.hashSet = jest.fn(() => Promise.resolve());
 	redisUtil.push = jest.fn();
+	redisUtil.publish = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
 
 	expect(
-		await orderPersistenceUtil.persistOrder('method', {
-			liveOrder: {
-				orderHash: '0xOrderHash'
-			} as any
-		})
+		await orderPersistenceUtil.persistOrder(
+			{
+				method: 'method',
+				liveOrder: {
+					pair: 'pair',
+					orderHash: '0xOrderHash'
+				} as any
+			},
+			true
+		)
 	).toBeNull();
 	expect(redisUtil.hashSet as jest.Mock).not.toBeCalled();
 	expect(redisUtil.push as jest.Mock).not.toBeCalled();
+	expect(redisUtil.publish as jest.Mock).not.toBeCalled();
 	expect(orderPersistenceUtil.addUserOrderToDB as jest.Mock).not.toBeCalled();
 });
 

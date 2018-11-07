@@ -28,11 +28,7 @@ class RelayerServer {
 		return;
 	}
 
-	public handleErrorOrderRequest(
-		ws: WebSocket,
-		req: IWsOrderRequest,
-		status: string
-	) {
+	public handleErrorOrderRequest(ws: WebSocket, req: IWsOrderRequest, status: string) {
 		const orderResponse: IWsOrderResponse = {
 			method: req.method,
 			channel: req.channel,
@@ -63,14 +59,18 @@ class RelayerServer {
 		const orderHash = this.web3Util ? await this.web3Util.validateOrder(parsedSignedorder) : '';
 		if (orderHash && orderHash === req.orderHash)
 			try {
-				const userOrder = await orderPersistenceUtil.persistOrder(req.method, {
-					liveOrder: orderPersistenceUtil.constructNewLiveOrder(
-						stringSignedOrder,
-						req.pair,
-						orderHash
-					),
-					signedOrder: stringSignedOrder
-				});
+				const userOrder = await orderPersistenceUtil.persistOrder(
+					{
+						method: req.method,
+						liveOrder: orderPersistenceUtil.constructNewLiveOrder(
+							stringSignedOrder,
+							req.pair,
+							orderHash
+						),
+						signedOrder: stringSignedOrder
+					},
+					true
+				);
 				if (userOrder) this.handleUserOrder(ws, userOrder, req.method);
 				else this.handleErrorOrderRequest(ws, req, CST.WS_INVALID_ORDER);
 			} catch (error) {
@@ -87,9 +87,13 @@ class RelayerServer {
 		util.logDebug(`terminate order ${req.orderHash}`);
 		if (req.userOrder)
 			try {
-				const userOrder = await orderPersistenceUtil.persistOrder(req.method, {
-					liveOrder: req.userOrder
-				});
+				const userOrder = await orderPersistenceUtil.persistOrder(
+					{
+						method: req.method,
+						liveOrder: req.userOrder
+					},
+					true
+				);
 				if (userOrder) this.handleUserOrder(ws, userOrder, req.method);
 				else this.handleErrorOrderRequest(ws, req, CST.WS_INVALID_ORDER);
 			} catch (error) {
