@@ -130,7 +130,7 @@ class OrderWatcherServer {
 			this.handleOrderUpdate(channel, orderPersistRequest)
 		);
 
-		redisUtil.patternSubscribe(`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${pair}|*`);
+		redisUtil.subscribe(`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${pair}`);
 
 		const allOrders = await orderPersistenceUtil.getAllLiveOrdersInPersistence(pair);
 		util.logInfo('loaded live orders');
