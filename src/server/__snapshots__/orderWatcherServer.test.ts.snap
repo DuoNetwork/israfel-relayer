@@ -1,6 +1,43 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`addIntoWatch no signed order 1`] = `Array []`;
+exports[`addIntoWatch no signed order 1`] = `
+Array [
+  Array [
+    Object {
+      "exchangeAddress": "exchangeAddress",
+      "expirationTimeSeconds": "1234567890",
+      "feeRecipientAddress": "feeRecipientAddress",
+      "makerAddress": "makerAddress",
+      "makerAssetAmount": "123",
+      "makerAssetData": "makerAssetData",
+      "makerFee": "0",
+      "salt": "789",
+      "senderAddress": "senderAddress",
+      "signature": "signature",
+      "takerAddress": "takerAddress",
+      "takerAssetAmount": "456",
+      "takerAssetData": "takerAssetData",
+      "takerFee": "0",
+    },
+  ],
+]
+`;
+
+exports[`addIntoWatch no signed order 2`] = `
+Array [
+  Array [
+    "orderHash",
+  ],
+]
+`;
+
+exports[`addIntoWatch no signed order 3`] = `
+Array [
+  "orderHash",
+]
+`;
+
+exports[`addIntoWatch no signed order and no rawOrder 1`] = `Array []`;
 
 exports[`addIntoWatch with signed order 1`] = `
 Array [
@@ -57,15 +94,71 @@ Array [
 ]
 `;
 
-exports[`handleOrderWatcherUpdate  1`] = `
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderCancelExpired 1`] = `Array []`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderCancelExpired 2`] = `
 Array [
   Array [
-    "orderHash",
+    Object {
+      "amount": -1,
+      "method": "terminate",
+      "orderHash": "orderHash",
+      "pair": "pair",
+    },
+    false,
   ],
 ]
 `;
 
-exports[`handleOrderWatcherUpdate no liveOrder 1`] = `
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderCancelled 1`] = `Array []`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderCancelled 2`] = `
+Array [
+  Array [
+    Object {
+      "amount": -1,
+      "method": "terminate",
+      "orderHash": "orderHash",
+      "pair": "pair",
+    },
+    false,
+  ],
+]
+`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderFillExpired 1`] = `Array []`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderFillExpired 2`] = `
+Array [
+  Array [
+    Object {
+      "amount": -1,
+      "method": "terminate",
+      "orderHash": "orderHash",
+      "pair": "pair",
+    },
+    false,
+  ],
+]
+`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderRemainingFillAmountZero 1`] = `Array []`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderRemainingFillAmountZero 2`] = `
+Array [
+  Array [
+    Object {
+      "amount": 0,
+      "method": "terminate",
+      "orderHash": "orderHash",
+      "pair": "pair",
+    },
+    false,
+  ],
+]
+`;
+
+exports[`handleOrderWatcherUpdate isValid no userOrder 1`] = `
 Array [
   Array [
     "orderHash",

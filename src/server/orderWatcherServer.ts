@@ -43,7 +43,7 @@ class OrderWatcherServer {
 					orderPersistRequest.method = CST.DB_TERMINATE;
 					break;
 				default:
-					break;
+					return;
 			}
 		}
 
