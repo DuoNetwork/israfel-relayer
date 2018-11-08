@@ -185,6 +185,30 @@ Array [
 ]
 `;
 
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientMakerFeeAllowance 1`] = `Array []`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientMakerFeeAllowance 2`] = `Array []`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientMakerFeeBalance 1`] = `Array []`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientMakerFeeBalance 2`] = `Array []`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerAllowance 1`] = `Array []`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerAllowance 2`] = `Array []`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerBalance 1`] = `Array []`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerBalance 2`] = `Array []`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerFeeAllowance 1`] = `Array []`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerFeeAllowance 2`] = `Array []`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerFeeBalance 1`] = `Array []`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerFeeBalance 2`] = `Array []`;
+
 exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderCancelExpired 1`] = `Array []`;
 
 exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderCancelExpired 2`] = `
@@ -233,6 +257,21 @@ Array [
 exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderRemainingFillAmountZero 1`] = `Array []`;
 
 exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderRemainingFillAmountZero 2`] = `
+Array [
+  Array [
+    Object {
+      "balance": 0,
+      "method": "terminate",
+      "orderHash": "orderHash",
+      "pair": "pair",
+    },
+  ],
+]
+`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderRemainingFillAmountZero 3`] = `Array []`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderRemainingFillAmountZero 4`] = `
 Array [
   Array [
     Object {

@@ -258,6 +258,69 @@ test('handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderRemainingFillAm
 	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
+test('handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderRemainingFillAmountZero', async () => {
+	orderStateInValid.error = ExchangeContractErrs.OrderRemainingFillAmountZero;
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
+	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+	await orderWatcherServer.handleOrderWatcherUpdate(orderStateInValid);
+	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerBalance', async () => {
+	orderStateInValid.error = ExchangeContractErrs.InsufficientTakerBalance;
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
+	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+	await orderWatcherServer.handleOrderWatcherUpdate(orderStateInValid);
+	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerAllowance', async () => {
+	orderStateInValid.error = ExchangeContractErrs.InsufficientTakerAllowance;
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
+	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+	await orderWatcherServer.handleOrderWatcherUpdate(orderStateInValid);
+	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerFeeBalance', async () => {
+	orderStateInValid.error = ExchangeContractErrs.InsufficientTakerFeeBalance;
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
+	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+	await orderWatcherServer.handleOrderWatcherUpdate(orderStateInValid);
+	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerFeeAllowance', async () => {
+	orderStateInValid.error = ExchangeContractErrs.InsufficientTakerFeeAllowance;
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
+	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+	await orderWatcherServer.handleOrderWatcherUpdate(orderStateInValid);
+	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientMakerFeeBalance', async () => {
+	orderStateInValid.error = ExchangeContractErrs.InsufficientMakerFeeBalance;
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
+	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+	await orderWatcherServer.handleOrderWatcherUpdate(orderStateInValid);
+	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientMakerFeeAllowance', async () => {
+	orderStateInValid.error = ExchangeContractErrs.InsufficientMakerFeeAllowance;
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
+	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+	await orderWatcherServer.handleOrderWatcherUpdate(orderStateInValid);
+	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
 test('handleOrderWatcherUpdate inValid default', async () => {
 	orderStateInValid.error = '' as any;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
