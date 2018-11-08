@@ -249,4 +249,20 @@ export default class Web3Util {
 		);
 		await Promise.all(responses.map(tx => this.web3Wrapper.awaitTransactionSuccessAsync(tx)));
 	}
+
+	public async getEthBalance(address: string) {
+		const balance = await this.web3Wrapper.getBalanceInWeiAsync(address);
+		util.logInfo('balnace of ' + address + 'is ' + Web3Util.fromWei(balance));
+	}
+
+	public async wrapEther(amount: BigNumber, networkId: number, sender: string) {
+		const contractAddresses = getContractAddressesForNetworkOrThrow(networkId);
+		const etherTokenAddress = contractAddresses.etherToken;
+		await this.contractWrappers.etherToken.depositAsync(
+			etherTokenAddress,
+			amount,
+			sender,
+		);
+
+	}
 }
