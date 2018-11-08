@@ -231,23 +231,12 @@ export default class Web3Util {
 		}
 	}
 
-	public setAllUnlimitedAllowance(tokenAddr: string, addrs: string[]): Array<Promise<string>> {
-		return addrs.map(address =>
-			this.contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(tokenAddr, address)
+	public async setUnlimitedEtherTokenAllowance() {
+		const contractAddresses = getContractAddressesForNetworkOrThrow(this.networkId);
+		return this.contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
+			contractAddresses.etherToken,
+			await this.getCurrentAddress()
 		);
-	}
-
-	public async setBaseQuoteAllowance(
-		baseTokenAddr: string,
-		quoteTokenAddr: string,
-		addrs: string[]
-	): Promise<void> {
-		const responses = await Promise.all(
-			this.setAllUnlimitedAllowance(quoteTokenAddr, addrs).concat(
-				this.setAllUnlimitedAllowance(baseTokenAddr, addrs)
-			)
-		);
-		await Promise.all(responses.map(tx => this.web3Wrapper.awaitTransactionSuccessAsync(tx)));
 	}
 
 	public async getEthBalance(address: string) {
