@@ -272,4 +272,14 @@ export default class Web3Util {
 			await this.getCurrentAddress()
 		);
 	}
+
+	public async validateOrderFillable(signedOrder: SignedOrder): Promise<boolean> {
+		try {
+			await this.contractWrappers.exchange.validateOrderFillableOrThrowAsync(signedOrder);
+			return true;
+		} catch (err) {
+			util.logDebug('invalid order');
+			return false;
+		}
+	}
 }

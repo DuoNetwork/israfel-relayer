@@ -3,7 +3,8 @@ import {
 	OrderState,
 	OrderStateInvalid,
 	OrderStateValid,
-	OrderWatcher
+	OrderWatcher,
+	SignedOrder
 } from '0x.js';
 import * as CST from '../common/constants';
 import { IOption, IOrderPersistRequest, IRawOrder, IStringSignedOrder } from '../common/types';
@@ -66,7 +67,7 @@ class OrderWatcherServer {
 
 	public async addIntoWatch(orderHash: string, signedOrder?: IStringSignedOrder) {
 		try {
-			if (this.orderWatcher && !this.watchingOrders.includes(orderHash)) {
+			if (this.orderWatcher && this.web3Util && !this.watchingOrders.includes(orderHash)) {
 				if (!signedOrder) {
 					const rawOrder: IRawOrder | null = await dynamoUtil.getRawOrder(orderHash);
 					if (!rawOrder) {
@@ -75,9 +76,18 @@ class OrderWatcherServer {
 					}
 					signedOrder = rawOrder.signedOrder as IStringSignedOrder;
 				}
-				await this.orderWatcher.addOrderAsync(
-					orderPersistenceUtil.parseSignedOrder(signedOrder)
+				const rawSignedOrder: SignedOrder = orderPersistenceUtil.parseSignedOrder(
+					signedOrder
 				);
+
+				util.logDebug('start validation for order ' + orderHash);
+				const res = await this.web3Util.validateOrderFillable(rawSignedOrder);
+				if (!res) {
+					util.logDebug('failed to pass validation ' + orderHash);
+					return;
+				}
+
+				await this.orderWatcher.addOrderAsync(rawSignedOrder);
 				this.watchingOrders.push(orderHash);
 				util.logDebug('successfully added ' + orderHash);
 			}
@@ -120,8 +130,11 @@ class OrderWatcherServer {
 
 	public async startOrderWatcher(web3Util: Web3Util, option: IOption) {
 		this.web3Util = web3Util;
+		const provider = this.web3Util.web3Wrapper.getProvider();
+		// util.logInfo('using provider ' + )
+		// console.log(provider);
 		this.orderWatcher = new OrderWatcher(
-			this.web3Util.web3Wrapper.getProvider(),
+			provider,
 			option.live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN
 		);
 		const pair = option.token + '-' + CST.TOKEN_WETH;
@@ -133,7 +146,7 @@ class OrderWatcherServer {
 		redisUtil.subscribe(`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${pair}`);
 
 		const allOrders = await orderPersistenceUtil.getAllLiveOrdersInPersistence(pair);
-		util.logInfo('loaded live orders');
+		util.logInfo('loaded live orders : ' + Object.keys(allOrders).length);
 		for (const orderHash in allOrders) await this.addIntoWatch(orderHash);
 		util.logInfo('added live orders into watch');
 		setInterval(async () => {

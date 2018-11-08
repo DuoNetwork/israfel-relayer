@@ -5,8 +5,10 @@ import { BigNumber, ExchangeContractErrs, OrderState } from '0x.js';
 import * as CST from '../common/constants';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
+import Web3Util from '../utils/Web3Util';
 import orderWatcherServer from './orderWatcherServer';
-// import Web3Util from '../utils/Web3Util';
+
+orderWatcherServer.web3Util = new Web3Util(null, false, '');
 
 const signedOrder = {
 	senderAddress: 'senderAddress',
@@ -32,6 +34,9 @@ test('addIntoWatch with signed order', async () => {
 	} as any;
 	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({}));
 	orderWatcherServer.watchingOrders = [];
+	(orderWatcherServer.web3Util as any).validateOrderFillable = jest.fn(() =>
+		Promise.resolve(true)
+	);
 	await orderWatcherServer.addIntoWatch('orderHash', signedOrder);
 	expect(dynamoUtil.getRawOrder as jest.Mock).not.toBeCalled();
 	expect(addOrderAsync.mock.calls).toMatchSnapshot();
@@ -44,6 +49,9 @@ test('addIntoWatch no signed order', async () => {
 		addOrderAsync: addOrderAsync
 	} as any;
 	orderWatcherServer.watchingOrders = [];
+	(orderWatcherServer.web3Util as any).validateOrderFillable = jest.fn(() =>
+		Promise.resolve(true)
+	);
 	dynamoUtil.getRawOrder = jest.fn(() =>
 		Promise.resolve({
 			orderHash: 'orderHash',
@@ -62,11 +70,14 @@ test('addIntoWatch no signed order and no rawOrder', async () => {
 		addOrderAsync: addOrderAsync
 	} as any;
 	orderWatcherServer.watchingOrders = [];
+	(orderWatcherServer.web3Util as any).validateOrderFillable = jest.fn(() =>
+		Promise.resolve(true)
+	);
 
 	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve());
 	await orderWatcherServer.addIntoWatch('orderHash');
 	expect(addOrderAsync).not.toBeCalled();
-	expect(orderWatcherServer.watchingOrders).toEqual([])
+	expect(orderWatcherServer.watchingOrders).toEqual([]);
 });
 
 test('remove from watch, not a existing order', async () => {

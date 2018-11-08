@@ -77,6 +77,7 @@ export const RELAYER_ADDR_KOVAN = '0x003519A4aB2C35c59Cb31d9194A45DD3F9Bf9e32';
 export const RELAYER_ADDR_MAIN = '0x003519A4aB2C35c59Cb31d9194A45DD3F9Bf9e32';
 export const DUMMY_ADDR = '0x0000000000000000000000000000000000000000';
 export const PROVIDER_INFURA_KOVAN = 'wss://kovan.infura.io/ws';
+export const PROVIDER_HTTP_INFURA_KOVAN = 'https://kovan.infura.io';
 export const PROVIDER_INFURA_MAIN = 'wss://mainnet.infura.io/ws';
 export const NETWORK_ID_MAIN = 1;
 export const NETWORK_ID_KOVAN = 42;
