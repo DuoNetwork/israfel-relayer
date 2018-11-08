@@ -209,21 +209,6 @@ exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTaker
 
 exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerFeeBalance 2`] = `Array []`;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderCancelExpired 1`] = `Array []`;
-
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderCancelExpired 2`] = `
-Array [
-  Array [
-    Object {
-      "balance": -1,
-      "method": "terminate",
-      "orderHash": "orderHash",
-      "pair": "pair",
-    },
-  ],
-]
-`;
-
 exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderCancelled 1`] = `Array []`;
 
 exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderCancelled 2`] = `
@@ -242,6 +227,21 @@ Array [
 exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderFillExpired 1`] = `Array []`;
 
 exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderFillExpired 2`] = `
+Array [
+  Array [
+    Object {
+      "balance": -1,
+      "method": "terminate",
+      "orderHash": "orderHash",
+      "pair": "pair",
+    },
+  ],
+]
+`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderFillRoundingError 1`] = `Array []`;
+
+exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderFillRoundingError 2`] = `
 Array [
   Array [
     Object {

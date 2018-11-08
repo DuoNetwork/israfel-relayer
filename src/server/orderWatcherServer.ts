@@ -53,13 +53,12 @@ class OrderWatcherServer {
 		} else {
 			const error = (orderState as OrderStateInvalid).error;
 			switch (error) {
-				case ExchangeContractErrs.OrderCancelExpired:
 				case ExchangeContractErrs.OrderFillExpired:
 				case ExchangeContractErrs.OrderCancelled:
+				case ExchangeContractErrs.OrderFillRoundingError:
 					orderPersistRequest.method = CST.DB_TERMINATE;
 					break;
 				case ExchangeContractErrs.OrderRemainingFillAmountZero:
-				case ExchangeContractErrs.InsufficientRemainingFillAmount:
 					orderPersistRequest.balance = 0;
 					orderPersistRequest.method = CST.DB_TERMINATE;
 					break;
@@ -75,14 +74,6 @@ class OrderWatcherServer {
 					orderPersistRequest.balance = 0;
 					break;
 				default:
-					// OrderFillAmountZero = 'ORDER_FILL_AMOUNT_ZERO',
-					// OrderFillRoundingError = "ORDER_FILL_ROUNDING_ERROR",
-					// FillBalanceAllowanceError = "FILL_BALANCE_ALLOWANCE_ERROR",
-					// TransactionSenderIsNotFillOrderTaker = "TRANSACTION_SENDER_IS_NOT_FILL_ORDER_TAKER",
-					// MultipleMakersInSingleCancelBatchDisallowed = "MULTIPLE_MAKERS_IN_SINGLE_CANCEL_BATCH_DISALLOWED",
-					// MultipleTakerTokensInFillUpToDisallowed = "MULTIPLE_TAKER_TOKENS_IN_FILL_UP_TO_DISALLOWED",
-					// BatchOrdersMustHaveSameExchangeAddress = "BATCH_ORDERS_MUST_HAVE_SAME_EXCHANGE_ADDRESS",
-					// BatchOrdersMustHaveAtLeastOneItem = "BATCH_ORDERS_MUST_HAVE_AT_LEAST_ONE_ITEM"
 					return;
 			}
 		}

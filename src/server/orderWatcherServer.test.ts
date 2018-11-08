@@ -219,11 +219,11 @@ test('handleOrderWatcherUpdate isValid', async () => {
 const orderStateInValid: OrderState = {
 	isValid: false,
 	orderHash: 'orderHash',
-	error: ExchangeContractErrs.OrderCancelExpired
+	error: ExchangeContractErrs.OrderFillRoundingError
 };
 
-test('handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderCancelExpired', async () => {
-	orderStateInValid.error = ExchangeContractErrs.OrderCancelExpired;
+test('handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderFillRoundingError', async () => {
+	orderStateInValid.error = ExchangeContractErrs.OrderFillRoundingError;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
 	await orderWatcherServer.handleOrderWatcherUpdate(orderStateInValid);
