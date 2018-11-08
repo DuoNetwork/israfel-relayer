@@ -56,7 +56,8 @@ class RelayerServer {
 			orderHash === req.orderHash &&
 			this.web3Util &&
 			(await this.web3Util.validateOrderFillable(parsedSignedorder))
-		)
+		) {
+			util.logDebug('order valided, persisting');
 			try {
 				const userOrder = await orderPersistenceUtil.persistOrder(
 					{
@@ -74,7 +75,7 @@ class RelayerServer {
 				util.logError(error);
 				this.handleErrorOrderRequest(ws, req, CST.WS_ERROR);
 			}
-		else {
+		} else {
 			util.logDebug('invalid orderHash, ignore');
 			this.handleErrorOrderRequest(ws, req, CST.WS_INVALID_ORDER);
 		}
