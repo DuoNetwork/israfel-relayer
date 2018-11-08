@@ -96,6 +96,32 @@ Array [
     },
     "invalid order",
   ],
+  Array [
+    Object {},
+    Object {
+      "channel": "orders",
+      "method": "add",
+      "order": Object {
+        "exchangeAddress": "exchangeAddress",
+        "expirationTimeSeconds": "1234567890",
+        "feeRecipientAddress": "feeRecipientAddress",
+        "makerAddress": "makerAddress",
+        "makerAssetAmount": "123",
+        "makerAssetData": "makerAssetData",
+        "makerFee": "0",
+        "salt": "789",
+        "senderAddress": "senderAddress",
+        "signature": "signature",
+        "takerAddress": "takerAddress",
+        "takerAssetAmount": "456",
+        "takerAssetData": "takerAssetData",
+        "takerFee": "0",
+      },
+      "orderHash": "0xOrderHash",
+      "pair": "ZRX-WETH",
+    },
+    "invalid order",
+  ],
 ]
 `;
 

@@ -58,7 +58,8 @@ test('handleAddOrderRequest invalid order', async () => {
 		orderHash: '0xOrderHash'
 	});
 	relayerServer.web3Util = {
-		validateOrder: jest.fn(() => '0xOrderHash')
+		validateOrder: jest.fn(() => '0xOrderHash'),
+		validateOrderFillable: jest.fn(() => Promise.resolve(false))
 	} as any;
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
@@ -66,6 +67,13 @@ test('handleAddOrderRequest invalid order', async () => {
 		pair: CST.SUPPORTED_PAIRS[0],
 		order: signedOrder,
 		orderHash: '0xInvalidHash'
+	});
+	await relayerServer.handleAddOrderRequest({} as any, {
+		channel: CST.DB_ORDERS,
+		method: CST.DB_ADD,
+		pair: CST.SUPPORTED_PAIRS[0],
+		order: signedOrder,
+		orderHash: '0xOrderHash'
 	});
 	expect(orderPersistenceUtil.persistOrder as jest.Mock).not.toBeCalled();
 	expect(relayerServer.handleUserOrder as jest.Mock).not.toBeCalled();
@@ -76,7 +84,8 @@ test('handleAddOrderRequest invalid persist', async () => {
 	relayerServer.handleErrorOrderRequest = jest.fn();
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	relayerServer.web3Util = {
-		validateOrder: jest.fn(() => '0xOrderHash')
+		validateOrder: jest.fn(() => '0xOrderHash'),
+		validateOrderFillable: jest.fn(() => Promise.resolve(true))
 	} as any;
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	await relayerServer.handleAddOrderRequest({} as any, {
@@ -94,7 +103,8 @@ test('handleAddOrderRequest persist error', async () => {
 	relayerServer.handleErrorOrderRequest = jest.fn();
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	relayerServer.web3Util = {
-		validateOrder: jest.fn(() => '0xOrderHash')
+		validateOrder: jest.fn(() => '0xOrderHash'),
+		validateOrderFillable: jest.fn(() => Promise.resolve(true))
 	} as any;
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.reject('handleAddOrderRequest'));
 	await relayerServer.handleAddOrderRequest({} as any, {
@@ -112,7 +122,8 @@ test('handleAddOrderRequest', async () => {
 	relayerServer.handleErrorOrderRequest = jest.fn();
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	relayerServer.web3Util = {
-		validateOrder: jest.fn(() => '0xOrderHash')
+		validateOrder: jest.fn(() => '0xOrderHash'),
+		validateOrderFillable: jest.fn(() => Promise.resolve(true))
 	} as any;
 	orderPersistenceUtil.persistOrder = jest.fn(() =>
 		Promise.resolve({

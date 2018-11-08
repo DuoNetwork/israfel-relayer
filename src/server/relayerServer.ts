@@ -51,7 +51,12 @@ class RelayerServer {
 
 		const parsedSignedorder = orderPersistenceUtil.parseSignedOrder(stringSignedOrder);
 		const orderHash = this.web3Util ? await this.web3Util.validateOrder(parsedSignedorder) : '';
-		if (orderHash && orderHash === req.orderHash)
+		if (
+			orderHash &&
+			orderHash === req.orderHash &&
+			this.web3Util &&
+			(await this.web3Util.validateOrderFillable(parsedSignedorder))
+		)
 			try {
 				const userOrder = await orderPersistenceUtil.persistOrder(
 					{
@@ -84,7 +89,7 @@ class RelayerServer {
 						method: req.method,
 						pair: req.pair,
 						orderHash: req.orderHash,
-						amount: -1,
+						amount: -1
 					},
 					true
 				);
