@@ -84,7 +84,7 @@ class RelayerServer {
 						method: req.method,
 						pair: req.pair,
 						orderHash: req.orderHash,
-						amount: 0,
+						amount: -1,
 					},
 					true
 				);
@@ -152,7 +152,7 @@ class RelayerServer {
 				return;
 			}
 			util.logInfo('loaded relayer service config');
-			util.logInfo(relayerService[0]);
+			util.logInfo(JSON.stringify(relayerService[0]));
 			port = Number(relayerService[0].url.split(':').slice(-1)[0]);
 		}
 		const server = https

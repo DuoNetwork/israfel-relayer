@@ -49,6 +49,7 @@ const signedOrder = {
 test('handleAddOrderRequest invalid order', async () => {
 	relayerServer.handleErrorOrderRequest = jest.fn();
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
@@ -66,6 +67,7 @@ test('handleAddOrderRequest invalid order', async () => {
 		order: signedOrder,
 		orderHash: '0xInvalidHash'
 	});
+	expect(orderPersistenceUtil.persistOrder as jest.Mock).not.toBeCalled();
 	expect(relayerServer.handleUserOrder as jest.Mock).not.toBeCalled();
 	expect((relayerServer.handleErrorOrderRequest as jest.Mock).mock.calls).toMatchSnapshot();
 });
@@ -124,6 +126,7 @@ test('handleAddOrderRequest', async () => {
 		order: signedOrder,
 		orderHash: '0xOrderHash'
 	});
+	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(relayerServer.handleErrorOrderRequest as jest.Mock).not.toBeCalled();
 });
@@ -180,6 +183,7 @@ test('handleTerminateOrderRequest', async () => {
 		pair: CST.SUPPORTED_PAIRS[0],
 		orderHash: '0xOrderHash'
 	});
+	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(relayerServer.handleErrorOrderRequest as jest.Mock).not.toBeCalled();
 	expect((relayerServer.handleUserOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });

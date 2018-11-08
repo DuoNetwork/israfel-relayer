@@ -3,6 +3,36 @@
 exports[`handleAddOrderRequest 1`] = `
 Array [
   Array [
+    Object {
+      "amount": -1,
+      "method": "add",
+      "orderHash": "0xOrderHash",
+      "pair": "ZRX-WETH",
+      "signedOrder": Object {
+        "exchangeAddress": "exchangeAddress",
+        "expirationTimeSeconds": "1234567890",
+        "feeRecipientAddress": "feeRecipientAddress",
+        "makerAddress": "makerAddress",
+        "makerAssetAmount": "123",
+        "makerAssetData": "makerAssetData",
+        "makerFee": "0",
+        "salt": "789",
+        "senderAddress": "senderAddress",
+        "signature": "signature",
+        "takerAddress": "takerAddress",
+        "takerAssetAmount": "456",
+        "takerAssetData": "takerAssetData",
+        "takerFee": "0",
+      },
+    },
+    true,
+  ],
+]
+`;
+
+exports[`handleAddOrderRequest 2`] = `
+Array [
+  Array [
     Object {},
     Object {
       "userOrder": "userOrder",
@@ -200,6 +230,20 @@ Array [
 `;
 
 exports[`handleTerminateOrderRequest 1`] = `
+Array [
+  Array [
+    Object {
+      "amount": -1,
+      "method": "terminate",
+      "orderHash": "0xOrderHash",
+      "pair": "ZRX-WETH",
+    },
+    true,
+  ],
+]
+`;
+
+exports[`handleTerminateOrderRequest 2`] = `
 Array [
   Array [
     Object {},
