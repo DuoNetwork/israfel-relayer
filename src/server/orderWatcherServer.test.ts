@@ -5,10 +5,71 @@ import { BigNumber, ExchangeContractErrs, OrderState } from '0x.js';
 import * as CST from '../common/constants';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
-import Web3Util from '../utils/Web3Util';
 import orderWatcherServer from './orderWatcherServer';
 
-orderWatcherServer.web3Util = new Web3Util(null, false, '');
+test('remove from watch, not a existing order', async () => {
+	const removeOrder = jest.fn(() => Promise.resolve());
+	orderWatcherServer.orderWatcher = {
+		removeOrder: removeOrder
+	} as any;
+	orderWatcherServer.watchingOrders = {};
+	orderWatcherServer.removeFromWatch('orderHash');
+	expect(removeOrder).not.toBeCalled();
+	expect(orderWatcherServer.watchingOrders).toEqual({});
+});
+
+test('remove from watch, exisitng order', async () => {
+	const removeOrder = jest.fn(() => Promise.resolve());
+	orderWatcherServer.orderWatcher = {
+		removeOrder: removeOrder
+	} as any;
+
+	orderWatcherServer.watchingOrders = { orderHash: {} } as any;
+	await orderWatcherServer.removeFromWatch('orderHash');
+	expect(removeOrder.mock.calls).toMatchSnapshot();
+	expect(orderWatcherServer.watchingOrders).toEqual({});
+});
+
+test('updateOrder isValid no userOrder', async () => {
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+	await orderWatcherServer.updateOrder({
+		method: 'method',
+		pair: 'pair',
+		orderHash: 'orderHash',
+		amount: -1
+	});
+	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+const userOrder = {
+	account: '0xAccount',
+	pair: 'pair',
+	type: 'type',
+	status: 'status',
+	orderHash: '0xOrderHash',
+	price: 0.123456789,
+	amount: 456,
+	side: 'side',
+	createdAt: 1234560000,
+	initialSequence: 1,
+	currentSequence: 2,
+	updatedBy: 'updatedBy'
+};
+
+test('handleOrderWatcherUpdate isValid userOrder', async () => {
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(userOrder));
+	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+	await orderWatcherServer.updateOrder({
+		method: 'method',
+		pair: 'pair',
+		orderHash: '0xOrderHash',
+		amount: -1
+	});
+	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
+});
 
 const signedOrder = {
 	senderAddress: 'senderAddress',
@@ -27,40 +88,62 @@ const signedOrder = {
 	signature: 'signature'
 };
 
-test('addIntoWatch with signed order', async () => {
+test('addIntoWatch with signed order fillable', async () => {
 	const addOrderAsync = jest.fn(() => Promise.resolve());
 	orderWatcherServer.orderWatcher = {
 		addOrderAsync: addOrderAsync
 	} as any;
 	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({}));
-	orderWatcherServer.watchingOrders = [];
-	(orderWatcherServer.web3Util as any).validateOrderFillable = jest.fn(() =>
-		Promise.resolve(true)
-	);
+	orderWatcherServer.watchingOrders = {};
+	orderWatcherServer.web3Util = {
+		validateOrderFillable: jest.fn(() => Promise.resolve(true))
+	} as any;
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	await orderWatcherServer.addIntoWatch('orderHash', signedOrder);
 	expect(dynamoUtil.getRawOrder as jest.Mock).not.toBeCalled();
+	expect(orderWatcherServer.updateOrder as jest.Mock).not.toBeCalled();
 	expect(addOrderAsync.mock.calls).toMatchSnapshot();
 	expect(orderWatcherServer.watchingOrders).toMatchSnapshot();
 });
 
-test('addIntoWatch no signed order', async () => {
+test('addIntoWatch with signed order non fillable', async () => {
 	const addOrderAsync = jest.fn(() => Promise.resolve());
 	orderWatcherServer.orderWatcher = {
 		addOrderAsync: addOrderAsync
 	} as any;
-	orderWatcherServer.watchingOrders = [];
-	(orderWatcherServer.web3Util as any).validateOrderFillable = jest.fn(() =>
-		Promise.resolve(true)
-	);
+	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({}));
+	orderWatcherServer.watchingOrders = {};
+	orderWatcherServer.web3Util = {
+		validateOrderFillable: jest.fn(() => Promise.resolve(false))
+	} as any;
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
+	await orderWatcherServer.addIntoWatch('orderHash', signedOrder);
+	expect(dynamoUtil.getRawOrder as jest.Mock).not.toBeCalled();
+	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(addOrderAsync.mock.calls).toMatchSnapshot();
+	expect(orderWatcherServer.watchingOrders).toMatchSnapshot();
+});
+
+test('addIntoWatch no signed order fillable', async () => {
+	const addOrderAsync = jest.fn(() => Promise.resolve());
+	orderWatcherServer.orderWatcher = {
+		addOrderAsync: addOrderAsync
+	} as any;
+	orderWatcherServer.watchingOrders = {};
+	orderWatcherServer.web3Util = {
+		validateOrderFillable: jest.fn(() => Promise.resolve(true))
+	} as any;
 	dynamoUtil.getRawOrder = jest.fn(() =>
 		Promise.resolve({
 			orderHash: 'orderHash',
 			signedOrder: signedOrder
 		})
 	);
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	await orderWatcherServer.addIntoWatch('orderHash');
 	expect(addOrderAsync.mock.calls).toMatchSnapshot();
 	expect((dynamoUtil.getRawOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(orderWatcherServer.updateOrder as jest.Mock).not.toBeCalled();
 	expect(orderWatcherServer.watchingOrders).toMatchSnapshot();
 });
 
@@ -69,39 +152,16 @@ test('addIntoWatch no signed order and no rawOrder', async () => {
 	orderWatcherServer.orderWatcher = {
 		addOrderAsync: addOrderAsync
 	} as any;
-	orderWatcherServer.watchingOrders = [];
-	(orderWatcherServer.web3Util as any).validateOrderFillable = jest.fn(() =>
-		Promise.resolve(true)
-	);
+	orderWatcherServer.watchingOrders = {};
+	orderWatcherServer.web3Util = {
+		validateOrderFillable: jest.fn(() => Promise.resolve(true))
+	} as any;
 
 	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve());
 	await orderWatcherServer.addIntoWatch('orderHash');
 	expect(addOrderAsync).not.toBeCalled();
-	expect(orderWatcherServer.watchingOrders).toEqual([]);
-});
-
-test('remove from watch, not a existing order', async () => {
-	const removeOrder = jest.fn(() => Promise.resolve());
-	orderWatcherServer.orderWatcher = {
-		removeOrder: removeOrder
-	} as any;
-	orderWatcherServer.watchingOrders = [];
-
-	orderWatcherServer.removeFromWatch('orderHash');
-	expect(removeOrder).not.toBeCalled();
-	expect(orderWatcherServer.watchingOrders).toEqual([]);
-});
-
-test('remove from watch, exisitng order', async () => {
-	const removeOrder = jest.fn(() => Promise.resolve());
-	orderWatcherServer.orderWatcher = {
-		removeOrder: removeOrder
-	} as any;
-
-	orderWatcherServer.watchingOrders = ['orderHash'];
-	await orderWatcherServer.removeFromWatch('orderHash');
-	expect(removeOrder.mock.calls).toMatchSnapshot();
-	expect(orderWatcherServer.watchingOrders).toEqual([]);
+	expect((orderWatcherServer.web3Util as any).validateOrderFillable).not.toBeCalled();
+	expect(orderWatcherServer.watchingOrders).toEqual({});
 });
 
 const orderPersistRequest = {
@@ -148,35 +208,12 @@ const orderStateValid: OrderState = {
 	} as any
 };
 
-test('handleOrderWatcherUpdate isValid no userOrder', async () => {
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+test('handleOrderWatcherUpdate isValid', async () => {
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
-	await orderWatcherServer.handleOrderWatcherUpdate('pair', orderStateValid);
-	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
+	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
-});
-
-const userOrder = {
-	account: '0xAccount',
-	pair: 'pair',
-	type: 'type',
-	status: 'status',
-	orderHash: '0xOrderHash',
-	price: 0.123456789,
-	amount: 456,
-	side: 'side',
-	createdAt: 1234560000,
-	initialSequence: 1,
-	currentSequence: 2,
-	updatedBy: 'updatedBy'
-};
-
-test('handleOrderWatcherUpdate isValid userOrder', async () => {
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(userOrder));
-	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
-	await orderWatcherServer.handleOrderWatcherUpdate('pair', orderStateValid);
-	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
 });
 
 const orderStateInValid: OrderState = {
@@ -187,45 +224,45 @@ const orderStateInValid: OrderState = {
 
 test('handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderCancelExpired', async () => {
 	orderStateInValid.error = ExchangeContractErrs.OrderCancelExpired;
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(userOrder));
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
-	await orderWatcherServer.handleOrderWatcherUpdate('pair', orderStateInValid);
+	await orderWatcherServer.handleOrderWatcherUpdate(orderStateInValid);
 	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderFillExpired', async () => {
 	orderStateInValid.error = ExchangeContractErrs.OrderFillExpired;
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(userOrder));
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
-	await orderWatcherServer.handleOrderWatcherUpdate('pair', orderStateInValid);
+	await orderWatcherServer.handleOrderWatcherUpdate(orderStateInValid);
 	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderCancelled', async () => {
 	orderStateInValid.error = ExchangeContractErrs.OrderCancelled;
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(userOrder));
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
-	await orderWatcherServer.handleOrderWatcherUpdate('pair', orderStateInValid);
+	await orderWatcherServer.handleOrderWatcherUpdate(orderStateInValid);
 	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderRemainingFillAmountZero', async () => {
 	orderStateInValid.error = ExchangeContractErrs.OrderRemainingFillAmountZero;
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(userOrder));
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
-	await orderWatcherServer.handleOrderWatcherUpdate('pair', orderStateInValid);
+	await orderWatcherServer.handleOrderWatcherUpdate(orderStateInValid);
 	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleOrderWatcherUpdate inValid default', async () => {
 	orderStateInValid.error = '' as any;
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(userOrder));
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
-	await orderWatcherServer.handleOrderWatcherUpdate('pair', orderStateInValid);
+	await orderWatcherServer.handleOrderWatcherUpdate(orderStateInValid);
 	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
-	expect(orderPersistenceUtil.persistOrder as jest.Mock).not.toBeCalled();
+	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });

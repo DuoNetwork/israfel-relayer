@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`addIntoWatch no signed order 1`] = `
+exports[`addIntoWatch no signed order fillable 1`] = `
 Array [
   Array [
     Object {
@@ -23,7 +23,7 @@ Array [
 ]
 `;
 
-exports[`addIntoWatch no signed order 2`] = `
+exports[`addIntoWatch no signed order fillable 2`] = `
 Array [
   Array [
     "orderHash",
@@ -31,13 +31,28 @@ Array [
 ]
 `;
 
-exports[`addIntoWatch no signed order 3`] = `
-Array [
-  "orderHash",
-]
+exports[`addIntoWatch no signed order fillable 3`] = `
+Object {
+  "orderHash": Object {
+    "exchangeAddress": "exchangeAddress",
+    "expirationTimeSeconds": "1234567890",
+    "feeRecipientAddress": "feeRecipientAddress",
+    "makerAddress": "makerAddress",
+    "makerAssetAmount": "123",
+    "makerAssetData": "makerAssetData",
+    "makerFee": "0",
+    "salt": "789",
+    "senderAddress": "senderAddress",
+    "signature": "signature",
+    "takerAddress": "takerAddress",
+    "takerAssetAmount": "456",
+    "takerAssetData": "takerAssetData",
+    "takerFee": "0",
+  },
+}
 `;
 
-exports[`addIntoWatch with signed order 1`] = `
+exports[`addIntoWatch with signed order fillable 1`] = `
 Array [
   Array [
     Object {
@@ -60,10 +75,82 @@ Array [
 ]
 `;
 
-exports[`addIntoWatch with signed order 2`] = `
+exports[`addIntoWatch with signed order fillable 2`] = `
+Object {
+  "orderHash": Object {
+    "exchangeAddress": "exchangeAddress",
+    "expirationTimeSeconds": "1234567890",
+    "feeRecipientAddress": "feeRecipientAddress",
+    "makerAddress": "makerAddress",
+    "makerAssetAmount": "123",
+    "makerAssetData": "makerAssetData",
+    "makerFee": "0",
+    "salt": "789",
+    "senderAddress": "senderAddress",
+    "signature": "signature",
+    "takerAddress": "takerAddress",
+    "takerAssetAmount": "456",
+    "takerAssetData": "takerAssetData",
+    "takerFee": "0",
+  },
+}
+`;
+
+exports[`addIntoWatch with signed order non fillable 1`] = `
 Array [
-  "orderHash",
+  Array [
+    Object {
+      "amount": 0,
+      "method": "update",
+      "orderHash": "orderHash",
+      "pair": "pair",
+    },
+  ],
 ]
+`;
+
+exports[`addIntoWatch with signed order non fillable 2`] = `
+Array [
+  Array [
+    Object {
+      "exchangeAddress": "exchangeAddress",
+      "expirationTimeSeconds": "1234567890",
+      "feeRecipientAddress": "feeRecipientAddress",
+      "makerAddress": "makerAddress",
+      "makerAssetAmount": "123",
+      "makerAssetData": "makerAssetData",
+      "makerFee": "0",
+      "salt": "789",
+      "senderAddress": "senderAddress",
+      "signature": "signature",
+      "takerAddress": "takerAddress",
+      "takerAssetAmount": "456",
+      "takerAssetData": "takerAssetData",
+      "takerFee": "0",
+    },
+  ],
+]
+`;
+
+exports[`addIntoWatch with signed order non fillable 3`] = `
+Object {
+  "orderHash": Object {
+    "exchangeAddress": "exchangeAddress",
+    "expirationTimeSeconds": "1234567890",
+    "feeRecipientAddress": "feeRecipientAddress",
+    "makerAddress": "makerAddress",
+    "makerAssetAmount": "123",
+    "makerAssetData": "makerAssetData",
+    "makerFee": "0",
+    "salt": "789",
+    "senderAddress": "senderAddress",
+    "signature": "signature",
+    "takerAddress": "takerAddress",
+    "takerAssetAmount": "456",
+    "takerAssetData": "takerAssetData",
+    "takerFee": "0",
+  },
+}
 `;
 
 exports[`handle orderUpdate add 1`] = `
@@ -109,7 +196,6 @@ Array [
       "orderHash": "orderHash",
       "pair": "pair",
     },
-    false,
   ],
 ]
 `;
@@ -125,7 +211,6 @@ Array [
       "orderHash": "orderHash",
       "pair": "pair",
     },
-    false,
   ],
 ]
 `;
@@ -141,7 +226,6 @@ Array [
       "orderHash": "orderHash",
       "pair": "pair",
     },
-    false,
   ],
 ]
 `;
@@ -157,12 +241,13 @@ Array [
       "orderHash": "orderHash",
       "pair": "pair",
     },
-    false,
   ],
 ]
 `;
 
-exports[`handleOrderWatcherUpdate isValid no userOrder 1`] = `
+exports[`handleOrderWatcherUpdate inValid default 1`] = `Array []`;
+
+exports[`handleOrderWatcherUpdate isValid 1`] = `
 Array [
   Array [
     Object {
@@ -171,26 +256,19 @@ Array [
       "orderHash": "orderHash",
       "pair": "pair",
     },
-    false,
   ],
 ]
 `;
 
-exports[`handleOrderWatcherUpdate isValid no userOrder 2`] = `
-Array [
-  Array [
-    "orderHash",
-  ],
-]
-`;
+exports[`handleOrderWatcherUpdate isValid 2`] = `Array []`;
 
 exports[`handleOrderWatcherUpdate isValid userOrder 1`] = `
 Array [
   Array [
     Object {
-      "amount": 5.67e-16,
-      "method": "update",
-      "orderHash": "orderHash",
+      "amount": -1,
+      "method": "method",
+      "orderHash": "0xOrderHash",
       "pair": "pair",
     },
     false,
@@ -199,6 +277,28 @@ Array [
 `;
 
 exports[`remove from watch, exisitng order 1`] = `
+Array [
+  Array [
+    "orderHash",
+  ],
+]
+`;
+
+exports[`updateOrder isValid no userOrder 1`] = `
+Array [
+  Array [
+    Object {
+      "amount": -1,
+      "method": "method",
+      "orderHash": "orderHash",
+      "pair": "pair",
+    },
+    false,
+  ],
+]
+`;
+
+exports[`updateOrder isValid no userOrder 2`] = `
 Array [
   Array [
     "orderHash",

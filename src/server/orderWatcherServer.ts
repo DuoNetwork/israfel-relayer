@@ -15,14 +15,32 @@ import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
 class OrderWatcherServer {
+	public pair: string = 'pair';
 	public orderWatcher: OrderWatcher | null = null;
 	public web3Util: Web3Util | null = null;
-	public watchingOrders: string[] = [];
+	public watchingOrders: {[orderHash: string]: SignedOrder} = {};
 
-	public async handleOrderWatcherUpdate(pair: string, orderState: OrderState) {
+	public async updateOrder(orderPersistRequest: IOrderPersistRequest) {
+		let userOrder = null;
+		let done = false;
+		while (!done)
+			try {
+				userOrder = await orderPersistenceUtil.persistOrder(orderPersistRequest, false);
+				done = true;
+			} catch (error) {
+				await util.sleep(2000);
+			}
+
+		if (!userOrder) {
+			util.logInfo(`invalid orderHash ${orderPersistRequest.orderHash}, ignore`);
+			this.removeFromWatch(orderPersistRequest.orderHash);
+		}
+	}
+
+	public handleOrderWatcherUpdate(orderState: OrderState) {
 		const orderPersistRequest: IOrderPersistRequest = {
 			method: CST.DB_UPDATE,
-			pair: pair,
+			pair: this.pair,
 			orderHash: orderState.orderHash,
 			amount: -1
 		};
@@ -49,25 +67,12 @@ class OrderWatcherServer {
 			}
 		}
 
-		let userOrder = null;
-		let done = false;
-		while (!done)
-			try {
-				userOrder = await orderPersistenceUtil.persistOrder(orderPersistRequest, false);
-				done = true;
-			} catch (error) {
-				await util.sleep(2000);
-			}
-
-		if (!userOrder) {
-			util.logInfo(`invalid orderHash ${orderPersistRequest.orderHash}, ignore`);
-			this.removeFromWatch(orderPersistRequest.orderHash);
-		}
+		return this.updateOrder(orderPersistRequest);
 	}
 
 	public async addIntoWatch(orderHash: string, signedOrder?: IStringSignedOrder) {
 		try {
-			if (this.orderWatcher && this.web3Util && !this.watchingOrders.includes(orderHash)) {
+			if (this.orderWatcher && this.web3Util && !this.watchingOrders[orderHash]) {
 				if (!signedOrder) {
 					const rawOrder: IRawOrder | null = await dynamoUtil.getRawOrder(orderHash);
 					if (!rawOrder) {
@@ -80,33 +85,35 @@ class OrderWatcherServer {
 					signedOrder
 				);
 
-				util.logDebug('start validation for order ' + orderHash);
-				const res = await this.web3Util.validateOrderFillable(rawSignedOrder);
-				if (!res) {
-					util.logDebug('failed to pass validation ' + orderHash);
-					return;
+				if (!await this.web3Util.validateOrderFillable(rawSignedOrder)) {
+					util.logDebug(orderHash + ' not fillable, send update');
+					await this.updateOrder({
+						method: CST.DB_UPDATE,
+						pair: this.pair,
+						orderHash: orderHash,
+						amount: 0
+					})
 				}
 
 				await this.orderWatcher.addOrderAsync(rawSignedOrder);
-				this.watchingOrders.push(orderHash);
+				this.watchingOrders[orderHash] = rawSignedOrder;
 				util.logDebug('successfully added ' + orderHash);
 			}
 		} catch (e) {
 			util.logDebug('failed to add ' + orderHash + 'error is ' + e);
-			this.watchingOrders = this.watchingOrders.filter(hash => hash !== orderHash);
 		}
 	}
 
 	public removeFromWatch(orderHash: string) {
-		if (!this.watchingOrders.includes(orderHash)) {
+		if (!this.watchingOrders[orderHash]) {
 			util.logDebug('order is not currently watched');
 			return;
 		}
 		try {
-			if (this.orderWatcher && this.watchingOrders.includes(orderHash)) {
+			if (this.orderWatcher && this.watchingOrders[orderHash]) {
 				this.orderWatcher.removeOrder(orderHash);
+				delete this.watchingOrders[orderHash];
 				util.logDebug('successfully removed ' + orderHash);
-				this.watchingOrders = this.watchingOrders.filter(hash => hash !== orderHash);
 			}
 		} catch (e) {
 			util.logDebug('failed to remove ' + orderHash + 'error is ' + e);
@@ -137,26 +144,26 @@ class OrderWatcherServer {
 			provider,
 			option.live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN
 		);
-		const pair = option.token + '-' + CST.TOKEN_WETH;
+		this.pair = option.token + '-' + CST.TOKEN_WETH;
 
 		redisUtil.onOrderUpdate((channel, orderPersistRequest) =>
 			this.handleOrderUpdate(channel, orderPersistRequest)
 		);
 
-		redisUtil.subscribe(`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${pair}`);
+		redisUtil.subscribe(`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${this.pair}`);
 
-		const allOrders = await orderPersistenceUtil.getAllLiveOrdersInPersistence(pair);
+		const allOrders = await orderPersistenceUtil.getAllLiveOrdersInPersistence(this.pair);
 		util.logInfo('loaded live orders : ' + Object.keys(allOrders).length);
 		for (const orderHash in allOrders) await this.addIntoWatch(orderHash);
 		util.logInfo('added live orders into watch');
 		setInterval(async () => {
-			const oldOrders = this.watchingOrders;
+			const prevOrderHashes = Object.keys(this.watchingOrders);
 
 			const currentOrdersOrderHash = Object.keys(
-				await orderPersistenceUtil.getAllLiveOrdersInPersistence(pair)
+				await orderPersistenceUtil.getAllLiveOrdersInPersistence(this.pair)
 			);
 			util.logInfo('loaded live orders');
-			const ordersToRemove = oldOrders.filter(
+			const ordersToRemove = prevOrderHashes.filter(
 				orderHash => !currentOrdersOrderHash.includes(orderHash)
 			);
 			for (const orderHash of ordersToRemove) await this.removeFromWatch(orderHash);
@@ -164,8 +171,8 @@ class OrderWatcherServer {
 		}, CST.ONE_MINUTE_MS * 60);
 
 		if (option.server) {
-			dynamoUtil.updateStatus(pair);
-			setInterval(() => dynamoUtil.updateStatus(pair, this.watchingOrders.length), 10000);
+			dynamoUtil.updateStatus(this.pair);
+			setInterval(() => dynamoUtil.updateStatus(this.pair, Object.keys(this.watchingOrders).length), 10000);
 		}
 
 		this.orderWatcher.subscribe(async (err, orderState) => {
@@ -174,7 +181,7 @@ class OrderWatcherServer {
 				return;
 			}
 
-			this.handleOrderWatcherUpdate(pair, orderState);
+			this.handleOrderWatcherUpdate(orderState);
 		});
 	}
 }
