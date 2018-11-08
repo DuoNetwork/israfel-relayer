@@ -33,10 +33,10 @@ export default class Web3Util {
 	public web3Wrapper: Web3Wrapper;
 	public wallet: Wallet = Wallet.None;
 	public accountIndex: number = 0;
-	public live: boolean = false;
+	public networkId: number = CST.NETWORK_ID_KOVAN;
 
 	constructor(window: any, live: boolean, mnemonic: string) {
-		this.live = live;
+		this.networkId = live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN;
 		if (window && typeof window.web3 !== 'undefined') {
 			this.web3Wrapper = new Web3Wrapper(
 				new MetamaskSubprovider(window.web3.currentProvider)
@@ -65,7 +65,7 @@ export default class Web3Util {
 		}
 
 		this.contractWrappers = new ContractWrappers(this.web3Wrapper.getProvider(), {
-			networkId: live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN
+			networkId: this.networkId
 		});
 	}
 
@@ -212,9 +212,7 @@ export default class Web3Util {
 	}
 
 	public getTokenAddressFromName(tokenName: string): string {
-		const contractAddresses = getContractAddressesForNetworkOrThrow(
-			this.live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN
-		);
+		const contractAddresses = getContractAddressesForNetworkOrThrow(this.networkId);
 		switch (tokenName) {
 			case CST.TOKEN_ZRX:
 				return contractAddresses.zrxToken;
@@ -255,14 +253,21 @@ export default class Web3Util {
 		util.logInfo('balnace of ' + address + 'is ' + Web3Util.fromWei(balance));
 	}
 
-	public async wrapEther(amount: BigNumber, networkId: number, sender: string) {
-		const contractAddresses = getContractAddressesForNetworkOrThrow(networkId);
-		const etherTokenAddress = contractAddresses.etherToken;
-		await this.contractWrappers.etherToken.depositAsync(
-			etherTokenAddress,
-			amount,
-			sender,
+	public wrapEther(amount: number, account: string) {
+		const contractAddresses = getContractAddressesForNetworkOrThrow(this.networkId);
+		return this.contractWrappers.etherToken.depositAsync(
+			contractAddresses.etherToken,
+			Web3Wrapper.toWei(new BigNumber(amount)),
+			account
 		);
+	}
 
+	public unwarpEther(amount: number, account: string) {
+		const contractAddresses = getContractAddressesForNetworkOrThrow(this.networkId);
+		return this.contractWrappers.etherToken.withdrawAsync(
+			contractAddresses.etherToken,
+			Web3Wrapper.toWei(new BigNumber(amount)),
+			account
+		);
 	}
 }
