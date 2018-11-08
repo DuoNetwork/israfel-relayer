@@ -11,7 +11,6 @@ import {
 	IWsOrderResponse,
 	IWsRequest,
 	IWsResponse,
-	IWsTerminateOrderRequest,
 	IWsUserOrderResponse
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
@@ -76,9 +75,9 @@ class RelayerServer {
 		}
 	}
 
-	public async handleTerminateOrderRequest(ws: WebSocket, req: IWsTerminateOrderRequest) {
+	public async handleTerminateOrderRequest(ws: WebSocket, req: IWsOrderRequest) {
 		util.logDebug(`terminate order ${req.orderHash}`);
-		if (req.userOrder)
+		if (req.orderHash)
 			try {
 				const userOrder = await orderPersistenceUtil.persistOrder(
 					{
@@ -97,7 +96,7 @@ class RelayerServer {
 			}
 		else {
 			util.logDebug('invalid request, ignore');
-			this.handleErrorOrderRequest(ws, req, CST.WS_INVALID_ORDER);
+			this.handleErrorOrderRequest(ws, req, CST.WS_INVALID_REQ);
 		}
 	}
 
@@ -110,7 +109,7 @@ class RelayerServer {
 		if (req.method === CST.DB_ADD)
 			return this.handleAddOrderRequest(ws, req as IWsAddOrderRequest);
 		// if (req.method === CST.DB_TERMINATE)
-		else return this.handleTerminateOrderRequest(ws, req as IWsTerminateOrderRequest);
+		else return this.handleTerminateOrderRequest(ws, req);
 	}
 
 	public handleRelayerMessage(ws: WebSocket, m: string) {

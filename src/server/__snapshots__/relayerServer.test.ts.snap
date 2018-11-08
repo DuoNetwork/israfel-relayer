@@ -211,17 +211,17 @@ Array [
 ]
 `;
 
-exports[`handleTerminateOrderRequest invalid order 1`] = `
+exports[`handleTerminateOrderRequest invalid request and order 1`] = `
 Array [
   Array [
     Object {},
     Object {
       "channel": "orders",
       "method": "terminate",
-      "orderHash": "0xOrderHash",
+      "orderHash": "",
       "pair": "ZRX-WETH",
     },
-    "invalid order",
+    "invalid request",
   ],
   Array [
     Object {},
@@ -230,7 +230,6 @@ Array [
       "method": "terminate",
       "orderHash": "0xOrderHash",
       "pair": "ZRX-WETH",
-      "userOrder": "userOrder",
     },
     "invalid order",
   ],
@@ -246,7 +245,6 @@ Array [
       "method": "terminate",
       "orderHash": "0xOrderHash",
       "pair": "ZRX-WETH",
-      "userOrder": "userOrder",
     },
     "error",
   ],
