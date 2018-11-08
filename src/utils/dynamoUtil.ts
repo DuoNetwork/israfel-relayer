@@ -169,7 +169,8 @@ class DynamoUtil {
 			[CST.DB_PRICE]: {
 				N: util.round(liveOrder.price) + ''
 			},
-			[CST.DB_BALANCE]: { N: liveOrder.amount + '' },
+			[CST.DB_AMOUNT]: { N: liveOrder.amount + '' },
+			[CST.DB_BALANCE]: { N: liveOrder.balance + '' },
 			[CST.DB_SIDE]: { S: liveOrder.side },
 			[CST.DB_INITIAL_SEQ]: { N: liveOrder.initialSequence + '' },
 			[CST.DB_CURRENT_SEQ]: { N: liveOrder.currentSequence + '' },
@@ -202,7 +203,7 @@ class DynamoUtil {
 			},
 			ExpressionAttributeValues: {
 				[':' + CST.DB_BALANCE]: {
-					N: liveOrder.amount + ''
+					N: liveOrder.balance + ''
 				},
 				[':' + CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' },
 				[':' + CST.DB_CURRENT_SEQ]: { N: liveOrder.currentSequence + '' }
@@ -236,7 +237,8 @@ class DynamoUtil {
 			orderHash: data[CST.DB_ORDER_HASH].S || '',
 			price: Number(data[CST.DB_PRICE].N),
 			side: data[CST.DB_SIDE].S || '',
-			amount: Number(data[CST.DB_BALANCE].N),
+			amount: Number(data[CST.DB_AMOUNT].N),
+			balance: Number(data[CST.DB_BALANCE].N),
 			initialSequence: Number(data[CST.DB_INITIAL_SEQ].N),
 			currentSequence: Number(data[CST.DB_CURRENT_SEQ].N),
 			createdAt: Number(data[CST.DB_CREATED_AT].N),
@@ -383,7 +385,8 @@ class DynamoUtil {
 			[CST.DB_PRICE]: {
 				N: util.round(userOrder.price) + ''
 			},
-			[CST.DB_BALANCE]: { N: userOrder.amount + '' },
+			[CST.DB_BALANCE]: { N: userOrder.balance + '' },
+			[CST.DB_AMOUNT]: { N: userOrder.amount + '' },
 			[CST.DB_SIDE]: { S: userOrder.side },
 			[CST.DB_INITIAL_SEQ]: { N: userOrder.initialSequence + '' },
 			[CST.DB_CREATED_AT]: { N: (userOrder.createdAt || timestamp) + '' },
@@ -411,7 +414,8 @@ class DynamoUtil {
 			orderHash: orderHash,
 			price: Number(data[CST.DB_PRICE].N),
 			side: data[CST.DB_SIDE].S || '',
-			amount: Number(data[CST.DB_BALANCE].N),
+			amount: Number(data[CST.DB_AMOUNT].N),
+			balance: Number(data[CST.DB_BALANCE].N),
 			initialSequence: Number(data[CST.DB_INITIAL_SEQ].N),
 			currentSequence: Number(seq),
 			createdAt: Number(data[CST.DB_CREATED_AT].N),

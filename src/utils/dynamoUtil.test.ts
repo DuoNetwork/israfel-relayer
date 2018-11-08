@@ -96,6 +96,7 @@ test('addLiveOrder', async () => {
 		orderHash: '0xOrderHash',
 		price: 0.123456789,
 		amount: 456,
+		balance: 123,
 		side: CST.DB_BID,
 		initialSequence: 1,
 		currentSequence: 1
@@ -112,6 +113,7 @@ test('updateLiveOrder', async () => {
 		orderHash: '0xOrderHash',
 		price: 0.123456789,
 		amount: 456,
+		balance: 123,
 		side: CST.DB_BID,
 		createdAt: 1234560000,
 		updatedAt: 1234560000,
@@ -129,6 +131,7 @@ test('deleteLiveOrder', async () => {
 		orderHash: '0xOrderHash',
 		price: 123,
 		amount: 456,
+		balance: 123,
 		side: CST.DB_BID,
 		createdAt: 1234560000,
 		updatedAt: 1234560000,
@@ -155,7 +158,8 @@ test('getLiveOrders', async () => {
 				[CST.DB_PRICE]: {
 					N: '123'
 				},
-				[CST.DB_BALANCE]: { N: '456' },
+				[CST.DB_AMOUNT]: { N: '456' },
+				[CST.DB_BALANCE]: { N: '123' },
 				[CST.DB_SIDE]: { S: 'side' },
 				[CST.DB_INITIAL_SEQ]: { N: '1' },
 				[CST.DB_CURRENT_SEQ]: { N: '2' },
@@ -185,7 +189,8 @@ test('getLiveOrders with orderHash', async () => {
 				[CST.DB_PRICE]: {
 					N: '123'
 				},
-				[CST.DB_BALANCE]: { N: '456' },
+				[CST.DB_AMOUNT]: { N: '456' },
+				[CST.DB_BALANCE]: { N: '123' },
 				[CST.DB_SIDE]: { S: 'side' },
 				[CST.DB_INITIAL_SEQ]: { N: '1' },
 				[CST.DB_CURRENT_SEQ]: { N: '2' },
@@ -337,6 +342,7 @@ test('addUserOrder', async () => {
 		status: 'status',
 		orderHash: '0xOrderHash',
 		price: 0.123456789,
+		balance: 123,
 		amount: 456,
 		side: 'side',
 		createdAt: 1234560000,
@@ -365,7 +371,8 @@ test('getUserOrdersForMonth', async () => {
 				[CST.DB_PRICE]: {
 					N: '123'
 				},
-				[CST.DB_BALANCE]: { N: '456' },
+				[CST.DB_BALANCE]: { N: '123' },
+				[CST.DB_AMOUNT]: { N: '456' },
 				[CST.DB_SIDE]: { S: 'side' },
 				[CST.DB_INITIAL_SEQ]: { N: '1' },
 				[CST.DB_CREATED_AT]: { N: '1234560000' },

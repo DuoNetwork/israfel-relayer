@@ -6,6 +6,7 @@ export interface ILiveOrder {
 	orderHash: string;
 	price: number;
 	amount: number;
+	balance: number;
 	side: string;
 	createdAt?: number;
 	updatedAt?: number;
@@ -47,7 +48,7 @@ export interface IOrderPersistRequest {
 	method: string;
 	pair: string;
 	orderHash: string;
-	amount: number;
+	balance: number;
 	signedOrder?: IStringSignedOrder;
 }
 

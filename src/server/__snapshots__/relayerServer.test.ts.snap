@@ -4,7 +4,7 @@ exports[`handleAddOrderRequest 1`] = `
 Array [
   Array [
     Object {
-      "amount": -1,
+      "balance": -1,
       "method": "add",
       "orderHash": "0xOrderHash",
       "pair": "ZRX-WETH",
@@ -259,7 +259,7 @@ exports[`handleTerminateOrderRequest 1`] = `
 Array [
   Array [
     Object {
-      "amount": -1,
+      "balance": -1,
       "method": "terminate",
       "orderHash": "0xOrderHash",
       "pair": "ZRX-WETH",

@@ -100,7 +100,7 @@ exports[`addIntoWatch with signed order non fillable 1`] = `
 Array [
   Array [
     Object {
-      "amount": 0,
+      "balance": 0,
       "method": "update",
       "orderHash": "orderHash",
       "pair": "pair",
@@ -191,7 +191,7 @@ exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderCancelExpire
 Array [
   Array [
     Object {
-      "amount": -1,
+      "balance": -1,
       "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
@@ -206,7 +206,7 @@ exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderCancelled 2`
 Array [
   Array [
     Object {
-      "amount": -1,
+      "balance": -1,
       "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
@@ -221,7 +221,7 @@ exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderFillExpired 
 Array [
   Array [
     Object {
-      "amount": -1,
+      "balance": -1,
       "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
@@ -236,7 +236,7 @@ exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderRemainingFil
 Array [
   Array [
     Object {
-      "amount": 0,
+      "balance": 0,
       "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
@@ -251,7 +251,7 @@ exports[`handleOrderWatcherUpdate isValid 1`] = `
 Array [
   Array [
     Object {
-      "amount": 5.67e-16,
+      "balance": 5.67e-16,
       "method": "update",
       "orderHash": "orderHash",
       "pair": "pair",
@@ -266,7 +266,7 @@ exports[`handleOrderWatcherUpdate isValid userOrder 1`] = `
 Array [
   Array [
     Object {
-      "amount": -1,
+      "balance": -1,
       "method": "method",
       "orderHash": "0xOrderHash",
       "pair": "pair",
@@ -288,7 +288,7 @@ exports[`updateOrder isValid no userOrder 1`] = `
 Array [
   Array [
     Object {
-      "amount": -1,
+      "balance": -1,
       "method": "method",
       "orderHash": "orderHash",
       "pair": "pair",

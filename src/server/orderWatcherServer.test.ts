@@ -37,7 +37,7 @@ test('updateOrder isValid no userOrder', async () => {
 		method: 'method',
 		pair: 'pair',
 		orderHash: 'orderHash',
-		amount: -1
+		balance: -1
 	});
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
@@ -65,7 +65,7 @@ test('handleOrderWatcherUpdate isValid userOrder', async () => {
 		method: 'method',
 		pair: 'pair',
 		orderHash: '0xOrderHash',
-		amount: -1
+		balance: -1
 	});
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
@@ -168,7 +168,7 @@ const orderPersistRequest = {
 	method: 'method',
 	pair: 'pair',
 	orderHash: 'orderHash',
-	amount: 456,
+	balance: 456,
 	signedOrder: signedOrder
 };
 test('handle orderUpdate invalid method', async () => {

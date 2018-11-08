@@ -28,6 +28,7 @@ export const DB_SIDE = 'side';
 export const DB_ASK = 'ask';
 export const DB_BID = 'bid';
 export const DB_BALANCE = 'balance';
+export const DB_AMOUNT = 'amount';
 export const DB_CREATED_AT = 'createdAt';
 export const DB_UPDATED_AT = 'updatedAt';
 export const DB_UPDATED_BY = 'updatedBy';

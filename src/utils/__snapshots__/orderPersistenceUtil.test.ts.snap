@@ -4,6 +4,7 @@ exports[`addUserOrderToDB 1`] = `
 Object {
   "account": "0xAccount",
   "amount": 456,
+  "balance": 123,
   "currentSequence": 2,
   "initialSequence": 1,
   "orderHash": "0xOrderHash",
@@ -20,6 +21,7 @@ exports[`addUserOrderToDB error 1`] = `
 Object {
   "account": "0xAccount",
   "amount": 456,
+  "balance": 123,
   "currentSequence": 2,
   "initialSequence": 1,
   "orderHash": "0xOrderHash",
@@ -36,6 +38,7 @@ exports[`constructNewLiveOrder 1`] = `
 Object {
   "account": "makerAddress",
   "amount": 1.23e-16,
+  "balance": 1.23e-16,
   "currentSequence": 0,
   "initialSequence": 0,
   "orderHash": "0xOrderHash",
@@ -49,6 +52,7 @@ exports[`constructNewLiveOrder 2`] = `
 Object {
   "account": "makerAddress",
   "amount": 4.56e-16,
+  "balance": 4.56e-16,
   "currentSequence": 0,
   "initialSequence": 0,
   "orderHash": "0xOrderHash",
@@ -128,7 +132,7 @@ exports[`persistOrder add 3`] = `
 Array [
   Array [
     "orders|pubsub|pair",
-    "{\\"method\\":\\"add\\",\\"pair\\":\\"pair\\",\\"orderHash\\":\\"0xOrderHash\\",\\"amount\\":-1,\\"signedOrder\\":\\"may or may not exist\\"}",
+    "{\\"method\\":\\"add\\",\\"pair\\":\\"pair\\",\\"orderHash\\":\\"0xOrderHash\\",\\"balance\\":-1,\\"signedOrder\\":\\"may or may not exist\\"}",
   ],
 ]
 `;
@@ -153,7 +157,7 @@ Array [
   Array [
     "orders|cache",
     "method|0xOrderHash",
-    "{\\"method\\":\\"method\\",\\"liveOrder\\":{\\"currentSequence\\":123,\\"amount\\":123}}",
+    "{\\"method\\":\\"method\\",\\"liveOrder\\":{\\"currentSequence\\":123,\\"balance\\":123}}",
   ],
 ]
 `;
@@ -171,7 +175,7 @@ exports[`persistOrder not add 3`] = `
 Array [
   Array [
     "orders|pubsub|pair",
-    "{\\"method\\":\\"method\\",\\"pair\\":\\"pair\\",\\"orderHash\\":\\"0xOrderHash\\",\\"amount\\":123}",
+    "{\\"method\\":\\"method\\",\\"pair\\":\\"pair\\",\\"orderHash\\":\\"0xOrderHash\\",\\"balance\\":123}",
   ],
 ]
 `;
@@ -180,7 +184,7 @@ exports[`persistOrder not add 4`] = `
 Array [
   Array [
     Object {
-      "amount": 123,
+      "balance": 123,
       "currentSequence": 123,
     },
     "method",
@@ -222,6 +226,7 @@ Array [
     Object {
       "account": "0xAccount",
       "amount": 456,
+      "balance": 123,
       "currentSequence": 2,
       "initialSequence": 1,
       "orderHash": "0xOrderHash",
@@ -239,6 +244,7 @@ Array [
     Object {
       "account": "0xAccount",
       "amount": 456,
+      "balance": 123,
       "currentSequence": 2,
       "initialSequence": 1,
       "orderHash": "0xOrderHash",
@@ -293,6 +299,7 @@ Array [
     Object {
       "account": "0xAccount",
       "amount": 456,
+      "balance": 123,
       "currentSequence": 2,
       "initialSequence": 1,
       "orderHash": "0xOrderHash",
@@ -310,6 +317,7 @@ Array [
     Object {
       "account": "0xAccount",
       "amount": 456,
+      "balance": 123,
       "currentSequence": 2,
       "initialSequence": 1,
       "orderHash": "0xOrderHash",
@@ -339,6 +347,7 @@ Array [
     Object {
       "account": "0xAccount",
       "amount": 456,
+      "balance": 123,
       "currentSequence": 2,
       "initialSequence": 1,
       "orderHash": "0xOrderHash",
@@ -356,6 +365,7 @@ Array [
     Object {
       "account": "0xAccount",
       "amount": 456,
+      "balance": 123,
       "currentSequence": 2,
       "initialSequence": 1,
       "orderHash": "0xOrderHash",

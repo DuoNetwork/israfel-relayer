@@ -84,7 +84,7 @@ class OrderPersistenceUtil {
 	}
 
 	public async persistOrder(orderPersistRequest: IOrderPersistRequest, publish: boolean) {
-		const { pair, orderHash, method, amount } = orderPersistRequest;
+		const { pair, orderHash, method, balance } = orderPersistRequest;
 		let liveOrder = await this.getLiveOrderInPersistence(pair, orderHash);
 		if (method === CST.DB_ADD && liveOrder) {
 			util.logDebug(`order ${orderHash} already exist, ignore add request`);
@@ -109,7 +109,7 @@ class OrderPersistenceUtil {
 		};
 		orderQueueItem.liveOrder.currentSequence = sequence;
 		if (method === CST.DB_ADD) orderQueueItem.signedOrder = orderPersistRequest.signedOrder;
-		else if (amount !== -1) orderQueueItem.liveOrder.amount = amount;
+		else if (balance !== -1) orderQueueItem.liveOrder.balance = balance;
 
 		util.logDebug(`storing order queue item in redis ${orderHash}`);
 		await redisUtil.multi();
@@ -160,14 +160,16 @@ class OrderPersistenceUtil {
 	): ILiveOrder {
 		const side = web3Util.getSideFromSignedOrder(signedOrder, pair);
 		const isBid = side === CST.DB_BID;
+		const amount =  web3Util.fromWei(
+			isBid ? signedOrder.makerAssetAmount : signedOrder.takerAssetAmount
+		)
 		return {
 			account: signedOrder.makerAddress,
 			pair: pair,
 			orderHash: orderHash,
 			price: web3Util.getPriceFromSignedOrder(signedOrder, side),
-			amount: web3Util.fromWei(
-				isBid ? signedOrder.makerAssetAmount : signedOrder.takerAssetAmount
-			),
+			amount: amount,
+			balance: amount,
 			side: side,
 			initialSequence: 0,
 			currentSequence: 0

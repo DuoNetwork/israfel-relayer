@@ -42,14 +42,14 @@ class OrderWatcherServer {
 			method: CST.DB_UPDATE,
 			pair: this.pair,
 			orderHash: orderState.orderHash,
-			amount: -1
+			balance: -1
 		};
 		util.logDebug(JSON.stringify(orderState));
 		if (orderState.isValid) {
 			const remainingAmount = Web3Util.fromWei(
 				(orderState as OrderStateValid).orderRelevantState.remainingFillableMakerAssetAmount
 			);
-			orderPersistRequest.amount = remainingAmount;
+			orderPersistRequest.balance = remainingAmount;
 		} else {
 			const error = (orderState as OrderStateInvalid).error;
 			switch (error) {
@@ -59,7 +59,7 @@ class OrderWatcherServer {
 					orderPersistRequest.method = CST.DB_TERMINATE;
 					break;
 				case ExchangeContractErrs.OrderRemainingFillAmountZero:
-					orderPersistRequest.amount = 0;
+					orderPersistRequest.balance = 0;
 					orderPersistRequest.method = CST.DB_TERMINATE;
 					break;
 				default:
@@ -91,7 +91,7 @@ class OrderWatcherServer {
 						method: CST.DB_UPDATE,
 						pair: this.pair,
 						orderHash: orderHash,
-						amount: 0
+						balance: 0
 					})
 				}
 

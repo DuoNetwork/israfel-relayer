@@ -44,6 +44,7 @@ const liveOrder = {
 	orderHash: '0xOrderHash',
 	price: 0.123456789,
 	amount: 456,
+	balance: 123,
 	side: CST.DB_BID,
 	initialSequence: 1,
 	currentSequence: 2
@@ -163,7 +164,7 @@ test('persistOrder add', async () => {
 				method: CST.DB_ADD,
 				pair: 'pair',
 				orderHash: '0xOrderHash',
-				amount: -1,
+				balance: -1,
 				signedOrder: 'may or may not exist' as any
 			},
 			true
@@ -191,7 +192,7 @@ test('persistOrder not add', async () => {
 				method: 'method',
 				pair: 'pair',
 				orderHash: '0xOrderHash',
-				amount: 123
+				balance: 123
 			},
 			true
 		)
@@ -217,7 +218,7 @@ test('persistOrder add existing', async () => {
 				method: CST.DB_ADD,
 				pair: 'pair',
 				orderHash: '0xOrderHash',
-				amount: -1,
+				balance: -1,
 				signedOrder: 'signedOrder' as any
 			},
 			true
@@ -244,7 +245,7 @@ test('persistOrder not add not existing', async () => {
 				method: 'method',
 				pair: 'pair',
 				orderHash: '0xOrderHash',
-				amount: -1
+				balance: -1
 			},
 			true
 		)

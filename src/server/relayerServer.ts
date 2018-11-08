@@ -63,7 +63,7 @@ class RelayerServer {
 						method: req.method,
 						pair: req.pair,
 						orderHash: orderHash,
-						amount: -1,
+						balance: -1,
 						signedOrder: stringSignedOrder
 					},
 					true
@@ -89,7 +89,7 @@ class RelayerServer {
 						method: req.method,
 						pair: req.pair,
 						orderHash: req.orderHash,
-						amount: -1
+						balance: -1
 					},
 					true
 				);

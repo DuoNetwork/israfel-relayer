@@ -8,8 +8,11 @@ Array [
         "account": Object {
           "S": "0xAccount",
         },
-        "balance": Object {
+        "amount": Object {
           "N": "456",
+        },
+        "balance": Object {
+          "N": "123",
         },
         "createdAt": Object {
           "N": "1234567890",
@@ -113,8 +116,11 @@ Array [
         "accountYearMonth": Object {
           "S": "0xAccount|1970-01",
         },
-        "balance": Object {
+        "amount": Object {
           "N": "456",
+        },
+        "balance": Object {
+          "N": "123",
         },
         "createdAt": Object {
           "N": "1234560000",
@@ -209,6 +215,7 @@ Array [
   Object {
     "account": "0xAccount",
     "amount": 456,
+    "balance": 123,
     "createdAt": 1234560000,
     "currentSequence": 2,
     "initialSequence": 1,
@@ -247,6 +254,7 @@ Array [
   Object {
     "account": "0xAccount",
     "amount": 456,
+    "balance": 123,
     "createdAt": 1234560000,
     "currentSequence": 2,
     "initialSequence": 1,
@@ -411,6 +419,7 @@ Array [
   Object {
     "account": "0xAccount",
     "amount": 456,
+    "balance": 123,
     "createdAt": 1234560000,
     "currentSequence": 1,
     "initialSequence": 1,
@@ -511,7 +520,7 @@ Array [
     Object {
       "ExpressionAttributeValues": Object {
         ":balance": Object {
-          "N": "456",
+          "N": "123",
         },
         ":currentSequence": Object {
           "N": "2",
