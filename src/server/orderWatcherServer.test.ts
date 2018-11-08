@@ -1,3 +1,6 @@
+// fix for @ledgerhq/hw-transport-u2f 4.28.0
+import '@babel/polyfill';
+
 import { BigNumber, ExchangeContractErrs, OrderState } from '0x.js';
 import * as CST from '../common/constants';
 import dynamoUtil from '../utils/dynamoUtil';

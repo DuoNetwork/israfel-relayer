@@ -1,3 +1,6 @@
+// fix for @ledgerhq/hw-transport-u2f 4.28.0
+import '@babel/polyfill';
+
 import { BigNumber } from '0x.js';
 import Web3Util from './Web3Util';
 
