@@ -177,7 +177,9 @@ test('persistOrder add', async () => {
 });
 
 test('persistOrder not add', async () => {
-	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve({}));
+	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve({
+		amount: 100
+	}));
 	redisUtil.increment = jest.fn(() => Promise.resolve(123));
 	redisUtil.multi = jest.fn(() => Promise.resolve());
 	redisUtil.exec = jest.fn(() => Promise.resolve());

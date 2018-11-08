@@ -157,7 +157,7 @@ Array [
   Array [
     "orders|cache",
     "method|0xOrderHash",
-    "{\\"method\\":\\"method\\",\\"liveOrder\\":{\\"currentSequence\\":123,\\"balance\\":123}}",
+    "{\\"method\\":\\"method\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"balance\\":100}}",
   ],
 ]
 `;
@@ -184,7 +184,8 @@ exports[`persistOrder not add 4`] = `
 Array [
   Array [
     Object {
-      "balance": 123,
+      "amount": 100,
+      "balance": 100,
       "currentSequence": 123,
     },
     "method",

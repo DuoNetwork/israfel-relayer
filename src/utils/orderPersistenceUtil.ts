@@ -109,7 +109,7 @@ class OrderPersistenceUtil {
 		};
 		orderQueueItem.liveOrder.currentSequence = sequence;
 		if (method === CST.DB_ADD) orderQueueItem.signedOrder = orderPersistRequest.signedOrder;
-		else if (balance !== -1) orderQueueItem.liveOrder.balance = balance;
+		else if (balance !== -1) orderQueueItem.liveOrder.balance = Math.min(balance, orderQueueItem.liveOrder.amount);
 
 		util.logDebug(`storing order queue item in redis ${orderHash}`);
 		await redisUtil.multi();
