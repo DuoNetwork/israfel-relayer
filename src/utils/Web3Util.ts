@@ -1,3 +1,6 @@
+// fix for @ledgerhq/hw-transport-u2f 4.28.0
+import '@babel/polyfill';
+
 import {
 	assetDataUtils,
 	BigNumber,
@@ -11,9 +14,9 @@ import {
 	Web3ProviderEngine
 } from '0x.js';
 import { getContractAddressesForNetworkOrThrow } from '@0x/contract-addresses';
-import { schemas, SchemaValidator } from '@0xproject/json-schemas';
-import { MnemonicWalletSubprovider } from '@0xproject/subproviders';
-import { Web3Wrapper } from '@0xproject/web3-wrapper';
+import { schemas, SchemaValidator } from '@0x/json-schemas';
+import { MetamaskSubprovider, MnemonicWalletSubprovider } from '@0x/subproviders';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as CST from '../common/constants';
 import { IRawOrder, IStringSignedOrder } from '../common/types';
 import util from './util';
@@ -35,7 +38,9 @@ export default class Web3Util {
 	constructor(window: any, live: boolean, mnemonic: string) {
 		this.live = live;
 		if (window && typeof window.web3 !== 'undefined') {
-			this.web3Wrapper = new Web3Wrapper(window.web3.currentProvider);
+			this.web3Wrapper = new Web3Wrapper(
+				new MetamaskSubprovider(window.web3.currentProvider)
+			);
 			this.wallet = Wallet.MetaMask;
 		} else {
 			const infura = require('../keys/infura.json');
@@ -136,14 +141,14 @@ export default class Web3Util {
 		order.salt = generatePseudoRandomSalt();
 
 		const orderHash = orderHashUtils.getOrderHashHex(order);
-		const signature = await signatureUtils.ecSignHashAsync(
+		const signedOrder = await signatureUtils.ecSignOrderAsync(
 			this.web3Wrapper.getProvider(),
-			orderHash,
+			order,
 			order.makerAddress
 		);
 		return {
 			orderHash: orderHash,
-			signedOrder: { ...order, signature }
+			signedOrder: signedOrder
 		};
 	}
 
@@ -207,7 +212,9 @@ export default class Web3Util {
 	}
 
 	public getTokenAddressFromName(tokenName: string): string {
-		const contractAddresses = getContractAddressesForNetworkOrThrow(this.live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN);
+		const contractAddresses = getContractAddressesForNetworkOrThrow(
+			this.live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN
+		);
 		switch (tokenName) {
 			case CST.TOKEN_ZRX:
 				return contractAddresses.zrxToken;
