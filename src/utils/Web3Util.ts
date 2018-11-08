@@ -34,10 +34,12 @@ export default class Web3Util {
 	public wallet: Wallet = Wallet.None;
 	public accountIndex: number = 0;
 	public networkId: number = CST.NETWORK_ID_KOVAN;
+	private rawMetamaskProvider: any = null;
 
 	constructor(window: any, live: boolean, mnemonic: string) {
 		this.networkId = live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN;
 		if (window && typeof window.web3 !== 'undefined') {
+			this.rawMetamaskProvider = window.web3.currentProvider;
 			this.web3Wrapper = new Web3Wrapper(
 				new MetamaskSubprovider(window.web3.currentProvider)
 			);
@@ -72,7 +74,7 @@ export default class Web3Util {
 	public onWeb3AccountUpdate(onUpdate: (addr: string, network: number) => any) {
 		if (this.wallet !== Wallet.MetaMask) return;
 
-		const store = (this.web3Wrapper.getProvider() as any).publicConfigStore;
+		const store = this.rawMetamaskProvider.publicConfigStore;
 		if (store)
 			store.on('update', () => {
 				onUpdate(
