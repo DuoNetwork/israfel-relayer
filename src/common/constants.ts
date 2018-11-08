@@ -29,6 +29,7 @@ export const DB_ASK = 'ask';
 export const DB_BID = 'bid';
 export const DB_BALANCE = 'balance';
 export const DB_AMOUNT = 'amount';
+export const DB_FILL = 'fill';
 export const DB_CREATED_AT = 'createdAt';
 export const DB_UPDATED_AT = 'updatedAt';
 export const DB_UPDATED_BY = 'updatedBy';
@@ -36,9 +37,6 @@ export const DB_UPDATED_BY = 'updatedBy';
 export const DB_ADD = 'add';
 export const DB_UPDATE = 'update';
 export const DB_TERMINATE = 'terminate';
-// export const DB_CANCEL = 'cancel';
-// export const DB_FILL = 'fill';
-// export const DB_EXPIRE = 'expire';
 
 export const DB_PROCESS = 'process';
 export const DB_HOSTNAME = 'hostname';

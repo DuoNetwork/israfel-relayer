@@ -45,6 +45,7 @@ const liveOrder = {
 	price: 0.123456789,
 	amount: 456,
 	balance: 123,
+	fill: 234,
 	side: CST.DB_BID,
 	initialSequence: 1,
 	currentSequence: 2

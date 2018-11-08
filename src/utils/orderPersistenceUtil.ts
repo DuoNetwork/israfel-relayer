@@ -170,6 +170,7 @@ class OrderPersistenceUtil {
 			price: web3Util.getPriceFromSignedOrder(signedOrder, side),
 			amount: amount,
 			balance: amount,
+			fill: 0,
 			side: side,
 			initialSequence: 0,
 			currentSequence: 0

@@ -34,47 +34,42 @@ class DynamoUtil {
 	}
 
 	public putData(params: PutItemInput): Promise<void> {
-		return new Promise(
-			(resolve, reject) =>
-				this.ddb
-					? this.ddb.putItem(params, err => (err ? reject(err) : resolve()))
-					: reject('dynamo db connection is not initialized')
+		return new Promise((resolve, reject) =>
+			this.ddb
+				? this.ddb.putItem(params, err => (err ? reject(err) : resolve()))
+				: reject('dynamo db connection is not initialized')
 		);
 	}
 
 	public updateData(params: UpdateItemInput): Promise<void> {
-		return new Promise(
-			(resolve, reject) =>
-				this.ddb
-					? this.ddb.updateItem(params, err => (err ? reject(err) : resolve()))
-					: reject('dynamo db connection is not initialized')
+		return new Promise((resolve, reject) =>
+			this.ddb
+				? this.ddb.updateItem(params, err => (err ? reject(err) : resolve()))
+				: reject('dynamo db connection is not initialized')
 		);
 	}
 
 	public queryData(params: QueryInput): Promise<QueryOutput> {
-		return new Promise(
-			(resolve, reject) =>
-				this.ddb
-					? this.ddb.query(params, (err, data) => (err ? reject(err) : resolve(data)))
-					: reject('dynamo db connection is not initialized')
+		return new Promise((resolve, reject) =>
+			this.ddb
+				? this.ddb.query(params, (err, data) => (err ? reject(err) : resolve(data)))
+				: reject('dynamo db connection is not initialized')
 		);
 	}
 
 	public scanData(params: ScanInput): Promise<ScanOutput> {
-		return new Promise(
-			(resolve, reject) =>
-				this.ddb
-					? this.ddb.scan(params, (err, data) => (err ? reject(err) : resolve(data)))
-					: reject('dynamo db connection is not initialized')
+		return new Promise((resolve, reject) =>
+			this.ddb
+				? this.ddb.scan(params, (err, data) => (err ? reject(err) : resolve(data)))
+				: reject('dynamo db connection is not initialized')
 		);
 	}
 
 	public deleteData(params: DeleteItemInput): Promise<void> {
-		return new Promise(
-			(resolve, reject) =>
-				this.ddb
-					? this.ddb.deleteItem(params, err => (err ? reject(err) : resolve()))
-					: reject('dynamo db connection is not initialized')
+		return new Promise((resolve, reject) =>
+			this.ddb
+				? this.ddb.deleteItem(params, err => (err ? reject(err) : resolve()))
+				: reject('dynamo db connection is not initialized')
 		);
 	}
 
@@ -171,6 +166,7 @@ class DynamoUtil {
 			},
 			[CST.DB_AMOUNT]: { N: liveOrder.amount + '' },
 			[CST.DB_BALANCE]: { N: liveOrder.balance + '' },
+			[CST.DB_FILL]: { N: liveOrder.fill + '' },
 			[CST.DB_SIDE]: { S: liveOrder.side },
 			[CST.DB_INITIAL_SEQ]: { N: liveOrder.initialSequence + '' },
 			[CST.DB_CURRENT_SEQ]: { N: liveOrder.currentSequence + '' },
@@ -205,12 +201,17 @@ class DynamoUtil {
 				[':' + CST.DB_BALANCE]: {
 					N: liveOrder.balance + ''
 				},
+				[':' + CST.DB_FILL]: {
+					N: liveOrder.fill + ''
+				},
 				[':' + CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' },
 				[':' + CST.DB_CURRENT_SEQ]: { N: liveOrder.currentSequence + '' }
 			},
 			UpdateExpression: `SET ${CST.DB_BALANCE} = ${':' + CST.DB_BALANCE}, ${
-				CST.DB_UPDATED_AT
-			} = ${':' + CST.DB_UPDATED_AT}, ${CST.DB_CURRENT_SEQ} = ${':' + CST.DB_CURRENT_SEQ} `
+				CST.DB_FILL
+			} = ${':' + CST.DB_FILL}, ${CST.DB_UPDATED_AT} = ${':' + CST.DB_UPDATED_AT}, ${
+				CST.DB_CURRENT_SEQ
+			} = ${':' + CST.DB_CURRENT_SEQ} `
 		});
 	}
 
@@ -239,6 +240,7 @@ class DynamoUtil {
 			side: data[CST.DB_SIDE].S || '',
 			amount: Number(data[CST.DB_AMOUNT].N),
 			balance: Number(data[CST.DB_BALANCE].N),
+			fill: Number(data[CST.DB_FILL].N),
 			initialSequence: Number(data[CST.DB_INITIAL_SEQ].N),
 			currentSequence: Number(data[CST.DB_CURRENT_SEQ].N),
 			createdAt: Number(data[CST.DB_CREATED_AT].N),
@@ -387,6 +389,7 @@ class DynamoUtil {
 			},
 			[CST.DB_BALANCE]: { N: userOrder.balance + '' },
 			[CST.DB_AMOUNT]: { N: userOrder.amount + '' },
+			[CST.DB_FILL]: { N: userOrder.fill + '' },
 			[CST.DB_SIDE]: { S: userOrder.side },
 			[CST.DB_INITIAL_SEQ]: { N: userOrder.initialSequence + '' },
 			[CST.DB_CREATED_AT]: { N: (userOrder.createdAt || timestamp) + '' },
@@ -416,6 +419,7 @@ class DynamoUtil {
 			side: data[CST.DB_SIDE].S || '',
 			amount: Number(data[CST.DB_AMOUNT].N),
 			balance: Number(data[CST.DB_BALANCE].N),
+			fill: Number(data[CST.DB_FILL].N),
 			initialSequence: Number(data[CST.DB_INITIAL_SEQ].N),
 			currentSequence: Number(seq),
 			createdAt: Number(data[CST.DB_CREATED_AT].N),

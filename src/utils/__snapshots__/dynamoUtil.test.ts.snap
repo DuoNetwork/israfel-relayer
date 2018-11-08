@@ -20,6 +20,9 @@ Array [
         "currentSequence": Object {
           "N": "1",
         },
+        "fill": Object {
+          "N": "234",
+        },
         "initialSequence": Object {
           "N": "1",
         },
@@ -125,6 +128,9 @@ Array [
         "createdAt": Object {
           "N": "1234560000",
         },
+        "fill": Object {
+          "N": "234",
+        },
         "initialSequence": Object {
           "N": "1",
         },
@@ -218,6 +224,7 @@ Array [
     "balance": 123,
     "createdAt": 1234560000,
     "currentSequence": 2,
+    "fill": 234,
     "initialSequence": 1,
     "orderHash": "0xOrderHash",
     "pair": "pair",
@@ -257,6 +264,7 @@ Array [
     "balance": 123,
     "createdAt": 1234560000,
     "currentSequence": 2,
+    "fill": 234,
     "initialSequence": 1,
     "orderHash": "0xOrderHash",
     "pair": "pair",
@@ -422,6 +430,7 @@ Array [
     "balance": 123,
     "createdAt": 1234560000,
     "currentSequence": 1,
+    "fill": 234,
     "initialSequence": 1,
     "orderHash": "0xOrderHash",
     "pair": "pair",
@@ -525,6 +534,9 @@ Array [
         ":currentSequence": Object {
           "N": "2",
         },
+        ":fill": Object {
+          "N": "234",
+        },
         ":updatedAt": Object {
           "N": "1234567890",
         },
@@ -538,7 +550,7 @@ Array [
         },
       },
       "TableName": "israfel.liveOrders.dev",
-      "UpdateExpression": "SET balance = :balance, updatedAt = :updatedAt, currentSequence = :currentSequence ",
+      "UpdateExpression": "SET balance = :balance, fill = :fill, updatedAt = :updatedAt, currentSequence = :currentSequence ",
     },
   ],
 ]

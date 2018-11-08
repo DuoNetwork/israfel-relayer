@@ -7,6 +7,7 @@ export interface ILiveOrder {
 	price: number;
 	amount: number;
 	balance: number;
+	fill: number;
 	side: string;
 	createdAt?: number;
 	updatedAt?: number;
