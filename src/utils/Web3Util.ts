@@ -268,6 +268,7 @@ export default class Web3Util {
 			return true;
 		} catch (err) {
 			util.logDebug('invalid order');
+			util.logDebug(JSON.stringify(err));
 			return false;
 		}
 	}
