@@ -18,7 +18,7 @@ class OrderWatcherServer {
 	public pair: string = 'pair';
 	public orderWatcher: OrderWatcher | null = null;
 	public web3Util: Web3Util | null = null;
-	public watchingOrders: {[orderHash: string]: SignedOrder} = {};
+	public watchingOrders: { [orderHash: string]: SignedOrder } = {};
 
 	public async updateOrder(orderPersistRequest: IOrderPersistRequest) {
 		let userOrder = null;
@@ -59,10 +59,30 @@ class OrderWatcherServer {
 					orderPersistRequest.method = CST.DB_TERMINATE;
 					break;
 				case ExchangeContractErrs.OrderRemainingFillAmountZero:
+				case ExchangeContractErrs.InsufficientRemainingFillAmount:
 					orderPersistRequest.balance = 0;
 					orderPersistRequest.method = CST.DB_TERMINATE;
 					break;
+				case ExchangeContractErrs.InsufficientTakerBalance:
+				case ExchangeContractErrs.InsufficientTakerAllowance:
+				case ExchangeContractErrs.InsufficientTakerFeeBalance:
+				case ExchangeContractErrs.InsufficientTakerFeeAllowance:
+				case ExchangeContractErrs.InsufficientMakerFeeBalance:
+				case ExchangeContractErrs.InsufficientMakerFeeAllowance:
+					return;
+				case ExchangeContractErrs.InsufficientMakerBalance:
+				case ExchangeContractErrs.InsufficientMakerAllowance:
+					orderPersistRequest.balance = 0;
+					break;
 				default:
+					// OrderFillAmountZero = 'ORDER_FILL_AMOUNT_ZERO',
+					// OrderFillRoundingError = "ORDER_FILL_ROUNDING_ERROR",
+					// FillBalanceAllowanceError = "FILL_BALANCE_ALLOWANCE_ERROR",
+					// TransactionSenderIsNotFillOrderTaker = "TRANSACTION_SENDER_IS_NOT_FILL_ORDER_TAKER",
+					// MultipleMakersInSingleCancelBatchDisallowed = "MULTIPLE_MAKERS_IN_SINGLE_CANCEL_BATCH_DISALLOWED",
+					// MultipleTakerTokensInFillUpToDisallowed = "MULTIPLE_TAKER_TOKENS_IN_FILL_UP_TO_DISALLOWED",
+					// BatchOrdersMustHaveSameExchangeAddress = "BATCH_ORDERS_MUST_HAVE_SAME_EXCHANGE_ADDRESS",
+					// BatchOrdersMustHaveAtLeastOneItem = "BATCH_ORDERS_MUST_HAVE_AT_LEAST_ONE_ITEM"
 					return;
 			}
 		}
@@ -85,14 +105,14 @@ class OrderWatcherServer {
 					signedOrder
 				);
 
-				if (!await this.web3Util.validateOrderFillable(rawSignedOrder)) {
+				if (!(await this.web3Util.validateOrderFillable(rawSignedOrder))) {
 					util.logDebug(orderHash + ' not fillable, send update');
 					await this.updateOrder({
 						method: CST.DB_UPDATE,
 						pair: this.pair,
 						orderHash: orderHash,
 						balance: 0
-					})
+					});
 				}
 
 				await this.orderWatcher.addOrderAsync(rawSignedOrder);
@@ -172,7 +192,10 @@ class OrderWatcherServer {
 
 		if (option.server) {
 			dynamoUtil.updateStatus(this.pair);
-			setInterval(() => dynamoUtil.updateStatus(this.pair, Object.keys(this.watchingOrders).length), 10000);
+			setInterval(
+				() => dynamoUtil.updateStatus(this.pair, Object.keys(this.watchingOrders).length),
+				10000
+			);
 		}
 
 		this.orderWatcher.subscribe(async (err, orderState) => {
