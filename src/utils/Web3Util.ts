@@ -253,21 +253,21 @@ export default class Web3Util {
 		util.logInfo('balnace of ' + address + 'is ' + Web3Util.fromWei(balance));
 	}
 
-	public wrapEther(amount: number, account: string) {
+	public async wrapEther(amount: number) {
 		const contractAddresses = getContractAddressesForNetworkOrThrow(this.networkId);
 		return this.contractWrappers.etherToken.depositAsync(
 			contractAddresses.etherToken,
 			Web3Wrapper.toWei(new BigNumber(amount)),
-			account
+			await this.getCurrentAddress()
 		);
 	}
 
-	public unwarpEther(amount: number, account: string) {
+	public async unwrapEther(amount: number) {
 		const contractAddresses = getContractAddressesForNetworkOrThrow(this.networkId);
 		return this.contractWrappers.etherToken.withdrawAsync(
 			contractAddresses.etherToken,
 			Web3Wrapper.toWei(new BigNumber(amount)),
-			account
+			await this.getCurrentAddress()
 		);
 	}
 }
