@@ -36,7 +36,7 @@ export default class Web3Util {
 	public networkId: number = CST.NETWORK_ID_KOVAN;
 	private rawMetamaskProvider: any = null;
 
-	constructor(window: any, live: boolean, mnemonic: string) {
+	constructor(window: any, live: boolean, mnemonic: string, local: boolean) {
 		this.networkId = live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN;
 		if (window && typeof window.web3 !== 'undefined') {
 			this.rawMetamaskProvider = window.web3.currentProvider;
@@ -45,16 +45,18 @@ export default class Web3Util {
 			);
 			this.wallet = Wallet.MetaMask;
 		} else {
-			// const infura = require('../keys/infura.json');
 			const pe = new Web3ProviderEngine();
-			pe.addProvider(
-				new RPCSubprovider(
-					// (live ? CST.PROVIDER_INFURA_MAIN : CST.PROVIDER_INFURA_KOVAN) +
-					// 	'/' +
-					// 	infura.token
-					'http://localhost:8545'
-				)
-			);
+			if (local) pe.addProvider(new RPCSubprovider(CST.PROVIDER_LOCAL));
+			else {
+				const infura = require('../keys/infura.json');
+				pe.addProvider(
+					new RPCSubprovider(
+						(live ? CST.PROVIDER_INFURA_MAIN : CST.PROVIDER_INFURA_KOVAN) +
+							'/' +
+							infura.token
+					)
+				);
+			}
 			if (!window && mnemonic) {
 				const mnemonicWallet = new MnemonicWalletSubprovider({
 					mnemonic: mnemonic,

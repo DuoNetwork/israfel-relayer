@@ -24,7 +24,7 @@ dynamoUtil.init(config, option.live, tool, osUtil.getHostName());
 
 let web3Util: Web3Util | null = null;
 if ([CST.DB_ORDER_WATCHER, CST.DB_RELAYER].includes(tool))
-	web3Util = new Web3Util(null, option.live, '');
+	web3Util = new Web3Util(null, option.live, '', tool === CST.DB_ORDER_WATCHER);
 
 switch (tool) {
 	case CST.DB_ORDER_WATCHER:
