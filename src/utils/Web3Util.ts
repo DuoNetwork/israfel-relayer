@@ -45,13 +45,14 @@ export default class Web3Util {
 			);
 			this.wallet = Wallet.MetaMask;
 		} else {
-			const infura = require('../keys/infura.json');
+			// const infura = require('../keys/infura.json');
 			const pe = new Web3ProviderEngine();
 			pe.addProvider(
 				new RPCSubprovider(
-					(live ? CST.PROVIDER_INFURA_MAIN : CST.PROVIDER_INFURA_KOVAN) +
-						'/' +
-						infura.token
+					// (live ? CST.PROVIDER_INFURA_MAIN : CST.PROVIDER_INFURA_KOVAN) +
+					// 	'/' +
+					// 	infura.token
+					'http://localhost:8545'
 				)
 			);
 			if (!window && mnemonic) {
@@ -166,19 +167,19 @@ export default class Web3Util {
 		return Number(Web3Wrapper.toWei(new BigNumber(value)).valueOf());
 	};
 
-	public static assetDataToTokenName = (assetData: string): string => {
+	public assetDataToTokenName(assetData: string): string {
 		const tokenAddr = assetDataUtils.decodeERC20AssetData(assetData).tokenAddress;
+		const contractAddresses = getContractAddressesForNetworkOrThrow(this.networkId);
+		if (tokenAddr === contractAddresses.etherToken) return CST.TOKEN_WETH;
+		else if (tokenAddr === contractAddresses.zrxToken) return CST.TOKEN_ZRX;
 		return CST.TOKEN_MAPPING[tokenAddr];
-	};
+	}
 
-	public static getSideFromSignedOrder = (
-		order: SignedOrder | IStringSignedOrder,
-		pair: string
-	): string => {
-		return Web3Util.assetDataToTokenName(order.takerAssetData) === pair.split('-')[0]
+	public getSideFromSignedOrder(order: SignedOrder | IStringSignedOrder, pair: string): string {
+		return this.assetDataToTokenName(order.takerAssetData) === pair.split('-')[0]
 			? CST.DB_BID
 			: CST.DB_ASK;
-	};
+	}
 
 	public static getPriceFromSignedOrder = (order: IStringSignedOrder, side: string): number => {
 		const isBid = side === CST.DB_BID;
