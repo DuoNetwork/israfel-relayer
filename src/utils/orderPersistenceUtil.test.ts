@@ -28,13 +28,11 @@ test('parseSignedOrder', () =>
 	expect(orderPersistenceUtil.parseSignedOrder(signedOrder)).toMatchSnapshot());
 
 test('constructNewLiveOrder', () => {
-	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
 	expect(
-		orderPersistenceUtil.constructNewLiveOrder(signedOrder, 'pair', '0xOrderHash')
+		orderPersistenceUtil.constructNewLiveOrder(signedOrder, 'pair', CST.DB_BID, '0xOrderHash')
 	).toMatchSnapshot();
-	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
 	expect(
-		orderPersistenceUtil.constructNewLiveOrder(signedOrder, 'pair', '0xOrderHash')
+		orderPersistenceUtil.constructNewLiveOrder(signedOrder, 'pair', CST.DB_ASK, '0xOrderHash')
 	).toMatchSnapshot();
 });
 
@@ -164,6 +162,7 @@ test('persistOrder add', async () => {
 			{
 				method: CST.DB_ADD,
 				pair: 'pair',
+				side: 'side',
 				orderHash: '0xOrderHash',
 				balance: -1,
 				signedOrder: 'may or may not exist' as any
@@ -178,9 +177,11 @@ test('persistOrder add', async () => {
 });
 
 test('persistOrder not add', async () => {
-	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve({
-		amount: 100
-	}));
+	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() =>
+		Promise.resolve({
+			amount: 100
+		})
+	);
 	redisUtil.increment = jest.fn(() => Promise.resolve(123));
 	redisUtil.multi = jest.fn(() => Promise.resolve());
 	redisUtil.exec = jest.fn(() => Promise.resolve());
@@ -194,6 +195,7 @@ test('persistOrder not add', async () => {
 			{
 				method: 'method',
 				pair: 'pair',
+				side: 'side',
 				orderHash: '0xOrderHash',
 				balance: 123
 			},
@@ -220,6 +222,7 @@ test('persistOrder add existing', async () => {
 			{
 				method: CST.DB_ADD,
 				pair: 'pair',
+				side: 'side',
 				orderHash: '0xOrderHash',
 				balance: -1,
 				signedOrder: 'signedOrder' as any
@@ -247,6 +250,7 @@ test('persistOrder not add not existing', async () => {
 			{
 				method: 'method',
 				pair: 'pair',
+				side: 'side',
 				orderHash: '0xOrderHash',
 				balance: -1
 			},

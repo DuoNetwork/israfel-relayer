@@ -38,18 +38,40 @@ class OrderWatcherServer {
 	}
 
 	public handleOrderWatcherUpdate(orderState: OrderState) {
+		if (!this.web3Util || !this.watchingOrders[orderState.orderHash]) {
+			util.logDebug(orderState.orderHash + ' not in cache, ignored');
+			return;
+		}
+		const stringSignedOrder = JSON.parse(
+			JSON.stringify(this.watchingOrders[orderState.orderHash])
+		);
 		const orderPersistRequest: IOrderPersistRequest = {
 			method: CST.DB_UPDATE,
 			pair: this.pair,
+			side: this.web3Util.getSideFromSignedOrder(stringSignedOrder, this.pair),
 			orderHash: orderState.orderHash,
 			balance: -1
 		};
 		util.logDebug(JSON.stringify(orderState));
 		if (orderState.isValid) {
-			const remainingAmount = Web3Util.fromWei(
-				(orderState as OrderStateValid).orderRelevantState.remainingFillableMakerAssetAmount
+			const {
+				remainingFillableTakerAssetAmount,
+				remainingFillableMakerAssetAmount,
+				filledTakerAssetAmount
+			} = (orderState as OrderStateValid).orderRelevantState;
+			const price = Web3Util.getPriceFromSignedOrder(
+				stringSignedOrder,
+				orderPersistRequest.side
 			);
-			orderPersistRequest.balance = remainingAmount;
+			orderPersistRequest.balance = Web3Util.fromWei(
+				orderPersistRequest.side === CST.DB_BID
+					? remainingFillableTakerAssetAmount
+					: remainingFillableMakerAssetAmount
+			);
+			const fill = Web3Util.fromWei(filledTakerAssetAmount);
+			if (fill)
+				orderPersistRequest.fill =
+					orderPersistRequest.side === CST.DB_BID ? fill : fill * price;
 		} else {
 			const error = (orderState as OrderStateInvalid).error;
 			switch (error) {
@@ -101,6 +123,7 @@ class OrderWatcherServer {
 					await this.updateOrder({
 						method: CST.DB_UPDATE,
 						pair: this.pair,
+						side: this.web3Util.getSideFromSignedOrder(signedOrder, this.pair),
 						orderHash: orderHash,
 						balance: 0
 					});

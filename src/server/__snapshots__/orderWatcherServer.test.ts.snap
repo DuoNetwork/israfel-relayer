@@ -104,6 +104,7 @@ Array [
       "method": "update",
       "orderHash": "orderHash",
       "pair": "pair",
+      "side": "bid",
     },
   ],
 ]
@@ -219,6 +220,7 @@ Array [
       "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
+      "side": "bid",
     },
   ],
 ]
@@ -234,6 +236,7 @@ Array [
       "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
+      "side": "bid",
     },
   ],
 ]
@@ -249,6 +252,7 @@ Array [
       "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
+      "side": "bid",
     },
   ],
 ]
@@ -264,6 +268,7 @@ Array [
       "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
+      "side": "bid",
     },
   ],
 ]
@@ -279,6 +284,7 @@ Array [
       "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
+      "side": "bid",
     },
   ],
 ]
@@ -286,7 +292,51 @@ Array [
 
 exports[`handleOrderWatcherUpdate inValid default 1`] = `Array []`;
 
-exports[`handleOrderWatcherUpdate isValid 1`] = `
+exports[`handleOrderWatcherUpdate isValid ask fill 1`] = `
+Array [
+  Array [
+    Object {
+      "balance": 1.23e-16,
+      "fill": 1e-17,
+      "method": "update",
+      "orderHash": "orderHash",
+      "pair": "pair",
+      "side": "ask",
+    },
+  ],
+]
+`;
+
+exports[`handleOrderWatcherUpdate isValid ask no fill 1`] = `
+Array [
+  Array [
+    Object {
+      "balance": 1.23e-16,
+      "method": "update",
+      "orderHash": "orderHash",
+      "pair": "pair",
+      "side": "ask",
+    },
+  ],
+]
+`;
+
+exports[`handleOrderWatcherUpdate isValid bid fill 1`] = `
+Array [
+  Array [
+    Object {
+      "balance": 5.67e-16,
+      "fill": 1e-18,
+      "method": "update",
+      "orderHash": "orderHash",
+      "pair": "pair",
+      "side": "bid",
+    },
+  ],
+]
+`;
+
+exports[`handleOrderWatcherUpdate isValid bid no fill 1`] = `
 Array [
   Array [
     Object {
@@ -294,23 +344,8 @@ Array [
       "method": "update",
       "orderHash": "orderHash",
       "pair": "pair",
+      "side": "bid",
     },
-  ],
-]
-`;
-
-exports[`handleOrderWatcherUpdate isValid 2`] = `Array []`;
-
-exports[`handleOrderWatcherUpdate isValid userOrder 1`] = `
-Array [
-  Array [
-    Object {
-      "balance": -1,
-      "method": "method",
-      "orderHash": "0xOrderHash",
-      "pair": "pair",
-    },
-    false,
   ],
 ]
 `;
@@ -331,6 +366,7 @@ Array [
       "method": "method",
       "orderHash": "orderHash",
       "pair": "pair",
+      "side": "side",
     },
     false,
   ],
@@ -341,6 +377,21 @@ exports[`updateOrder isValid no userOrder 2`] = `
 Array [
   Array [
     "orderHash",
+  ],
+]
+`;
+
+exports[`updateOrder isValid userOrder 1`] = `
+Array [
+  Array [
+    Object {
+      "balance": -1,
+      "method": "method",
+      "orderHash": "0xOrderHash",
+      "pair": "pair",
+      "side": "side",
+    },
+    false,
   ],
 ]
 `;

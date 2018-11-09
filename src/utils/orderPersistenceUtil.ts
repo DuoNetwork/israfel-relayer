@@ -11,7 +11,7 @@ import {
 import dynamoUtil from './dynamoUtil';
 import redisUtil from './redisUtil';
 import util from './util';
-import web3Util from './Web3Util';
+import Web3Util from './Web3Util';
 
 class OrderPersistenceUtil {
 	public async addUserOrderToDB(
@@ -84,7 +84,7 @@ class OrderPersistenceUtil {
 	}
 
 	public async persistOrder(orderPersistRequest: IOrderPersistRequest, publish: boolean) {
-		const { pair, orderHash, method, balance } = orderPersistRequest;
+		const { pair, orderHash, method, balance, side } = orderPersistRequest;
 		let liveOrder = await this.getLiveOrderInPersistence(pair, orderHash);
 		if (method === CST.DB_ADD && liveOrder) {
 			util.logDebug(`order ${orderHash} already exist, ignore add request`);
@@ -99,6 +99,7 @@ class OrderPersistenceUtil {
 			liveOrder = this.constructNewLiveOrder(
 				orderPersistRequest.signedOrder as IStringSignedOrder,
 				pair,
+				side,
 				orderHash
 			);
 			liveOrder.initialSequence = sequence;
@@ -156,18 +157,18 @@ class OrderPersistenceUtil {
 	public constructNewLiveOrder(
 		signedOrder: IStringSignedOrder,
 		pair: string,
+		side: string,
 		orderHash: string
 	): ILiveOrder {
-		const side = web3Util.getSideFromSignedOrder(signedOrder, pair);
 		const isBid = side === CST.DB_BID;
-		const amount =  web3Util.fromWei(
+		const amount =  Web3Util.fromWei(
 			isBid ? signedOrder.makerAssetAmount : signedOrder.takerAssetAmount
 		)
 		return {
 			account: signedOrder.makerAddress,
 			pair: pair,
 			orderHash: orderHash,
-			price: web3Util.getPriceFromSignedOrder(signedOrder, side),
+			price: Web3Util.getPriceFromSignedOrder(signedOrder, side),
 			amount: amount,
 			balance: amount,
 			fill: 0,
@@ -245,12 +246,12 @@ class OrderPersistenceUtil {
 		} = order;
 		return {
 			...rest,
-			makerFee: web3Util.stringToBN(makerFee),
-			takerFee: web3Util.stringToBN(takerFee),
-			makerAssetAmount: web3Util.stringToBN(makerAssetAmount),
-			takerAssetAmount: web3Util.stringToBN(takerAssetAmount),
-			salt: web3Util.stringToBN(salt),
-			expirationTimeSeconds: web3Util.stringToBN(expirationTimeSeconds)
+			makerFee: Web3Util.stringToBN(makerFee),
+			takerFee: Web3Util.stringToBN(takerFee),
+			makerAssetAmount: Web3Util.stringToBN(makerAssetAmount),
+			takerAssetAmount: Web3Util.stringToBN(takerAssetAmount),
+			salt: Web3Util.stringToBN(salt),
+			expirationTimeSeconds: Web3Util.stringToBN(expirationTimeSeconds)
 		};
 	}
 

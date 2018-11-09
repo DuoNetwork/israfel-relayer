@@ -5,6 +5,7 @@ import { BigNumber, ExchangeContractErrs, OrderState } from '0x.js';
 import * as CST from '../common/constants';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
+import Web3Util from '../utils/Web3Util';
 import orderWatcherServer from './orderWatcherServer';
 
 test('remove from watch, not a existing order', async () => {
@@ -36,6 +37,7 @@ test('updateOrder isValid no userOrder', async () => {
 	await orderWatcherServer.updateOrder({
 		method: 'method',
 		pair: 'pair',
+		side: 'side',
 		orderHash: 'orderHash',
 		balance: -1
 	});
@@ -58,12 +60,13 @@ const userOrder = {
 	updatedBy: 'updatedBy'
 };
 
-test('handleOrderWatcherUpdate isValid userOrder', async () => {
+test('updateOrder isValid userOrder', async () => {
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(userOrder));
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
 	await orderWatcherServer.updateOrder({
 		method: 'method',
 		pair: 'pair',
+		side: 'side',
 		orderHash: '0xOrderHash',
 		balance: -1
 	});
@@ -114,7 +117,8 @@ test('addIntoWatch with signed order non fillable', async () => {
 	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({}));
 	orderWatcherServer.watchingOrders = {};
 	orderWatcherServer.web3Util = {
-		validateOrderFillable: jest.fn(() => Promise.resolve(false))
+		validateOrderFillable: jest.fn(() => Promise.resolve(false)),
+		getSideFromSignedOrder: jest.fn(() => CST.DB_BID)
 	} as any;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	await orderWatcherServer.addIntoWatch('orderHash', signedOrder);
@@ -167,6 +171,7 @@ test('addIntoWatch no signed order and no rawOrder', async () => {
 const orderPersistRequest = {
 	method: 'method',
 	pair: 'pair',
+	side: 'side',
 	orderHash: 'orderHash',
 	balance: 456,
 	signedOrder: signedOrder
@@ -204,16 +209,96 @@ const orderStateValid: OrderState = {
 	isValid: true,
 	orderHash: 'orderHash',
 	orderRelevantState: {
-		remainingFillableMakerAssetAmount: new BigNumber(567)
+		filledTakerAssetAmount: new BigNumber(0),
+		remainingFillableTakerAssetAmount: new BigNumber(567),
+		remainingFillableMakerAssetAmount: new BigNumber(123),
 	} as any
 };
 
-test('handleOrderWatcherUpdate isValid', async () => {
+test('handleOrderWatcherUpdate no web3Util', async () => {
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+	orderWatcherServer.web3Util = null;
+	orderWatcherServer.watchingOrders = {
+		orderHash: 'orderHash' as any
+	};
+	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
+	expect(orderWatcherServer.updateOrder as jest.Mock).not.toBeCalled();
+	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
+});
+
+test('handleOrderWatcherUpdate not in cache', async () => {
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
+	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+	orderWatcherServer.web3Util = {
+		getSideFromSignedOrder: jest.fn(() => CST.DB_BID)
+	} as any;
+	orderWatcherServer.watchingOrders = {};
+	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
+	expect(orderWatcherServer.updateOrder as jest.Mock).not.toBeCalled();
+	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
+});
+
+test('handleOrderWatcherUpdate isValid bid no fill', async () => {
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
+	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+	orderWatcherServer.watchingOrders = {
+		orderHash: 'orderHash' as any
+	};
+	orderWatcherServer.web3Util = {
+		getSideFromSignedOrder: jest.fn(() => CST.DB_BID)
+	} as any;
+	Web3Util.getPriceFromSignedOrder = jest.fn(() => 10);
 	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
 	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
+});
+
+test('handleOrderWatcherUpdate isValid ask no fill', async () => {
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
+	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+	orderWatcherServer.watchingOrders = {
+		orderHash: 'orderHash' as any
+	};
+	orderWatcherServer.web3Util = {
+		getSideFromSignedOrder: jest.fn(() => CST.DB_ASK)
+	} as any;
+	Web3Util.getPriceFromSignedOrder = jest.fn(() => 10);
+	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
+	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
+});
+
+test('handleOrderWatcherUpdate isValid bid fill', async () => {
+	orderStateValid.orderRelevantState.filledTakerAssetAmount = new BigNumber(1);
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
+	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+	orderWatcherServer.watchingOrders = {
+		orderHash: 'orderHash' as any
+	};
+	orderWatcherServer.web3Util = {
+		getSideFromSignedOrder: jest.fn(() => CST.DB_BID)
+	} as any;
+	Web3Util.getPriceFromSignedOrder = jest.fn(() => 10);
+	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
+	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
+});
+
+test('handleOrderWatcherUpdate isValid ask fill', async () => {
+	orderStateValid.orderRelevantState.filledTakerAssetAmount = new BigNumber(1);
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
+	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+	orderWatcherServer.watchingOrders = {
+		orderHash: 'orderHash' as any
+	};
+	orderWatcherServer.web3Util = {
+		getSideFromSignedOrder: jest.fn(() => CST.DB_ASK)
+	} as any;
+	Web3Util.getPriceFromSignedOrder = jest.fn(() => 10);
+	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
+	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
 });
 
 const orderStateInValid: OrderState = {
@@ -223,6 +308,12 @@ const orderStateInValid: OrderState = {
 };
 
 test('handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderFillRoundingError', async () => {
+	orderWatcherServer.watchingOrders = {
+		orderHash: 'orderHash' as any
+	};
+	orderWatcherServer.web3Util = {
+		getSideFromSignedOrder: jest.fn(() => CST.DB_BID)
+	} as any;
 	orderStateInValid.error = ExchangeContractErrs.OrderFillRoundingError;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
@@ -232,6 +323,12 @@ test('handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderFillRoundingErr
 });
 
 test('handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderFillExpired', async () => {
+	orderWatcherServer.watchingOrders = {
+		orderHash: 'orderHash' as any
+	};
+	orderWatcherServer.web3Util = {
+		getSideFromSignedOrder: jest.fn(() => CST.DB_BID)
+	} as any;
 	orderStateInValid.error = ExchangeContractErrs.OrderFillExpired;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
@@ -241,6 +338,12 @@ test('handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderFillExpired', a
 });
 
 test('handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderCancelled', async () => {
+	orderWatcherServer.watchingOrders = {
+		orderHash: 'orderHash' as any
+	};
+	orderWatcherServer.web3Util = {
+		getSideFromSignedOrder: jest.fn(() => CST.DB_BID)
+	} as any;
 	orderStateInValid.error = ExchangeContractErrs.OrderCancelled;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
@@ -250,6 +353,12 @@ test('handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderCancelled', asy
 });
 
 test('handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderRemainingFillAmountZero', async () => {
+	orderWatcherServer.watchingOrders = {
+		orderHash: 'orderHash' as any
+	};
+	orderWatcherServer.web3Util = {
+		getSideFromSignedOrder: jest.fn(() => CST.DB_BID)
+	} as any;
 	orderStateInValid.error = ExchangeContractErrs.OrderRemainingFillAmountZero;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
@@ -259,6 +368,12 @@ test('handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderRemainingFillAm
 });
 
 test('handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderRemainingFillAmountZero', async () => {
+	orderWatcherServer.watchingOrders = {
+		orderHash: 'orderHash' as any
+	};
+	orderWatcherServer.web3Util = {
+		getSideFromSignedOrder: jest.fn(() => CST.DB_BID)
+	} as any;
 	orderStateInValid.error = ExchangeContractErrs.OrderRemainingFillAmountZero;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
@@ -268,6 +383,12 @@ test('handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderRemainingFillAm
 });
 
 test('handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerBalance', async () => {
+	orderWatcherServer.watchingOrders = {
+		orderHash: 'orderHash' as any
+	};
+	orderWatcherServer.web3Util = {
+		getSideFromSignedOrder: jest.fn(() => CST.DB_BID)
+	} as any;
 	orderStateInValid.error = ExchangeContractErrs.InsufficientTakerBalance;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
@@ -277,6 +398,12 @@ test('handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerBal
 });
 
 test('handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerAllowance', async () => {
+	orderWatcherServer.watchingOrders = {
+		orderHash: 'orderHash' as any
+	};
+	orderWatcherServer.web3Util = {
+		getSideFromSignedOrder: jest.fn(() => CST.DB_BID)
+	} as any;
 	orderStateInValid.error = ExchangeContractErrs.InsufficientTakerAllowance;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
@@ -286,6 +413,12 @@ test('handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerAll
 });
 
 test('handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerFeeBalance', async () => {
+	orderWatcherServer.watchingOrders = {
+		orderHash: 'orderHash' as any
+	};
+	orderWatcherServer.web3Util = {
+		getSideFromSignedOrder: jest.fn(() => CST.DB_BID)
+	} as any;
 	orderStateInValid.error = ExchangeContractErrs.InsufficientTakerFeeBalance;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
@@ -295,6 +428,12 @@ test('handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerFee
 });
 
 test('handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerFeeAllowance', async () => {
+	orderWatcherServer.watchingOrders = {
+		orderHash: 'orderHash' as any
+	};
+	orderWatcherServer.web3Util = {
+		getSideFromSignedOrder: jest.fn(() => CST.DB_BID)
+	} as any;
 	orderStateInValid.error = ExchangeContractErrs.InsufficientTakerFeeAllowance;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
@@ -304,6 +443,12 @@ test('handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerFee
 });
 
 test('handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientMakerFeeBalance', async () => {
+	orderWatcherServer.watchingOrders = {
+		orderHash: 'orderHash' as any
+	};
+	orderWatcherServer.web3Util = {
+		getSideFromSignedOrder: jest.fn(() => CST.DB_BID)
+	} as any;
 	orderStateInValid.error = ExchangeContractErrs.InsufficientMakerFeeBalance;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
@@ -313,6 +458,12 @@ test('handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientMakerFee
 });
 
 test('handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientMakerFeeAllowance', async () => {
+	orderWatcherServer.watchingOrders = {
+		orderHash: 'orderHash' as any
+	};
+	orderWatcherServer.web3Util = {
+		getSideFromSignedOrder: jest.fn(() => CST.DB_BID)
+	} as any;
 	orderStateInValid.error = ExchangeContractErrs.InsufficientMakerFeeAllowance;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
@@ -322,6 +473,12 @@ test('handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientMakerFee
 });
 
 test('handleOrderWatcherUpdate inValid default', async () => {
+	orderWatcherServer.watchingOrders = {
+		orderHash: 'orderHash' as any
+	};
+	orderWatcherServer.web3Util = {
+		getSideFromSignedOrder: jest.fn(() => CST.DB_BID)
+	} as any;
 	orderStateInValid.error = '' as any;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
