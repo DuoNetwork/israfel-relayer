@@ -102,10 +102,6 @@ export const WS_TYPE_ORDER_CANCEL = 'cancel';
 
 export const TOKEN_ZRX = 'ZRX';
 export const TOKEN_WETH = 'WETH';
-export const TOKEN_MAPPING: { [key: string]: string } = {
-	'0x2002d3812f58e35f0ea1ffbf80a75a38c32175fa': TOKEN_ZRX,
-	'0xd0a1e359811322d97991e03f863a0c30c2cf029c': TOKEN_WETH
-};
 
 export const SUPPORTED_PAIRS = [TOKEN_ZRX + '-' + TOKEN_WETH];
 

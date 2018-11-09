@@ -4,6 +4,7 @@ import '@babel/polyfill';
 import {
 	assetDataUtils,
 	BigNumber,
+	ContractAddresses,
 	ContractWrappers,
 	generatePseudoRandomSalt,
 	Order,
@@ -35,6 +36,7 @@ export default class Web3Util {
 	public accountIndex: number = 0;
 	public networkId: number = CST.NETWORK_ID_KOVAN;
 	private rawMetamaskProvider: any = null;
+	public contractAddresses: ContractAddresses;
 
 	constructor(window: any, live: boolean, mnemonic: string, local: boolean) {
 		this.networkId = live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN;
@@ -72,6 +74,8 @@ export default class Web3Util {
 		this.contractWrappers = new ContractWrappers(this.web3Wrapper.getProvider(), {
 			networkId: this.networkId
 		});
+
+		this.contractAddresses = getContractAddressesForNetworkOrThrow(this.networkId);
 	}
 
 	public onWeb3AccountUpdate(onUpdate: (addr: string, network: number) => any) {
@@ -171,10 +175,9 @@ export default class Web3Util {
 
 	public assetDataToTokenName(assetData: string): string {
 		const tokenAddr = assetDataUtils.decodeERC20AssetData(assetData).tokenAddress;
-		const contractAddresses = getContractAddressesForNetworkOrThrow(this.networkId);
-		if (tokenAddr === contractAddresses.etherToken) return CST.TOKEN_WETH;
-		else if (tokenAddr === contractAddresses.zrxToken) return CST.TOKEN_ZRX;
-		return CST.TOKEN_MAPPING[tokenAddr];
+		if (tokenAddr === this.contractAddresses.etherToken) return CST.TOKEN_WETH;
+		else if (tokenAddr === this.contractAddresses.zrxToken) return CST.TOKEN_ZRX;
+		return ''; // TODO: read from db
 	}
 
 	public getSideFromSignedOrder(order: SignedOrder | IStringSignedOrder, pair: string): string {
@@ -217,12 +220,11 @@ export default class Web3Util {
 	}
 
 	public getTokenAddressFromName(tokenName: string): string {
-		const contractAddresses = getContractAddressesForNetworkOrThrow(this.networkId);
 		switch (tokenName) {
 			case CST.TOKEN_ZRX:
-				return contractAddresses.zrxToken;
+				return this.contractAddresses.zrxToken;
 			case CST.TOKEN_WETH:
-				const ethTokenAddr = contractAddresses.etherToken;
+				const ethTokenAddr = this.contractAddresses.etherToken;
 				if (!ethTokenAddr) {
 					util.logInfo('no eth token address');
 					return '';
@@ -234,11 +236,27 @@ export default class Web3Util {
 		}
 	}
 
-	public async setUnlimitedEtherTokenAllowance() {
-		const contractAddresses = getContractAddressesForNetworkOrThrow(this.networkId);
-		return this.contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
-			contractAddresses.etherToken,
-			await this.getCurrentAddress()
+	public async setUnlimitedTokenAllowance(tokenName: string) {
+		let tokenAddress = '';
+		if (tokenName === CST.TOKEN_WETH) tokenAddress = this.contractAddresses.etherToken;
+		else if (tokenName === CST.TOKEN_ZRX) tokenAddress = this.contractAddresses.zrxToken;
+		// TODO: read from DB
+		// else if (CST.REVERSE_TOKEN_MAPPING[tokenName])
+		// 	tokenAddress = CST.REVERSE_TOKEN_MAPPING[tokenName];
+
+		if (tokenAddress)
+			return this.contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
+				this.contractAddresses.etherToken,
+				await this.getCurrentAddress()
+			);
+		return Promise.resolve();
+	}
+
+	public async setProxyAllowance(tokenAddress: string, amount: number) {
+		this.contractWrappers.erc20Token.setProxyAllowanceAsync(
+			tokenAddress,
+			await this.getCurrentAddress(),
+			Web3Wrapper.toWei(new BigNumber(amount))
 		);
 	}
 
@@ -248,18 +266,16 @@ export default class Web3Util {
 	}
 
 	public async wrapEther(amount: number) {
-		const contractAddresses = getContractAddressesForNetworkOrThrow(this.networkId);
 		return this.contractWrappers.etherToken.depositAsync(
-			contractAddresses.etherToken,
+			this.contractAddresses.etherToken,
 			Web3Wrapper.toWei(new BigNumber(amount)),
 			await this.getCurrentAddress()
 		);
 	}
 
 	public async unwrapEther(amount: number) {
-		const contractAddresses = getContractAddressesForNetworkOrThrow(this.networkId);
 		return this.contractWrappers.etherToken.withdrawAsync(
-			contractAddresses.etherToken,
+			this.contractAddresses.etherToken,
 			Web3Wrapper.toWei(new BigNumber(amount)),
 			await this.getCurrentAddress()
 		);
