@@ -171,7 +171,11 @@ class OrderWatcherServer {
 		// console.log(provider);
 		this.orderWatcher = new OrderWatcher(
 			provider,
-			option.live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN
+			option.live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN,
+			undefined,
+			{
+				cleanupJobIntervalMs: 30000
+			}
 		);
 		this.pair = option.token + '-' + CST.TOKEN_WETH;
 
