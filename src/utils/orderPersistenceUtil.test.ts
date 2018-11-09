@@ -165,6 +165,7 @@ test('persistOrder add', async () => {
 				side: 'side',
 				orderHash: '0xOrderHash',
 				balance: -1,
+				fill: 123456789,
 				signedOrder: 'may or may not exist' as any
 			},
 			true
@@ -197,7 +198,8 @@ test('persistOrder not add', async () => {
 				pair: 'pair',
 				side: 'side',
 				orderHash: '0xOrderHash',
-				balance: 123
+				balance: 80,
+				fill: 1
 			},
 			true
 		)
