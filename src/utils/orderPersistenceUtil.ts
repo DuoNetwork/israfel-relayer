@@ -170,7 +170,7 @@ class OrderPersistenceUtil {
 	): ILiveOrder {
 		const isBid = side === CST.DB_BID;
 		const amount = Web3Util.fromWei(
-			isBid ? signedOrder.makerAssetAmount : signedOrder.takerAssetAmount
+			isBid ? signedOrder.takerAssetAmount : signedOrder.makerAssetAmount
 		);
 		return {
 			account: signedOrder.makerAddress,

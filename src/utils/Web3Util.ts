@@ -189,8 +189,8 @@ export default class Web3Util {
 	public static getPriceFromSignedOrder = (order: IStringSignedOrder, side: string): number => {
 		const isBid = side === CST.DB_BID;
 		return util.round(
-			Web3Util.stringToBN(isBid ? order.makerAssetAmount : order.takerAssetAmount)
-				.div(isBid ? order.takerAssetAmount : order.makerAssetAmount)
+			Web3Util.stringToBN(isBid ? order.takerAssetAmount : order.makerAssetAmount)
+				.div(isBid ? order.makerAssetAmount : order.takerAssetAmount)
 				.valueOf()
 		);
 	};

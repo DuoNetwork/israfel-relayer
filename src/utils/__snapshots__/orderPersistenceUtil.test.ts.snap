@@ -39,21 +39,6 @@ Object {
 exports[`constructNewLiveOrder 1`] = `
 Object {
   "account": "makerAddress",
-  "amount": 1.23e-16,
-  "balance": 1.23e-16,
-  "currentSequence": 0,
-  "fill": 0,
-  "initialSequence": 0,
-  "orderHash": "0xOrderHash",
-  "pair": "pair",
-  "price": 0.26973684,
-  "side": "bid",
-}
-`;
-
-exports[`constructNewLiveOrder 2`] = `
-Object {
-  "account": "makerAddress",
   "amount": 4.56e-16,
   "balance": 4.56e-16,
   "currentSequence": 0,
@@ -62,6 +47,21 @@ Object {
   "orderHash": "0xOrderHash",
   "pair": "pair",
   "price": 3.70731707,
+  "side": "bid",
+}
+`;
+
+exports[`constructNewLiveOrder 2`] = `
+Object {
+  "account": "makerAddress",
+  "amount": 1.23e-16,
+  "balance": 1.23e-16,
+  "currentSequence": 0,
+  "fill": 0,
+  "initialSequence": 0,
+  "orderHash": "0xOrderHash",
+  "pair": "pair",
+  "price": 0.26973684,
   "side": "ask",
 }
 `;
