@@ -85,7 +85,8 @@ test('handleAddOrderRequest invalid persist', async () => {
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	relayerServer.web3Util = {
 		validateOrder: jest.fn(() => '0xOrderHash'),
-		validateOrderFillable: jest.fn(() => Promise.resolve(true))
+		validateOrderFillable: jest.fn(() => Promise.resolve(true)),
+		getSideFromSignedOrder: jest.fn(() => 'side')
 	} as any;
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	await relayerServer.handleAddOrderRequest({} as any, {
@@ -104,7 +105,8 @@ test('handleAddOrderRequest persist error', async () => {
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	relayerServer.web3Util = {
 		validateOrder: jest.fn(() => '0xOrderHash'),
-		validateOrderFillable: jest.fn(() => Promise.resolve(true))
+		validateOrderFillable: jest.fn(() => Promise.resolve(true)),
+		getSideFromSignedOrder: jest.fn(() => 'side')
 	} as any;
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.reject('handleAddOrderRequest'));
 	await relayerServer.handleAddOrderRequest({} as any, {
@@ -123,7 +125,8 @@ test('handleAddOrderRequest', async () => {
 	relayerServer.handleUserOrder = jest.fn(() => Promise.resolve());
 	relayerServer.web3Util = {
 		validateOrder: jest.fn(() => '0xOrderHash'),
-		validateOrderFillable: jest.fn(() => Promise.resolve(true))
+		validateOrderFillable: jest.fn(() => Promise.resolve(true)),
+		getSideFromSignedOrder: jest.fn(() => 'side')
 	} as any;
 	orderPersistenceUtil.persistOrder = jest.fn(() =>
 		Promise.resolve({

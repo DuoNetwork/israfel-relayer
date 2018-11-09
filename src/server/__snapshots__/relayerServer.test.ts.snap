@@ -8,6 +8,7 @@ Array [
       "method": "add",
       "orderHash": "0xOrderHash",
       "pair": "ZRX-WETH",
+      "side": "side",
       "signedOrder": Object {
         "exchangeAddress": "exchangeAddress",
         "expirationTimeSeconds": "1234567890",

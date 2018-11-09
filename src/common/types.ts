@@ -48,9 +48,9 @@ export interface IStringSignedOrder {
 export interface IOrderPersistRequest {
 	method: string;
 	pair: string;
-	side: string;
 	orderHash: string;
 	balance: number;
+	side?: string;
 	fill?: number;
 	signedOrder?: IStringSignedOrder;
 }

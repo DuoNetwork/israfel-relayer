@@ -65,6 +65,7 @@ class RelayerServer {
 						pair: req.pair,
 						orderHash: orderHash,
 						balance: -1,
+						side: this.web3Util.getSideFromSignedOrder(stringSignedOrder, req.pair),
 						signedOrder: stringSignedOrder
 					},
 					true

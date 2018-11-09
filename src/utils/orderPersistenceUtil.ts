@@ -85,6 +85,11 @@ class OrderPersistenceUtil {
 
 	public async persistOrder(orderPersistRequest: IOrderPersistRequest, publish: boolean) {
 		const { pair, orderHash, method, balance, side, fill } = orderPersistRequest;
+		if (method === CST.DB_ADD && !side) {
+			util.logDebug(`invalid add request ${orderHash}, missing side`);
+			return null;
+		}
+
 		let liveOrder = await this.getLiveOrderInPersistence(pair, orderHash);
 		if (method === CST.DB_ADD && liveOrder) {
 			util.logDebug(`order ${orderHash} already exist, ignore add request`);
@@ -99,7 +104,7 @@ class OrderPersistenceUtil {
 			liveOrder = this.constructNewLiveOrder(
 				orderPersistRequest.signedOrder as IStringSignedOrder,
 				pair,
-				side,
+				side || '',
 				orderHash
 			);
 			liveOrder.initialSequence = sequence;
