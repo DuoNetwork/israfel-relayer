@@ -186,33 +186,33 @@ Array [
 ]
 `;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientMakerFeeAllowance 1`] = `Array []`;
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientMakerFeeAllowance 1`] = `Array []`;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientMakerFeeAllowance 2`] = `Array []`;
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientMakerFeeAllowance 2`] = `Array []`;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientMakerFeeBalance 1`] = `Array []`;
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientMakerFeeBalance 1`] = `Array []`;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientMakerFeeBalance 2`] = `Array []`;
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientMakerFeeBalance 2`] = `Array []`;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerAllowance 1`] = `Array []`;
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientTakerAllowance 1`] = `Array []`;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerAllowance 2`] = `Array []`;
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientTakerAllowance 2`] = `Array []`;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerBalance 1`] = `Array []`;
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientTakerBalance 1`] = `Array []`;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerBalance 2`] = `Array []`;
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientTakerBalance 2`] = `Array []`;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerFeeAllowance 1`] = `Array []`;
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientTakerFeeAllowance 1`] = `Array []`;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerFeeAllowance 2`] = `Array []`;
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientTakerFeeAllowance 2`] = `Array []`;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerFeeBalance 1`] = `Array []`;
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientTakerFeeBalance 1`] = `Array []`;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.InsufficientTakerFeeBalance 2`] = `Array []`;
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientTakerFeeBalance 2`] = `Array []`;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderCancelled 1`] = `Array []`;
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.OrderCancelled 1`] = `Array []`;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderCancelled 2`] = `
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.OrderCancelled 2`] = `
 Array [
   Array [
     Object {
@@ -220,15 +220,14 @@ Array [
       "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
-      "side": "bid",
     },
   ],
 ]
 `;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderFillExpired 1`] = `Array []`;
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.OrderFillExpired 1`] = `Array []`;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderFillExpired 2`] = `
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.OrderFillExpired 2`] = `
 Array [
   Array [
     Object {
@@ -236,15 +235,14 @@ Array [
       "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
-      "side": "bid",
     },
   ],
 ]
 `;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderFillRoundingError 1`] = `Array []`;
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.OrderFillRoundingError 1`] = `Array []`;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderFillRoundingError 2`] = `
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.OrderFillRoundingError 2`] = `
 Array [
   Array [
     Object {
@@ -252,15 +250,14 @@ Array [
       "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
-      "side": "bid",
     },
   ],
 ]
 `;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderRemainingFillAmountZero 1`] = `Array []`;
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.OrderRemainingFillAmountZero 1`] = `Array []`;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderRemainingFillAmountZero 2`] = `
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.OrderRemainingFillAmountZero 2`] = `
 Array [
   Array [
     Object {
@@ -268,15 +265,14 @@ Array [
       "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
-      "side": "bid",
     },
   ],
 ]
 `;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderRemainingFillAmountZero 3`] = `Array []`;
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.OrderRemainingFillAmountZero 3`] = `Array []`;
 
-exports[`handleOrderWatcherUpdate inValid ExchangeContractErrs.OrderRemainingFillAmountZero 4`] = `
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.OrderRemainingFillAmountZero 4`] = `
 Array [
   Array [
     Object {
@@ -284,13 +280,12 @@ Array [
       "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
-      "side": "bid",
     },
   ],
 ]
 `;
 
-exports[`handleOrderWatcherUpdate inValid default 1`] = `Array []`;
+exports[`handleOrderWatcherUpdate invalid default 1`] = `Array []`;
 
 exports[`handleOrderWatcherUpdate isValid ask fill 1`] = `
 Array [
@@ -301,7 +296,6 @@ Array [
       "method": "update",
       "orderHash": "orderHash",
       "pair": "pair",
-      "side": "ask",
     },
   ],
 ]
@@ -315,7 +309,6 @@ Array [
       "method": "update",
       "orderHash": "orderHash",
       "pair": "pair",
-      "side": "ask",
     },
   ],
 ]
@@ -330,7 +323,6 @@ Array [
       "method": "update",
       "orderHash": "orderHash",
       "pair": "pair",
-      "side": "bid",
     },
   ],
 ]
@@ -344,7 +336,6 @@ Array [
       "method": "update",
       "orderHash": "orderHash",
       "pair": "pair",
-      "side": "bid",
     },
   ],
 ]
