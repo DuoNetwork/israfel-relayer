@@ -86,10 +86,12 @@ export interface IOrderBookUpdateWS {
 }
 
 export interface IOrderBookUpdate {
-	sequence: number;
 	pair: string;
 	price: number;
 	amount: number;
+	side: string;
+	baseSequence: number;
+	sequence: number;
 }
 
 export interface IOrderBookUpdateItem {

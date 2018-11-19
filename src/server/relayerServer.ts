@@ -4,6 +4,8 @@ import WebSocket from 'ws';
 import * as CST from '../common/constants';
 import {
 	IOption,
+	IOrderBookSnapshot,
+	IOrderBookUpdate,
 	IStringSignedOrder,
 	IUserOrder,
 	IWsAddOrderRequest,
@@ -14,13 +16,16 @@ import {
 	IWsUserOrderResponse
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
+import orderBookUtil from '../utils/orderBookUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
+import redisUtil from '../utils/redisUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
 class RelayerServer {
 	public web3Util: Web3Util | null = null;
 	public wsServer: WebSocket.Server | null = null;
+	public orderBooks: { [pair: string]: IOrderBookSnapshot } = {};
 
 	public handleErrorOrderRequest(ws: WebSocket, req: IWsOrderRequest, status: string) {
 		const orderResponse: IWsOrderResponse = {
@@ -45,6 +50,59 @@ class RelayerServer {
 		util.safeWsSend(ws, JSON.stringify(orderResponse));
 	}
 
+	public handleOrderBooksUpdate(channel: string, orderBooksUpdate: string) {
+		util.logInfo(`received update from obderBook server`);
+		const type = channel.split('|')[1];
+		const pair = channel.split('|')[2];
+		if (!type || !pair) util.logDebug('wrong channel or pair');
+		switch (type) {
+			case CST.DB_SNAPSHOT:
+				util.logInfo('new orderBookSnapshot received');
+				const newSnapshot: IOrderBookSnapshot = JSON.parse(orderBooksUpdate);
+				if (newSnapshot.sequence > this.orderBooks[pair].sequence)
+					this.orderBooks[pair] = newSnapshot;
+				if (this.wsServer)
+					this.wsServer.clients.forEach(client =>
+						util.safeWsSend(
+							client,
+							JSON.stringify({
+								channel: channel,
+								orderBooksUpdate: this.orderBooks[pair]
+							})
+						)
+					);
+
+				break;
+			case CST.DB_UPDATE:
+				util.logInfo('new orderBookupdate received');
+				const newUpdate: IOrderBookUpdate = JSON.parse(orderBooksUpdate);
+				if (this.orderBooks[pair].sequence === newUpdate.baseSequence) {
+					const updateDelta = [{ price: newUpdate.price, amount: newUpdate.amount }];
+					this.orderBooks[pair] = orderBookUtil.applyChangeOrderBook(
+						this.orderBooks[pair],
+						newUpdate.sequence,
+						newUpdate.side === CST.DB_BID ? updateDelta : [],
+						newUpdate.side === CST.DB_ASK ? updateDelta : []
+					);
+
+					if (this.wsServer)
+						this.wsServer.clients.forEach(client =>
+							util.safeWsSend(
+								client,
+								JSON.stringify({
+									channel: channel,
+									update: newUpdate
+								})
+							)
+						);
+				}
+
+				break;
+			default:
+				return;
+		}
+	}
+
 	public async handleAddOrderRequest(ws: WebSocket, req: IWsAddOrderRequest) {
 		util.logDebug(`add new order ${req.orderHash}`);
 		const stringSignedOrder = req.order as IStringSignedOrder;
@@ -59,16 +117,14 @@ class RelayerServer {
 		) {
 			util.logDebug('order valided, persisting');
 			try {
-				const userOrder = await orderPersistenceUtil.persistOrder(
-					{
-						method: req.method,
-						pair: req.pair,
-						orderHash: orderHash,
-						balance: -1,
-						side: this.web3Util.getSideFromSignedOrder(stringSignedOrder, req.pair),
-						signedOrder: stringSignedOrder
-					}
-				);
+				const userOrder = await orderPersistenceUtil.persistOrder({
+					method: req.method,
+					pair: req.pair,
+					orderHash: orderHash,
+					balance: -1,
+					side: this.web3Util.getSideFromSignedOrder(stringSignedOrder, req.pair),
+					signedOrder: stringSignedOrder
+				});
 				if (userOrder) this.handleUserOrder(ws, userOrder, req.method);
 				else this.handleErrorOrderRequest(ws, req, CST.WS_INVALID_ORDER);
 			} catch (error) {
@@ -85,14 +141,12 @@ class RelayerServer {
 		util.logDebug(`terminate order ${req.orderHash}`);
 		if (req.orderHash)
 			try {
-				const userOrder = await orderPersistenceUtil.persistOrder(
-					{
-						method: req.method,
-						pair: req.pair,
-						orderHash: req.orderHash,
-						balance: -1
-					}
-				);
+				const userOrder = await orderPersistenceUtil.persistOrder({
+					method: req.method,
+					pair: req.pair,
+					orderHash: req.orderHash,
+					balance: -1
+				});
 				if (userOrder) this.handleUserOrder(ws, userOrder, req.method);
 				else this.handleErrorOrderRequest(ws, req, CST.WS_INVALID_ORDER);
 			} catch (error) {
@@ -150,6 +204,11 @@ class RelayerServer {
 	public async startServer(web3Util: Web3Util, option: IOption) {
 		this.web3Util = web3Util;
 		let port = 8080;
+		redisUtil.patternSubscribe(`${CST.DB_ORDER_BOOKS}|*`);
+
+		redisUtil.onOrderBooks((channel, orderBooksUpdate) =>
+			this.handleOrderBooksUpdate(channel, orderBooksUpdate)
+		);
 		if (option.server) {
 			const relayerService = await dynamoUtil.getServices(CST.DB_RELAYER, true);
 			if (!relayerService.length) {

@@ -44,7 +44,7 @@ class OrderBookServer {
 	}
 
 	private async processUpdate(updateItem: IOrderQueueItem): Promise<boolean> {
-		const { price, pair, balance, currentSequence, orderHash } = updateItem.liveOrder;
+		const { price, pair, balance, currentSequence, orderHash, side } = updateItem.liveOrder;
 		let updateAmt = 0;
 		switch (updateItem.method) {
 			case CST.DB_ADD:
@@ -59,15 +59,24 @@ class OrderBookServer {
 		}
 
 		const orderBookUpdate: IOrderBookUpdate = {
-			price: price,
 			pair: pair,
+			price: price,
 			amount: updateAmt,
+			side: side,
+			baseSequence: this.orderBook ? this.orderBook.sequence : 0,
 			sequence: currentSequence
 		};
 		try {
 			await redisUtil.publish(
-				`${CST.ORDERBOOK_UPDATE}|${this.pair}`,
+				`${CST.DB_ORDER_BOOKS}|${CST.DB_UPDATE}|${this.pair}`,
 				JSON.stringify(orderBookUpdate)
+			);
+			const updateDelta = [{ price: price, amount: updateAmt }];
+			this.orderBook = orderBookUtil.applyChangeOrderBook(
+				this.orderBook,
+				currentSequence,
+				side === CST.DB_BID ? updateDelta : [],
+				side === CST.DB_ASK ? updateDelta : []
 			);
 			return true;
 		} catch (err) {
@@ -111,6 +120,10 @@ class OrderBookServer {
 		util.logInfo('loaded live orders : ' + Object.keys(this.liveOrders).length);
 		this.lastSequence = this.getMaxSequence(this.liveOrders);
 		this.orderBook = orderBookUtil.aggrOrderBook(this.liveOrders);
+		redisUtil.publish(
+			`${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${this.pair}`,
+			JSON.stringify(this.orderBook)
+		);
 		this.loadingOrders = false;
 		this.processPendingUpdates(this.lastSequence);
 
@@ -119,6 +132,10 @@ class OrderBookServer {
 			util.logInfo('loaded live orders : ' + Object.keys(this.liveOrders).length);
 			this.lastSequence = this.getMaxSequence(this.liveOrders);
 			this.orderBook = orderBookUtil.aggrOrderBook(this.liveOrders);
+			redisUtil.publish(
+				`${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${this.pair}`,
+				JSON.stringify(this.orderBook)
+			);
 			this.loadingOrders = false;
 			this.processPendingUpdates(this.lastSequence);
 		}, CST.ONE_MINUTE_MS * 30);

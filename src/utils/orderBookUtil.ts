@@ -1,12 +1,5 @@
 import * as CST from '../common/constants';
-import {
-	ILiveOrder,
-	IOrderBookSnapshot,
-	IOrderBookUpdate,
-	IOrderBookUpdateItem,
-	IOrderBookUpdateWS
-} from '../common/types';
-import redisUtil from './redisUtil';
+import { ILiveOrder, IOrderBookSnapshot, IOrderBookUpdateWS } from '../common/types';
 import util from './util';
 
 class OrderBookUtil {
@@ -65,11 +58,25 @@ class OrderBookUtil {
 	}
 
 	public applyChangeOrderBook(
-		orderBook: IOrderBookSnapshot,
+		orderBook: IOrderBookSnapshot | null,
 		sequence: number,
 		bidChanges: IOrderBookUpdateWS[],
 		askChanges: IOrderBookUpdateWS[]
 	): IOrderBookSnapshot {
+		if (!orderBook)
+			return {
+				sequence: sequence,
+				bids: this.aggrByPrice(
+					bidChanges.sort((a, b) => {
+						return Number(b.price) - Number(a.price);
+					})
+				),
+				asks: this.aggrByPrice(
+					askChanges.sort((a, b) => {
+						return Number(b.price) - Number(a.price);
+					})
+				)
+			};
 		if (sequence <= orderBook.sequence) {
 			util.logDebug('update sequence should be larger than curent snapshot sequence');
 			return orderBook;
@@ -86,31 +93,6 @@ class OrderBookUtil {
 			bids: this.aggrByPrice(newBids),
 			asks: this.aggrByPrice(newAsks)
 		};
-	}
-
-	public publishOrderBookUpdate(updateItem: IOrderBookUpdateItem) {
-		const { price, pair, balance } = updateItem.liveOrder;
-		let updateAmt = 0;
-		switch (updateItem.method) {
-			case CST.DB_ADD:
-				updateAmt = balance;
-				break;
-			case CST.DB_TERMINATE:
-				updateAmt = -balance;
-				break;
-			case CST.DB_UPDATE:
-				updateAmt = updateItem.balance - balance;
-				break;
-		}
-
-		const orderBookUpdate: IOrderBookUpdate = {
-			price: price,
-			pair: pair,
-			amount: updateAmt,
-			sequence: updateItem.sequence
-		};
-
-		redisUtil.publish(`${CST.ORDERBOOK_UPDATE}|${pair}`, JSON.stringify(orderBookUpdate));
 	}
 }
 const orderbookUtil = new OrderBookUtil();
