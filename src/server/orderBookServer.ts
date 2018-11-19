@@ -21,6 +21,7 @@ class OrderBookServer {
 	public loadingOrders: boolean = true;
 	public lastSequence: number = 0;
 	public orderBook: IOrderBookSnapshot | null = null;
+	public processedHash: { [orderHash: string]: number } = {};
 
 	public handleOrderUpdate = async (channel: string, orderQueueItem: IOrderQueueItem) => {
 		util.logDebug('receive update from channel: ' + channel);
@@ -30,8 +31,14 @@ class OrderBookServer {
 		}
 
 		if (orderQueueItem.liveOrder.currentSequence <= this.lastSequence) return;
+		if (
+			this.processedHash[orderQueueItem.liveOrder.orderHash] &&
+			this.processedHash[orderQueueItem.liveOrder.orderHash] >=
+				orderQueueItem.liveOrder.currentSequence
+		)
+			return;
 
-		this.lastSequence = orderQueueItem.liveOrder.currentSequence;
+		// this.lastSequence = orderQueueItem.liveOrder.currentSequence;
 		await this.processUpdate(orderQueueItem);
 	};
 
@@ -78,6 +85,11 @@ class OrderBookServer {
 				side === CST.DB_BID ? updateDelta : [],
 				side === CST.DB_ASK ? updateDelta : []
 			);
+			redisUtil.set(
+				`${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${this.pair}`,
+				JSON.stringify(this.orderBook)
+			);
+			this.processedHash[orderHash] = currentSequence;
 			return true;
 		} catch (err) {
 			util.logError(err);
@@ -89,7 +101,10 @@ class OrderBookServer {
 		for (let index = 0; index < this.pendingUpdates.length; index++) {
 			const updateItem = this.pendingUpdates[index];
 			const { currentSequence, orderHash } = updateItem.liveOrder;
-			if (currentSequence <= lastSequence) {
+			if (
+				currentSequence <= lastSequence ||
+				(this.processedHash[orderHash] && this.processedHash[orderHash] >= currentSequence)
+			) {
 				util.logDebug('sequence smarller than current value, stop processing!');
 				delete this.pendingUpdates[index];
 				return;
@@ -120,9 +135,13 @@ class OrderBookServer {
 		util.logInfo('loaded live orders : ' + Object.keys(this.liveOrders).length);
 		this.lastSequence = this.getMaxSequence(this.liveOrders);
 		this.orderBook = orderBookUtil.aggrOrderBook(this.liveOrders);
-		redisUtil.publish(
+		redisUtil.set(
 			`${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${this.pair}`,
 			JSON.stringify(this.orderBook)
+		);
+		Object.keys(this.liveOrders).forEach(
+			orderHash =>
+				(this.processedHash[orderHash] = this.liveOrders[orderHash].currentSequence)
 		);
 		this.loadingOrders = false;
 		this.processPendingUpdates(this.lastSequence);
@@ -132,9 +151,14 @@ class OrderBookServer {
 			util.logInfo('loaded live orders : ' + Object.keys(this.liveOrders).length);
 			this.lastSequence = this.getMaxSequence(this.liveOrders);
 			this.orderBook = orderBookUtil.aggrOrderBook(this.liveOrders);
-			redisUtil.publish(
+			redisUtil.set(
 				`${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${this.pair}`,
 				JSON.stringify(this.orderBook)
+			);
+			this.processedHash = {};
+			Object.keys(this.liveOrders).forEach(
+				orderHash =>
+					(this.processedHash[orderHash] = this.liveOrders[orderHash].currentSequence)
 			);
 			this.loadingOrders = false;
 			this.processPendingUpdates(this.lastSequence);
