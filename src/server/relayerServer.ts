@@ -5,7 +5,7 @@ import * as CST from '../common/constants';
 import {
 	IOption,
 	IOrderBookSnapshot,
-	IOrderBookUpdate,
+	IOrderBookUpdateItem,
 	IStringSignedOrder,
 	IUserOrder,
 	IWsAddOrderRequest,
@@ -75,7 +75,7 @@ class RelayerServer {
 				break;
 			case CST.DB_UPDATE:
 				util.logInfo('new orderBookupdate received');
-				const newUpdate: IOrderBookUpdate = JSON.parse(orderBooksUpdate);
+				const newUpdate: IOrderBookUpdateItem = JSON.parse(orderBooksUpdate);
 				if (this.orderBooks[pair].sequence === newUpdate.baseSequence) {
 					const updateDelta = [{ price: newUpdate.price, amount: newUpdate.amount }];
 					this.orderBooks[pair] = orderBookUtil.applyChangeOrderBook(

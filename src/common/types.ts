@@ -85,21 +85,13 @@ export interface IOrderBookUpdateWS {
 	amount: number;
 }
 
-export interface IOrderBookUpdate {
+export interface IOrderBookUpdateItem {
 	pair: string;
 	price: number;
 	amount: number;
 	side: string;
 	baseSequence: number;
 	sequence: number;
-}
-
-export interface IOrderBookUpdateItem {
-	method: string;
-	pair: string;
-	sequence: number;
-	liveOrder: ILiveOrder;
-	balance: number;
 }
 
 export interface IWsRequest {
