@@ -67,8 +67,7 @@ class RelayerServer {
 						balance: -1,
 						side: this.web3Util.getSideFromSignedOrder(stringSignedOrder, req.pair),
 						signedOrder: stringSignedOrder
-					},
-					true
+					}
 				);
 				if (userOrder) this.handleUserOrder(ws, userOrder, req.method);
 				else this.handleErrorOrderRequest(ws, req, CST.WS_INVALID_ORDER);
@@ -92,8 +91,7 @@ class RelayerServer {
 						pair: req.pair,
 						orderHash: req.orderHash,
 						balance: -1
-					},
-					true
+					}
 				);
 				if (userOrder) this.handleUserOrder(ws, userOrder, req.method);
 				else this.handleErrorOrderRequest(ws, req, CST.WS_INVALID_ORDER);

@@ -135,10 +135,6 @@ Array [
 exports[`persistOrder add 3`] = `
 Array [
   Array [
-    "orderBookUpdate|undefined",
-    "{\\"sequence\\":123}",
-  ],
-  Array [
     "orders|pubsub|pair",
     "{\\"method\\":\\"add\\",\\"pair\\":\\"pair\\",\\"side\\":\\"side\\",\\"orderHash\\":\\"0xOrderHash\\",\\"balance\\":-1,\\"fill\\":123456789,\\"signedOrder\\":\\"may or may not exist\\"}",
   ],
@@ -181,10 +177,6 @@ Array [
 
 exports[`persistOrder not add 3`] = `
 Array [
-  Array [
-    "orderBookUpdate|undefined",
-    "{\\"amount\\":0,\\"sequence\\":123}",
-  ],
   Array [
     "orders|pubsub|pair",
     "{\\"method\\":\\"method\\",\\"pair\\":\\"pair\\",\\"side\\":\\"side\\",\\"orderHash\\":\\"0xOrderHash\\",\\"balance\\":80,\\"fill\\":1}",

@@ -359,7 +359,6 @@ Array [
       "pair": "pair",
       "side": "side",
     },
-    false,
   ],
 ]
 `;
@@ -382,7 +381,6 @@ Array [
       "pair": "pair",
       "side": "side",
     },
-    false,
   ],
 ]
 `;

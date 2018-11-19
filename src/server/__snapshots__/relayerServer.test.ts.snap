@@ -26,7 +26,6 @@ Array [
         "takerFee": "0",
       },
     },
-    true,
   ],
 ]
 `;
@@ -265,7 +264,6 @@ Array [
       "orderHash": "0xOrderHash",
       "pair": "ZRX-WETH",
     },
-    true,
   ],
 ]
 `;

@@ -25,7 +25,7 @@ class OrderWatcherServer {
 		let done = false;
 		while (!done)
 			try {
-				userOrder = await orderPersistenceUtil.persistOrder(orderPersistRequest, false);
+				userOrder = await orderPersistenceUtil.persistOrder(orderPersistRequest);
 				done = true;
 			} catch (error) {
 				await util.sleep(2000);

@@ -9,7 +9,6 @@ import {
 	IUserOrder
 } from '../common/types';
 import dynamoUtil from './dynamoUtil';
-import orderbookUtil from './orderBookUtil';
 import redisUtil from './redisUtil';
 import util from './util';
 import Web3Util from './Web3Util';
@@ -84,7 +83,7 @@ class OrderPersistenceUtil {
 		return allOrders;
 	}
 
-	public async persistOrder(orderPersistRequest: IOrderPersistRequest, publish: boolean) {
+	public async persistOrder(orderPersistRequest: IOrderPersistRequest) {
 		const { pair, orderHash, method, balance, side, fill } = orderPersistRequest;
 		if (method === CST.DB_ADD && !side) {
 			util.logDebug(`invalid add request ${orderHash}, missing side`);
@@ -131,23 +130,14 @@ class OrderPersistenceUtil {
 		await redisUtil.exec();
 		util.logDebug(`done`);
 
-		orderbookUtil.publishOrderBookUpdate({
-			method: method,
-			pair: pair,
-			sequence: sequence,
-			liveOrder: orderQueueItem.liveOrder,
-			balance
-		});
-
-		if (publish)
-			try {
-				redisUtil.publish(
-					`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${pair}`,
-					JSON.stringify(orderPersistRequest)
-				);
-			} catch (error) {
-				util.logError(error);
-			}
+		try {
+			redisUtil.publish(
+				`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${pair}`,
+				JSON.stringify(orderPersistRequest)
+			);
+		} catch (error) {
+			util.logError(error);
+		}
 
 		return this.addUserOrderToDB(
 			orderQueueItem.liveOrder,

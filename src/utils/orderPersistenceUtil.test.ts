@@ -166,8 +166,7 @@ test('persistOrder add missing side', async () => {
 				balance: -1,
 				fill: 123456789,
 				signedOrder: 'may or may not exist' as any
-			},
-			true
+			}
 		)
 	).toBeNull();
 	expect(orderPersistenceUtil.getLiveOrderInPersistence as jest.Mock).not.toBeCalled();
@@ -198,8 +197,7 @@ test('persistOrder add', async () => {
 				balance: -1,
 				fill: 123456789,
 				signedOrder: 'may or may not exist' as any
-			},
-			true
+			}
 		)
 	).not.toBeNull();
 	expect((redisUtil.hashSet as jest.Mock).mock.calls).toMatchSnapshot();
@@ -231,8 +229,7 @@ test('persistOrder not add', async () => {
 				orderHash: '0xOrderHash',
 				balance: 80,
 				fill: 1
-			},
-			true
+			}
 		)
 	).not.toBeNull();
 	expect((redisUtil.hashSet as jest.Mock).mock.calls).toMatchSnapshot();
@@ -259,8 +256,7 @@ test('persistOrder add existing', async () => {
 				orderHash: '0xOrderHash',
 				balance: -1,
 				signedOrder: 'signedOrder' as any
-			},
-			true
+			}
 		)
 	).toBeNull();
 	expect(redisUtil.hashSet as jest.Mock).not.toBeCalled();
@@ -286,8 +282,7 @@ test('persistOrder not add not existing', async () => {
 				side: 'side',
 				orderHash: '0xOrderHash',
 				balance: -1
-			},
-			true
+			}
 		)
 	).toBeNull();
 	expect(redisUtil.hashSet as jest.Mock).not.toBeCalled();
