@@ -133,7 +133,7 @@ class OrderPersistenceUtil {
 		try {
 			redisUtil.publish(
 				`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${pair}`,
-				JSON.stringify(orderPersistRequest)
+				JSON.stringify(orderQueueItem)
 			);
 		} catch (error) {
 			util.logError(error);

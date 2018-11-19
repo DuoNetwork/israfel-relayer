@@ -7,7 +7,7 @@ import {
 	SignedOrder
 } from '0x.js';
 import * as CST from '../common/constants';
-import { IOption, IOrderPersistRequest, IRawOrder, IStringSignedOrder } from '../common/types';
+import { IOption, IOrderPersistRequest, IOrderQueueItem, IRawOrder, IStringSignedOrder } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import redisUtil from '../utils/redisUtil';
@@ -149,22 +149,22 @@ class OrderWatcherServer {
 		}
 	}
 
-	public handleOrderUpdate = (channel: string, orderPersistRequest: IOrderPersistRequest) => {
+	public handleOrderUpdate = (channel: string, orderQueueItem: IOrderQueueItem) => {
 		util.logDebug('receive update from channel: ' + channel);
-		const method = orderPersistRequest.method;
+		const method = orderQueueItem.method;
 		switch (method) {
 			case CST.DB_ADD:
-				this.addIntoWatch(orderPersistRequest.orderHash, orderPersistRequest.signedOrder);
+				this.addIntoWatch(orderQueueItem.liveOrder.orderHash, orderQueueItem.signedOrder);
 				break;
 			case CST.DB_TERMINATE:
-				this.removeFromWatch(orderPersistRequest.orderHash);
+				this.removeFromWatch(orderQueueItem.liveOrder.orderHash);
 				break;
 			default:
 				break;
 		}
 	};
 
-	public async startOrderWatcher(web3Util: Web3Util, option: IOption) {
+	public async startServer(web3Util: Web3Util, option: IOption) {
 		this.web3Util = web3Util;
 		const provider = this.web3Util.web3Wrapper.getProvider();
 		// util.logInfo('using provider ' + )
@@ -206,7 +206,11 @@ class OrderWatcherServer {
 		if (option.server) {
 			dynamoUtil.updateStatus(this.pair);
 			setInterval(
-				() => dynamoUtil.updateStatus(this.pair, Object.keys(this.watchingOrders).length),
+				() =>
+					dynamoUtil.updateStatus(
+						this.pair,
+						this.orderWatcher ? this.orderWatcher.getStats().orderCount : 0
+					),
 				10000
 			);
 		}

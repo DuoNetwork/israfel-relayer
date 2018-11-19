@@ -28,7 +28,7 @@ if ([CST.DB_ORDER_WATCHER, CST.DB_RELAYER].includes(tool))
 
 switch (tool) {
 	case CST.DB_ORDER_WATCHER:
-		orderWatcherServer.startOrderWatcher(web3Util as Web3Util, option);
+		orderWatcherServer.startServer(web3Util as Web3Util, option);
 		break;
 	case CST.DB_RELAYER:
 		relayerServer.startServer(web3Util as Web3Util, option);

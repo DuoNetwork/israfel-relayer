@@ -157,7 +157,7 @@ Object {
 exports[`handle orderUpdate add 1`] = `
 Array [
   Array [
-    "orderHash",
+    "0xOrderHash",
     Object {
       "exchangeAddress": "exchangeAddress",
       "expirationTimeSeconds": "1234567890",
@@ -181,7 +181,7 @@ Array [
 exports[`handle orderUpdate terminate 1`] = `
 Array [
   Array [
-    "orderHash",
+    "0xOrderHash",
   ],
 ]
 `;
