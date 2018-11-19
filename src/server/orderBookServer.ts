@@ -87,7 +87,7 @@ class OrderBookServer {
 				side === CST.DB_BID ? updateDelta : [],
 				side === CST.DB_ASK ? updateDelta : []
 			);
-			redisUtil.set(
+			await redisUtil.set(
 				`${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${this.pair}`,
 				JSON.stringify(this.orderBook)
 			);
@@ -137,7 +137,7 @@ class OrderBookServer {
 		util.logInfo('loaded live orders : ' + Object.keys(this.liveOrders).length);
 		this.lastSequence = this.getMaxSequence(this.liveOrders);
 		this.orderBook = orderBookUtil.aggrOrderBook(this.liveOrders);
-		redisUtil.set(
+		await redisUtil.set(
 			`${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${this.pair}`,
 			JSON.stringify(this.orderBook)
 		);
