@@ -6,21 +6,10 @@ import {
 	IOrderBookUpdateItem,
 	IOrderBookUpdateWS
 } from '../common/types';
-import orderPersistenceUtil from './orderPersistenceUtil';
 import redisUtil from './redisUtil';
+import util from './util';
 
 class OrderBookUtil {
-	public orderBook: { [key: string]: IOrderBookSnapshot } = {};
-	public async calculateOrderBookSnapshot() {
-		for (const pair of CST.TRADING_PAIRS) {
-			const liveOrders: {
-				[orderHash: string]: ILiveOrder;
-			} = await orderPersistenceUtil.getAllLiveOrdersInPersistence(pair);
-			this.orderBook[pair] = this.aggrOrderBook(liveOrders);
-			console.log('### current orerbook ', this.orderBook[pair]);
-		}
-	}
-
 	public sortByPriceTime(liveOrders: ILiveOrder[], isDescending: boolean): ILiveOrder[] {
 		liveOrders.sort((a, b) => {
 			if (isDescending) return b.price - a.price || (a.updatedAt || 0) - (b.updatedAt || 0);
@@ -76,18 +65,23 @@ class OrderBookUtil {
 	}
 
 	public applyChangeOrderBook(
-		pair: string,
+		orderBook: IOrderBookSnapshot,
 		sequence: number,
 		bidChanges: IOrderBookUpdateWS[],
 		askChanges: IOrderBookUpdateWS[]
-	) {
-		const newBids = [...this.orderBook[pair].bids, ...bidChanges].sort((a, b) => {
+	): IOrderBookSnapshot {
+		if (sequence <= orderBook.sequence) {
+			util.logDebug('update sequence should be larger than curent snapshot sequence');
+			return orderBook;
+		}
+
+		const newBids = [...orderBook.bids, ...bidChanges].sort((a, b) => {
 			return Number(b.price) - Number(a.price);
 		});
-		const newAsks = [...this.orderBook[pair].asks, ...askChanges].sort((a, b) => {
+		const newAsks = [...orderBook.asks, ...askChanges].sort((a, b) => {
 			return Number(a.price) - Number(b.price);
 		});
-		this.orderBook[pair] = {
+		return {
 			sequence: sequence,
 			bids: this.aggrByPrice(newBids),
 			asks: this.aggrByPrice(newAsks)
@@ -117,17 +111,6 @@ class OrderBookUtil {
 		};
 
 		redisUtil.publish(`${CST.ORDERBOOK_UPDATE}|${pair}`, JSON.stringify(orderBookUpdate));
-	}
-
-	public scheduleSumamrizer() {
-		setInterval(async () => {
-			await this.calculateOrderBookSnapshot();
-			for (const pair in this.orderBook)
-				redisUtil.publish(
-					`${CST.ORDERBOOK_SNAPSHOT}|${pair}`,
-					JSON.stringify(this.orderBook[pair])
-				);
-		}, 30000);
 	}
 }
 const orderbookUtil = new OrderBookUtil();

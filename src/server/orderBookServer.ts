@@ -1,6 +1,13 @@
 import * as CST from '../common/constants';
-import { ILiveOrder, IOption, IOrderQueueItem } from '../common/types';
+import {
+	ILiveOrder,
+	IOption,
+	IOrderBookSnapshot,
+	IOrderBookUpdate,
+	IOrderQueueItem
+} from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
+import orderBookUtil from '../utils/orderBookUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import redisUtil from '../utils/redisUtil';
 import util from '../utils/util';
@@ -13,8 +20,9 @@ class OrderBookServer {
 	public pendingUpdates: IOrderQueueItem[] = [];
 	public loadingOrders: boolean = true;
 	public lastSequence: number = 0;
+	public orderBook: IOrderBookSnapshot | null = null;
 
-	public handleOrderUpdate = (channel: string, orderQueueItem: IOrderQueueItem) => {
+	public handleOrderUpdate = async (channel: string, orderQueueItem: IOrderQueueItem) => {
 		util.logDebug('receive update from channel: ' + channel);
 		if (this.loadingOrders) {
 			this.pendingUpdates.push(orderQueueItem);
@@ -24,7 +32,7 @@ class OrderBookServer {
 		if (orderQueueItem.liveOrder.currentSequence <= this.lastSequence) return;
 
 		this.lastSequence = orderQueueItem.liveOrder.currentSequence;
-		// todo update snapshot
+		await this.processUpdate(orderQueueItem);
 	};
 
 	public getMaxSequence(liveOrders: { [orderHash: string]: ILiveOrder }) {
@@ -35,7 +43,57 @@ class OrderBookServer {
 		return maxSequence;
 	}
 
-	public processPendingUpdates() {
+	private async processUpdate(updateItem: IOrderQueueItem): Promise<boolean> {
+		const { price, pair, balance, currentSequence, orderHash } = updateItem.liveOrder;
+		let updateAmt = 0;
+		switch (updateItem.method) {
+			case CST.DB_ADD:
+				updateAmt = balance;
+				break;
+			case CST.DB_TERMINATE:
+				updateAmt = -balance;
+				break;
+			case CST.DB_UPDATE:
+				updateAmt = balance - this.liveOrders[orderHash].balance;
+				break;
+		}
+
+		const orderBookUpdate: IOrderBookUpdate = {
+			price: price,
+			pair: pair,
+			amount: updateAmt,
+			sequence: currentSequence
+		};
+		try {
+			await redisUtil.publish(
+				`${CST.ORDERBOOK_UPDATE}|${this.pair}`,
+				JSON.stringify(orderBookUpdate)
+			);
+			return true;
+		} catch (err) {
+			util.logError(err);
+			return false;
+		}
+	}
+
+	public async processPendingUpdates(lastSequence: number) {
+		for (let index = 0; index < this.pendingUpdates.length; index++) {
+			const updateItem = this.pendingUpdates[index];
+			const { currentSequence, orderHash } = updateItem.liveOrder;
+			if (currentSequence <= lastSequence) {
+				util.logDebug('sequence smarller than current value, stop processing!');
+				delete this.pendingUpdates[index];
+				return;
+			}
+
+			if (!this.liveOrders[orderHash]) {
+				util.logDebug('updateItem does not exist, skip for now');
+				return;
+			}
+			const updated = await this.processUpdate(updateItem);
+			if (updated) delete this.pendingUpdates[index];
+			else util.logInfo('error in processing update');
+		}
 		return;
 	}
 
@@ -52,15 +110,17 @@ class OrderBookServer {
 		this.liveOrders = await orderPersistenceUtil.getAllLiveOrdersInPersistence(this.pair);
 		util.logInfo('loaded live orders : ' + Object.keys(this.liveOrders).length);
 		this.lastSequence = this.getMaxSequence(this.liveOrders);
+		this.orderBook = orderBookUtil.aggrOrderBook(this.liveOrders);
 		this.loadingOrders = false;
-		this.processPendingUpdates();
+		this.processPendingUpdates(this.lastSequence);
 
 		setInterval(async () => {
 			this.liveOrders = await orderPersistenceUtil.getAllLiveOrdersInPersistence(this.pair);
 			util.logInfo('loaded live orders : ' + Object.keys(this.liveOrders).length);
 			this.lastSequence = this.getMaxSequence(this.liveOrders);
+			this.orderBook = orderBookUtil.aggrOrderBook(this.liveOrders);
 			this.loadingOrders = false;
-			this.processPendingUpdates();
+			this.processPendingUpdates(this.lastSequence);
 		}, CST.ONE_MINUTE_MS * 30);
 
 		if (option.server) {
