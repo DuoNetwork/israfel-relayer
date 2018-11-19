@@ -2,6 +2,7 @@
 import '@babel/polyfill';
 import * as CST from './common/constants';
 import { IOption } from './common/types';
+import orderBookServer from './server/orderBookServer';
 import orderWatcherServer from './server/orderWatcherServer';
 import relayerServer from './server/relayerServer';
 import dynamoUtil from './utils/dynamoUtil';
@@ -23,7 +24,7 @@ const config = require(`./keys/dynamo.${option.live ? CST.DB_LIVE : CST.DB_DEV}.
 dynamoUtil.init(config, option.live, tool, osUtil.getHostName());
 
 let web3Util: Web3Util | null = null;
-if ([CST.DB_ORDER_WATCHER, CST.DB_RELAYER].includes(tool))
+if (tool !== CST.DB_ORDERS)
 	web3Util = new Web3Util(null, option.live, '', tool === CST.DB_ORDER_WATCHER);
 
 switch (tool) {
@@ -35,6 +36,9 @@ switch (tool) {
 		break;
 	case CST.DB_ORDERS:
 		orderPersistenceUtil.startProcessing(option);
+		break;
+	case CST.DB_ORDER_BOOKS:
+		orderBookServer.startServer(web3Util as Web3Util, option);
 		break;
 	default:
 		break;
