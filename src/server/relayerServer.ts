@@ -20,7 +20,7 @@ import Web3Util from '../utils/Web3Util';
 
 class RelayerServer {
 	public web3Util: Web3Util | null = null;
-	public relayerWsServer: WebSocket.Server | null = null;
+	public wsServer: WebSocket.Server | null = null;
 
 	public handleErrorOrderRequest(ws: WebSocket, req: IWsOrderRequest, status: string) {
 		const orderResponse: IWsOrderResponse = {
@@ -117,7 +117,7 @@ class RelayerServer {
 		else return this.handleTerminateOrderRequest(ws, req);
 	}
 
-	public handleRelayerMessage(ws: WebSocket, m: string) {
+	public handleWebSocketMessage(ws: WebSocket, m: string) {
 		util.logDebug('received: ' + m);
 		const req: IWsRequest = JSON.parse(m);
 		const res: IWsResponse = {
@@ -166,13 +166,13 @@ class RelayerServer {
 				cert: fs.readFileSync('./src/keys/websocket/cert.pem', 'utf8')
 			})
 			.listen(port);
-		this.relayerWsServer = new WebSocket.Server({ server: server });
+		this.wsServer = new WebSocket.Server({ server: server });
 		util.logInfo(`started relayer service at port ${port}`);
 
-		if (this.relayerWsServer)
-			this.relayerWsServer.on('connection', ws => {
+		if (this.wsServer)
+			this.wsServer.on('connection', ws => {
 				util.logInfo('new connection');
-				ws.on('message', message => this.handleRelayerMessage(ws, message.toString()));
+				ws.on('message', message => this.handleWebSocketMessage(ws, message.toString()));
 				ws.on('close', () => util.logInfo('connection close'));
 			});
 
@@ -182,7 +182,7 @@ class RelayerServer {
 				() =>
 					dynamoUtil.updateStatus(
 						CST.DB_RELAYER,
-						this.relayerWsServer ? this.relayerWsServer.clients.size : 0
+						this.wsServer ? this.wsServer.clients.size : 0
 					),
 				10000
 			);

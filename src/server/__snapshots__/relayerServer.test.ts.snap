@@ -225,36 +225,6 @@ Array [
 ]
 `;
 
-exports[`handleRelayerMessage invalid requests 1`] = `
-Array [
-  Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"\\",\\"method\\":\\"\\",\\"pair\\":\\"\\"}",
-  ],
-  Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"channel\\",\\"method\\":\\"method\\",\\"pair\\":\\"ZRX-WETH\\"}",
-  ],
-  Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"orders\\",\\"method\\":\\"\\",\\"pair\\":\\"ZRX-WETH\\"}",
-  ],
-  Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"orders\\",\\"method\\":\\"method\\",\\"pair\\":\\"test\\"}",
-  ],
-]
-`;
-
-exports[`handleRelayerMessage orders 1`] = `
-Array [
-  Array [
-    Object {},
-    Object {
-      "channel": "orders",
-      "method": "method",
-      "pair": "ZRX-WETH",
-    },
-  ],
-]
-`;
-
 exports[`handleTerminateOrderRequest 1`] = `
 Array [
   Array [
@@ -324,6 +294,36 @@ exports[`handleUserOrder 1`] = `
 Array [
   Array [
     "{\\"method\\":\\"type\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"userOrder\\":{\\"test\\":\\"liveOrder\\"}}",
+  ],
+]
+`;
+
+exports[`handleWebSocketMessage invalid requests 1`] = `
+Array [
+  Array [
+    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"\\",\\"method\\":\\"\\",\\"pair\\":\\"\\"}",
+  ],
+  Array [
+    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"channel\\",\\"method\\":\\"method\\",\\"pair\\":\\"ZRX-WETH\\"}",
+  ],
+  Array [
+    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"orders\\",\\"method\\":\\"\\",\\"pair\\":\\"ZRX-WETH\\"}",
+  ],
+  Array [
+    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"orders\\",\\"method\\":\\"method\\",\\"pair\\":\\"test\\"}",
+  ],
+]
+`;
+
+exports[`handleWebSocketMessage orders 1`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "channel": "orders",
+      "method": "method",
+      "pair": "ZRX-WETH",
+    },
   ],
 ]
 `;

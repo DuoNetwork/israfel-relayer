@@ -267,12 +267,12 @@ test('handleOrderRequest terminate', async () => {
 	expect((relayerServer.handleTerminateOrderRequest as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('handleRelayerMessage invalid requests', () => {
+test('handleWebSocketMessage invalid requests', () => {
 	const ws = {
 		send: jest.fn()
 	};
-	relayerServer.handleRelayerMessage(ws as any, JSON.stringify({}));
-	relayerServer.handleRelayerMessage(
+	relayerServer.handleWebSocketMessage(ws as any, JSON.stringify({}));
+	relayerServer.handleWebSocketMessage(
 		ws as any,
 		JSON.stringify({
 			channel: 'channel',
@@ -280,7 +280,7 @@ test('handleRelayerMessage invalid requests', () => {
 			pair: CST.SUPPORTED_PAIRS[0]
 		})
 	);
-	relayerServer.handleRelayerMessage(
+	relayerServer.handleWebSocketMessage(
 		ws as any,
 		JSON.stringify({
 			channel: CST.DB_ORDERS,
@@ -288,7 +288,7 @@ test('handleRelayerMessage invalid requests', () => {
 			pair: CST.SUPPORTED_PAIRS[0]
 		})
 	);
-	relayerServer.handleRelayerMessage(
+	relayerServer.handleWebSocketMessage(
 		ws as any,
 		JSON.stringify({
 			channel: CST.DB_ORDERS,
@@ -299,10 +299,10 @@ test('handleRelayerMessage invalid requests', () => {
 	expect((ws.send as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('handleRelayerMessage orders', () => {
+test('handleWebSocketMessage orders', () => {
 	const ws = {};
 	relayerServer.handleOrderRequest = jest.fn();
-	relayerServer.handleRelayerMessage(
+	relayerServer.handleWebSocketMessage(
 		ws as any,
 		JSON.stringify({
 			channel: CST.DB_ORDERS,
