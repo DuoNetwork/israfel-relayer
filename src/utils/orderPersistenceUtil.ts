@@ -9,6 +9,7 @@ import {
 	IUserOrder
 } from '../common/types';
 import dynamoUtil from './dynamoUtil';
+import orderbookUtil from './orderBookUtil';
 import redisUtil from './redisUtil';
 import util from './util';
 import Web3Util from './Web3Util';
@@ -129,6 +130,14 @@ class OrderPersistenceUtil {
 		redisUtil.push(`${CST.DB_ORDERS}|${CST.DB_QUEUE}`, key);
 		await redisUtil.exec();
 		util.logDebug(`done`);
+
+		orderbookUtil.publishOrderBookUpdate({
+			method: method,
+			pair: pair,
+			sequence: sequence,
+			liveOrder: orderQueueItem.liveOrder,
+			balance
+		});
 
 		if (publish)
 			try {

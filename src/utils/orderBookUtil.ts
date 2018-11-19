@@ -1,13 +1,21 @@
 import * as CST from '../common/constants';
-import { ILiveOrder, IOrderBookSnapshot, IOrderBookUpdateWS } from '../common/types';
-import dynamoUtil from './dynamoUtil';
+import {
+	ILiveOrder,
+	IOrderBookSnapshot,
+	IOrderBookUpdate,
+	IOrderBookUpdateItem,
+	IOrderBookUpdateWS
+} from '../common/types';
+import orderPersistenceUtil from './orderPersistenceUtil';
 import redisUtil from './redisUtil';
 
 class OrderBookUtil {
 	public orderBook: { [key: string]: IOrderBookSnapshot } = {};
 	public async calculateOrderBookSnapshot() {
 		for (const pair of CST.TRADING_PAIRS) {
-			const liveOrders: ILiveOrder[] = await dynamoUtil.getLiveOrders(pair);
+			const liveOrders: {
+				[orderHash: string]: ILiveOrder;
+			} = await orderPersistenceUtil.getAllLiveOrdersInPersistence(pair);
 			this.orderBook[pair] = this.aggrOrderBook(liveOrders);
 			console.log('### current orerbook ', this.orderBook[pair]);
 		}
@@ -21,18 +29,30 @@ class OrderBookUtil {
 		return liveOrders;
 	}
 
-	public aggrOrderBook(rawLiveOrders: ILiveOrder[]): IOrderBookSnapshot {
+	public aggrOrderBook(rawLiveOrders: { [orderHash: string]: ILiveOrder }): IOrderBookSnapshot {
 		return {
-			sequence: Math.max(...rawLiveOrders.map(order => order.initialSequence)),
+			sequence: Math.max(
+				...Object.keys(rawLiveOrders).map(hash => rawLiveOrders[hash].initialSequence)
+			),
 			bids: this.aggrByPrice(
 				this.sortByPriceTime(
-					rawLiveOrders.filter(order => order[CST.DB_SIDE] === CST.DB_BID),
+					Object.keys(rawLiveOrders)
+						.filter(hash => rawLiveOrders[hash][CST.DB_SIDE] === CST.DB_BID)
+						.reduce((array: ILiveOrder[], key: string) => {
+							array.push(rawLiveOrders[key]);
+							return array;
+						}, []),
 					true
 				).map(bid => this.parseOrderBookUpdate(bid))
 			),
 			asks: this.aggrByPrice(
 				this.sortByPriceTime(
-					rawLiveOrders.filter(order => order[CST.DB_SIDE] === CST.DB_ASK),
+					Object.keys(rawLiveOrders)
+						.filter(hash => rawLiveOrders[hash][CST.DB_SIDE] === CST.DB_ASK)
+						.reduce((array: ILiveOrder[], key: string) => {
+							array.push(rawLiveOrders[key]);
+							return array;
+						}, []),
 					false
 				).map(ask => this.parseOrderBookUpdate(ask))
 			)
@@ -42,7 +62,7 @@ class OrderBookUtil {
 	public aggrByPrice(orderInfo: IOrderBookUpdateWS[]) {
 		return orderInfo.reduce((past: IOrderBookUpdateWS[], current) => {
 			const same = past.find(r => r && r.price === current.price);
-			if (same) same.amount = (Number(same.amount) + Number(current.amount));
+			if (same) same.amount = Number(same.amount) + Number(current.amount);
 			else past.push(current);
 			return past;
 		}, []);
@@ -72,6 +92,31 @@ class OrderBookUtil {
 			bids: this.aggrByPrice(newBids),
 			asks: this.aggrByPrice(newAsks)
 		};
+	}
+
+	public publishOrderBookUpdate(updateItem: IOrderBookUpdateItem) {
+		const { price, pair, balance } = updateItem.liveOrder;
+		let updateAmt = 0;
+		switch (updateItem.method) {
+			case CST.DB_ADD:
+				updateAmt = balance;
+				break;
+			case CST.DB_TERMINATE:
+				updateAmt = -balance;
+				break;
+			case CST.DB_UPDATE:
+				updateAmt = updateItem.balance - balance;
+				break;
+		}
+
+		const orderBookUpdate: IOrderBookUpdate = {
+			price: price,
+			pair: pair,
+			amount: updateAmt,
+			sequence: updateItem.sequence
+		};
+
+		redisUtil.publish(`${CST.ORDERBOOK_UPDATE}|${pair}`, JSON.stringify(orderBookUpdate));
 	}
 
 	public scheduleSumamrizer() {

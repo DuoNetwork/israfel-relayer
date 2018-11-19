@@ -92,6 +92,14 @@ export interface IOrderBookUpdate {
 	amount: number;
 }
 
+export interface IOrderBookUpdateItem {
+	method: string;
+	pair: string;
+	sequence: number;
+	liveOrder: ILiveOrder;
+	balance: number;
+}
+
 export interface IWsRequest {
 	method: string;
 	channel: string;
