@@ -176,5 +176,5 @@ class OrderBookServer {
 	}
 }
 
-const orderWatcherServer = new OrderBookServer();
-export default orderWatcherServer;
+const orderBookServer = new OrderBookServer();
+export default orderBookServer;
