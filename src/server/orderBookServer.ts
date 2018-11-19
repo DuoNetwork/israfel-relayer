@@ -63,6 +63,8 @@ class OrderBookServer {
 			case CST.DB_UPDATE:
 				updateAmt = balance - this.liveOrders[orderHash].balance;
 				break;
+			default:
+				return false;
 		}
 
 		const orderBookUpdate: IOrderBookUpdate = {
