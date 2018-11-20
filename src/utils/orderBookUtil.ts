@@ -4,33 +4,40 @@ import {
 	IOrderBook,
 	IOrderBookLevel,
 	IOrderBookSnapshot,
-	IOrderBookSnapshotLevel
+	IOrderBookSnapshotLevel,
+	IOrderBookSnapshotUpdate
 } from '../common/types';
+import util from './util';
 
 class OrderBookUtil {
 	public sortOrderBookLevels(levels: IOrderBookLevel[], isBid: boolean) {
 		if (isBid)
 			levels.sort(
-				(a, b) => -a.price + b.price || -a.amount + b.amount || a.sequence - b.sequence
+				(a, b) =>
+					-a.price + b.price ||
+					-a.amount + b.amount ||
+					a.initialSequence - b.initialSequence
 			);
 		else
 			levels.sort(
-				(a, b) => a.price - b.price || -a.amount + b.amount || a.sequence - b.sequence
+				(a, b) =>
+					a.price - b.price ||
+					-a.amount + b.amount ||
+					a.initialSequence - b.initialSequence
 			);
 	}
+
 	public constructOrderBook(liveOrders: { [orderHash: string]: ILiveOrder }): IOrderBook {
 		const bids: IOrderBookLevel[] = [];
 		const asks: IOrderBookLevel[] = [];
-		let sequence = 0;
 		for (const orderHash in liveOrders) {
 			const liveOrder = liveOrders[orderHash];
 			const level: IOrderBookLevel = {
 				orderHash: orderHash,
 				price: liveOrder.price,
 				amount: liveOrder.amount,
-				sequence: liveOrder.currentSequence
+				initialSequence: liveOrder.initialSequence
 			};
-			sequence = Math.max(sequence, liveOrder.currentSequence);
 			if (liveOrder.side === CST.DB_BID) bids.push(level);
 			else asks.push(level);
 		}
@@ -38,7 +45,6 @@ class OrderBookUtil {
 		this.sortOrderBookLevels(bids, true);
 		this.sortOrderBookLevels(bids, false);
 		return {
-			sequence: sequence,
 			bids: bids,
 			asks: asks
 		};
@@ -48,9 +54,9 @@ class OrderBookUtil {
 		orderBook: IOrderBook,
 		newLevel: IOrderBookLevel,
 		isBid: boolean,
-		isTerminte: boolean
+		isTerminate: boolean
 	) {
-		if (isTerminte) {
+		if (isTerminate) {
 			if (isBid)
 				orderBook.bids = orderBook.bids.filter(l => l.orderHash !== newLevel.orderHash);
 			else orderBook.asks = orderBook.asks.filter(l => l.orderHash !== newLevel.orderHash);
@@ -60,10 +66,8 @@ class OrderBookUtil {
 		const existingOrder = (isBid ? orderBook.bids : orderBook.asks).find(
 			l => l.orderHash === newLevel.orderHash
 		);
-		if (existingOrder) {
-			existingOrder.amount = newLevel.amount;
-			existingOrder.sequence = newLevel.sequence;
-		} else if (isBid) {
+		if (existingOrder) existingOrder.amount = newLevel.amount;
+		else if (isBid) {
 			orderBook.bids.push(newLevel);
 			this.sortOrderBookLevels(orderBook.bids, true);
 		} else {
@@ -72,9 +76,40 @@ class OrderBookUtil {
 		}
 	}
 
+	public updateOrderBookSnapshot(
+		orderBookSnapshot: IOrderBookSnapshot,
+		levelUpdate: IOrderBookSnapshotUpdate
+	) {
+		const isBid = levelUpdate.side === CST.DB_BID;
+		const existingLevel = (isBid ? orderBookSnapshot.bids : orderBookSnapshot.asks).find(
+			l => l.price === levelUpdate.price
+		);
+		if (existingLevel) {
+			existingLevel.amount += levelUpdate.amount;
+			existingLevel.count += levelUpdate.count;
+			if (!existingLevel.amount || !existingLevel.count)
+				if (isBid)
+					orderBookSnapshot.bids = orderBookSnapshot.bids.filter(
+						l => l.price !== levelUpdate.price
+					);
+				else
+					orderBookSnapshot.asks = orderBookSnapshot.asks.filter(
+						l => l.price !== levelUpdate.price
+					);
+		} else if (levelUpdate.count > 0)
+			if (isBid) {
+				orderBookSnapshot.bids.push(levelUpdate);
+				orderBookSnapshot.bids.sort((a, b) => -a.price + b.price);
+			} else {
+				orderBookSnapshot.asks.push(levelUpdate);
+				orderBookSnapshot.asks.sort((a, b) => a.price - b.price);
+			}
+		else util.logDebug('trying to remove non existing order book snapshot level, ignore ');
+	}
+
 	public renderOrderBookSnapshot(orderBook: IOrderBook): IOrderBookSnapshot {
 		return {
-			sequence: orderBook.sequence,
+			timestamp: util.getUTCNowTimestamp(),
 			bids: this.renderOrderBookSnapshotSide(orderBook.bids),
 			asks: this.renderOrderBookSnapshotSide(orderBook.asks)
 		};

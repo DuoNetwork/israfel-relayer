@@ -68,13 +68,12 @@ export interface IOrderBookSnapshotWs extends IOrderBookSnapshot {
 }
 
 export interface IOrderBook {
-	sequence: number;
 	bids: IOrderBookLevel[];
 	asks: IOrderBookLevel[];
 }
 
 export interface IOrderBookSnapshot {
-	sequence: number;
+	timestamp: number;
 	bids: IOrderBookSnapshotLevel[];
 	asks: IOrderBookSnapshotLevel[];
 }
@@ -83,7 +82,7 @@ export interface IOrderBookLevel {
 	orderHash: string;
 	price: number;
 	amount: number;
-	sequence: number;
+	initialSequence: number;
 }
 
 export interface IOrderBookSnapshotLevel {
@@ -96,9 +95,9 @@ export interface IOrderBookSnapshotUpdate {
 	pair: string;
 	price: number;
 	amount: number;
+	count: number;
 	side: string;
-	baseSequence: number;
-	sequence: number;
+	timestamp: number;
 }
 
 export interface IWsRequest {
