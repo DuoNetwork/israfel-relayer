@@ -344,3 +344,21 @@ test('updateOrderBookSnapshot, ask, not existingLevel, count = -1', () => {
 	orderBookUtil.updateOrderBookSnapshot(orderBookSnapshotTest8, orderBookSnapshotUpdateAsk);
 	expect(orderBookSnapshotTest8).toMatchSnapshot();
 });
+
+test('publishOrderBookUpdate, withoutsnpashot update', async () => {
+
+	const orderBookSnapshotUpdate = {
+		pair: 'pair',
+		price: 1,
+		amount: 2,
+		count: 3,
+		side: 'ask',
+		timestamp: 1234567990000
+	}
+	redisUtil.publish = jest.fn(() => Promise.resolve());
+	redisUtil.set = jest.fn(() => Promise.resolve());
+	await orderBookUtil.publishOrderBookUpdate('pair', orderBookSnapshot, orderBookSnapshotUpdate);
+	expect((redisUtil.set as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((redisUtil.publish as jest.Mock).mock.calls).toMatchSnapshot();
+
+} )
