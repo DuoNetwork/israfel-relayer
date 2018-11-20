@@ -129,31 +129,13 @@ export interface IWsUserOrderResponse extends IWsOrderResponse {
 	userOrder: IUserOrder;
 }
 
-export interface ISubscribeOrderBookRequest {
-	method: string;
-	channel: string;
+export interface IWsOrderBookResponse extends IWsResponse {
+	orderBookSnapshot: IOrderBookSnapshot;
 }
 
-// export interface IUpdateResponseWs {
-// 	type: WsChannelResposnseTypes;
-// 	lastTimestamp: number;
-// 	currentTimestamp: number;
-// 	channel: {
-// 		name: WsChannelName;
-// 		pair: string;
-// 	};
-// 	bids: IOrderBookUpdateWS[];
-// 	asks: IOrderBookUpdateWS[];
-// }
-
-// export interface IOrderResponseWs {
-// 	channel: {
-// 		name: WsChannelName;
-// 		pair: string;
-// 	};
-// 	status: string;
-// 	failedReason: string;
-// }
+export interface IWsOrderBookUpdateResponse extends IWsResponse {
+	orderBookUpdate: IOrderBookSnapshotUpdate;
+}
 
 export interface IOption {
 	live: boolean;

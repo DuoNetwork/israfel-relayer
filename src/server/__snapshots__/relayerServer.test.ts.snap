@@ -187,14 +187,6 @@ Array [
 ]
 `;
 
-exports[`handleErrorOrderRequest 1`] = `
-Array [
-  Array [
-    "{\\"method\\":\\"add\\",\\"channel\\":\\"orders\\",\\"status\\":\\"status\\",\\"pair\\":\\"ZRX-WETH\\",\\"orderHash\\":\\"0xOrderHash\\"}",
-  ],
-]
-`;
-
 exports[`handleOrderRequest add 1`] = `
 Array [
   Array [
@@ -290,14 +282,6 @@ Array [
 ]
 `;
 
-exports[`handleUserOrder 1`] = `
-Array [
-  Array [
-    "{\\"method\\":\\"type\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"userOrder\\":{\\"test\\":\\"liveOrder\\"}}",
-  ],
-]
-`;
-
 exports[`handleWebSocketMessage invalid requests 1`] = `
 Array [
   Array [
@@ -324,6 +308,22 @@ Array [
       "method": "method",
       "pair": "ZRX-WETH",
     },
+  ],
+]
+`;
+
+exports[`sendErrorOrderResponse 1`] = `
+Array [
+  Array [
+    "{\\"method\\":\\"add\\",\\"channel\\":\\"orders\\",\\"status\\":\\"status\\",\\"pair\\":\\"ZRX-WETH\\",\\"orderHash\\":\\"0xOrderHash\\"}",
+  ],
+]
+`;
+
+exports[`sendUserOrderResponse 1`] = `
+Array [
+  Array [
+    "{\\"method\\":\\"type\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"userOrder\\":{\\"test\\":\\"liveOrder\\"}}",
   ],
 ]
 `;

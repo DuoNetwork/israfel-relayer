@@ -22,6 +22,10 @@ class OrderBookUtil {
 		redisUtil.subscribe(`${CST.DB_ORDER_BOOKS}|${CST.DB_UPDATE}|${pair}`);
 	}
 
+	public unsubscribeOrderBookUpdate(pair: string) {
+		redisUtil.unsubscribe(`${CST.DB_ORDER_BOOKS}|${CST.DB_UPDATE}|${pair}`);
+	}
+
 	public sortOrderBookLevels(levels: IOrderBookLevel[], isBid: boolean) {
 		if (isBid)
 			levels.sort(
@@ -109,15 +113,20 @@ class OrderBookUtil {
 					orderBookSnapshot.asks = orderBookSnapshot.asks.filter(
 						l => l.price !== levelUpdate.price
 					);
-		} else if (levelUpdate.count > 0)
+		} else if (levelUpdate.count > 0) {
+			const newLevel: IOrderBookSnapshotLevel = {
+				price: levelUpdate.price,
+				amount: levelUpdate.amount,
+				count: levelUpdate.count
+			};
 			if (isBid) {
-				orderBookSnapshot.bids.push(levelUpdate);
+				orderBookSnapshot.bids.push(newLevel);
 				orderBookSnapshot.bids.sort((a, b) => -a.price + b.price);
 			} else {
-				orderBookSnapshot.asks.push(levelUpdate);
+				orderBookSnapshot.asks.push(newLevel);
 				orderBookSnapshot.asks.sort((a, b) => a.price - b.price);
 			}
-		else util.logDebug('trying to remove non existing order book snapshot level, ignore ');
+		} else util.logDebug('trying to remove non existing order book snapshot level, ignore ');
 	}
 
 	public renderOrderBookSnapshot(orderBook: IOrderBook): IOrderBookSnapshot {
@@ -176,6 +185,14 @@ class OrderBookUtil {
 			util.logError(err);
 			return false;
 		}
+	}
+
+	public async getOrderBookSnapshot(pair: string) {
+		const snapshotString = await redisUtil.get(
+			`${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${pair}`
+		);
+		if (!snapshotString) return null;
+		else return JSON.parse(snapshotString) as IOrderBookSnapshot;
 	}
 }
 const orderBookUtil = new OrderBookUtil();
