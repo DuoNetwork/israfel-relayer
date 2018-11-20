@@ -11,6 +11,17 @@ import redisUtil from './redisUtil';
 import util from './util';
 
 class OrderBookUtil {
+	public subscribeOrderBookUpdate(
+		pair: string,
+		handleOrderBookUpdate: (
+			channel: string,
+			orderBookSnapshotUpdate: IOrderBookSnapshotUpdate
+		) => any
+	) {
+		redisUtil.onOrderBookUpdate(handleOrderBookUpdate);
+		redisUtil.subscribe(`${CST.DB_ORDER_BOOKS}|${CST.DB_UPDATE}|${pair}`);
+	}
+
 	public sortOrderBookLevels(levels: IOrderBookLevel[], isBid: boolean) {
 		if (isBid)
 			levels.sort(
@@ -148,17 +159,18 @@ class OrderBookUtil {
 	public async publishOrderBookUpdate(
 		pair: string,
 		orderBookSnapshot: IOrderBookSnapshot,
-		orderBookSnapshotUpdate: IOrderBookSnapshotUpdate
+		orderBookSnapshotUpdate?: IOrderBookSnapshotUpdate
 	): Promise<boolean> {
 		try {
 			await redisUtil.set(
 				`${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${pair}`,
 				JSON.stringify(orderBookSnapshot)
 			);
-			await redisUtil.publish(
-				`${CST.DB_ORDER_BOOKS}|${CST.DB_UPDATE}|${pair}`,
-				JSON.stringify(orderBookSnapshotUpdate)
-			);
+			if (orderBookSnapshotUpdate)
+				await redisUtil.publish(
+					`${CST.DB_ORDER_BOOKS}|${CST.DB_UPDATE}|${pair}`,
+					JSON.stringify(orderBookSnapshotUpdate)
+				);
 			return true;
 		} catch (err) {
 			util.logError(err);

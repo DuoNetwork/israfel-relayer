@@ -1,13 +1,13 @@
 import Redis from 'ioredis';
 import * as CST from '../common/constants';
-import {  IOrderQueueItem } from '../common/types';
+import {  IOrderBookSnapshotUpdate, IOrderQueueItem } from '../common/types';
 import util from './util';
 
 export class RedisUtil {
 	private redisPub: Redis.Redis | null = null;
 	private redisSub: Redis.Redis | null = null;
 	private handleOrderBookUpdate:
-		| ((channel: string, orderBookUpdate: any) => any)
+		| ((channel: string, orderBookUpdate: IOrderBookSnapshotUpdate) => any)
 		| null = null;
 	private handleOrderUpdate:
 		| ((channel: string, orderQueueItem: IOrderQueueItem) => any)
@@ -32,11 +32,11 @@ export class RedisUtil {
 		util.logDebug(pattern + channel + message);
 		const type = channel.split('|')[0];
 		switch (type) {
-			case CST.ORDERBOOK_UPDATE:
+			case CST.DB_ORDER_BOOKS:
 				if (this.handleOrderBookUpdate)
 					this.handleOrderBookUpdate(channel, JSON.parse(message));
 				break;
-			case CST.ORDER_UPDATE:
+			case CST.DB_ORDERS:
 				if (this.handleOrderUpdate) this.handleOrderUpdate(channel, JSON.parse(message));
 				break;
 			default:
@@ -44,8 +44,8 @@ export class RedisUtil {
 		}
 	}
 
-	public onOrderBooks(
-		handleOrderBookUpdate: (channel: string, orderBookUpdate: any) => any
+	public onOrderBookUpdate(
+		handleOrderBookUpdate: (channel: string, orderBookUpdate: IOrderBookSnapshotUpdate) => any
 	) {
 		this.handleOrderBookUpdate = handleOrderBookUpdate;
 	}

@@ -7,10 +7,15 @@ import {
 	SignedOrder
 } from '0x.js';
 import * as CST from '../common/constants';
-import { IOption, IOrderPersistRequest, IOrderQueueItem, IRawOrder, IStringSignedOrder } from '../common/types';
+import {
+	IOption,
+	IOrderPersistRequest,
+	IOrderQueueItem,
+	IRawOrder,
+	IStringSignedOrder
+} from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
-import redisUtil from '../utils/redisUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
@@ -167,8 +172,6 @@ class OrderWatcherServer {
 	public async startServer(web3Util: Web3Util, option: IOption) {
 		this.web3Util = web3Util;
 		const provider = this.web3Util.web3Wrapper.getProvider();
-		// util.logInfo('using provider ' + )
-		// console.log(provider);
 		this.orderWatcher = new OrderWatcher(
 			provider,
 			option.live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN,
@@ -179,11 +182,9 @@ class OrderWatcherServer {
 		);
 		this.pair = option.token + '-' + CST.TOKEN_WETH;
 
-		redisUtil.onOrderUpdate((channel, orderPersistRequest) =>
+		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderPersistRequest) =>
 			this.handleOrderUpdate(channel, orderPersistRequest)
 		);
-
-		redisUtil.subscribe(`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${this.pair}`);
 
 		const allOrders = await orderPersistenceUtil.getAllLiveOrdersInPersistence(this.pair);
 		util.logInfo('loaded live orders : ' + Object.keys(allOrders).length);

@@ -10,7 +10,6 @@ import {
 import dynamoUtil from '../utils/dynamoUtil';
 import orderBookUtil from '../utils/orderBookUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
-import redisUtil from '../utils/redisUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
@@ -114,10 +113,7 @@ class OrderBookServer {
 		this.updateOrderSequences();
 		this.orderBook = orderBookUtil.constructOrderBook(this.liveOrders);
 		this.orderBookSnapshot = orderBookUtil.renderOrderBookSnapshot(this.orderBook);
-		await redisUtil.set(
-			`${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${this.pair}`,
-			JSON.stringify(this.orderBookSnapshot)
-		);
+		await orderBookUtil.publishOrderBookUpdate(this.pair, this.orderBookSnapshot);
 		this.loadingOrders = false;
 		for (const updateItem of this.pendingUpdates)
 			await this.handleOrderUpdate('pending', updateItem);
@@ -127,12 +123,9 @@ class OrderBookServer {
 	public async startServer(web3Util: Web3Util, option: IOption) {
 		this.web3Util = web3Util;
 		this.pair = option.token + '-' + CST.TOKEN_WETH;
-
-		redisUtil.onOrderUpdate((channel, orderPersistRequest) =>
+		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderPersistRequest) =>
 			this.handleOrderUpdate(channel, orderPersistRequest)
 		);
-
-		redisUtil.subscribe(`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${this.pair}`);
 
 		await this.loadLiveOrders();
 		setInterval(() => this.loadLiveOrders(), CST.ONE_MINUTE_MS * 15);

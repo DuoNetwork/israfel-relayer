@@ -14,6 +14,14 @@ import util from './util';
 import Web3Util from './Web3Util';
 
 class OrderPersistenceUtil {
+	public subscribeOrderUpdate(
+		pair: string,
+		handleOrderUpdate: (channel: string, orderQueueItem: IOrderQueueItem) => any
+	) {
+		redisUtil.onOrderUpdate(handleOrderUpdate);
+		redisUtil.subscribe(`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${pair}`);
+	}
+
 	public async addUserOrderToDB(
 		liveOrder: ILiveOrder,
 		type: string,

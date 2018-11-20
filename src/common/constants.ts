@@ -56,9 +56,6 @@ export const DB_0X_EXCHANGE_ADDR = 'exchangeAddress';
 export const DB_0X_FEE_RECIPIENT_ADDR = 'feeRecipientAddress';
 export const DB_0X_EXPIRATION_TIME_SECONDS = 'expirationTimeSeconds';
 export const DB_0X_SIGNATURE = 'signature';
-export const ORDER_UPDATE = 'orderUpdate';
-export const ORDERBOOK_UPDATE = 'orderBookUpdate';
-export const ORDERBOOK_SNAPSHOT = 'orderBookSnapshot';
 
 export const DB_ORDERS = 'orders';
 export const DB_ORDER_BOOKS = 'orderBooks';
