@@ -1,0 +1,172 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`handleOrderUpdate,loading Pairs 1`] = `
+Array [
+  Object {
+    "liveOrder": Object {
+      "account": "account1",
+      "amount": 10,
+      "balance": 5,
+      "currentSequence": 5,
+      "fill": 1,
+      "initialSequence": 1,
+      "orderHash": "orderHash1",
+      "pair": "pair",
+      "price": 100,
+      "side": "bid",
+    },
+    "method": "add",
+  },
+]
+`;
+
+exports[`loadLiveOrders 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "amount": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash7",
+      "price": 110,
+    },
+    Object {
+      "amount": 10,
+      "initialSequence": 9,
+      "orderHash": "orderHash5",
+      "price": 110,
+    },
+    Object {
+      "amount": 10,
+      "initialSequence": 12,
+      "orderHash": "orderHash8",
+      "price": 110,
+    },
+    Object {
+      "amount": 10,
+      "initialSequence": 10,
+      "orderHash": "orderHash6",
+      "price": 120,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "amount": 10,
+      "initialSequence": 2,
+      "orderHash": "orderHash2",
+      "price": 110,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 3,
+      "orderHash": "orderHash3",
+      "price": 100,
+    },
+    Object {
+      "amount": 10,
+      "initialSequence": 1,
+      "orderHash": "orderHash1",
+      "price": 100,
+    },
+    Object {
+      "amount": 10,
+      "initialSequence": 4,
+      "orderHash": "orderHash4",
+      "price": 100,
+    },
+  ],
+}
+`;
+
+exports[`loadLiveOrders 2`] = `
+Object {
+  "asks": Array [
+    Object {
+      "amount": 40,
+      "count": 3,
+      "price": 110,
+    },
+    Object {
+      "amount": 10,
+      "count": 1,
+      "price": 120,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "amount": 10,
+      "count": 1,
+      "price": 110,
+    },
+    Object {
+      "amount": 40,
+      "count": 3,
+      "price": 100,
+    },
+  ],
+  "pair": "pair",
+  "version": 123456789,
+}
+`;
+
+exports[`loadLiveOrders 3`] = `
+Array [
+  Array [
+    "pair",
+    Object {
+      "asks": Array [
+        Object {
+          "amount": 40,
+          "count": 3,
+          "price": 110,
+        },
+        Object {
+          "amount": 10,
+          "count": 1,
+          "price": 120,
+        },
+      ],
+      "bids": Array [
+        Object {
+          "amount": 10,
+          "count": 1,
+          "price": 110,
+        },
+        Object {
+          "amount": 40,
+          "count": 3,
+          "price": 100,
+        },
+      ],
+      "pair": "pair",
+      "version": 123456789,
+    },
+  ],
+]
+`;
+
+exports[`loadLiveOrders 4`] = `
+Array [
+  Array [
+    "pending",
+    Object {
+      "liveOrder": Object {
+        "account": "account1",
+        "amount": 10,
+        "balance": 5,
+        "currentSequence": 5,
+        "fill": 1,
+        "initialSequence": 1,
+        "orderHash": "orderHash1",
+        "pair": "pair",
+        "price": 100,
+        "side": "bid",
+      },
+      "method": "add",
+    },
+  ],
+]
+`;
+
+exports[`loadLiveOrders 5`] = `Array []`;
+
+exports[`updateOrderSequences 1`] = `16`;
