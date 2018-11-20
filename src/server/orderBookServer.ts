@@ -25,6 +25,7 @@ class OrderBookServer {
 		asks: []
 	};
 	public orderBookSnapshot: IOrderBookSnapshot = {
+		pair: 'pair',
 		version: 0,
 		bids: [],
 		asks: []
@@ -120,7 +121,7 @@ class OrderBookServer {
 		util.logInfo('loaded live orders : ' + Object.keys(this.liveOrders).length);
 		this.updateOrderSequences();
 		this.orderBook = orderBookUtil.constructOrderBook(this.liveOrders);
-		this.orderBookSnapshot = orderBookUtil.renderOrderBookSnapshot(this.orderBook);
+		this.orderBookSnapshot = orderBookUtil.renderOrderBookSnapshot(this.pair, this.orderBook);
 		await orderBookUtil.publishOrderBookUpdate(this.pair, this.orderBookSnapshot);
 		this.loadingOrders = false;
 		for (const updateItem of this.pendingUpdates)

@@ -101,6 +101,7 @@ Object {
       "price": 100,
     },
   ],
+  "pair": "pair",
   "version": 1234567890000,
 }
 `;
@@ -119,7 +120,7 @@ exports[`publishOrderBookUpdate, throw Error 1`] = `
 Array [
   Array [
     "orderBooks|snapshot|pair",
-    "{\\"version\\":1234567890000,\\"bids\\":[{\\"price\\":120,\\"amount\\":20,\\"count\\":4},{\\"price\\":110,\\"amount\\":10,\\"count\\":6},{\\"price\\":100,\\"amount\\":30,\\"count\\":5}],\\"asks\\":[{\\"price\\":130,\\"amount\\":20,\\"count\\":4},{\\"price\\":140,\\"amount\\":10,\\"count\\":6},{\\"price\\":150,\\"amount\\":30,\\"count\\":5}]}",
+    "{\\"pair\\":\\"pair\\",\\"version\\":1234567890000,\\"bids\\":[{\\"price\\":120,\\"amount\\":20,\\"count\\":4},{\\"price\\":110,\\"amount\\":10,\\"count\\":6},{\\"price\\":100,\\"amount\\":30,\\"count\\":5}],\\"asks\\":[{\\"price\\":130,\\"amount\\":20,\\"count\\":4},{\\"price\\":140,\\"amount\\":10,\\"count\\":6},{\\"price\\":150,\\"amount\\":30,\\"count\\":5}]}",
   ],
 ]
 `;
@@ -128,7 +129,7 @@ exports[`publishOrderBookUpdate, with update 1`] = `
 Array [
   Array [
     "orderBooks|snapshot|pair",
-    "{\\"version\\":1234567890000,\\"bids\\":[{\\"price\\":120,\\"amount\\":20,\\"count\\":4},{\\"price\\":110,\\"amount\\":10,\\"count\\":6},{\\"price\\":100,\\"amount\\":30,\\"count\\":5}],\\"asks\\":[{\\"price\\":130,\\"amount\\":20,\\"count\\":4},{\\"price\\":140,\\"amount\\":10,\\"count\\":6},{\\"price\\":150,\\"amount\\":30,\\"count\\":5}]}",
+    "{\\"pair\\":\\"pair\\",\\"version\\":1234567890000,\\"bids\\":[{\\"price\\":120,\\"amount\\":20,\\"count\\":4},{\\"price\\":110,\\"amount\\":10,\\"count\\":6},{\\"price\\":100,\\"amount\\":30,\\"count\\":5}],\\"asks\\":[{\\"price\\":130,\\"amount\\":20,\\"count\\":4},{\\"price\\":140,\\"amount\\":10,\\"count\\":6},{\\"price\\":150,\\"amount\\":30,\\"count\\":5}]}",
   ],
 ]
 `;
@@ -146,7 +147,7 @@ exports[`publishOrderBookUpdate, withoutsnpashot update 1`] = `
 Array [
   Array [
     "orderBooks|snapshot|pair",
-    "{\\"version\\":1234567890000,\\"bids\\":[{\\"price\\":120,\\"amount\\":20,\\"count\\":4},{\\"price\\":110,\\"amount\\":10,\\"count\\":6},{\\"price\\":100,\\"amount\\":30,\\"count\\":5}],\\"asks\\":[{\\"price\\":130,\\"amount\\":20,\\"count\\":4},{\\"price\\":140,\\"amount\\":10,\\"count\\":6},{\\"price\\":150,\\"amount\\":30,\\"count\\":5}]}",
+    "{\\"pair\\":\\"pair\\",\\"version\\":1234567890000,\\"bids\\":[{\\"price\\":120,\\"amount\\":20,\\"count\\":4},{\\"price\\":110,\\"amount\\":10,\\"count\\":6},{\\"price\\":100,\\"amount\\":30,\\"count\\":5}],\\"asks\\":[{\\"price\\":130,\\"amount\\":20,\\"count\\":4},{\\"price\\":140,\\"amount\\":10,\\"count\\":6},{\\"price\\":150,\\"amount\\":30,\\"count\\":5}]}",
   ],
 ]
 `;
@@ -177,6 +178,7 @@ Object {
       "price": 100,
     },
   ],
+  "pair": "pair",
   "version": 1234567890000,
 }
 `;
@@ -825,6 +827,7 @@ Object {
       "price": 100,
     },
   ],
+  "pair": "pair",
   "version": 1234567990000,
 }
 `;
@@ -860,6 +863,7 @@ Object {
       "price": 100,
     },
   ],
+  "pair": "pair",
   "version": 1234567990000,
 }
 `;
@@ -900,6 +904,7 @@ Object {
       "price": 100,
     },
   ],
+  "pair": "pair",
   "version": 1234567990000,
 }
 `;
@@ -945,6 +950,7 @@ Object {
       "price": 100,
     },
   ],
+  "pair": "pair",
   "version": 1234567990000,
 }
 `;
@@ -985,6 +991,7 @@ Object {
       "price": 100,
     },
   ],
+  "pair": "pair",
   "version": 1234567990000,
 }
 `;
@@ -1020,6 +1027,7 @@ Object {
       "price": 100,
     },
   ],
+  "pair": "pair",
   "version": 1234567990000,
 }
 `;
@@ -1060,6 +1068,7 @@ Object {
       "price": 100,
     },
   ],
+  "pair": "pair",
   "version": 1234567990000,
 }
 `;
@@ -1105,6 +1114,7 @@ Object {
       "price": 100,
     },
   ],
+  "pair": "pair",
   "version": 1234567990000,
 }
 `;

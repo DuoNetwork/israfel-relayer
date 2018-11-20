@@ -74,6 +74,7 @@ export interface IOrderBook {
 
 export interface IOrderBookSnapshot {
 	version: number;
+	pair: string;
 	bids: IOrderBookSnapshotLevel[];
 	asks: IOrderBookSnapshotLevel[];
 }

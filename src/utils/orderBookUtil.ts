@@ -129,8 +129,9 @@ class OrderBookUtil {
 		} else util.logDebug('trying to remove non existing order book snapshot level, ignore ');
 	}
 
-	public renderOrderBookSnapshot(orderBook: IOrderBook): IOrderBookSnapshot {
+	public renderOrderBookSnapshot(pair: string, orderBook: IOrderBook): IOrderBookSnapshot {
 		return {
+			pair: pair,
 			version: util.getUTCNowTimestamp(),
 			bids: this.renderOrderBookSnapshotSide(orderBook.bids),
 			asks: this.renderOrderBookSnapshotSide(orderBook.asks)

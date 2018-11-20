@@ -265,7 +265,7 @@ test('renderOrderBookSnapshotSide', () => {
 
 test('renderOrderBookSnapshot', () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890000);
-	expect(orderBookUtil.renderOrderBookSnapshot(orderBook)).toMatchSnapshot();
+	expect(orderBookUtil.renderOrderBookSnapshot('pair', orderBook)).toMatchSnapshot();
 });
 
 const orderBookSnapshotUpdateBid = {
