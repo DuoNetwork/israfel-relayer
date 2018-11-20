@@ -315,7 +315,31 @@ Array [
 exports[`sendErrorOrderResponse 1`] = `
 Array [
   Array [
-    "{\\"method\\":\\"add\\",\\"channel\\":\\"orders\\",\\"status\\":\\"status\\",\\"pair\\":\\"ZRX-WETH\\",\\"orderHash\\":\\"0xOrderHash\\"}",
+    "{\\"method\\":\\"method\\",\\"channel\\":\\"channel\\",\\"status\\":\\"status\\",\\"pair\\":\\"pair\\",\\"orderHash\\":\\"0xOrderHash\\"}",
+  ],
+]
+`;
+
+exports[`sendOrderBookSnapshotResponse 1`] = `
+Array [
+  Array [
+    "{\\"method\\":\\"snapshot\\",\\"channel\\":\\"orderBooks\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"orderBookSnapshot\\":\\"orderBookSnapshot\\"}",
+  ],
+]
+`;
+
+exports[`sendOrderBookUpdateResponse 1`] = `
+Array [
+  Array [
+    "{\\"method\\":\\"update\\",\\"channel\\":\\"orderBooks\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"orderBookUpdate\\":\\"orderBookUpdate\\"}",
+  ],
+]
+`;
+
+exports[`sendResponse 1`] = `
+Array [
+  Array [
+    "{\\"method\\":\\"method\\",\\"channel\\":\\"channel\\",\\"status\\":\\"status\\",\\"pair\\":\\"pair\\"}",
   ],
 ]
 `;
