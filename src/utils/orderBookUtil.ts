@@ -43,7 +43,7 @@ class OrderBookUtil {
 		}
 
 		this.sortOrderBookLevels(bids, true);
-		this.sortOrderBookLevels(bids, false);
+		this.sortOrderBookLevels(asks, false);
 		return {
 			bids: bids,
 			asks: asks
