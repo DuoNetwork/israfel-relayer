@@ -33,6 +33,13 @@ class OrderBookServer {
 
 	public handleOrderUpdate = async (channel: string, orderQueueItem: IOrderQueueItem) => {
 		util.logDebug('receive update from channel: ' + channel);
+		const pair = channel.split('|')[2];
+		if (pair !== this.pair) {
+			util.logDebug(
+				`received order for pair ${pair}, should only subscribe for ${this.pair}`
+			);
+			return;
+		}
 		if (this.loadingOrders) {
 			this.pendingUpdates.push(orderQueueItem);
 			util.logDebug('loading orders, queue update');
