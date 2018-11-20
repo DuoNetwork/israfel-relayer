@@ -5,7 +5,7 @@ import * as CST from '../common/constants';
 import {
 	IOption,
 	IOrderBookSnapshot,
-	IOrderBookUpdateItem,
+	// IOrderBookUpdateItem,
 	IStringSignedOrder,
 	IUserOrder,
 	IWsAddOrderRequest,
@@ -16,7 +16,7 @@ import {
 	IWsUserOrderResponse
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
-import orderBookUtil from '../utils/orderBookUtil';
+// import orderBookUtil from '../utils/orderBookUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import redisUtil from '../utils/redisUtil';
 import util from '../utils/util';
@@ -74,28 +74,28 @@ class RelayerServer {
 
 				break;
 			case CST.DB_UPDATE:
-				util.logInfo('new orderBookupdate received');
-				const newUpdate: IOrderBookUpdateItem = JSON.parse(orderBooksUpdate);
-				if (this.orderBooks[pair].sequence === newUpdate.baseSequence) {
-					const updateDelta = [{ price: newUpdate.price, amount: newUpdate.amount }];
-					this.orderBooks[pair] = orderBookUtil.applyChangeOrderBook(
-						this.orderBooks[pair],
-						newUpdate.sequence,
-						newUpdate.side === CST.DB_BID ? updateDelta : [],
-						newUpdate.side === CST.DB_ASK ? updateDelta : []
-					);
+				// util.logInfo('new orderBookupdate received');
+				// const newUpdate: IOrderBookUpdateItem = JSON.parse(orderBooksUpdate);
+				// if (this.orderBooks[pair].sequence === newUpdate.baseSequence) {
+				// 	const updateDelta = [{ price: newUpdate.price, amount: newUpdate.amount }];
+				// 	this.orderBooks[pair] = orderBookUtil.applyChangeOrderBook(
+				// 		this.orderBooks[pair],
+				// 		newUpdate.sequence,
+				// 		newUpdate.side === CST.DB_BID ? updateDelta : [],
+				// 		newUpdate.side === CST.DB_ASK ? updateDelta : []
+				// 	);
 
-					if (this.wsServer)
-						this.wsServer.clients.forEach(client =>
-							util.safeWsSend(
-								client,
-								JSON.stringify({
-									channel: channel,
-									update: newUpdate
-								})
-							)
-						);
-				}
+				// 	if (this.wsServer)
+				// 		this.wsServer.clients.forEach(client =>
+				// 			util.safeWsSend(
+				// 				client,
+				// 				JSON.stringify({
+				// 					channel: channel,
+				// 					update: newUpdate
+				// 				})
+				// 			)
+				// 		);
+				// }
 
 				break;
 			default:

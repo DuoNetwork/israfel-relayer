@@ -1,99 +1,71 @@
 import * as CST from '../common/constants';
-import { ILiveOrder, IOrderBookSnapshot, IOrderBookUpdateWS } from '../common/types';
+import { ILiveOrder, IOrderBook, IOrderBookLevel, IOrderBookSnapshot } from '../common/types';
 import util from './util';
 
 class OrderBookUtil {
-	public sortByPriceTime(liveOrders: ILiveOrder[], isDescending: boolean): ILiveOrder[] {
-		liveOrders.sort((a, b) => {
-			if (isDescending) return b.price - a.price || (a.updatedAt || 0) - (b.updatedAt || 0);
-			else return a.price - b.price || (a.updatedAt || 0) - (b.updatedAt || 0);
-		});
-		return liveOrders;
+	public sortOrderBookLevels(levels: IOrderBookLevel[], isBid: boolean) {
+		if (isBid)
+			levels.sort(
+				(a, b) => -a.price + b.price || -a.amount + b.amount || -a.sequence + b.sequence
+			);
+		else
+			levels.sort(
+				(a, b) => a.price - b.price || -a.amount + b.amount || -a.sequence + b.sequence
+			);
 	}
-
-	public aggrOrderBook(rawLiveOrders: { [orderHash: string]: ILiveOrder }): IOrderBookSnapshot {
-		return {
-			sequence: Math.max(
-				...Object.keys(rawLiveOrders).map(hash => rawLiveOrders[hash].initialSequence)
-			),
-			bids: this.aggrByPrice(
-				this.sortByPriceTime(
-					Object.keys(rawLiveOrders)
-						.filter(hash => rawLiveOrders[hash][CST.DB_SIDE] === CST.DB_BID)
-						.reduce((array: ILiveOrder[], key: string) => {
-							array.push(rawLiveOrders[key]);
-							return array;
-						}, []),
-					true
-				).map(bid => this.parseOrderBookUpdate(bid))
-			),
-			asks: this.aggrByPrice(
-				this.sortByPriceTime(
-					Object.keys(rawLiveOrders)
-						.filter(hash => rawLiveOrders[hash][CST.DB_SIDE] === CST.DB_ASK)
-						.reduce((array: ILiveOrder[], key: string) => {
-							array.push(rawLiveOrders[key]);
-							return array;
-						}, []),
-					false
-				).map(ask => this.parseOrderBookUpdate(ask))
-			)
-		};
-	}
-
-	public aggrByPrice(orderInfo: IOrderBookUpdateWS[]) {
-		return orderInfo.reduce((past: IOrderBookUpdateWS[], current) => {
-			const same = past.find(r => r && r.price === current.price);
-			if (same) same.amount = Number(same.amount) + Number(current.amount);
-			else past.push(current);
-			return past;
-		}, []);
-	}
-
-	public parseOrderBookUpdate(order: ILiveOrder): IOrderBookUpdateWS {
-		return {
-			amount: order.amount,
-			price: order.price
-		};
-	}
-
-	public applyChangeOrderBook(
-		orderBook: IOrderBookSnapshot | null,
-		sequence: number,
-		bidChanges: IOrderBookUpdateWS[],
-		askChanges: IOrderBookUpdateWS[]
-	): IOrderBookSnapshot {
-		if (!orderBook)
-			return {
-				sequence: sequence,
-				bids: this.aggrByPrice(
-					bidChanges.sort((a, b) => {
-						return Number(b.price) - Number(a.price);
-					})
-				),
-				asks: this.aggrByPrice(
-					askChanges.sort((a, b) => {
-						return Number(b.price) - Number(a.price);
-					})
-				)
+	public constructOrderBook(liveOrders: { [orderHash: string]: ILiveOrder }): IOrderBook {
+		const bids: IOrderBookLevel[] = [];
+		const asks: IOrderBookLevel[] = [];
+		let sequence = 0;
+		for (const orderHash in liveOrders) {
+			const liveOrder = liveOrders[orderHash];
+			const level: IOrderBookLevel = {
+				orderHash: orderHash,
+				price: liveOrder.price,
+				amount: liveOrder.amount,
+				sequence: liveOrder.currentSequence
 			};
-		if (sequence <= orderBook.sequence) {
-			util.logDebug('update sequence should be larger than curent snapshot sequence');
-			return orderBook;
+			sequence = Math.max(sequence, liveOrder.currentSequence);
+			if (liveOrder.side === CST.DB_BID) bids.push(level);
+			else asks.push(level);
 		}
 
-		const newBids = [...orderBook.bids, ...bidChanges].sort((a, b) => {
-			return Number(b.price) - Number(a.price);
-		});
-		const newAsks = [...orderBook.asks, ...askChanges].sort((a, b) => {
-			return Number(a.price) - Number(b.price);
-		});
+		this.sortOrderBookLevels(bids, true);
+		this.sortOrderBookLevels(bids, false);
 		return {
 			sequence: sequence,
-			bids: this.aggrByPrice(newBids),
-			asks: this.aggrByPrice(newAsks)
+			bids: bids,
+			asks: asks
 		};
 	}
+
+	public updateOrderBook(
+		orderBook: IOrderBook,
+		newLevel: IOrderBookLevel,
+		isBid: boolean,
+		isTerminte: boolean
+	) {
+		if (isTerminte) {
+			if (isBid)
+				orderBook.bids = orderBook.bids.filter(l => l.orderHash !== newLevel.orderHash);
+			else orderBook.asks = orderBook.asks.filter(l => l.orderHash !== newLevel.orderHash);
+			return;
+		}
+
+		const existingOrder = (isBid ? orderBook.bids : orderBook.asks).find(
+			l => l.orderHash === newLevel.orderHash
+		);
+		if (existingOrder) {
+			existingOrder.amount = newLevel.amount;
+			existingOrder.sequence = newLevel.sequence;
+		} else if (isBid) {
+			orderBook.bids.push(newLevel);
+			this.sortOrderBookLevels(orderBook.bids, true);
+		} else {
+			orderBook.asks.push(newLevel);
+			this.sortOrderBookLevels(orderBook.asks, false);
+		}
+	}
 }
-const orderbookUtil = new OrderBookUtil();
-export default orderbookUtil;
+const orderBookUtil = new OrderBookUtil();
+export default orderBookUtil;

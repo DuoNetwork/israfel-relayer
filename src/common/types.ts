@@ -67,25 +67,34 @@ export interface IOrderBookSnapshotWs extends IOrderBookSnapshot {
 	channel: string;
 }
 
+export interface IOrderBook {
+	sequence: number;
+	bids: IOrderBookLevel[];
+	asks: IOrderBookLevel[];
+}
+
 export interface IOrderBookSnapshot {
 	sequence: number;
-	bids: IOrderBookUpdateWS[];
-	asks: IOrderBookUpdateWS[];
+	bids: Array<{
+		price: number,
+		amount: number,
+		count: number
+	}>;
+	asks: Array<{
+		price: number,
+		amount: number,
+		count: number
+	}>;
 }
 
-export interface IUpdatePayloadWs {
-	order: IStringSignedOrder;
-	metaData: {
-		remainingTakerAssetAmount: string;
-	};
-}
-
-export interface IOrderBookUpdateWS {
+export interface IOrderBookLevel {
+	orderHash: string;
 	price: number;
 	amount: number;
+	sequence: number;
 }
 
-export interface IOrderBookUpdateItem {
+export interface IOrderBookSnapshotUpdate {
 	pair: string;
 	price: number;
 	amount: number;

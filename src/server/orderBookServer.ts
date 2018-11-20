@@ -2,8 +2,8 @@ import * as CST from '../common/constants';
 import {
 	ILiveOrder,
 	IOption,
-	IOrderBookSnapshot,
-	IOrderBookUpdateItem,
+	IOrderBook,
+	IOrderBookSnapshotUpdate,
 	IOrderQueueItem
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
@@ -20,7 +20,11 @@ class OrderBookServer {
 	public pendingUpdates: IOrderQueueItem[] = [];
 	public loadingOrders: boolean = true;
 	public snapshotSequence: number = 0;
-	public orderBook: IOrderBookSnapshot | null = null;
+	public orderBook: IOrderBook = {
+		sequence: 0,
+		bids: [],
+		asks: []
+	};
 	public processedUpdates: { [orderHash: string]: number } = {};
 
 	public handleOrderUpdate = async (channel: string, orderQueueItem: IOrderQueueItem) => {
@@ -47,13 +51,20 @@ class OrderBookServer {
 		}
 
 		this.processedUpdates[orderHash] = liveOrder.currentSequence;
-
+		this.orderBook.sequence = Math.max(this.orderBook.sequence, liveOrder.currentSequence);
 		if (method === CST.DB_TERMINATE && !this.liveOrders[orderHash]) {
 			util.logDebug('terminating order not found in cache, ignore');
 			return;
 		}
 
-		const orderBookUpdate: IOrderBookUpdateItem = {
+		orderBookUtil.updateOrderBook(this.orderBook, {
+			orderHash: orderHash,
+			price: liveOrder.price,
+			amount: liveOrder.amount,
+			sequence: liveOrder.currentSequence
+		}, liveOrder.side === CST.DB_BID, method === CST.DB_TERMINATE);
+
+		const orderBookUpdate: IOrderBookSnapshotUpdate = {
 			pair: this.pair,
 			price: liveOrder.price,
 			amount:
@@ -64,28 +75,26 @@ class OrderBookServer {
 			sequence: liveOrder.currentSequence
 		};
 
-		if (method !== CST.DB_TERMINATE)
-			this.liveOrders[orderHash] = liveOrder;
-		else
-			delete this.liveOrders[orderHash];
+		if (method !== CST.DB_TERMINATE) this.liveOrders[orderHash] = liveOrder;
+		else delete this.liveOrders[orderHash];
 
-		const updateDelta = [{ price: orderBookUpdate.price, amount: orderBookUpdate.amount }];
-		this.orderBook = orderBookUtil.applyChangeOrderBook(
-			this.orderBook,
-			orderBookUpdate.sequence,
-			orderBookUpdate.side === CST.DB_BID ? updateDelta : [],
-			orderBookUpdate.side === CST.DB_ASK ? updateDelta : []
-		);
+		// const updateDelta = [{ price: orderBookUpdate.price, amount: orderBookUpdate.amount }];
+		// this.orderBook = orderBookUtil.applyChangeOrderBook(
+		// 	this.orderBook,
+		// 	orderBookUpdate.sequence,
+		// 	orderBookUpdate.side === CST.DB_BID ? updateDelta : [],
+		// 	orderBookUpdate.side === CST.DB_ASK ? updateDelta : []
+		// );
 
 		await this.publishOrderBookUpdate(orderBookUpdate);
 	};
 
-	private async publishOrderBookUpdate(orderBookUpdate: IOrderBookUpdateItem): Promise<boolean> {
+	private async publishOrderBookUpdate(orderBookUpdate: IOrderBookSnapshotUpdate): Promise<boolean> {
 		try {
-			await redisUtil.set(
-				`${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${this.pair}`,
-				JSON.stringify(this.orderBook)
-			);
+			// await redisUtil.set(
+			// 	`${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${this.pair}`,
+			// 	JSON.stringify(this.orderBook)
+			// );
 			await redisUtil.publish(
 				`${CST.DB_ORDER_BOOKS}|${CST.DB_UPDATE}|${this.pair}`,
 				JSON.stringify(orderBookUpdate)
@@ -114,7 +123,7 @@ class OrderBookServer {
 		this.liveOrders = await orderPersistenceUtil.getAllLiveOrdersInPersistence(this.pair);
 		util.logInfo('loaded live orders : ' + Object.keys(this.liveOrders).length);
 		this.updateSequences();
-		this.orderBook = orderBookUtil.aggrOrderBook(this.liveOrders);
+		this.orderBook = orderBookUtil.constructOrderBook(this.liveOrders);
 		await redisUtil.set(
 			`${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${this.pair}`,
 			JSON.stringify(this.orderBook)
