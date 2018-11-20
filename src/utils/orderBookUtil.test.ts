@@ -9,13 +9,13 @@ test('subscribeOrderBookUpdate', () => {
 	redisUtil.subscribe = jest.fn();
 	orderBookUtil.subscribeOrderBookUpdate('pair', (() => ({})) as any);
 	expect((redisUtil.subscribe as jest.Mock).mock.calls).toMatchSnapshot();
-})
+});
 
 test('unsubscribeOrderBookUpdate', () => {
 	redisUtil.unsubscribe = jest.fn();
 	orderBookUtil.unsubscribeOrderBookUpdate('pair');
 	expect((redisUtil.unsubscribe as jest.Mock).mock.calls).toMatchSnapshot();
-})
+});
 
 const orderLevelsBids: IOrderBookLevel[] = [
 	{
@@ -274,7 +274,8 @@ const orderBookSnapshotUpdateBid = {
 	amount: 10,
 	count: 1,
 	side: 'bid',
-	timestamp: 1234567990000
+	prevVersion: 1234567890000,
+	version: 1234567990000
 };
 test('updateOrderBookSnapshot, bid, existingLevel', () => {
 	const orderBookSnapshotTest1 = util.clone(orderBookSnapshot);
@@ -312,7 +313,8 @@ const orderBookSnapshotUpdateAsk = {
 	amount: 10,
 	count: 1,
 	side: 'ask',
-	timestamp: 1234567990000
+	prevVersion: 1234567890000,
+	version: 1234567990000
 };
 
 test('updateOrderBookSnapshot, ask, existingLevel', () => {
@@ -346,18 +348,22 @@ test('updateOrderBookSnapshot, ask, not existingLevel, count = -1', () => {
 });
 
 test('publishOrderBookUpdate, with update', async () => {
-
 	const orderBookSnapshotUpdate = {
 		pair: 'pair',
 		price: 1,
 		amount: 2,
 		count: 3,
 		side: 'ask',
-		timestamp: 1234567990000
-	}
+		prevVersion: 1234567890000,
+		version: 1234567990000
+	};
 	redisUtil.publish = jest.fn(() => Promise.resolve({}));
 	redisUtil.set = jest.fn(() => Promise.resolve({}));
-	const res = await orderBookUtil.publishOrderBookUpdate('pair', orderBookSnapshot, orderBookSnapshotUpdate);
+	const res = await orderBookUtil.publishOrderBookUpdate(
+		'pair',
+		orderBookSnapshot,
+		orderBookSnapshotUpdate
+	);
 	expect((redisUtil.set as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((redisUtil.publish as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(res).toBeTruthy();
@@ -368,7 +374,7 @@ test('publishOrderBookUpdate, withoutsnpashot update', async () => {
 	redisUtil.set = jest.fn(() => Promise.resolve({}));
 	const res = await orderBookUtil.publishOrderBookUpdate('pair', orderBookSnapshot);
 	expect((redisUtil.set as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((redisUtil.publish as jest.Mock)).not.toBeCalled();
+	expect(redisUtil.publish as jest.Mock).not.toBeCalled();
 	expect(res).toBeTruthy();
 });
 
@@ -377,7 +383,7 @@ test('publishOrderBookUpdate, throw Error', async () => {
 	redisUtil.set = jest.fn(() => Promise.reject());
 	const res = await orderBookUtil.publishOrderBookUpdate('pair', orderBookSnapshot);
 	expect((redisUtil.set as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((redisUtil.publish as jest.Mock)).not.toBeCalled();
+	expect(redisUtil.publish as jest.Mock).not.toBeCalled();
 	expect(res).toBeFalsy();
 });
 

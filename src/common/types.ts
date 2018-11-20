@@ -73,7 +73,7 @@ export interface IOrderBook {
 }
 
 export interface IOrderBookSnapshot {
-	timestamp: number;
+	version: number;
 	bids: IOrderBookSnapshotLevel[];
 	asks: IOrderBookSnapshotLevel[];
 }
@@ -97,7 +97,8 @@ export interface IOrderBookSnapshotUpdate {
 	amount: number;
 	count: number;
 	side: string;
-	timestamp: number;
+	prevVersion: number;
+	version: number;
 }
 
 export interface IWsRequest {

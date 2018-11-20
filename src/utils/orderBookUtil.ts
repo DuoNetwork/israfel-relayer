@@ -96,7 +96,7 @@ class OrderBookUtil {
 		orderBookSnapshot: IOrderBookSnapshot,
 		levelUpdate: IOrderBookSnapshotUpdate
 	) {
-		orderBookSnapshot.timestamp = levelUpdate.timestamp;
+		orderBookSnapshot.version = levelUpdate.version;
 		const isBid = levelUpdate.side === CST.DB_BID;
 		const existingLevel = (isBid ? orderBookSnapshot.bids : orderBookSnapshot.asks).find(
 			l => l.price === levelUpdate.price
@@ -131,7 +131,7 @@ class OrderBookUtil {
 
 	public renderOrderBookSnapshot(orderBook: IOrderBook): IOrderBookSnapshot {
 		return {
-			timestamp: util.getUTCNowTimestamp(),
+			version: util.getUTCNowTimestamp(),
 			bids: this.renderOrderBookSnapshotSide(orderBook.bids),
 			asks: this.renderOrderBookSnapshotSide(orderBook.asks)
 		};

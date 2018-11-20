@@ -25,7 +25,7 @@ class OrderBookServer {
 		asks: []
 	};
 	public orderBookSnapshot: IOrderBookSnapshot = {
-		timestamp: 0,
+		version: 0,
 		bids: [],
 		asks: []
 	};
@@ -87,7 +87,8 @@ class OrderBookServer {
 				(this.liveOrders[orderHash] ? this.liveOrders[orderHash].amount : 0),
 			count: method !== CST.DB_TERMINATE ? -1 : 1,
 			side: liveOrder.side,
-			timestamp: util.getUTCNowTimestamp()
+			prevVersion: this.orderBookSnapshot.version,
+			version: util.getUTCNowTimestamp()
 		};
 
 		if (method !== CST.DB_TERMINATE) this.liveOrders[orderHash] = liveOrder;
