@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`onMessage orderBooks 1`] = `
+Array [
+  Array [
+    "orderBooks|any",
+    "test",
+  ],
+]
+`;
+
+exports[`onMessage orders 1`] = `
+Array [
+  Array [
+    "orders|any",
+    "test",
+  ],
+]
+`;

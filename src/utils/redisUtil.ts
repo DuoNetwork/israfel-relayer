@@ -3,7 +3,7 @@ import * as CST from '../common/constants';
 import {  IOrderBookSnapshotUpdate, IOrderQueueItem } from '../common/types';
 import util from './util';
 
-export class RedisUtil {
+class RedisUtil {
 	private redisPub: Redis.Redis | null = null;
 	private redisSub: Redis.Redis | null = null;
 	private handleOrderBookUpdate:
