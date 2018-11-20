@@ -213,18 +213,12 @@ class RelayerServer {
 	public handleWebSocketMessage(ws: WebSocket, m: string) {
 		util.logDebug('received: ' + m);
 		const req: IWsRequest = JSON.parse(m);
-		const res: IWsResponse = {
-			status: CST.WS_INVALID_REQ,
-			channel: req.channel || '',
-			method: req.method || '',
-			pair: req.pair || ''
-		};
 		if (
 			![CST.DB_ORDERS, CST.DB_ORDER_BOOKS].includes(req.channel) ||
 			!req.method ||
 			!CST.SUPPORTED_PAIRS.includes(req.pair)
 		) {
-			util.safeWsSend(ws, JSON.stringify(res));
+			this.sendResponse(ws, req, CST.WS_INVALID_REQ)
 			return Promise.resolve();
 		}
 

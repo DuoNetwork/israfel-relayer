@@ -285,16 +285,16 @@ Array [
 exports[`handleWebSocketMessage invalid requests 1`] = `
 Array [
   Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"\\",\\"method\\":\\"\\",\\"pair\\":\\"\\"}",
+    "{\\"status\\":\\"invalid request\\"}",
   ],
   Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"channel\\",\\"method\\":\\"method\\",\\"pair\\":\\"ZRX-WETH\\"}",
+    "{\\"method\\":\\"method\\",\\"channel\\":\\"channel\\",\\"status\\":\\"invalid request\\",\\"pair\\":\\"ZRX-WETH\\"}",
   ],
   Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"orders\\",\\"method\\":\\"\\",\\"pair\\":\\"ZRX-WETH\\"}",
+    "{\\"method\\":\\"\\",\\"channel\\":\\"orders\\",\\"status\\":\\"invalid request\\",\\"pair\\":\\"ZRX-WETH\\"}",
   ],
   Array [
-    "{\\"status\\":\\"invalid request\\",\\"channel\\":\\"orders\\",\\"method\\":\\"method\\",\\"pair\\":\\"test\\"}",
+    "{\\"method\\":\\"method\\",\\"channel\\":\\"orders\\",\\"status\\":\\"invalid request\\",\\"pair\\":\\"test\\"}",
   ],
 ]
 `;
