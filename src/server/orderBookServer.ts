@@ -120,7 +120,7 @@ class OrderBookServer {
 		this.updateOrderSequences();
 		this.orderBook = orderBookUtil.constructOrderBook(this.liveOrders);
 		this.orderBookSnapshot = orderBookUtil.renderOrderBookSnapshot(this.orderBook);
-		await orderBookUtil.publishOrderBookUpdate(this.pair, this.orderBookSnapshot);
+		await orderBookUtil.publishOrderBookSnapshotUpdate(this.pair, this.orderBookSnapshot);
 		this.loadingOrders = false;
 		for (const updateItem of this.pendingUpdates)
 			await this.handleOrderUpdate('pending', updateItem);

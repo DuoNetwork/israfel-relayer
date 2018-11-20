@@ -187,6 +187,27 @@ class OrderBookUtil {
 		}
 	}
 
+	public async publishOrderBookSnapshotUpdate(
+		pair: string,
+		orderBookSnapshot: IOrderBookSnapshot
+	): Promise<boolean> {
+		try {
+			await redisUtil.set(
+				`${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${pair}`,
+				JSON.stringify(orderBookSnapshot)
+			);
+
+			await redisUtil.publish(
+				`${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${pair}`,
+				JSON.stringify(orderBookSnapshot)
+			);
+			return true;
+		} catch (err) {
+			util.logError(err);
+			return false;
+		}
+	}
+
 	public async getOrderBookSnapshot(pair: string) {
 		const snapshotString = await redisUtil.get(
 			`${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${pair}`
