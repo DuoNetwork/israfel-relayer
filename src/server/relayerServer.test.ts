@@ -4,6 +4,46 @@ import * as CST from '../common/constants';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import relayerServer from './relayerServer';
 
+test('sendResponse', () => {
+	const ws = {
+		send: jest.fn()
+	};
+	relayerServer.sendResponse(
+		ws as any,
+		{
+			channel: 'channel',
+			method: 'method',
+			pair: 'pair'
+		},
+		'status'
+	);
+	expect((ws.send as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('sendOrderBookSnapshotResponse', () => {
+	const ws = {
+		send: jest.fn()
+	};
+	relayerServer.sendOrderBookSnapshotResponse(
+		ws as any,
+		'pair',
+		'orderBookSnapshot' as any
+	);
+	expect((ws.send as jest.Mock).mock.calls).toMatchSnapshot();
+})
+
+test('sendOrderBookUpdateResponse', () => {
+	const ws = {
+		send: jest.fn()
+	};
+	relayerServer.sendOrderBookUpdateResponse(
+		ws as any,
+		'pair',
+		'orderBookUpdate' as any
+	);
+	expect((ws.send as jest.Mock).mock.calls).toMatchSnapshot();
+})
+
 test('sendErrorOrderResponse', () => {
 	const ws = {
 		send: jest.fn()
@@ -11,9 +51,9 @@ test('sendErrorOrderResponse', () => {
 	relayerServer.sendErrorOrderResponse(
 		ws as any,
 		{
-			channel: CST.DB_ORDERS,
-			method: CST.DB_ADD,
-			pair: CST.SUPPORTED_PAIRS[0],
+			channel: 'channel',
+			method: 'method',
+			pair: 'pair',
 			orderHash: '0xOrderHash'
 		},
 		'status'
