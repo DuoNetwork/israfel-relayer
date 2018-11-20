@@ -1,7 +1,21 @@
 import { ILiveOrder, IOrderBook, IOrderBookLevel } from '../common/types';
 import orderBookSnapshot from '../samples/test/orderBookSnapshot.json';
 import orderBookUtil from './orderBookUtil';
+import redisUtil from './redisUtil';
 import util from './util';
+
+test('subscribeOrderBookUpdate', () => {
+	redisUtil.onOrderUpdate = jest.fn();
+	redisUtil.subscribe = jest.fn();
+	orderBookUtil.subscribeOrderBookUpdate('pair', (() => ({})) as any);
+	expect((redisUtil.subscribe as jest.Mock).mock.calls).toMatchSnapshot();
+})
+
+test('unsubscribeOrderBookUpdate', () => {
+	redisUtil.unsubscribe = jest.fn();
+	orderBookUtil.unsubscribeOrderBookUpdate('pair');
+	expect((redisUtil.unsubscribe as jest.Mock).mock.calls).toMatchSnapshot();
+})
 
 const orderLevelsBids: IOrderBookLevel[] = [
 	{

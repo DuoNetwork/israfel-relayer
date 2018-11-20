@@ -175,6 +175,22 @@ Array [
 ]
 `;
 
+exports[`subscribeOrderBookUpdate 1`] = `
+Array [
+  Array [
+    "orderBooks|update|pair",
+  ],
+]
+`;
+
+exports[`unsubscribeOrderBookUpdate 1`] = `
+Array [
+  Array [
+    "orderBooks|update|pair",
+  ],
+]
+`;
+
 exports[`updateOrderBook, isBid false, isTerminate false, existing order 1`] = `
 Object {
   "asks": Array [
