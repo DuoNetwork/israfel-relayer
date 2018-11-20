@@ -75,16 +75,8 @@ export interface IOrderBook {
 
 export interface IOrderBookSnapshot {
 	sequence: number;
-	bids: Array<{
-		price: number,
-		amount: number,
-		count: number
-	}>;
-	asks: Array<{
-		price: number,
-		amount: number,
-		count: number
-	}>;
+	bids: IOrderBookSnapshotLevel[];
+	asks: IOrderBookSnapshotLevel[];
 }
 
 export interface IOrderBookLevel {
@@ -92,6 +84,12 @@ export interface IOrderBookLevel {
 	price: number;
 	amount: number;
 	sequence: number;
+}
+
+export interface IOrderBookSnapshotLevel {
+	price: number;
+	amount: number;
+	count: number;
 }
 
 export interface IOrderBookSnapshotUpdate {

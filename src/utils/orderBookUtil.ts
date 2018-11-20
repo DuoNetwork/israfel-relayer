@@ -1,16 +1,21 @@
 import * as CST from '../common/constants';
-import { ILiveOrder, IOrderBook, IOrderBookLevel, IOrderBookSnapshot } from '../common/types';
-import util from './util';
+import {
+	ILiveOrder,
+	IOrderBook,
+	IOrderBookLevel,
+	IOrderBookSnapshot,
+	IOrderBookSnapshotLevel
+} from '../common/types';
 
 class OrderBookUtil {
 	public sortOrderBookLevels(levels: IOrderBookLevel[], isBid: boolean) {
 		if (isBid)
 			levels.sort(
-				(a, b) => -a.price + b.price || -a.amount + b.amount || -a.sequence + b.sequence
+				(a, b) => -a.price + b.price || -a.amount + b.amount || a.sequence - b.sequence
 			);
 		else
 			levels.sort(
-				(a, b) => a.price - b.price || -a.amount + b.amount || -a.sequence + b.sequence
+				(a, b) => a.price - b.price || -a.amount + b.amount || a.sequence - b.sequence
 			);
 	}
 	public constructOrderBook(liveOrders: { [orderHash: string]: ILiveOrder }): IOrderBook {
@@ -65,6 +70,42 @@ class OrderBookUtil {
 			orderBook.asks.push(newLevel);
 			this.sortOrderBookLevels(orderBook.asks, false);
 		}
+	}
+
+	public renderOrderBookSnapshot(orderBook: IOrderBook): IOrderBookSnapshot {
+		return {
+			sequence: orderBook.sequence,
+			bids: this.renderOrderBookSnapshotSide(orderBook.bids),
+			asks: this.renderOrderBookSnapshotSide(orderBook.asks)
+		};
+	}
+
+	public renderOrderBookSnapshotSide(
+		orderBookLevels: IOrderBookLevel[]
+	): IOrderBookSnapshotLevel[] {
+		const side: IOrderBookSnapshotLevel[] = [];
+		let currLevel: IOrderBookSnapshotLevel = {
+			price: 0,
+			amount: 0,
+			count: 0
+		};
+		for (let i = 0; i < orderBookLevels.length; i++) {
+			const level = orderBookLevels[i];
+			if (level.price !== currLevel.price) {
+				if (i) side.push(currLevel);
+				currLevel = {
+					price: level.price,
+					amount: level.amount,
+					count: 1
+				};
+			} else {
+				currLevel.count++;
+				currLevel.amount += level.amount;
+			}
+		}
+		side.push(currLevel);
+
+		return side;
 	}
 }
 const orderBookUtil = new OrderBookUtil();
