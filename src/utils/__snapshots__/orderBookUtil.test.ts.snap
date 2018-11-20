@@ -1,0 +1,1000 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`constructOrderBook 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "amount": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash7",
+      "price": 110,
+    },
+    Object {
+      "amount": 10,
+      "initialSequence": 9,
+      "orderHash": "orderHash5",
+      "price": 110,
+    },
+    Object {
+      "amount": 10,
+      "initialSequence": 12,
+      "orderHash": "orderHash8",
+      "price": 110,
+    },
+    Object {
+      "amount": 10,
+      "initialSequence": 10,
+      "orderHash": "orderHash6",
+      "price": 120,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "amount": 10,
+      "initialSequence": 2,
+      "orderHash": "orderHash2",
+      "price": 110,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 3,
+      "orderHash": "orderHash3",
+      "price": 100,
+    },
+    Object {
+      "amount": 10,
+      "initialSequence": 1,
+      "orderHash": "orderHash1",
+      "price": 100,
+    },
+    Object {
+      "amount": 10,
+      "initialSequence": 4,
+      "orderHash": "orderHash4",
+      "price": 100,
+    },
+  ],
+}
+`;
+
+exports[`renderOrderBookSnapshot 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "amount": 70,
+      "count": 3,
+      "price": 120,
+    },
+    Object {
+      "amount": 50,
+      "count": 2,
+      "price": 140,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "amount": 50,
+      "count": 2,
+      "price": 120,
+    },
+    Object {
+      "amount": 70,
+      "count": 3,
+      "price": 100,
+    },
+  ],
+  "timestamp": 1234567890000,
+}
+`;
+
+exports[`renderOrderBookSnapshotSide 1`] = `
+Array [
+  Object {
+    "amount": 20,
+    "count": 1,
+    "price": 120,
+  },
+  Object {
+    "amount": 70,
+    "count": 3,
+    "price": 100,
+  },
+]
+`;
+
+exports[`renderOrderBookSnapshotSide 2`] = `
+Array [
+  Object {
+    "amount": 70,
+    "count": 3,
+    "price": 120,
+  },
+  Object {
+    "amount": 20,
+    "count": 1,
+    "price": 140,
+  },
+]
+`;
+
+exports[`sortOrderBookLevels | ask 1`] = `
+Array [
+  Object {
+    "amount": 30,
+    "initialSequence": 12,
+    "orderHash": "orderHash3",
+    "price": 120,
+  },
+  Object {
+    "amount": 20,
+    "initialSequence": 10,
+    "orderHash": "orderHash1",
+    "price": 120,
+  },
+  Object {
+    "amount": 20,
+    "initialSequence": 13,
+    "orderHash": "orderHash4",
+    "price": 120,
+  },
+  Object {
+    "amount": 20,
+    "initialSequence": 11,
+    "orderHash": "orderHash2",
+    "price": 140,
+  },
+]
+`;
+
+exports[`sortOrderBookLevels | bid 1`] = `
+Array [
+  Object {
+    "amount": 20,
+    "initialSequence": 11,
+    "orderHash": "orderHash2",
+    "price": 120,
+  },
+  Object {
+    "amount": 30,
+    "initialSequence": 12,
+    "orderHash": "orderHash3",
+    "price": 100,
+  },
+  Object {
+    "amount": 20,
+    "initialSequence": 10,
+    "orderHash": "orderHash1",
+    "price": 100,
+  },
+  Object {
+    "amount": 20,
+    "initialSequence": 13,
+    "orderHash": "orderHash4",
+    "price": 100,
+  },
+]
+`;
+
+exports[`updateOrderBook, isBid false, isTerminate false, existing order 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "amount": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash3",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 10,
+      "orderHash": "orderHash1",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash4",
+      "price": 120,
+    },
+    Object {
+      "amount": 30,
+      "initialSequence": 15,
+      "orderHash": "orderHash5",
+      "price": 140,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash2",
+      "price": 140,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "amount": 30,
+      "initialSequence": 15,
+      "orderHash": "orderHash5",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash2",
+      "price": 120,
+    },
+    Object {
+      "amount": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash3",
+      "price": 100,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 10,
+      "orderHash": "orderHash1",
+      "price": 100,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash4",
+      "price": 100,
+    },
+  ],
+}
+`;
+
+exports[`updateOrderBook, isBid false, isTerminate false, not existing order 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "amount": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash3",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 10,
+      "orderHash": "orderHash1",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash4",
+      "price": 120,
+    },
+    Object {
+      "amount": 30,
+      "initialSequence": 15,
+      "orderHash": "orderHash5",
+      "price": 140,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash2",
+      "price": 140,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "amount": 30,
+      "initialSequence": 15,
+      "orderHash": "orderHash5",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash2",
+      "price": 120,
+    },
+    Object {
+      "amount": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash3",
+      "price": 100,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 10,
+      "orderHash": "orderHash1",
+      "price": 100,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash4",
+      "price": 100,
+    },
+  ],
+}
+`;
+
+exports[`updateOrderBook, isBid false, isTerminate true 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "amount": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash3",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 10,
+      "orderHash": "orderHash1",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash4",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash2",
+      "price": 140,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "amount": 30,
+      "initialSequence": 15,
+      "orderHash": "orderHash5",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash2",
+      "price": 120,
+    },
+    Object {
+      "amount": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash3",
+      "price": 100,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 10,
+      "orderHash": "orderHash1",
+      "price": 100,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash4",
+      "price": 100,
+    },
+  ],
+}
+`;
+
+exports[`updateOrderBook, isBid false, isTerminate true, newLevel does not exist 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "amount": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash3",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 10,
+      "orderHash": "orderHash1",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash4",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash2",
+      "price": 140,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "amount": 30,
+      "initialSequence": 15,
+      "orderHash": "orderHash5",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash2",
+      "price": 120,
+    },
+    Object {
+      "amount": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash3",
+      "price": 100,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 10,
+      "orderHash": "orderHash1",
+      "price": 100,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash4",
+      "price": 100,
+    },
+  ],
+}
+`;
+
+exports[`updateOrderBook, isBid true, isTerminate false, existing order 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "amount": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash3",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 10,
+      "orderHash": "orderHash1",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash4",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash2",
+      "price": 140,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "amount": 30,
+      "initialSequence": 15,
+      "orderHash": "orderHash5",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash2",
+      "price": 120,
+    },
+    Object {
+      "amount": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash3",
+      "price": 100,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 10,
+      "orderHash": "orderHash1",
+      "price": 100,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash4",
+      "price": 100,
+    },
+  ],
+}
+`;
+
+exports[`updateOrderBook, isBid true, isTerminate false, not existing order 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "amount": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash3",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 10,
+      "orderHash": "orderHash1",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash4",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash2",
+      "price": 140,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "amount": 30,
+      "initialSequence": 15,
+      "orderHash": "orderHash5",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash2",
+      "price": 120,
+    },
+    Object {
+      "amount": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash3",
+      "price": 100,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 10,
+      "orderHash": "orderHash1",
+      "price": 100,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash4",
+      "price": 100,
+    },
+  ],
+}
+`;
+
+exports[`updateOrderBook, isBid true, isTerminate true 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "amount": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash3",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 10,
+      "orderHash": "orderHash1",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash4",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash2",
+      "price": 140,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "amount": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash2",
+      "price": 120,
+    },
+    Object {
+      "amount": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash3",
+      "price": 100,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 10,
+      "orderHash": "orderHash1",
+      "price": 100,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash4",
+      "price": 100,
+    },
+  ],
+}
+`;
+
+exports[`updateOrderBook, isBid true, isTerminate true, newLevel does not exist 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "amount": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash3",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 10,
+      "orderHash": "orderHash1",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash4",
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash2",
+      "price": 140,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "amount": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash2",
+      "price": 120,
+    },
+    Object {
+      "amount": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash3",
+      "price": 100,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 10,
+      "orderHash": "orderHash1",
+      "price": 100,
+    },
+    Object {
+      "amount": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash4",
+      "price": 100,
+    },
+  ],
+}
+`;
+
+exports[`updateOrderBookSnapshot, ask, existingLevel 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "amount": 20,
+      "count": 4,
+      "price": 130,
+    },
+    Object {
+      "amount": 20,
+      "count": 7,
+      "price": 140,
+    },
+    Object {
+      "amount": 30,
+      "count": 5,
+      "price": 150,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "amount": 20,
+      "count": 4,
+      "price": 120,
+    },
+    Object {
+      "amount": 10,
+      "count": 6,
+      "price": 110,
+    },
+    Object {
+      "amount": 30,
+      "count": 5,
+      "price": 100,
+    },
+  ],
+  "timestamp": 1234567990000,
+}
+`;
+
+exports[`updateOrderBookSnapshot, ask, existingLevel, updated to 0 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "amount": 20,
+      "count": 4,
+      "price": 130,
+    },
+    Object {
+      "amount": 30,
+      "count": 5,
+      "price": 150,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "amount": 20,
+      "count": 4,
+      "price": 120,
+    },
+    Object {
+      "amount": 10,
+      "count": 6,
+      "price": 110,
+    },
+    Object {
+      "amount": 30,
+      "count": 5,
+      "price": 100,
+    },
+  ],
+  "timestamp": 1234567990000,
+}
+`;
+
+exports[`updateOrderBookSnapshot, ask, not existingLevel, count = -1 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "amount": 20,
+      "count": 4,
+      "price": 130,
+    },
+    Object {
+      "amount": 10,
+      "count": 6,
+      "price": 140,
+    },
+    Object {
+      "amount": 30,
+      "count": 5,
+      "price": 150,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "amount": 20,
+      "count": 4,
+      "price": 120,
+    },
+    Object {
+      "amount": 10,
+      "count": 6,
+      "price": 110,
+    },
+    Object {
+      "amount": 30,
+      "count": 5,
+      "price": 100,
+    },
+  ],
+  "timestamp": 1234567990000,
+}
+`;
+
+exports[`updateOrderBookSnapshot, ask, not existingLevel, count > 0 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "amount": 20,
+      "count": 4,
+      "price": 130,
+    },
+    Object {
+      "amount": 10,
+      "count": 6,
+      "price": 140,
+    },
+    Object {
+      "amount": 10,
+      "count": 1,
+      "price": 145,
+    },
+    Object {
+      "amount": 30,
+      "count": 5,
+      "price": 150,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "amount": 20,
+      "count": 4,
+      "price": 120,
+    },
+    Object {
+      "amount": 10,
+      "count": 6,
+      "price": 110,
+    },
+    Object {
+      "amount": 30,
+      "count": 5,
+      "price": 100,
+    },
+  ],
+  "timestamp": 1234567990000,
+}
+`;
+
+exports[`updateOrderBookSnapshot, bid, existingLevel 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "amount": 20,
+      "count": 4,
+      "price": 130,
+    },
+    Object {
+      "amount": 10,
+      "count": 6,
+      "price": 140,
+    },
+    Object {
+      "amount": 30,
+      "count": 5,
+      "price": 150,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "amount": 20,
+      "count": 4,
+      "price": 120,
+    },
+    Object {
+      "amount": 20,
+      "count": 7,
+      "price": 110,
+    },
+    Object {
+      "amount": 30,
+      "count": 5,
+      "price": 100,
+    },
+  ],
+  "timestamp": 1234567990000,
+}
+`;
+
+exports[`updateOrderBookSnapshot, bid, existingLevel, updated to 0 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "amount": 20,
+      "count": 4,
+      "price": 130,
+    },
+    Object {
+      "amount": 10,
+      "count": 6,
+      "price": 140,
+    },
+    Object {
+      "amount": 30,
+      "count": 5,
+      "price": 150,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "amount": 20,
+      "count": 4,
+      "price": 120,
+    },
+    Object {
+      "amount": 30,
+      "count": 5,
+      "price": 100,
+    },
+  ],
+  "timestamp": 1234567990000,
+}
+`;
+
+exports[`updateOrderBookSnapshot, bid, not existingLevel, count = -1 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "amount": 20,
+      "count": 4,
+      "price": 130,
+    },
+    Object {
+      "amount": 10,
+      "count": 6,
+      "price": 140,
+    },
+    Object {
+      "amount": 30,
+      "count": 5,
+      "price": 150,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "amount": 20,
+      "count": 4,
+      "price": 120,
+    },
+    Object {
+      "amount": 10,
+      "count": 6,
+      "price": 110,
+    },
+    Object {
+      "amount": 30,
+      "count": 5,
+      "price": 100,
+    },
+  ],
+  "timestamp": 1234567990000,
+}
+`;
+
+exports[`updateOrderBookSnapshot, bid, not existingLevel, count > 0 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "amount": 20,
+      "count": 4,
+      "price": 130,
+    },
+    Object {
+      "amount": 10,
+      "count": 6,
+      "price": 140,
+    },
+    Object {
+      "amount": 30,
+      "count": 5,
+      "price": 150,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "amount": 20,
+      "count": 4,
+      "price": 120,
+    },
+    Object {
+      "amount": 10,
+      "count": 1,
+      "price": 115,
+    },
+    Object {
+      "amount": 10,
+      "count": 6,
+      "price": 110,
+    },
+    Object {
+      "amount": 30,
+      "count": 5,
+      "price": 100,
+    },
+  ],
+  "timestamp": 1234567990000,
+}
+`;
