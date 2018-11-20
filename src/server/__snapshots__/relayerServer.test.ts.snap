@@ -187,6 +187,246 @@ Array [
 ]
 `;
 
+exports[`handleOrderBookRequest invalid method 1`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "channel": "channel",
+      "method": "method",
+      "pair": "pair",
+    },
+    "invalid request",
+  ],
+]
+`;
+
+exports[`handleOrderBookRequest subscribe 1`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "channel": "channel",
+      "method": "subscribe",
+      "pair": "pair",
+    },
+  ],
+]
+`;
+
+exports[`handleOrderBookRequest unsubscribe 1`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "channel": "channel",
+      "method": "unsubscribe",
+      "pair": "pair",
+    },
+  ],
+]
+`;
+
+exports[`handleOrderBookSubscribeRequest empty list 1`] = `
+Array [
+  Array [
+    "pair",
+    [Function],
+  ],
+]
+`;
+
+exports[`handleOrderBookSubscribeRequest empty list 2`] = `
+Array [
+  Array [
+    "pair",
+  ],
+]
+`;
+
+exports[`handleOrderBookSubscribeRequest empty list 3`] = `
+Array [
+  Array [
+    "ws",
+    "pair",
+    "snapshot",
+  ],
+]
+`;
+
+exports[`handleOrderBookSubscribeRequest existing pair existing ws 1`] = `
+Array [
+  Array [
+    "pair",
+  ],
+]
+`;
+
+exports[`handleOrderBookSubscribeRequest existing pair existing ws 2`] = `
+Array [
+  Array [
+    "ws",
+    "pair",
+    "snapshot",
+  ],
+]
+`;
+
+exports[`handleOrderBookSubscribeRequest existing pair new ws 1`] = `
+Array [
+  Array [
+    "pair",
+  ],
+]
+`;
+
+exports[`handleOrderBookSubscribeRequest existing pair new ws 2`] = `
+Array [
+  Array [
+    "ws",
+    "pair",
+    "snapshot",
+  ],
+]
+`;
+
+exports[`handleOrderBookSubscribeRequest new pair 1`] = `
+Array [
+  Array [
+    "pair",
+    [Function],
+  ],
+]
+`;
+
+exports[`handleOrderBookSubscribeRequest new pair 2`] = `
+Array [
+  Array [
+    "pair",
+  ],
+]
+`;
+
+exports[`handleOrderBookSubscribeRequest new pair 3`] = `
+Array [
+  Array [
+    "ws",
+    "pair",
+    "snapshot",
+  ],
+]
+`;
+
+exports[`handleOrderBookSubscribeRequest new pair no snapshot 1`] = `
+Array [
+  Array [
+    "pair",
+    [Function],
+  ],
+]
+`;
+
+exports[`handleOrderBookSubscribeRequest new pair no snapshot 2`] = `
+Array [
+  Array [
+    "pair",
+  ],
+]
+`;
+
+exports[`handleOrderBookSubscribeRequest new pair no snapshot 3`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "channel": "channel",
+      "method": "method",
+      "pair": "pair",
+    },
+    "error",
+  ],
+]
+`;
+
+exports[`handleOrderBookUnsubscribeRequest 1`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "channel": "channel",
+      "method": "method",
+      "pair": "pair",
+    },
+    "ok",
+  ],
+]
+`;
+
+exports[`handleOrderBookUnsubscribeRequest existing pair non existing ws 1`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "channel": "channel",
+      "method": "method",
+      "pair": "pair",
+    },
+    "ok",
+  ],
+]
+`;
+
+exports[`handleOrderBookUnsubscribeRequest no more subscription 1`] = `
+Array [
+  Array [
+    "pair",
+  ],
+]
+`;
+
+exports[`handleOrderBookUnsubscribeRequest no more subscription 2`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "channel": "channel",
+      "method": "method",
+      "pair": "pair",
+    },
+    "ok",
+  ],
+]
+`;
+
+exports[`handleOrderBookUnsubscribeRequest non existing pair 1`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "channel": "channel",
+      "method": "method",
+      "pair": "pair",
+    },
+    "ok",
+  ],
+]
+`;
+
+exports[`handleOrderBookUpdate 1`] = `
+Array [
+  Array [
+    "ws1",
+    "pair",
+    "any",
+  ],
+  Array [
+    "ws2",
+    "pair",
+    "any",
+  ],
+]
+`;
+
 exports[`handleOrderRequest add 1`] = `
 Array [
   Array [
@@ -285,16 +525,49 @@ Array [
 exports[`handleWebSocketMessage invalid requests 1`] = `
 Array [
   Array [
-    "{\\"status\\":\\"invalid request\\"}",
+    "ws",
+    Object {},
+    "invalid request",
   ],
   Array [
-    "{\\"method\\":\\"method\\",\\"channel\\":\\"channel\\",\\"status\\":\\"invalid request\\",\\"pair\\":\\"ZRX-WETH\\"}",
+    "ws",
+    Object {
+      "channel": "channel",
+      "method": "method",
+      "pair": "ZRX-WETH",
+    },
+    "invalid request",
   ],
   Array [
-    "{\\"method\\":\\"\\",\\"channel\\":\\"orders\\",\\"status\\":\\"invalid request\\",\\"pair\\":\\"ZRX-WETH\\"}",
+    "ws",
+    Object {
+      "channel": "orders",
+      "method": "",
+      "pair": "ZRX-WETH",
+    },
+    "invalid request",
   ],
   Array [
-    "{\\"method\\":\\"method\\",\\"channel\\":\\"orders\\",\\"status\\":\\"invalid request\\",\\"pair\\":\\"test\\"}",
+    "ws",
+    Object {
+      "channel": "orders",
+      "method": "method",
+      "pair": "test",
+    },
+    "invalid request",
+  ],
+]
+`;
+
+exports[`handleWebSocketMessage orderBooks 1`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "channel": "orderBooks",
+      "method": "method",
+      "pair": "ZRX-WETH",
+    },
   ],
 ]
 `;

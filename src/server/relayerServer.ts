@@ -190,11 +190,13 @@ class RelayerServer {
 		this.sendOrderBookSnapshotResponse(ws, req.pair, snapshot);
 	}
 
-	public async handleOrderBookUnsubscribeRequest(ws: WebSocket, req: IWsRequest) {
+	public handleOrderBookUnsubscribeRequest(ws: WebSocket, req: IWsRequest) {
 		if (this.orderBookPairs[req.pair] && this.orderBookPairs[req.pair].includes(ws)) {
 			this.orderBookPairs[req.pair] = this.orderBookPairs[req.pair].filter(e => e !== ws);
-			if (!this.orderBookPairs[req.pair].length)
+			if (!this.orderBookPairs[req.pair].length) {
+				delete this.orderBookPairs[req.pair];
 				orderBookUtil.unsubscribeOrderBookUpdate(req.pair);
+			}
 		}
 
 		this.sendResponse(ws, req, CST.WS_OK);
@@ -207,7 +209,10 @@ class RelayerServer {
 		}
 
 		if (req.method === CST.WS_SUB) return this.handleOrderBookSubscribeRequest(ws, req);
-		else return this.handleOrderBookUnsubscribeRequest(ws, req);
+		else {
+			this.handleOrderBookUnsubscribeRequest(ws, req);
+			return Promise.resolve;
+		}
 	}
 
 	public handleWebSocketMessage(ws: WebSocket, m: string) {
@@ -218,7 +223,7 @@ class RelayerServer {
 			!req.method ||
 			!CST.SUPPORTED_PAIRS.includes(req.pair)
 		) {
-			this.sendResponse(ws, req, CST.WS_INVALID_REQ)
+			this.sendResponse(ws, req, CST.WS_INVALID_REQ);
 			return Promise.resolve();
 		}
 

@@ -1,6 +1,7 @@
 // fix for @ledgerhq/hw-transport-u2f 4.28.0
 import '@babel/polyfill';
 import * as CST from '../common/constants';
+import orderBookUtil from '../utils/orderBookUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import relayerServer from './relayerServer';
 
@@ -24,25 +25,17 @@ test('sendOrderBookSnapshotResponse', () => {
 	const ws = {
 		send: jest.fn()
 	};
-	relayerServer.sendOrderBookSnapshotResponse(
-		ws as any,
-		'pair',
-		'orderBookSnapshot' as any
-	);
+	relayerServer.sendOrderBookSnapshotResponse(ws as any, 'pair', 'orderBookSnapshot' as any);
 	expect((ws.send as jest.Mock).mock.calls).toMatchSnapshot();
-})
+});
 
 test('sendOrderBookUpdateResponse', () => {
 	const ws = {
 		send: jest.fn()
 	};
-	relayerServer.sendOrderBookUpdateResponse(
-		ws as any,
-		'pair',
-		'orderBookUpdate' as any
-	);
+	relayerServer.sendOrderBookUpdateResponse(ws as any, 'pair', 'orderBookUpdate' as any);
 	expect((ws.send as jest.Mock).mock.calls).toMatchSnapshot();
-})
+});
 
 test('sendErrorOrderResponse', () => {
 	const ws = {
@@ -307,13 +300,237 @@ test('handleOrderRequest terminate', async () => {
 	expect((relayerServer.handleTerminateOrderRequest as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('handleWebSocketMessage invalid requests', () => {
-	const ws = {
-		send: jest.fn()
+test('handleOrderBookUpdate empty ws list', () => {
+	relayerServer.orderBookPairs = {};
+	relayerServer.sendOrderBookUpdateResponse = jest.fn();
+	relayerServer.handleOrderBookUpdate('type|action|pair', 'any' as any);
+	relayerServer.orderBookPairs = {
+		pair: []
 	};
-	relayerServer.handleWebSocketMessage(ws as any, JSON.stringify({}));
+	relayerServer.handleOrderBookUpdate('type|action|pair', 'any' as any);
+	expect(relayerServer.sendOrderBookUpdateResponse as jest.Mock).not.toBeCalled();
+});
+
+test('handleOrderBookUpdate', () => {
+	relayerServer.sendOrderBookUpdateResponse = jest.fn();
+	relayerServer.orderBookPairs = {
+		pair: ['ws1', 'ws2'] as any
+	};
+	relayerServer.handleOrderBookUpdate('type|action|pair', 'any' as any);
+	expect((relayerServer.sendOrderBookUpdateResponse as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderBookSubscribeRequest new pair', async () => {
+	relayerServer.orderBookPairs = {};
+	orderBookUtil.subscribeOrderBookUpdate = jest.fn();
+	orderBookUtil.getOrderBookSnapshot = jest.fn(() => Promise.resolve('snapshot'));
+	relayerServer.sendOrderBookSnapshotResponse = jest.fn();
+	await relayerServer.handleOrderBookSubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: 'pair'
+	});
+	expect(relayerServer.orderBookPairs).toEqual({
+		pair: ['ws']
+	});
+	expect((orderBookUtil.subscribeOrderBookUpdate as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderBookUtil.getOrderBookSnapshot as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((relayerServer.sendOrderBookSnapshotResponse as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderBookSubscribeRequest new pair no snapshot', async () => {
+	relayerServer.orderBookPairs = {};
+	orderBookUtil.subscribeOrderBookUpdate = jest.fn();
+	orderBookUtil.getOrderBookSnapshot = jest.fn(() => Promise.resolve());
+	relayerServer.sendResponse = jest.fn();
+	relayerServer.sendOrderBookSnapshotResponse = jest.fn();
+	await relayerServer.handleOrderBookSubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: 'pair'
+	});
+	expect(relayerServer.orderBookPairs).toEqual({
+		pair: ['ws']
+	});
+	expect((orderBookUtil.subscribeOrderBookUpdate as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderBookUtil.getOrderBookSnapshot as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(relayerServer.sendOrderBookSnapshotResponse as jest.Mock).not.toBeCalled();
+});
+
+test('handleOrderBookSubscribeRequest empty list', async () => {
+	relayerServer.orderBookPairs = {
+		pair: []
+	};
+	orderBookUtil.subscribeOrderBookUpdate = jest.fn();
+	orderBookUtil.getOrderBookSnapshot = jest.fn(() => Promise.resolve('snapshot'));
+	relayerServer.sendOrderBookSnapshotResponse = jest.fn();
+	await relayerServer.handleOrderBookSubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: 'pair'
+	});
+	expect(relayerServer.orderBookPairs).toEqual({
+		pair: ['ws']
+	});
+	expect((orderBookUtil.subscribeOrderBookUpdate as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderBookUtil.getOrderBookSnapshot as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((relayerServer.sendOrderBookSnapshotResponse as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderBookSubscribeRequest existing pair new ws', async () => {
+	relayerServer.orderBookPairs = {
+		pair: ['ws1'] as any
+	};
+	orderBookUtil.subscribeOrderBookUpdate = jest.fn();
+	orderBookUtil.getOrderBookSnapshot = jest.fn(() => Promise.resolve('snapshot'));
+	relayerServer.sendOrderBookSnapshotResponse = jest.fn();
+	await relayerServer.handleOrderBookSubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: 'pair'
+	});
+	expect(relayerServer.orderBookPairs).toEqual({
+		pair: ['ws1', 'ws']
+	});
+	expect(orderBookUtil.subscribeOrderBookUpdate as jest.Mock).not.toBeCalled();
+	expect((orderBookUtil.getOrderBookSnapshot as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((relayerServer.sendOrderBookSnapshotResponse as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderBookSubscribeRequest existing pair existing ws', async () => {
+	relayerServer.orderBookPairs = {
+		pair: ['ws'] as any
+	};
+	orderBookUtil.subscribeOrderBookUpdate = jest.fn();
+	orderBookUtil.getOrderBookSnapshot = jest.fn(() => Promise.resolve('snapshot'));
+	relayerServer.sendOrderBookSnapshotResponse = jest.fn();
+	await relayerServer.handleOrderBookSubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: 'pair'
+	});
+	expect(relayerServer.orderBookPairs).toEqual({
+		pair: ['ws']
+	});
+	expect(orderBookUtil.subscribeOrderBookUpdate as jest.Mock).not.toBeCalled();
+	expect((orderBookUtil.getOrderBookSnapshot as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((relayerServer.sendOrderBookSnapshotResponse as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderBookUnsubscribeRequest non existing pair', () => {
+	relayerServer.orderBookPairs = {};
+	relayerServer.sendResponse = jest.fn();
+	orderBookUtil.unsubscribeOrderBookUpdate = jest.fn();
+	relayerServer.handleOrderBookUnsubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: 'pair'
+	});
+	expect(relayerServer.orderBookPairs).toEqual({});
+	expect(orderBookUtil.unsubscribeOrderBookUpdate as jest.Mock).not.toBeCalled();
+	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderBookUnsubscribeRequest existing pair non existing ws', () => {
+	relayerServer.orderBookPairs = {
+		pair: []
+	};
+	relayerServer.sendResponse = jest.fn();
+	orderBookUtil.unsubscribeOrderBookUpdate = jest.fn();
+	relayerServer.handleOrderBookUnsubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: 'pair'
+	});
+	expect(relayerServer.orderBookPairs).toEqual({
+		pair: []
+	});
+	expect(orderBookUtil.unsubscribeOrderBookUpdate as jest.Mock).not.toBeCalled();
+	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderBookUnsubscribeRequest no more subscription', () => {
+	relayerServer.orderBookPairs = {
+		pair: ['ws'] as any
+	};
+	relayerServer.sendResponse = jest.fn();
+	orderBookUtil.unsubscribeOrderBookUpdate = jest.fn();
+	relayerServer.handleOrderBookUnsubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: 'pair'
+	});
+	expect(relayerServer.orderBookPairs).toEqual({});
+	expect((orderBookUtil.unsubscribeOrderBookUpdate as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderBookUnsubscribeRequest', () => {
+	relayerServer.orderBookPairs = {
+		pair: ['ws', 'ws1'] as any
+	};
+	relayerServer.sendResponse = jest.fn();
+	orderBookUtil.unsubscribeOrderBookUpdate = jest.fn();
+	relayerServer.handleOrderBookUnsubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: 'pair'
+	});
+	expect(relayerServer.orderBookPairs).toEqual({
+		pair: ['ws1']
+	});
+	expect(orderBookUtil.unsubscribeOrderBookUpdate as jest.Mock).not.toBeCalled();
+	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderBookRequest invalid method', async () => {
+	relayerServer.sendResponse = jest.fn();
+	relayerServer.handleOrderBookSubscribeRequest = jest.fn();
+	relayerServer.handleOrderBookUnsubscribeRequest = jest.fn();
+	await relayerServer.handleOrderBookRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: 'pair'
+	})
+	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(relayerServer.handleOrderBookSubscribeRequest as jest.Mock).not.toBeCalled();
+	expect(relayerServer.handleOrderBookUnsubscribeRequest as jest.Mock).not.toBeCalled();
+});
+
+test('handleOrderBookRequest subscribe', async () => {
+	relayerServer.sendResponse = jest.fn();
+	relayerServer.handleOrderBookSubscribeRequest = jest.fn();
+	relayerServer.handleOrderBookUnsubscribeRequest = jest.fn();
+	await relayerServer.handleOrderBookRequest('ws' as any, {
+		channel: 'channel',
+		method: CST.WS_SUB,
+		pair: 'pair'
+	})
+	expect(relayerServer.sendResponse as jest.Mock).not.toBeCalled();
+	expect((relayerServer.handleOrderBookSubscribeRequest as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(relayerServer.handleOrderBookUnsubscribeRequest as jest.Mock).not.toBeCalled();
+});
+
+test('handleOrderBookRequest unsubscribe', async () => {
+	relayerServer.sendResponse = jest.fn();
+	relayerServer.handleOrderBookSubscribeRequest = jest.fn();
+	relayerServer.handleOrderBookUnsubscribeRequest = jest.fn();
+	await relayerServer.handleOrderBookRequest('ws' as any, {
+		channel: 'channel',
+		method: CST.WS_UNSUB,
+		pair: 'pair'
+	})
+	expect(relayerServer.sendResponse as jest.Mock).not.toBeCalled();
+	expect(relayerServer.handleOrderBookSubscribeRequest as jest.Mock).not.toBeCalled();
+	expect((relayerServer.handleOrderBookUnsubscribeRequest as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleWebSocketMessage invalid requests', () => {
+	relayerServer.sendResponse = jest.fn();
+	relayerServer.handleWebSocketMessage('ws' as any, JSON.stringify({}));
 	relayerServer.handleWebSocketMessage(
-		ws as any,
+		'ws' as any,
 		JSON.stringify({
 			channel: 'channel',
 			method: 'method',
@@ -321,7 +538,7 @@ test('handleWebSocketMessage invalid requests', () => {
 		})
 	);
 	relayerServer.handleWebSocketMessage(
-		ws as any,
+		'ws' as any,
 		JSON.stringify({
 			channel: CST.DB_ORDERS,
 			method: '',
@@ -329,14 +546,14 @@ test('handleWebSocketMessage invalid requests', () => {
 		})
 	);
 	relayerServer.handleWebSocketMessage(
-		ws as any,
+		'ws' as any,
 		JSON.stringify({
 			channel: CST.DB_ORDERS,
 			method: 'method',
 			pair: 'test'
 		})
 	);
-	expect((ws.send as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleWebSocketMessage orders', () => {
@@ -351,4 +568,18 @@ test('handleWebSocketMessage orders', () => {
 		})
 	);
 	expect((relayerServer.handleOrderRequest as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleWebSocketMessage orderBooks', () => {
+	const ws = {};
+	relayerServer.handleOrderBookRequest = jest.fn();
+	relayerServer.handleWebSocketMessage(
+		ws as any,
+		JSON.stringify({
+			channel: CST.DB_ORDER_BOOKS,
+			method: 'method',
+			pair: CST.SUPPORTED_PAIRS[0]
+		})
+	);
+	expect((relayerServer.handleOrderBookRequest as jest.Mock).mock.calls).toMatchSnapshot();
 });
