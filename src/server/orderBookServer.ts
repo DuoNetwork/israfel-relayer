@@ -88,27 +88,12 @@ class OrderBookServer {
 		else delete this.liveOrders[orderHash];
 
 		orderBookUtil.updateOrderBookSnapshot(this.orderBookSnapshot, orderBookSnapshotUpdate);
-		await this.publishOrderBookUpdate(orderBookSnapshotUpdate);
+		await orderBookUtil.publishOrderBookUpdate(
+			this.pair,
+			this.orderBookSnapshot,
+			orderBookSnapshotUpdate
+		);
 	};
-
-	private async publishOrderBookUpdate(
-		orderBookSnapshotUpdate: IOrderBookSnapshotUpdate
-	): Promise<boolean> {
-		try {
-			await redisUtil.set(
-				`${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${this.pair}`,
-				JSON.stringify(this.orderBookSnapshot)
-			);
-			await redisUtil.publish(
-				`${CST.DB_ORDER_BOOKS}|${CST.DB_UPDATE}|${this.pair}`,
-				JSON.stringify(orderBookSnapshotUpdate)
-			);
-			return true;
-		} catch (err) {
-			util.logError(err);
-			return false;
-		}
-	}
 
 	public updateOrderSequences() {
 		this.processedUpdates = {};

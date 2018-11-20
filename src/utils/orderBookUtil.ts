@@ -7,6 +7,7 @@ import {
 	IOrderBookSnapshotLevel,
 	IOrderBookSnapshotUpdate
 } from '../common/types';
+import redisUtil from './redisUtil';
 import util from './util';
 
 class OrderBookUtil {
@@ -80,6 +81,7 @@ class OrderBookUtil {
 		orderBookSnapshot: IOrderBookSnapshot,
 		levelUpdate: IOrderBookSnapshotUpdate
 	) {
+		orderBookSnapshot.timestamp = levelUpdate.timestamp;
 		const isBid = levelUpdate.side === CST.DB_BID;
 		const existingLevel = (isBid ? orderBookSnapshot.bids : orderBookSnapshot.asks).find(
 			l => l.price === levelUpdate.price
@@ -141,6 +143,27 @@ class OrderBookUtil {
 		side.push(currLevel);
 
 		return side;
+	}
+
+	public async publishOrderBookUpdate(
+		pair: string,
+		orderBookSnapshot: IOrderBookSnapshot,
+		orderBookSnapshotUpdate: IOrderBookSnapshotUpdate
+	): Promise<boolean> {
+		try {
+			await redisUtil.set(
+				`${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${pair}`,
+				JSON.stringify(orderBookSnapshot)
+			);
+			await redisUtil.publish(
+				`${CST.DB_ORDER_BOOKS}|${CST.DB_UPDATE}|${pair}`,
+				JSON.stringify(orderBookSnapshotUpdate)
+			);
+			return true;
+		} catch (err) {
+			util.logError(err);
+			return false;
+		}
 	}
 }
 const orderBookUtil = new OrderBookUtil();
