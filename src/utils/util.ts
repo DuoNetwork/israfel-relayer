@@ -112,6 +112,10 @@ class Util {
 			setTimeout(resolve, ms);
 		});
 	}
+
+	public clone(obj: object) {
+		return JSON.parse(JSON.stringify(obj));
+	}
 }
 
 const util = new Util();
