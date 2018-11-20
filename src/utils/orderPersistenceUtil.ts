@@ -22,6 +22,10 @@ class OrderPersistenceUtil {
 		redisUtil.subscribe(`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${pair}`);
 	}
 
+	public unsubscribeOrderUpdate(pair: string) {
+		redisUtil.unsubscribe(`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${pair}`);
+	}
+
 	public async addUserOrderToDB(
 		liveOrder: ILiveOrder,
 		type: string,

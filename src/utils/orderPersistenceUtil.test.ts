@@ -7,6 +7,19 @@ import orderPersistenceUtil from './orderPersistenceUtil';
 import redisUtil from './redisUtil';
 import Web3Util from './Web3Util';
 
+test('subscribeOrderUpdate', () => {
+	redisUtil.onOrderUpdate = jest.fn();
+	redisUtil.subscribe = jest.fn();
+	orderPersistenceUtil.subscribeOrderUpdate('pair', (() => ({})) as any);
+	expect((redisUtil.subscribe as jest.Mock).mock.calls).toMatchSnapshot();
+})
+
+test('subscribeOrderUpdate', () => {
+	redisUtil.unsubscribe = jest.fn();
+	orderPersistenceUtil.unsubscribeOrderUpdate('pair');
+	expect((redisUtil.unsubscribe as jest.Mock).mock.calls).toMatchSnapshot();
+})
+
 const signedOrder = {
 	senderAddress: 'senderAddress',
 	makerAddress: 'makerAddress',

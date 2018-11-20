@@ -400,3 +400,19 @@ Array [
   ],
 ]
 `;
+
+exports[`subscribeOrderUpdate 1`] = `
+Array [
+  Array [
+    "orders|pubsub|pair",
+  ],
+]
+`;
+
+exports[`subscribeOrderUpdate 2`] = `
+Array [
+  Array [
+    "orders|pubsub|pair",
+  ],
+]
+`;
