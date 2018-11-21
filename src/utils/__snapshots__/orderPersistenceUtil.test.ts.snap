@@ -46,7 +46,7 @@ Object {
   "initialSequence": 0,
   "orderHash": "0xOrderHash",
   "pair": "pair",
-  "price": 3.70731707,
+  "price": 0.26973684,
   "side": "bid",
 }
 `;
@@ -61,7 +61,7 @@ Object {
   "initialSequence": 0,
   "orderHash": "0xOrderHash",
   "pair": "pair",
-  "price": 0.26973684,
+  "price": 3.70731707,
   "side": "ask",
 }
 `;
