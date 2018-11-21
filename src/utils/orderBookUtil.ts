@@ -55,24 +55,28 @@ class OrderBookUtil {
 		newLevel: IOrderBookLevel,
 		isBid: boolean,
 		isTerminate: boolean
-	) {
+	): number {
 		if (isTerminate) {
 			if (isBid)
 				orderBook.bids = orderBook.bids.filter(l => l.orderHash !== newLevel.orderHash);
 			else orderBook.asks = orderBook.asks.filter(l => l.orderHash !== newLevel.orderHash);
-			return;
+			return -1;
 		}
 
 		const existingOrder = (isBid ? orderBook.bids : orderBook.asks).find(
 			l => l.orderHash === newLevel.orderHash
 		);
-		if (existingOrder) existingOrder.amount = newLevel.amount;
-		else if (isBid) {
+		if (existingOrder) {
+			existingOrder.amount = newLevel.amount;
+			return 0;
+		} else if (isBid) {
 			orderBook.bids.push(newLevel);
 			this.sortOrderBookLevels(orderBook.bids, true);
+			return 1;
 		} else {
 			orderBook.asks.push(newLevel);
 			this.sortOrderBookLevels(orderBook.asks, false);
+			return 1;
 		}
 	}
 
@@ -145,8 +149,7 @@ class OrderBookUtil {
 				currLevel.amount += level.amount;
 			}
 		}
-		if (currLevel.count)
-			side.push(currLevel);
+		if (currLevel.count) side.push(currLevel);
 
 		return side;
 	}

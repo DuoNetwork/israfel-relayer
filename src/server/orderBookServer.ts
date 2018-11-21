@@ -69,7 +69,7 @@ class OrderBookServer {
 			return;
 		}
 
-		orderBookUtil.updateOrderBook(
+		const count = orderBookUtil.updateOrderBook(
 			this.orderBook,
 			{
 				orderHash: orderHash,
@@ -87,7 +87,7 @@ class OrderBookServer {
 			amount:
 				(method === CST.DB_TERMINATE ? 0 : liveOrder.amount) -
 				(this.liveOrders[orderHash] ? this.liveOrders[orderHash].amount : 0),
-			count: method === CST.DB_TERMINATE ? -1 : 1,
+			count: count,
 			side: liveOrder.side,
 			prevVersion: this.orderBookSnapshot.version,
 			version: util.getUTCNowTimestamp()
