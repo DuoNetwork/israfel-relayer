@@ -145,7 +145,8 @@ class OrderBookUtil {
 				currLevel.amount += level.amount;
 			}
 		}
-		side.push(currLevel);
+		if (currLevel.count)
+			side.push(currLevel);
 
 		return side;
 	}

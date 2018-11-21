@@ -32,6 +32,12 @@ const orderLevelsBids: IOrderBookLevel[] = [
 	}
 ];
 
+test('sortOrderBookLevels | empty bid', () => {
+	const emptySide: IOrderBookLevel[] = [];
+	orderBookUtil.sortOrderBookLevels(emptySide, true);
+	expect(emptySide).toEqual([]);
+});
+
 test('sortOrderBookLevels | bid', () => {
 	orderBookUtil.sortOrderBookLevels(orderLevelsBids, true);
 	expect(orderLevelsBids).toMatchSnapshot();
@@ -65,6 +71,12 @@ const orderLevelsAsks: IOrderBookLevel[] = [
 		initialSequence: 13
 	}
 ];
+
+test('sortOrderBookLevels | empty ask', () => {
+	const emptySide: IOrderBookLevel[] = [];
+	orderBookUtil.sortOrderBookLevels(emptySide, false);
+	expect(emptySide).toEqual([]);
+});
 
 test('sortOrderBookLevels | ask', () => {
 	orderBookUtil.sortOrderBookLevels(orderLevelsAsks, false);

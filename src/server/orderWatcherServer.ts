@@ -165,6 +165,7 @@ class OrderWatcherServer {
 				this.removeFromWatch(orderQueueItem.liveOrder.orderHash);
 				break;
 			default:
+				util.logDebug('neither add nor terminate, ignore this update');
 				break;
 		}
 	};
