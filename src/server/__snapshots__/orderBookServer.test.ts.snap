@@ -47,13 +47,19 @@ Array [
     "pair",
     Object {
       "asks": Array [],
-      "bids": Array [],
+      "bids": Array [
+        Object {
+          "amount": 10,
+          "count": 1,
+          "price": 100,
+        },
+      ],
       "pair": "pair",
       "version": 123456789,
     },
     Object {
       "amount": 10,
-      "count": -1,
+      "count": 1,
       "pair": "pair",
       "prevVersion": 0,
       "price": 100,
@@ -81,7 +87,13 @@ Object {
 exports[`handleOrderUpdate, update orderBooks , add 5`] = `
 Object {
   "asks": Array [],
-  "bids": Array [],
+  "bids": Array [
+    Object {
+      "amount": 10,
+      "count": 1,
+      "price": 100,
+    },
+  ],
   "pair": "pair",
   "version": 123456789,
 }
@@ -101,19 +113,13 @@ Array [
     "pair",
     Object {
       "asks": Array [],
-      "bids": Array [
-        Object {
-          "amount": -10,
-          "count": 1,
-          "price": 100,
-        },
-      ],
+      "bids": Array [],
       "pair": "pair",
       "version": 123456789,
     },
     Object {
       "amount": -10,
-      "count": 1,
+      "count": -1,
       "pair": "pair",
       "prevVersion": 123456789,
       "price": 100,
@@ -134,13 +140,7 @@ Object {
 exports[`handleOrderUpdate, update orderBooks , terminate 5`] = `
 Object {
   "asks": Array [],
-  "bids": Array [
-    Object {
-      "amount": -10,
-      "count": 1,
-      "price": 100,
-    },
-  ],
+  "bids": Array [],
   "pair": "pair",
   "version": 123456789,
 }

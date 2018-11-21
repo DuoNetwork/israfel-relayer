@@ -87,7 +87,7 @@ class OrderBookServer {
 			amount:
 				(method === CST.DB_TERMINATE ? 0 : liveOrder.amount) -
 				(this.liveOrders[orderHash] ? this.liveOrders[orderHash].amount : 0),
-			count: method !== CST.DB_TERMINATE ? -1 : 1,
+			count: method === CST.DB_TERMINATE ? -1 : 1,
 			side: liveOrder.side,
 			prevVersion: this.orderBookSnapshot.version,
 			version: util.getUTCNowTimestamp()
