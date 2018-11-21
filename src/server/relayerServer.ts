@@ -27,7 +27,6 @@ class RelayerServer {
 	public web3Util: Web3Util | null = null;
 	public wsServer: WebSocket.Server | null = null;
 	public orderBookPairs: { [pair: string]: WebSocket[] } = {};
-	public orderBooks: { [pair: string]: IOrderBookSnapshot } = {};
 
 	public sendResponse(ws: WebSocket, req: IWsRequest, status: string) {
 		const orderResponse: IWsResponse = {
@@ -190,15 +189,18 @@ class RelayerServer {
 		this.sendOrderBookSnapshotResponse(ws, req.pair, snapshot);
 	}
 
-	public handleOrderBookUnsubscribeRequest(ws: WebSocket, req: IWsRequest) {
-		if (this.orderBookPairs[req.pair] && this.orderBookPairs[req.pair].includes(ws)) {
-			this.orderBookPairs[req.pair] = this.orderBookPairs[req.pair].filter(e => e !== ws);
-			if (!this.orderBookPairs[req.pair].length) {
-				delete this.orderBookPairs[req.pair];
-				orderBookPersistenceUtil.unsubscribeOrderBookUpdate(req.pair);
+	private unsubscribeOrderBook(ws: WebSocket, pair: string) {
+		if (this.orderBookPairs[pair] && this.orderBookPairs[pair].includes(ws)) {
+			this.orderBookPairs[pair] = this.orderBookPairs[pair].filter(e => e !== ws);
+			if (!this.orderBookPairs[pair].length) {
+				delete this.orderBookPairs[pair];
+				orderBookPersistenceUtil.unsubscribeOrderBookUpdate(pair);
 			}
 		}
+	}
 
+	public handleOrderBookUnsubscribeRequest(ws: WebSocket, req: IWsRequest) {
+		this.unsubscribeOrderBook(ws, req.pair);
 		this.sendResponse(ws, req, CST.WS_OK);
 	}
 
@@ -263,7 +265,10 @@ class RelayerServer {
 			this.wsServer.on('connection', ws => {
 				util.logInfo('new connection');
 				ws.on('message', message => this.handleWebSocketMessage(ws, message.toString()));
-				ws.on('close', () => util.logInfo('connection close'));
+				ws.on('close', () => {
+					util.logInfo('connection close');
+					for (const pair in this.orderBookPairs) this.unsubscribeOrderBook(ws, pair);
+				});
 			});
 
 		if (option.server) {
