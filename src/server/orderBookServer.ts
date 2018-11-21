@@ -8,6 +8,7 @@ import {
 	IOrderQueueItem
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
+import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
 import orderBookUtil from '../utils/orderBookUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import util from '../utils/util';
@@ -96,7 +97,7 @@ class OrderBookServer {
 		else delete this.liveOrders[orderHash];
 
 		orderBookUtil.updateOrderBookSnapshot(this.orderBookSnapshot, orderBookSnapshotUpdate);
-		await orderBookUtil.publishOrderBookUpdate(
+		await orderBookPersistenceUtil.publishOrderBookUpdate(
 			this.pair,
 			this.orderBookSnapshot,
 			orderBookSnapshotUpdate
@@ -122,7 +123,7 @@ class OrderBookServer {
 		this.updateOrderSequences();
 		this.orderBook = orderBookUtil.constructOrderBook(this.liveOrders);
 		this.orderBookSnapshot = orderBookUtil.renderOrderBookSnapshot(this.pair, this.orderBook);
-		await orderBookUtil.publishOrderBookUpdate(this.pair, this.orderBookSnapshot);
+		await orderBookPersistenceUtil.publishOrderBookUpdate(this.pair, this.orderBookSnapshot);
 		this.loadingOrders = false;
 		for (const updateItem of this.pendingUpdates)
 			await this.handleOrderUpdate('pending', updateItem);

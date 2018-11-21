@@ -18,7 +18,7 @@ import {
 	IWsUserOrderResponse
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
-import orderBookUtil from '../utils/orderBookUtil';
+import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
@@ -175,13 +175,13 @@ class RelayerServer {
 	public async handleOrderBookSubscribeRequest(ws: WebSocket, req: IWsRequest) {
 		if (!this.orderBookPairs[req.pair] || !this.orderBookPairs[req.pair].length) {
 			this.orderBookPairs[req.pair] = [ws];
-			orderBookUtil.subscribeOrderBookUpdate(req.pair, (c, obsu) =>
+			orderBookPersistenceUtil.subscribeOrderBookUpdate(req.pair, (c, obsu) =>
 				this.handleOrderBookUpdate(c, obsu)
 			);
 		} else if (!this.orderBookPairs[req.pair].includes(ws))
 			this.orderBookPairs[req.pair].push(ws);
 
-		const snapshot = await orderBookUtil.getOrderBookSnapshot(req.pair);
+		const snapshot = await orderBookPersistenceUtil.getOrderBookSnapshot(req.pair);
 		if (!snapshot) {
 			this.sendResponse(ws, req, CST.WS_ERROR);
 			return Promise.resolve();
@@ -195,7 +195,7 @@ class RelayerServer {
 			this.orderBookPairs[req.pair] = this.orderBookPairs[req.pair].filter(e => e !== ws);
 			if (!this.orderBookPairs[req.pair].length) {
 				delete this.orderBookPairs[req.pair];
-				orderBookUtil.unsubscribeOrderBookUpdate(req.pair);
+				orderBookPersistenceUtil.unsubscribeOrderBookUpdate(req.pair);
 			}
 		}
 
