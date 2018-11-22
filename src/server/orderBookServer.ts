@@ -12,7 +12,7 @@ import {
 import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
 import orderBookUtil from '../utils/orderBookUtil';
-import { OrderMatcherUtil } from '../utils/OrderMatcherUtil';
+import orderMatchingUtil from '../utils/orderMatchingUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
@@ -24,7 +24,6 @@ class OrderBookServer {
 	public pendingUpdates: IOrderQueueItem[] = [];
 	public loadingOrders: boolean = true;
 	public orderSnapshotSequence: number = 0;
-	public orderMatcher: OrderMatcherUtil | null = null;
 	public orderBook: IOrderBook = {
 		bids: [],
 		asks: []
@@ -73,13 +72,14 @@ class OrderBookServer {
 			return;
 		}
 
-		if (this.orderMatcher && method === CST.DB_ADD) {
+		if (this.web3Util && method === CST.DB_ADD) {
 			let matchable = true;
 			const liveOrders: ILiveOrder[] = [];
 			while (matchable) {
 				const matchResult:
 					| IMatchingOrderResult[]
-					| null = await this.orderMatcher.matchOrders(
+					| null = await orderMatchingUtil.matchOrders(
+					this.web3Util,
 					this.orderBook,
 					orderQueueItem.liveOrder
 				);
@@ -89,7 +89,7 @@ class OrderBookServer {
 					);
 				else matchable = false;
 			}
-			if (liveOrders.length > 0) await this.orderMatcher.batchAddUserOrders(liveOrders);
+			if (liveOrders.length > 0) await orderMatchingUtil.batchAddUserOrders(liveOrders);
 		}
 		await this.updateOrderBook(orderQueueItem.liveOrder, method);
 	};
@@ -176,10 +176,11 @@ class OrderBookServer {
 	}
 
 	public async matchOrderBook() {
-		if (this.orderMatcher) {
+		if (this.web3Util) {
 			const liveOrders: ILiveOrder[] = [];
 			for (const orderLevel of this.orderBook.bids) {
-				const res: IMatchingOrderResult[] | null = await this.orderMatcher.matchOrders(
+				const res: IMatchingOrderResult[] | null = await orderMatchingUtil.matchOrders(
+					this.web3Util,
 					this.orderBook,
 					this.liveOrders[orderLevel.orderHash]
 				);
@@ -194,7 +195,6 @@ class OrderBookServer {
 
 	public async startServer(web3Util: Web3Util, option: IOption) {
 		this.web3Util = web3Util;
-		this.orderMatcher = new OrderMatcherUtil(web3Util, option.live);
 		this.pair = option.token + '-' + CST.TOKEN_WETH;
 		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderPersistRequest) =>
 			this.handleOrderUpdate(channel, orderPersistRequest)

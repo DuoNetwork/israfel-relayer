@@ -527,6 +527,31 @@ Array [
 ]
 `;
 
+exports[`scanTokens 1`] = `Array []`;
+
+exports[`scanTokens 2`] = `
+Array [
+  Array [
+    Object {
+      "TableName": "israfel.tokens.dev",
+    },
+  ],
+]
+`;
+
+exports[`scanTokens 3`] = `
+Array [
+  Object {
+    "address": "addr1",
+    "code": "code1",
+  },
+  Object {
+    "address": "addr2",
+    "code": "code2",
+  },
+]
+`;
+
 exports[`updateLiveOrder 1`] = `
 Array [
   Array [

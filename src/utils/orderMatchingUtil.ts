@@ -7,32 +7,25 @@ import {
 	IRawOrder,
 	IStringSignedOrder
 } from '../common/types';
-import dynamoUtil from '../utils/dynamoUtil';
-import orderPersistenceUtil from '../utils/orderPersistenceUtil';
-import Web3Util from '../utils/Web3Util';
+import dynamoUtil from './dynamoUtil';
+import orderPersistenceUtil from './orderPersistenceUtil';
 import redisUtil from './redisUtil';
-import util from './util';
+// import util from './util';
+import Web3Util from './Web3Util';
 
-export class OrderMatcherUtil {
-	public web3Util: Web3Util | null = null;
-	public live: boolean = false;
-	constructor(web3Util: Web3Util, live: boolean) {
-		this.web3Util = web3Util;
-		this.live = live;
-	}
-
+class OrderMatchingUtil {
 	public async matchOrders(
+		web3Util: Web3Util,
 		orderBook: IOrderBook,
 		liveOrder: ILiveOrder
-	): Promise<IMatchingOrderResult[] | null> {
+	): Promise<IMatchingOrderResult[]> {
 		const isBid = liveOrder.side === CST.DB_BID;
 		const price = liveOrder.price;
 		const orderBookSide = isBid ? orderBook.asks : orderBook.bids;
 		const orderLevel = orderBookSide[0];
 		const pair = liveOrder.pair;
 
-		if ((isBid && price < orderLevel.price) || (!isBid && price > orderLevel.price))
-			return null;
+		if ((isBid && price < orderLevel.price) || (!isBid && price > orderLevel.price)) return [];
 		else {
 			const leftRawOrder = (await dynamoUtil.getRawOrder(liveOrder.orderHash)) as IRawOrder;
 			const leftOrder: SignedOrder = orderPersistenceUtil.parseSignedOrder(
@@ -44,16 +37,11 @@ export class OrderMatcherUtil {
 				rightRawOrder.signedOrder as IStringSignedOrder
 			);
 
-			if (!this.web3Util) {
-				util.logDebug('no web3Util initiated');
-				return null;
-			}
-
 			try {
-				await this.web3Util.contractWrappers.exchange.matchOrdersAsync(
+				await web3Util.contractWrappers.exchange.matchOrdersAsync(
 					leftOrder,
 					rightOrder,
-					this.live ? CST.RELAYER_ADDR_MAIN : CST.RELAYER_ADDR_KOVAN
+					web3Util.relayerAddress
 				);
 
 				return [
@@ -76,7 +64,7 @@ export class OrderMatcherUtil {
 					}
 				];
 			} catch (err) {
-				return null;
+				return [];
 				//TODO: handle fail
 			}
 		}
@@ -93,3 +81,6 @@ export class OrderMatcherUtil {
 			);
 	}
 }
+
+const orderMatchingUtil = new OrderMatchingUtil();
+export default orderMatchingUtil;

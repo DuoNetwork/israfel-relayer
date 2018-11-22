@@ -36,6 +36,9 @@ export const DB_CREATED_AT = 'createdAt';
 export const DB_UPDATED_AT = 'updatedAt';
 export const DB_UPDATED_BY = 'updatedBy';
 export const DB_PROCESSED = 'processed';
+export const DB_TOKENS = 'tokens';
+export const DB_ADDRESS = 'address';
+export const DB_CODE = 'code';
 
 export const DB_ADD = 'add';
 export const DB_UPDATE = 'update';
@@ -101,13 +104,7 @@ export const WS_TYPE_ORDER_UPDATE = 'update';
 export const WS_TYPE_ORDER_ADD = 'add';
 export const WS_TYPE_ORDER_CANCEL = 'cancel';
 
-export const TOKEN_ZRX = 'ZRX';
 export const TOKEN_WETH = 'WETH';
-
-export const SUPPORTED_PAIRS = [TOKEN_ZRX + '-' + TOKEN_WETH];
-
-export const PAIR_SEPARATOR = '-';
-export const TRADING_PAIRS = [TOKEN_ZRX + PAIR_SEPARATOR + TOKEN_WETH];
 
 export const PRUNE_INTERVAL = 3600000;
 export const ORDER_PRUNE = 'pruneOrder';

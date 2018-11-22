@@ -23,23 +23,30 @@ redisUtil.init(redisConfig);
 const config = require(`./keys/dynamo.${option.live ? CST.DB_LIVE : CST.DB_DEV}.json`);
 dynamoUtil.init(config, option.live, tool, osUtil.getHostName());
 
-let web3Util: Web3Util | null = null;
-if (tool !== CST.DB_ORDERS)
-	web3Util = new Web3Util(null, option.live, '', tool === CST.DB_ORDER_WATCHER);
+const start = async () => {
+	let web3Util: Web3Util | null = null;
+	if (tool !== CST.DB_ORDERS)
+		web3Util = new Web3Util(null, option.live, '', tool === CST.DB_ORDER_WATCHER);
+	if (web3Util) {
+		const tokens = await dynamoUtil.scanTokens();
+		web3Util.setTokens(tokens);
+	}
+	switch (tool) {
+		case CST.DB_ORDER_WATCHER:
+			orderWatcherServer.startServer(web3Util as Web3Util, option);
+			break;
+		case CST.DB_RELAYER:
+			relayerServer.startServer(web3Util as Web3Util, option);
+			break;
+		case CST.DB_ORDERS:
+			orderPersistenceUtil.startProcessing(option);
+			break;
+		case CST.DB_ORDER_BOOKS:
+			orderBookServer.startServer(web3Util as Web3Util, option);
+			break;
+		default:
+			break;
+	}
+};
 
-switch (tool) {
-	case CST.DB_ORDER_WATCHER:
-		orderWatcherServer.startServer(web3Util as Web3Util, option);
-		break;
-	case CST.DB_RELAYER:
-		relayerServer.startServer(web3Util as Web3Util, option);
-		break;
-	case CST.DB_ORDERS:
-		orderPersistenceUtil.startProcessing(option);
-		break;
-	case CST.DB_ORDER_BOOKS:
-		orderBookServer.startServer(web3Util as Web3Util, option);
-		break;
-	default:
-		break;
-}
+start();

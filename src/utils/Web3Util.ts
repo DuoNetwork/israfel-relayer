@@ -19,7 +19,7 @@ import { schemas, SchemaValidator } from '@0x/json-schemas';
 import { MetamaskSubprovider, PrivateKeyWalletSubprovider } from '@0x/subproviders';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as CST from '../common/constants';
-import { IRawOrder, IStringSignedOrder } from '../common/types';
+import { IRawOrder, IStringSignedOrder, IToken } from '../common/types';
 import util from './util';
 
 export enum Wallet {
@@ -35,8 +35,10 @@ export default class Web3Util {
 	public wallet: Wallet = Wallet.None;
 	public accountIndex: number = 0;
 	public networkId: number = CST.NETWORK_ID_KOVAN;
+	public tokens: IToken[] = [];
 	private rawMetamaskProvider: any = null;
 	public contractAddresses: ContractAddresses;
+	public readonly relayerAddress: string;
 
 	constructor(window: any, live: boolean, privateKey: string, local: boolean) {
 		this.networkId = live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN;
@@ -71,6 +73,11 @@ export default class Web3Util {
 		});
 
 		this.contractAddresses = getContractAddressesForNetworkOrThrow(this.networkId);
+		this.relayerAddress = live ? CST.RELAYER_ADDR_MAIN : CST.RELAYER_ADDR_KOVAN
+	}
+
+	public setTokens(tokens: IToken[]) {
+		this.tokens = JSON.parse(JSON.stringify(tokens));
 	}
 
 	public onWeb3AccountUpdate(onUpdate: (addr: string, network: number) => any) {
@@ -168,15 +175,16 @@ export default class Web3Util {
 		return Number(Web3Wrapper.toWei(new BigNumber(value)).valueOf());
 	};
 
-	public assetDataToTokenName(assetData: string): string {
+	public assetDataToTokenCode(assetData: string): string {
 		const tokenAddr = assetDataUtils.decodeERC20AssetData(assetData).tokenAddress;
 		if (tokenAddr === this.contractAddresses.etherToken) return CST.TOKEN_WETH;
-		else if (tokenAddr === this.contractAddresses.zrxToken) return CST.TOKEN_ZRX;
-		return ''; // TODO: read from db
+
+		const token = this.tokens.find(t => t.address === tokenAddr);
+		return token ? token.code : '';
 	}
 
 	public getSideFromSignedOrder(order: SignedOrder | IStringSignedOrder, pair: string): string {
-		return this.assetDataToTokenName(order.takerAssetData) === pair.split('-')[0]
+		return this.assetDataToTokenCode(order.takerAssetData) === pair.split('|')[0]
 			? CST.DB_BID
 			: CST.DB_ASK;
 	}
@@ -214,62 +222,56 @@ export default class Web3Util {
 		return orderHash;
 	}
 
-	public getTokenAddressFromName(tokenName: string): string {
-		switch (tokenName) {
-			case CST.TOKEN_ZRX:
-				return this.contractAddresses.zrxToken;
-			case CST.TOKEN_WETH:
-				const ethTokenAddr = this.contractAddresses.etherToken;
-				if (!ethTokenAddr) {
-					util.logInfo('no eth token address');
-					return '';
-				} else return ethTokenAddr;
+	public getTokenAddressFromCode(code: string): string {
+		if (code === CST.TOKEN_WETH) return this.contractAddresses.etherToken;
 
-			default:
-				util.logInfo('no such token found');
-				return '';
-		}
+		const token = this.tokens.find(t => t.code === code);
+		return token ? token.address : '';
 	}
 
-	public async setUnlimitedTokenAllowance(tokenName: string) {
-		let tokenAddress = '';
-		if (tokenName === CST.TOKEN_WETH) tokenAddress = this.contractAddresses.etherToken;
-		else if (tokenName === CST.TOKEN_ZRX) tokenAddress = this.contractAddresses.zrxToken;
-		// TODO: read from DB
-		// else if (CST.REVERSE_TOKEN_MAPPING[tokenName])
-		// 	tokenAddress = CST.REVERSE_TOKEN_MAPPING[tokenName];
+	public async setUnlimitedTokenAllowance(code: string) {
+		const tokenAddress = this.getTokenAddressFromCode(code);
 		if (tokenAddress)
 			return this.contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
 				tokenAddress,
 				await this.getCurrentAddress()
 			);
-		return Promise.resolve();
+		return Promise.reject();
 	}
 
-	public async getProxyTokenAllowance(tokenName: string, ownerAddr: string) {
-		let tokenAddress = '';
-		if (tokenName === CST.TOKEN_WETH) tokenAddress = this.contractAddresses.etherToken;
-		else if (tokenName === CST.TOKEN_ZRX) tokenAddress = this.contractAddresses.zrxToken;
+	public async getProxyTokenAllowance(code: string, ownerAddr: string) {
+		const tokenAddress = this.getTokenAddressFromCode(code);
 
 		if (tokenAddress)
 			return this.contractWrappers.erc20Token.getProxyAllowanceAsync(
 				tokenAddress,
 				ownerAddr.toLowerCase()
 			);
-		return Promise.resolve();
+		return Promise.reject();
 	}
 
-	public async setProxyAllowance(tokenAddress: string, amount: number) {
-		this.contractWrappers.erc20Token.setProxyAllowanceAsync(
-			tokenAddress,
-			await this.getCurrentAddress(),
-			Web3Wrapper.toWei(new BigNumber(amount))
-		);
+	public async removeProxyAllowance(code: string) {
+		const tokenAddress = this.getTokenAddressFromCode(code);
+		if (tokenAddress)
+			return this.contractWrappers.erc20Token.setProxyAllowanceAsync(
+				tokenAddress,
+				await this.getCurrentAddress(),
+				Web3Wrapper.toWei(new BigNumber(0))
+			);
+		return Promise.reject();
 	}
 
 	public async getEthBalance(address: string) {
-		const balance = await this.web3Wrapper.getBalanceInWeiAsync(address);
-		util.logInfo('balnace of ' + address + 'is ' + Web3Util.fromWei(balance));
+		return Web3Util.fromWei(await this.web3Wrapper.getBalanceInWeiAsync(address));
+	}
+
+	public async getTokenBalance(code: string, address: string) {
+		const tokenAddress = this.getTokenAddressFromCode(code);
+		if (tokenAddress)
+			return Web3Util.fromWei(
+				await this.contractWrappers.erc20Token.getBalanceAsync(tokenAddress, address)
+			);
+		return 0;
 	}
 
 	public async wrapEther(amount: number) {
@@ -297,6 +299,23 @@ export default class Web3Util {
 		} catch (err) {
 			util.logDebug('invalid order');
 			util.logDebug(JSON.stringify(err));
+			return false;
+		}
+	}
+
+	public async isValidPair(pair: string) {
+		try {
+			const codes = pair.split('|');
+			if (
+				codes.length !== 2 ||
+				!this.getTokenAddressFromCode(codes[0]) ||
+				!this.getTokenAddressFromCode(codes[1])
+			)
+				return false;
+
+			return true;
+		} catch (err) {
+			util.logDebug(err);
 			return false;
 		}
 	}

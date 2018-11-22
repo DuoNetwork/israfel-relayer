@@ -2,6 +2,29 @@ import * as CST from '../common/constants';
 import dynamoUtil from './dynamoUtil';
 import util from './util';
 
+test('scanTokens', async () => {
+	let scanOutput: { [key: string]: any } = {
+		Items: []
+	};
+	dynamoUtil.scanData = jest.fn(() => Promise.resolve(scanOutput));
+	expect(await dynamoUtil.scanTokens()).toMatchSnapshot();
+	expect((dynamoUtil.scanData as jest.Mock).mock.calls).toMatchSnapshot();
+	scanOutput = {
+		Items: [
+			{
+				[CST.DB_ADDRESS]: { S: 'addr1' },
+				[CST.DB_CODE]: { S: 'code1' }
+			},
+			{
+				[CST.DB_ADDRESS]: { S: 'addr2' },
+				[CST.DB_CODE]: { S: 'code2' }
+			}
+		]
+	};
+	dynamoUtil.scanData = jest.fn(() => Promise.resolve(scanOutput));
+	expect(await dynamoUtil.scanTokens()).toMatchSnapshot();
+});
+
 test('scanServices', async () => {
 	let scanOutput: { [key: string]: any } = {
 		Items: []

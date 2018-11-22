@@ -86,7 +86,7 @@ test('handleAddOrderRequest invalid order', async () => {
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
-		pair: CST.SUPPORTED_PAIRS[0],
+		pair: 'pair',
 		order: signedOrder,
 		orderHash: '0xOrderHash'
 	});
@@ -97,14 +97,14 @@ test('handleAddOrderRequest invalid order', async () => {
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
-		pair: CST.SUPPORTED_PAIRS[0],
+		pair: 'pair',
 		order: signedOrder,
 		orderHash: '0xInvalidHash'
 	});
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
-		pair: CST.SUPPORTED_PAIRS[0],
+		pair: 'pair',
 		order: signedOrder,
 		orderHash: '0xOrderHash'
 	});
@@ -125,7 +125,7 @@ test('handleAddOrderRequest invalid persist', async () => {
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
-		pair: CST.SUPPORTED_PAIRS[0],
+		pair: 'pair',
 		order: signedOrder,
 		orderHash: '0xOrderHash'
 	});
@@ -145,7 +145,7 @@ test('handleAddOrderRequest persist error', async () => {
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
-		pair: CST.SUPPORTED_PAIRS[0],
+		pair: 'pair',
 		order: signedOrder,
 		orderHash: '0xOrderHash'
 	});
@@ -169,7 +169,7 @@ test('handleAddOrderRequest', async () => {
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
-		pair: CST.SUPPORTED_PAIRS[0],
+		pair: 'pair',
 		order: signedOrder,
 		orderHash: '0xOrderHash'
 	});
@@ -187,7 +187,7 @@ test('handleTerminateOrderRequest invalid request and order', async () => {
 		{
 			channel: CST.DB_ORDERS,
 			method: CST.DB_TERMINATE,
-			pair: CST.SUPPORTED_PAIRS[0],
+			pair: 'pair',
 			orderHash: ''
 		} as any
 	);
@@ -196,7 +196,7 @@ test('handleTerminateOrderRequest invalid request and order', async () => {
 		{
 			channel: CST.DB_ORDERS,
 			method: CST.DB_TERMINATE,
-			pair: CST.SUPPORTED_PAIRS[0],
+			pair: 'pair',
 			orderHash: '0xOrderHash'
 		} as any
 	);
@@ -213,7 +213,7 @@ test('handleTerminateOrderRequest persist error', async () => {
 	await relayerServer.handleTerminateOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_TERMINATE,
-		pair: CST.SUPPORTED_PAIRS[0],
+		pair: 'pair',
 		orderHash: '0xOrderHash'
 	});
 	expect(relayerServer.sendUserOrderResponse as jest.Mock).not.toBeCalled();
@@ -227,7 +227,7 @@ test('handleTerminateOrderRequest', async () => {
 	await relayerServer.handleTerminateOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_TERMINATE,
-		pair: CST.SUPPORTED_PAIRS[0],
+		pair: 'pair',
 		orderHash: '0xOrderHash'
 	});
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
@@ -266,7 +266,7 @@ test('handleOrderRequest invalid requests', async () => {
 	await relayerServer.handleOrderRequest(ws as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
-		pair: CST.SUPPORTED_PAIRS[0],
+		pair: 'pair',
 		orderHash: ''
 	});
 	expect((ws.send as jest.Mock).mock.calls).toMatchSnapshot();
@@ -279,7 +279,7 @@ test('handleOrderRequest add', async () => {
 	await relayerServer.handleOrderRequest(ws as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
-		pair: CST.SUPPORTED_PAIRS[0],
+		pair: 'pair',
 		orderHash: '0xOrderHash'
 	});
 	expect((relayerServer.handleAddOrderRequest as jest.Mock).mock.calls).toMatchSnapshot();
@@ -293,7 +293,7 @@ test('handleOrderRequest terminate', async () => {
 	await relayerServer.handleOrderRequest(ws as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_TERMINATE,
-		pair: CST.SUPPORTED_PAIRS[0],
+		pair: 'pair',
 		orderHash: '0xOrderHash'
 	});
 	expect(relayerServer.handleAddOrderRequest as jest.Mock).not.toBeCalled();
@@ -529,12 +529,15 @@ test('handleOrderBookRequest unsubscribe', async () => {
 test('handleWebSocketMessage invalid requests', () => {
 	relayerServer.sendResponse = jest.fn();
 	relayerServer.handleWebSocketMessage('ws' as any, JSON.stringify({}));
+	relayerServer.web3Util = {
+		isValidPair: jest.fn(() => true)
+	} as any;
 	relayerServer.handleWebSocketMessage(
 		'ws' as any,
 		JSON.stringify({
 			channel: 'channel',
 			method: 'method',
-			pair: CST.SUPPORTED_PAIRS[0]
+			pair: 'pair'
 		})
 	);
 	relayerServer.handleWebSocketMessage(
@@ -542,9 +545,12 @@ test('handleWebSocketMessage invalid requests', () => {
 		JSON.stringify({
 			channel: CST.DB_ORDERS,
 			method: '',
-			pair: CST.SUPPORTED_PAIRS[0]
+			pair: 'pair'
 		})
 	);
+	relayerServer.web3Util = {
+		isValidPair: jest.fn(() => false)
+	} as any;
 	relayerServer.handleWebSocketMessage(
 		'ws' as any,
 		JSON.stringify({
@@ -559,12 +565,15 @@ test('handleWebSocketMessage invalid requests', () => {
 test('handleWebSocketMessage orders', () => {
 	const ws = {};
 	relayerServer.handleOrderRequest = jest.fn();
+	relayerServer.web3Util = {
+		isValidPair: jest.fn(() => true)
+	} as any;
 	relayerServer.handleWebSocketMessage(
 		ws as any,
 		JSON.stringify({
 			channel: CST.DB_ORDERS,
 			method: 'method',
-			pair: CST.SUPPORTED_PAIRS[0]
+			pair: 'pair'
 		})
 	);
 	expect((relayerServer.handleOrderRequest as jest.Mock).mock.calls).toMatchSnapshot();
@@ -573,12 +582,15 @@ test('handleWebSocketMessage orders', () => {
 test('handleWebSocketMessage orderBooks', () => {
 	const ws = {};
 	relayerServer.handleOrderBookRequest = jest.fn();
+	relayerServer.web3Util = {
+		isValidPair: jest.fn(() => true)
+	} as any;
 	relayerServer.handleWebSocketMessage(
 		ws as any,
 		JSON.stringify({
 			channel: CST.DB_ORDER_BOOKS,
 			method: 'method',
-			pair: CST.SUPPORTED_PAIRS[0]
+			pair: 'pair'
 		})
 	);
 	expect((relayerServer.handleOrderBookRequest as jest.Mock).mock.calls).toMatchSnapshot();

@@ -227,7 +227,7 @@ class RelayerServer {
 		if (
 			![CST.DB_ORDERS, CST.DB_ORDER_BOOKS].includes(req.channel) ||
 			!req.method ||
-			!CST.SUPPORTED_PAIRS.includes(req.pair)
+			!this.web3Util || !this.web3Util.isValidPair(req.pair)
 		) {
 			this.sendResponse(ws, req, CST.WS_INVALID_REQ);
 			return Promise.resolve();

@@ -178,3 +178,8 @@ export interface IMatchingOrderResult {
 	newBalance: number;
 	sequence: number;
 }
+
+export interface IToken {
+	address: string;
+	code: string;
+}

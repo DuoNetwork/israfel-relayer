@@ -11,7 +11,7 @@ import DynamoDB, {
 import AWS from 'aws-sdk/global';
 import moment from 'moment';
 import * as CST from '../common/constants';
-import { ILiveOrder, IRawOrder, IService, IStatus, IUserOrder } from '../common/types';
+import { ILiveOrder, IRawOrder, IService, IStatus, IToken, IUserOrder } from '../common/types';
 import util from './util';
 
 class DynamoUtil {
@@ -90,6 +90,24 @@ class DynamoUtil {
 		if (!data.Items || !data.Items.length) return [];
 
 		return data.Items.map(ob => this.parseService(ob));
+	}
+
+	public parseToken(data: AttributeMap): IToken {
+		return {
+			address: data[CST.DB_ADDRESS].S || '',
+			code: data[CST.DB_CODE].S || ''
+		};
+	}
+
+	public async scanTokens() {
+		const data = await this.scanData({
+			TableName: `${CST.DB_ISRAFEL}.${CST.DB_TOKENS}.${
+				this.live ? CST.DB_LIVE : CST.DB_DEV
+			}`
+		});
+		if (!data.Items || !data.Items.length) return [];
+
+		return data.Items.map(ob => this.parseToken(ob));
 	}
 
 	public async getServices(service: string, onlyThisHost: boolean = false) {
@@ -395,7 +413,7 @@ class DynamoUtil {
 			[CST.DB_CREATED_AT]: { N: (userOrder.createdAt || timestamp) + '' },
 			[CST.DB_UPDATED_AT]: { N: timestamp + '' },
 			[CST.DB_UPDATED_BY]: { S: userOrder.updatedBy + '' },
-			[CST.DB_PROCESSED]: {BOOL: userOrder.processed}
+			[CST.DB_PROCESSED]: { BOOL: userOrder.processed }
 		};
 	}
 
