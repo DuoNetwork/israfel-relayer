@@ -4,7 +4,6 @@ import {
 	ILiveOrder,
 	IMatchingOrderResult,
 	IOrderBook,
-	IOrderQueueItem,
 	IRawOrder,
 	IStringSignedOrder
 } from '../common/types';
@@ -24,20 +23,18 @@ export class OrderMatcherUtil {
 
 	public async matchOrders(
 		orderBook: IOrderBook,
-		orderQueueItem: IOrderQueueItem
+		liveOrder: ILiveOrder
 	): Promise<IMatchingOrderResult[] | null> {
-		const isBid = orderQueueItem.liveOrder.side === CST.DB_BID;
-		const price = orderQueueItem.liveOrder.price;
+		const isBid = liveOrder.side === CST.DB_BID;
+		const price = liveOrder.price;
 		const orderBookSide = isBid ? orderBook.asks : orderBook.bids;
 		const orderLevel = orderBookSide[0];
-		const pair = orderQueueItem.liveOrder.pair;
+		const pair = liveOrder.pair;
 
 		if ((isBid && price < orderLevel.price) || (!isBid && price > orderLevel.price))
 			return null;
 		else {
-			const leftRawOrder = (await dynamoUtil.getRawOrder(
-				orderQueueItem.liveOrder.orderHash
-			)) as IRawOrder;
+			const leftRawOrder = (await dynamoUtil.getRawOrder(liveOrder.orderHash)) as IRawOrder;
 			const leftOrder: SignedOrder = orderPersistenceUtil.parseSignedOrder(
 				leftRawOrder.signedOrder as IStringSignedOrder
 			);
@@ -61,25 +58,19 @@ export class OrderMatcherUtil {
 
 				return [
 					{
-						orderHash: orderQueueItem.liveOrder.orderHash,
-						sequence:  await redisUtil.increment(`${CST.DB_SEQUENCE}|${pair}`),
+						orderHash: liveOrder.orderHash,
+						sequence: await redisUtil.increment(`${CST.DB_SEQUENCE}|${pair}`),
 						newBalance: isBid
-							? Math.min(
-									orderQueueItem.liveOrder.balance,
-									orderLevel.amount / orderLevel.price
-							)
-							: Math.min(
-									orderQueueItem.liveOrder.balance,
-									orderLevel.amount * orderLevel.price
-							)
+							? Math.min(liveOrder.balance, orderLevel.amount / orderLevel.price)
+							: Math.min(liveOrder.balance, orderLevel.amount * orderLevel.price)
 					},
 					{
 						orderHash: orderLevel.orderHash,
-						sequence:  await redisUtil.increment(`${CST.DB_SEQUENCE}|${pair}`),
+						sequence: await redisUtil.increment(`${CST.DB_SEQUENCE}|${pair}`),
 						newBalance: isBid
-							? Math.min(orderQueueItem.liveOrder.balance * price, orderLevel.amount)
+							? Math.min(liveOrder.balance * price, orderLevel.amount)
 							: Math.min(
-									orderQueueItem.liveOrder.balance / price,
+									liveOrder.balance / price,
 									orderLevel.amount * orderLevel.price
 							)
 					}

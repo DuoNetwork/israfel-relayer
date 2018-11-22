@@ -79,27 +79,37 @@ class OrderBookServer {
 			while (matchable) {
 				const matchResult:
 					| IMatchingOrderResult[]
-					| null = await this.orderMatcher.matchOrders(this.orderBook, orderQueueItem);
-				if (matchResult) {
-					const resLeft = matchResult[0];
-					const resRight = matchResult[1];
-
-					orderQueueItem.liveOrder.currentSequence = resLeft.sequence;
-					orderQueueItem.liveOrder.balance = resLeft.newBalance;
-					await this.updateOrderBook(orderQueueItem.liveOrder, CST.DB_UPDATE);
-
-					const rightLiveOrder = this.liveOrders[resRight.orderHash];
-					rightLiveOrder.currentSequence = resRight.sequence;
-					rightLiveOrder.balance = resRight.newBalance;
-					await this.updateOrderBook(rightLiveOrder, CST.DB_UPDATE);
-					liveOrders.push(orderQueueItem.liveOrder);
-					liveOrders.push(rightLiveOrder);
-				} else matchable = false;
+					| null = await this.orderMatcher.matchOrders(
+					this.orderBook,
+					orderQueueItem.liveOrder
+				);
+				if (matchResult)
+					liveOrders.concat(
+						await this.processMatchingResult(matchResult, orderQueueItem.liveOrder)
+					);
+				else matchable = false;
 			}
 			if (liveOrders.length > 0) await this.orderMatcher.batchAddUserOrders(liveOrders);
 		}
 		await this.updateOrderBook(orderQueueItem.liveOrder, method);
 	};
+
+	public async processMatchingResult(
+		matchResult: IMatchingOrderResult[],
+		liveOrder: ILiveOrder
+	): Promise<ILiveOrder[]> {
+		const resLeft = matchResult[0];
+		const resRight = matchResult[1];
+		liveOrder.currentSequence = resLeft.sequence;
+		liveOrder.balance = resLeft.newBalance;
+		await this.updateOrderBook(liveOrder, CST.DB_UPDATE);
+
+		const rightLiveOrder = this.liveOrders[resRight.orderHash];
+		rightLiveOrder.currentSequence = resRight.sequence;
+		rightLiveOrder.balance = resRight.newBalance;
+		await this.updateOrderBook(rightLiveOrder, CST.DB_UPDATE);
+		return [liveOrder, rightLiveOrder];
+	}
 
 	public async updateOrderBook(liveOrder: ILiveOrder, method: string) {
 		const orderHash = liveOrder.orderHash;
@@ -156,12 +166,30 @@ class OrderBookServer {
 		util.logInfo('loaded live orders : ' + Object.keys(this.liveOrders).length);
 		this.updateOrderSequences();
 		this.orderBook = orderBookUtil.constructOrderBook(this.liveOrders);
+		await this.matchOrderBook();
 		this.orderBookSnapshot = orderBookUtil.renderOrderBookSnapshot(this.pair, this.orderBook);
 		await orderBookPersistenceUtil.publishOrderBookUpdate(this.pair, this.orderBookSnapshot);
 		this.loadingOrders = false;
 		for (const updateItem of this.pendingUpdates)
 			await this.handleOrderUpdate('pending', updateItem);
 		this.pendingUpdates = [];
+	}
+
+	public async matchOrderBook() {
+		if (this.orderMatcher) {
+			const liveOrders: ILiveOrder[] = [];
+			for (const orderLevel of this.orderBook.bids) {
+				const res: IMatchingOrderResult[] | null = await this.orderMatcher.matchOrders(
+					this.orderBook,
+					this.liveOrders[orderLevel.orderHash]
+				);
+				if (!res) return;
+				else
+					liveOrders.concat(
+						await this.processMatchingResult(res, this.liveOrders[orderLevel.orderHash])
+					);
+			}
+		}
 	}
 
 	public async startServer(web3Util: Web3Util, option: IOption) {
