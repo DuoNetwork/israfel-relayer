@@ -3,7 +3,6 @@ import '@babel/polyfill';
 import * as CST from '../common/constants';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
-import util from '../utils/util';
 import relayerServer from './relayerServer';
 
 test('sendResponse', () => {
@@ -527,15 +526,6 @@ test('handleOrderBookRequest unsubscribe', async () => {
 	expect((relayerServer.handleOrderBookUnsubscribeRequest as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('handleTokenRequest', async () => {
-	util.safeWsSend = jest.fn();
-	relayerServer.web3Util = {
-		tokens: ['token1', 'token2']
-	} as any;
-	await relayerServer.handleTokenRequest('ws' as any)
-	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
-});
-
 test('handleWebSocketMessage invalid requests', () => {
 	relayerServer.sendResponse = jest.fn();
 	relayerServer.handleWebSocketMessage('ws' as any, JSON.stringify({}));
@@ -604,19 +594,4 @@ test('handleWebSocketMessage orderBooks', () => {
 		})
 	);
 	expect((relayerServer.handleOrderBookRequest as jest.Mock).mock.calls).toMatchSnapshot();
-});
-
-test('handleWebSocketMessage orderBooks', () => {
-	const ws = {};
-	relayerServer.handleTokenRequest = jest.fn();
-	relayerServer.web3Util = {} as any;
-	relayerServer.handleWebSocketMessage(
-		ws as any,
-		JSON.stringify({
-			channel: CST.DB_TOKENS,
-			method: 'method',
-			pair: ''
-		})
-	);
-	expect((relayerServer.handleTokenRequest as jest.Mock).mock.calls).toMatchSnapshot();
 });

@@ -222,18 +222,6 @@ class RelayerServer {
 		}
 	}
 
-	public handleTokenRequest(ws: WebSocket) {
-		const tokenResponse: IWsTokenResponse = {
-			channel: CST.DB_TOKENS,
-			method: CST.DB_TOKENS,
-			status: CST.WS_OK,
-			pair: '',
-			tokens: this.web3Util ? this.web3Util.tokens : []
-		};
-		util.safeWsSend(ws, JSON.stringify(tokenResponse));
-		return Promise.resolve;
-	}
-
 	public handleWebSocketMessage(ws: WebSocket, m: string) {
 		util.logDebug('received: ' + m);
 		const req: IWsRequest = JSON.parse(m);
@@ -241,7 +229,7 @@ class RelayerServer {
 			![CST.DB_ORDERS, CST.DB_ORDER_BOOKS].includes(req.channel) ||
 			!req.method ||
 			!this.web3Util ||
-			(req.channel !== CST.DB_TOKENS && !this.web3Util.isValidPair(req.pair))
+			!this.web3Util.isValidPair(req.pair)
 		) {
 			this.sendResponse(ws, req, CST.WS_INVALID_REQ);
 			return Promise.resolve();
@@ -252,8 +240,6 @@ class RelayerServer {
 				return this.handleOrderRequest(ws, req as IWsOrderRequest);
 			case CST.DB_ORDER_BOOKS:
 				return this.handleOrderBookRequest(ws, req);
-			case CST.DB_TOKENS:
-				return this.handleTokenRequest(ws);
 			default:
 				return Promise.resolve();
 		}
@@ -283,6 +269,14 @@ class RelayerServer {
 
 		if (this.wsServer)
 			this.wsServer.on('connection', ws => {
+				const tokenResponse: IWsTokenResponse = {
+					channel: CST.DB_TOKENS,
+					method: CST.DB_TOKENS,
+					status: CST.WS_OK,
+					pair: '',
+					tokens: this.web3Util ? this.web3Util.tokens : []
+				};
+				util.safeWsSend(ws, JSON.stringify(tokenResponse));
 				util.logInfo('new connection');
 				ws.on('message', message => this.handleWebSocketMessage(ws, message.toString()));
 				ws.on('close', () => {
