@@ -1,4 +1,5 @@
-import { ILiveOrder, IOrderBook, IOrderBookLevel } from '../common/types';
+import { IOrderBook, IOrderBookLevel } from '../common/types';
+import liveOrders from '../samples/test/liveOrders.json';
 import orderBookSnapshot from '../samples/test/orderBookSnapshot.json';
 import orderBookUtil from './orderBookUtil';
 import util from './util';
@@ -83,107 +84,10 @@ test('sortOrderBookLevels | ask', () => {
 	expect(orderLevelsAsks).toMatchSnapshot();
 });
 
-const liveOrders: { [orderhash: string]: ILiveOrder } = {
-	orderHash1: {
-		account: 'account1',
-		pair: 'pair',
-		orderHash: 'orderHash1',
-		price: 100,
-		amount: 10,
-		balance: 5,
-		fill: 1,
-		side: 'bid',
-		initialSequence: 1,
-		currentSequence: 5
-	},
-	orderHash2: {
-		account: 'account2',
-		pair: 'pair',
-		orderHash: 'orderHash2',
-		price: 110,
-		amount: 10,
-		balance: 5,
-		fill: 1,
-		side: 'bid',
-		initialSequence: 2,
-		currentSequence: 6
-	},
-	orderHash3: {
-		account: 'account3',
-		pair: 'pair',
-		orderHash: 'orderHash3',
-		price: 100,
-		amount: 20,
-		balance: 5,
-		fill: 1,
-		side: 'bid',
-		initialSequence: 3,
-		currentSequence: 7
-	},
-	orderHash4: {
-		account: 'account2',
-		pair: 'pair',
-		orderHash: 'orderHash4',
-		price: 100,
-		amount: 10,
-		balance: 5,
-		fill: 1,
-		side: 'bid',
-		initialSequence: 4,
-		currentSequence: 8
-	},
-	orderHash5: {
-		account: 'account5',
-		pair: 'pair',
-		orderHash: 'orderHash5',
-		price: 110,
-		amount: 10,
-		balance: 5,
-		fill: 1,
-		side: 'ask',
-		initialSequence: 9,
-		currentSequence: 13
-	},
-	orderHash6: {
-		account: 'account6',
-		pair: 'pair',
-		orderHash: 'orderHash6',
-		price: 120,
-		amount: 10,
-		balance: 5,
-		fill: 1,
-		side: 'ask',
-		initialSequence: 10,
-		currentSequence: 14
-	},
-	orderHash7: {
-		account: 'account7',
-		pair: 'pair',
-		orderHash: 'orderHash7',
-		price: 110,
-		amount: 20,
-		balance: 5,
-		fill: 1,
-		side: 'ask',
-		initialSequence: 11,
-		currentSequence: 15
-	},
-	orderHash8: {
-		account: 'account8',
-		pair: 'pair',
-		orderHash: 'orderHash8',
-		price: 110,
-		amount: 10,
-		balance: 5,
-		fill: 1,
-		side: 'ask',
-		initialSequence: 12,
-		currentSequence: 16
-	}
-};
-
-test('constructOrderBook', () =>
-	expect(orderBookUtil.constructOrderBook(liveOrders)).toMatchSnapshot());
+test('constructOrderBook', () => {
+	const liveOrders1 = util.clone(liveOrders);
+	expect(orderBookUtil.constructOrderBook(liveOrders1)).toMatchSnapshot();
+});
 
 const orderBook: IOrderBook = {
 	bids: orderLevelsBids,
