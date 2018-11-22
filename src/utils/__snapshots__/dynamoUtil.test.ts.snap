@@ -20,6 +20,9 @@ Array [
         "currentSequence": Object {
           "N": "1",
         },
+        "expiry": Object {
+          "N": "1234567890",
+        },
         "fill": Object {
           "N": "234",
         },
@@ -128,6 +131,9 @@ Array [
         "createdAt": Object {
           "N": "1234560000",
         },
+        "expiry": Object {
+          "N": "1234567890",
+        },
         "fill": Object {
           "N": "234",
         },
@@ -227,6 +233,7 @@ Array [
     "balance": 123,
     "createdAt": 1234560000,
     "currentSequence": 2,
+    "expiry": 1234567890,
     "fill": 234,
     "initialSequence": 1,
     "orderHash": "0xOrderHash",
@@ -267,6 +274,7 @@ Array [
     "balance": 123,
     "createdAt": 1234560000,
     "currentSequence": 2,
+    "expiry": 1234567890,
     "fill": 234,
     "initialSequence": 1,
     "orderHash": "0xOrderHash",
@@ -433,6 +441,7 @@ Array [
     "balance": 123,
     "createdAt": 1234560000,
     "currentSequence": 1,
+    "expiry": 1234567890,
     "fill": 234,
     "initialSequence": 1,
     "orderHash": "0xOrderHash",

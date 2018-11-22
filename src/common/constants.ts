@@ -39,6 +39,7 @@ export const DB_PROCESSED = 'processed';
 export const DB_TOKENS = 'tokens';
 export const DB_ADDRESS = 'address';
 export const DB_CODE = 'code';
+export const DB_EXP = 'expiry';
 
 export const DB_ADD = 'add';
 export const DB_UPDATE = 'update';

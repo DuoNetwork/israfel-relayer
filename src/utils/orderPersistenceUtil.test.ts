@@ -58,6 +58,7 @@ const liveOrder = {
 	balance: 123,
 	fill: 234,
 	side: CST.DB_BID,
+	expiry: 1234567890,
 	initialSequence: 1,
 	currentSequence: 2
 };

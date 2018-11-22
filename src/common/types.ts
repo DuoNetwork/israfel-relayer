@@ -9,6 +9,7 @@ export interface ILiveOrder {
 	balance: number;
 	fill: number;
 	side: string;
+	expiry: number;
 	createdAt?: number;
 	updatedAt?: number;
 	initialSequence: number;

@@ -198,6 +198,7 @@ class OrderPersistenceUtil {
 			balance: amount,
 			fill: 0,
 			side: side,
+			expiry: Number(signedOrder.expirationTimeSeconds) * 1000,
 			initialSequence: 0,
 			currentSequence: 0
 		};
