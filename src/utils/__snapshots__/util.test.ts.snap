@@ -6,7 +6,6 @@ Object {
   "debug": true,
   "live": true,
   "maker": 456,
-  "private": false,
   "server": true,
   "spender": 789,
   "token": "token",

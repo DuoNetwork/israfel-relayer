@@ -146,7 +146,6 @@ export interface IWsOrderBookUpdateResponse extends IWsResponse {
 
 export interface IOption {
 	live: boolean;
-	private: boolean;
 	token: string;
 	maker: number;
 	spender: number;

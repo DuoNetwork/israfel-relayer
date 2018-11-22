@@ -21,7 +21,6 @@ import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as CST from '../common/constants';
 import { IRawOrder, IStringSignedOrder } from '../common/types';
 import util from './util';
-const abiDecoder = require('abi-decoder');
 
 export enum Wallet {
 	None,
@@ -39,7 +38,7 @@ export default class Web3Util {
 	private rawMetamaskProvider: any = null;
 	public contractAddresses: ContractAddresses;
 
-	constructor(window: any, live: boolean, usePrivateKeyWallet: boolean, local: boolean) {
+	constructor(window: any, live: boolean, privateKey: string, local: boolean) {
 		this.networkId = live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN;
 		if (window && typeof window.web3 !== 'undefined') {
 			this.rawMetamaskProvider = window.web3.currentProvider;
@@ -51,13 +50,8 @@ export default class Web3Util {
 			const pe = new Web3ProviderEngine();
 			if (local) pe.addProvider(new RPCSubprovider(CST.PROVIDER_LOCAL));
 			else {
-				if (!window && usePrivateKeyWallet) {
-					const key = require(`./keys/privateKey.${
-						live ? CST.DB_LIVE : CST.DB_DEV
-					}.json`);
-					const privateKeyProvider = new PrivateKeyWalletSubprovider(key);
-					pe.addProvider(privateKeyProvider);
-				}
+				if (!window && privateKey)
+					pe.addProvider(new PrivateKeyWalletSubprovider(privateKey));
 				const infura = require('../keys/infura.json');
 				pe.addProvider(
 					new RPCSubprovider(
@@ -69,7 +63,7 @@ export default class Web3Util {
 			}
 			pe.start();
 			this.web3Wrapper = new Web3Wrapper(pe);
-			this.wallet = window ? Wallet.None : Wallet.Local;
+			this.wallet = local || (!window && privateKey) ? Wallet.Local : Wallet.None;
 		}
 
 		this.contractWrappers = new ContractWrappers(this.web3Wrapper.getProvider(), {
@@ -305,10 +299,5 @@ export default class Web3Util {
 			util.logDebug(JSON.stringify(err));
 			return false;
 		}
-	}
-
-	public decode(abi: any, input: string): any {
-		abiDecoder.addABI(abi);
-		return abiDecoder.decodeMethod(input);
 	}
 }
