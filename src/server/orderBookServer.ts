@@ -76,14 +76,12 @@ class OrderBookServer {
 			let matchable = true;
 			const liveOrders: ILiveOrder[] = [];
 			while (matchable) {
-				const matchResult:
-					| IMatchingOrderResult[]
-					| null = await orderMatchingUtil.matchOrders(
+				const matchResult: IMatchingOrderResult[] = await orderMatchingUtil.matchOrders(
 					this.web3Util,
 					this.orderBook,
 					orderQueueItem.liveOrder
 				);
-				if (matchResult)
+				if (matchResult.length > 0)
 					liveOrders.concat(
 						await this.processMatchingResult(matchResult, orderQueueItem.liveOrder)
 					);
@@ -179,12 +177,12 @@ class OrderBookServer {
 		if (this.web3Util) {
 			const liveOrders: ILiveOrder[] = [];
 			for (const orderLevel of this.orderBook.bids) {
-				const res: IMatchingOrderResult[] | null = await orderMatchingUtil.matchOrders(
+				const res: IMatchingOrderResult[] = await orderMatchingUtil.matchOrders(
 					this.web3Util,
 					this.orderBook,
 					this.liveOrders[orderLevel.orderHash]
 				);
-				if (!res) return;
+				if (!res.length) return;
 				else
 					liveOrders.concat(
 						await this.processMatchingResult(res, this.liveOrders[orderLevel.orderHash])
