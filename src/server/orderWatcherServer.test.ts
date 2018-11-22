@@ -36,6 +36,8 @@ test('updateOrder isValid no userOrder', async () => {
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
 	await orderWatcherServer.updateOrder({
 		method: 'method',
+		status: 'status',
+		requestor: CST.DB_ORDER_WATCHER,
 		pair: 'pair',
 		side: 'side',
 		orderHash: 'orderHash',
@@ -66,6 +68,8 @@ test('updateOrder isValid userOrder', async () => {
 	await orderWatcherServer.updateOrder({
 		method: 'method',
 		pair: 'pair',
+		status: 'status',
+		requestor: CST.DB_ORDER_WATCHER,
 		side: 'side',
 		orderHash: '0xOrderHash',
 		balance: -1
@@ -170,6 +174,8 @@ test('addIntoWatch no signed order and no rawOrder', async () => {
 
 const orderQueueItem = {
 	method: 'method',
+	status: 'status',
+	requestor: CST.DB_ORDER_WATCHER,
 	liveOrder: {
 		orderHash: '0xOrderHash'
 	} as any,

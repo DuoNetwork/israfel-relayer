@@ -52,6 +52,8 @@ class OrderWatcherServer {
 		);
 		const orderPersistRequest: IOrderPersistRequest = {
 			method: CST.DB_UPDATE,
+			status: CST.DB_UPDATE,
+			requestor: CST.DB_ORDER_WATCHER,
 			pair: this.pair,
 			orderHash: orderState.orderHash,
 			balance: -1
@@ -71,18 +73,23 @@ class OrderWatcherServer {
 					: remainingFillableMakerAssetAmount
 			);
 			const fill = Web3Util.fromWei(filledTakerAssetAmount);
-			if (fill) orderPersistRequest.fill = side === CST.DB_BID ? fill : fill * price;
+			if (fill) {
+				orderPersistRequest.fill = side === CST.DB_BID ? fill : fill * price;
+				orderPersistRequest.status = CST.DB_PFILL;
+			}
 		} else {
 			const error = (orderState as OrderStateInvalid).error;
 			switch (error) {
 				case ExchangeContractErrs.OrderFillExpired:
 				case ExchangeContractErrs.OrderCancelled:
-				case ExchangeContractErrs.OrderFillRoundingError:
 					orderPersistRequest.method = CST.DB_TERMINATE;
+					orderPersistRequest.status = CST.DB_TERMINATE;
 					break;
+				case ExchangeContractErrs.OrderFillRoundingError:
 				case ExchangeContractErrs.OrderRemainingFillAmountZero:
 					orderPersistRequest.balance = 0;
 					orderPersistRequest.method = CST.DB_TERMINATE;
+					orderPersistRequest.status = CST.DB_FILL;
 					break;
 				case ExchangeContractErrs.InsufficientTakerBalance:
 				case ExchangeContractErrs.InsufficientTakerAllowance:
@@ -122,6 +129,8 @@ class OrderWatcherServer {
 					util.logDebug(orderHash + ' not fillable, send update');
 					await this.updateOrder({
 						method: CST.DB_UPDATE,
+						status: CST.DB_UPDATE,
+						requestor: CST.DB_ORDER_WATCHER,
 						pair: this.pair,
 						side: this.web3Util.getSideFromSignedOrder(signedOrder, this.pair),
 						orderHash: orderHash,

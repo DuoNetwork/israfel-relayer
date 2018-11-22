@@ -354,7 +354,8 @@ test('addUserOrder', async () => {
 		createdAt: 1234560000,
 		initialSequence: 1,
 		currentSequence: 2,
-		updatedBy: 'updatedBy'
+		updatedBy: 'updatedBy',
+		processed: false
 	});
 	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
 });
@@ -384,7 +385,8 @@ test('getUserOrdersForMonth', async () => {
 				[CST.DB_INITIAL_SEQ]: { N: '1' },
 				[CST.DB_CREATED_AT]: { N: '1234560000' },
 				[CST.DB_UPDATED_AT]: { N: '1234567890' },
-				[CST.DB_UPDATED_BY]: { S: 'updatedBy' }
+				[CST.DB_UPDATED_BY]: { S: 'updatedBy' },
+				[CST.DB_PROCESSED]: { BOOL: true },
 			}
 		]
 	};

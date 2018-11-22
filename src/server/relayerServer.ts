@@ -107,6 +107,8 @@ class RelayerServer {
 			try {
 				const userOrder = await orderPersistenceUtil.persistOrder({
 					method: req.method,
+					status: CST.DB_CONFIRMED,
+					requestor: CST.DB_RELAYER,
 					pair: req.pair,
 					orderHash: orderHash,
 					balance: -1,
@@ -131,6 +133,8 @@ class RelayerServer {
 			try {
 				const userOrder = await orderPersistenceUtil.persistOrder({
 					method: req.method,
+					status: CST.DB_CONFIRMED,
+					requestor: CST.DB_RELAYER,
 					pair: req.pair,
 					orderHash: req.orderHash,
 					balance: -1

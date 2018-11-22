@@ -104,7 +104,9 @@ Array [
       "method": "update",
       "orderHash": "orderHash",
       "pair": "pair",
+      "requestor": "orderWatcher",
       "side": "bid",
+      "status": "update",
     },
   ],
 ]
@@ -220,6 +222,8 @@ Array [
       "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
+      "requestor": "orderWatcher",
+      "status": "terminate",
     },
   ],
 ]
@@ -235,6 +239,8 @@ Array [
       "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
+      "requestor": "orderWatcher",
+      "status": "terminate",
     },
   ],
 ]
@@ -246,10 +252,12 @@ exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.OrderFillRounding
 Array [
   Array [
     Object {
-      "balance": -1,
+      "balance": 0,
       "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
+      "requestor": "orderWatcher",
+      "status": "fill",
     },
   ],
 ]
@@ -265,6 +273,8 @@ Array [
       "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
+      "requestor": "orderWatcher",
+      "status": "fill",
     },
   ],
 ]
@@ -280,6 +290,8 @@ Array [
       "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
+      "requestor": "orderWatcher",
+      "status": "fill",
     },
   ],
 ]
@@ -296,6 +308,8 @@ Array [
       "method": "update",
       "orderHash": "orderHash",
       "pair": "pair",
+      "requestor": "orderWatcher",
+      "status": "pFill",
     },
   ],
 ]
@@ -309,6 +323,8 @@ Array [
       "method": "update",
       "orderHash": "orderHash",
       "pair": "pair",
+      "requestor": "orderWatcher",
+      "status": "update",
     },
   ],
 ]
@@ -323,6 +339,8 @@ Array [
       "method": "update",
       "orderHash": "orderHash",
       "pair": "pair",
+      "requestor": "orderWatcher",
+      "status": "pFill",
     },
   ],
 ]
@@ -336,6 +354,8 @@ Array [
       "method": "update",
       "orderHash": "orderHash",
       "pair": "pair",
+      "requestor": "orderWatcher",
+      "status": "update",
     },
   ],
 ]
@@ -357,7 +377,9 @@ Array [
       "method": "method",
       "orderHash": "orderHash",
       "pair": "pair",
+      "requestor": "orderWatcher",
       "side": "side",
+      "status": "status",
     },
   ],
 ]
@@ -379,7 +401,9 @@ Array [
       "method": "method",
       "orderHash": "0xOrderHash",
       "pair": "pair",
+      "requestor": "orderWatcher",
       "side": "side",
+      "status": "status",
     },
   ],
 ]

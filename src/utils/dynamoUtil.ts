@@ -394,7 +394,8 @@ class DynamoUtil {
 			[CST.DB_INITIAL_SEQ]: { N: userOrder.initialSequence + '' },
 			[CST.DB_CREATED_AT]: { N: (userOrder.createdAt || timestamp) + '' },
 			[CST.DB_UPDATED_AT]: { N: timestamp + '' },
-			[CST.DB_UPDATED_BY]: { S: userOrder.updatedBy + '' }
+			[CST.DB_UPDATED_BY]: { S: userOrder.updatedBy + '' },
+			[CST.DB_PROCESSED]: {BOOL: userOrder.processed}
 		};
 	}
 
@@ -424,7 +425,8 @@ class DynamoUtil {
 			currentSequence: Number(seq),
 			createdAt: Number(data[CST.DB_CREATED_AT].N),
 			updatedAt: Number(data[CST.DB_UPDATED_AT].N),
-			updatedBy: data[CST.DB_UPDATED_BY].S || ''
+			updatedBy: data[CST.DB_UPDATED_BY].S || '',
+			processed: !!data[CST.DB_PROCESSED].BOOL
 		};
 	}
 

@@ -11,6 +11,7 @@ Object {
   "orderHash": "0xOrderHash",
   "pair": "pair",
   "price": 0.123456789,
+  "processed": true,
   "side": "bid",
   "status": "status",
   "type": "type",
@@ -29,6 +30,7 @@ Object {
   "orderHash": "0xOrderHash",
   "pair": "pair",
   "price": 0.123456789,
+  "processed": false,
   "side": "bid",
   "status": "status",
   "type": "type",
@@ -118,7 +120,7 @@ Array [
   Array [
     "orders|cache",
     "add|0xOrderHash",
-    "{\\"method\\":\\"add\\",\\"liveOrder\\":{\\"test\\":\\"liveOrder\\",\\"initialSequence\\":123,\\"currentSequence\\":123},\\"signedOrder\\":\\"may or may not exist\\"}",
+    "{\\"method\\":\\"add\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"test\\":\\"liveOrder\\",\\"initialSequence\\":123,\\"currentSequence\\":123},\\"signedOrder\\":\\"may or may not exist\\"}",
   ],
 ]
 `;
@@ -136,7 +138,7 @@ exports[`persistOrder add 3`] = `
 Array [
   Array [
     "orders|pubsub|pair",
-    "{\\"method\\":\\"add\\",\\"liveOrder\\":{\\"test\\":\\"liveOrder\\",\\"initialSequence\\":123,\\"currentSequence\\":123},\\"signedOrder\\":\\"may or may not exist\\"}",
+    "{\\"method\\":\\"add\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"test\\":\\"liveOrder\\",\\"initialSequence\\":123,\\"currentSequence\\":123},\\"signedOrder\\":\\"may or may not exist\\"}",
   ],
 ]
 `;
@@ -150,8 +152,9 @@ Array [
       "test": "liveOrder",
     },
     "add",
-    "confirmed",
-    "relayer",
+    "status",
+    "requestor",
+    false,
   ],
 ]
 `;
@@ -161,7 +164,7 @@ Array [
   Array [
     "orders|cache",
     "method|0xOrderHash",
-    "{\\"method\\":\\"method\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":1,\\"balance\\":80}}",
+    "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":1,\\"balance\\":80}}",
   ],
 ]
 `;
@@ -179,7 +182,7 @@ exports[`persistOrder not add 3`] = `
 Array [
   Array [
     "orders|pubsub|pair",
-    "{\\"method\\":\\"method\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":1,\\"balance\\":80}}",
+    "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":1,\\"balance\\":80}}",
   ],
 ]
 `;
@@ -194,8 +197,9 @@ Array [
       "fill": 1,
     },
     "method",
-    "confirmed",
-    "relayer",
+    "status",
+    "requestor",
+    false,
   ],
 ]
 `;
@@ -261,8 +265,9 @@ Array [
       "side": "bid",
     },
     "add",
-    "confirmed",
-    "orderProcessor",
+    "status",
+    "requestor",
+    true,
   ],
 ]
 `;
@@ -336,8 +341,9 @@ Array [
       "side": "bid",
     },
     "terminate",
-    "confirmed",
-    "orderProcessor",
+    "status",
+    "requestor",
+    true,
   ],
 ]
 `;
@@ -386,8 +392,9 @@ Array [
       "side": "bid",
     },
     "update",
-    "confirmed",
-    "orderProcessor",
+    "status",
+    "requestor",
+    true,
   ],
 ]
 `;

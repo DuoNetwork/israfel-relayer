@@ -140,6 +140,9 @@ Array [
         "price": Object {
           "N": "0.12345678",
         },
+        "processed": Object {
+          "BOOL": false,
+        },
         "side": Object {
           "S": "side",
         },
@@ -435,6 +438,7 @@ Array [
     "orderHash": "0xOrderHash",
     "pair": "pair",
     "price": 123,
+    "processed": true,
     "side": "side",
     "status": "status",
     "type": "type",

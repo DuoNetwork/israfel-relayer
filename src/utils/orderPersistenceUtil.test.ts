@@ -65,18 +65,21 @@ const liveOrder = {
 test('addUserOrderToDB', async () => {
 	dynamoUtil.addUserOrder = jest.fn(() => Promise.resolve());
 	expect(
-		await orderPersistenceUtil.addUserOrderToDB(liveOrder, 'type', 'status', 'updatedBy')
+		await orderPersistenceUtil.addUserOrderToDB(liveOrder, 'type', 'status', 'updatedBy', true)
 	).toMatchSnapshot();
 });
 
 test('addUserOrderToDB error', async () => {
 	dynamoUtil.addUserOrder = jest.fn(() => Promise.reject('addUserOrderToDB'));
 	expect(
-		await orderPersistenceUtil.addUserOrderToDB(liveOrder, 'type', 'status', 'updatedBy')
+		await orderPersistenceUtil.addUserOrderToDB(liveOrder, 'type', 'status', 'updatedBy', false)
 	).toMatchSnapshot();
 });
 
 const addOrderQueueItem = {
+	method: 'method',
+	status: 'status',
+	requestor: 'requestor',
 	liveOrder: liveOrder,
 	signedOrder: {
 		senderAddress: 'senderAddress',
@@ -174,6 +177,8 @@ test('persistOrder add missing side', async () => {
 		await orderPersistenceUtil.persistOrder(
 			{
 				method: CST.DB_ADD,
+				status: 'status',
+				requestor: 'requestor',
 				pair: 'pair',
 				orderHash: '0xOrderHash',
 				balance: -1,
@@ -204,6 +209,8 @@ test('persistOrder add', async () => {
 		await orderPersistenceUtil.persistOrder(
 			{
 				method: CST.DB_ADD,
+				status: 'status',
+				requestor: 'requestor',
 				pair: 'pair',
 				side: 'side',
 				orderHash: '0xOrderHash',
@@ -237,6 +244,8 @@ test('persistOrder not add', async () => {
 		await orderPersistenceUtil.persistOrder(
 			{
 				method: 'method',
+				status: 'status',
+				requestor: 'requestor',
 				pair: 'pair',
 				side: 'side',
 				orderHash: '0xOrderHash',
@@ -264,6 +273,8 @@ test('persistOrder add existing', async () => {
 		await orderPersistenceUtil.persistOrder(
 			{
 				method: CST.DB_ADD,
+				status: 'status',
+				requestor: 'requestor',
 				pair: 'pair',
 				side: 'side',
 				orderHash: '0xOrderHash',
@@ -291,6 +302,8 @@ test('persistOrder not add not existing', async () => {
 		await orderPersistenceUtil.persistOrder(
 			{
 				method: 'method',
+				status: 'status',
+				requestor: 'requestor',
 				pair: 'pair',
 				side: 'side',
 				orderHash: '0xOrderHash',
@@ -398,6 +411,9 @@ test('processOrderQueue terminate', async () => {
 	redisUtil.hashGet = jest.fn(() =>
 		Promise.resolve(
 			JSON.stringify({
+				method: 'method',
+				status: 'status',
+				requestor: 'requestor',
 				liveOrder: liveOrder
 			})
 		)

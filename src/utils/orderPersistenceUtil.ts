@@ -30,9 +30,10 @@ class OrderPersistenceUtil {
 		liveOrder: ILiveOrder,
 		type: string,
 		status: string,
-		updatedBy: string
+		updatedBy: string,
+		processed: boolean
 	) {
-		const userOrder = this.constructUserOrder(liveOrder, type, status, updatedBy);
+		const userOrder = this.constructUserOrder(liveOrder, type, status, updatedBy, processed);
 		try {
 			await dynamoUtil.addUserOrder(userOrder);
 			util.logDebug(`added user order ${liveOrder.orderHash}|${type}|${status}|${updatedBy}`);
@@ -96,7 +97,7 @@ class OrderPersistenceUtil {
 	}
 
 	public async persistOrder(orderPersistRequest: IOrderPersistRequest) {
-		const { pair, orderHash, method, balance, side, fill } = orderPersistRequest;
+		const { pair, orderHash, method, balance, side, fill, status, requestor } = orderPersistRequest;
 		if (method === CST.DB_ADD && !side) {
 			util.logDebug(`invalid add request ${orderHash}, missing side`);
 			return null;
@@ -123,6 +124,8 @@ class OrderPersistenceUtil {
 		}
 		const orderQueueItem: IOrderQueueItem = {
 			method: method,
+			status: status,
+			requestor: requestor,
 			liveOrder: liveOrder as ILiveOrder
 		};
 		orderQueueItem.liveOrder.currentSequence = sequence;
@@ -154,8 +157,9 @@ class OrderPersistenceUtil {
 		return this.addUserOrderToDB(
 			orderQueueItem.liveOrder,
 			method,
-			CST.DB_CONFIRMED,
-			method === CST.DB_UPDATE ? CST.DB_ORDER_WATCHER : CST.DB_RELAYER
+			status,
+			requestor,
+			false
 		);
 	}
 
@@ -163,13 +167,15 @@ class OrderPersistenceUtil {
 		liveOrder: ILiveOrder,
 		type: string,
 		status: string,
-		updatedBy: string
+		updatedBy: string,
+		processed: boolean
 	): IUserOrder {
 		return {
 			...liveOrder,
 			type: type,
 			status: status,
-			updatedBy: updatedBy
+			updatedBy: updatedBy,
+			processed: processed
 		};
 	}
 
@@ -246,8 +252,9 @@ class OrderPersistenceUtil {
 		await this.addUserOrderToDB(
 			orderQueueItem.liveOrder,
 			method,
-			CST.DB_CONFIRMED,
-			CST.DB_ORDER_PROCESSOR
+			orderQueueItem.status,
+			orderQueueItem.requestor,
+			true
 		);
 
 		return true;

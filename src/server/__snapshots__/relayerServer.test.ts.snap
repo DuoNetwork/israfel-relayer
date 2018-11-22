@@ -8,6 +8,7 @@ Array [
       "method": "add",
       "orderHash": "0xOrderHash",
       "pair": "ZRX-WETH",
+      "requestor": "relayer",
       "side": "side",
       "signedOrder": Object {
         "exchangeAddress": "exchangeAddress",
@@ -25,6 +26,7 @@ Array [
         "takerAssetData": "takerAssetData",
         "takerFee": "0",
       },
+      "status": "confirmed",
     },
   ],
 ]
@@ -465,6 +467,8 @@ Array [
       "method": "terminate",
       "orderHash": "0xOrderHash",
       "pair": "ZRX-WETH",
+      "requestor": "relayer",
+      "status": "confirmed",
     },
   ],
 ]
