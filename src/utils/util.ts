@@ -53,6 +53,7 @@ class Util {
 
 	public defaultOption: IOption = {
 		live: false,
+		private: false,
 		token: 'ZRX',
 		amount: 1,
 		maker: 0,
@@ -70,6 +71,7 @@ class Util {
 		option.live = argv.includes('live');
 		option.server = argv.includes('server');
 		option.debug = argv.includes('debug');
+		option.private = argv.includes('private');
 		for (let i = 3; i < argv.length; i++) {
 			const args = argv[i].split('=');
 			switch (args[0]) {

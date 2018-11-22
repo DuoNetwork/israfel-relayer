@@ -15,6 +15,11 @@ export interface ILiveOrder {
 	currentSequence: number;
 }
 
+export interface IMatchingOrders {
+	orderHash: string;
+	fillAmt: number;
+}
+
 export interface IUserOrder extends ILiveOrder {
 	type: string;
 	status: string;
@@ -141,6 +146,7 @@ export interface IWsOrderBookUpdateResponse extends IWsResponse {
 
 export interface IOption {
 	live: boolean;
+	private: boolean;
 	token: string;
 	maker: number;
 	spender: number;

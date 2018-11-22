@@ -16,11 +16,12 @@ import {
 } from '0x.js';
 import { getContractAddressesForNetworkOrThrow } from '@0x/contract-addresses';
 import { schemas, SchemaValidator } from '@0x/json-schemas';
-import { MetamaskSubprovider, MnemonicWalletSubprovider } from '@0x/subproviders';
+import { MetamaskSubprovider, PrivateKeyWalletSubprovider } from '@0x/subproviders';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as CST from '../common/constants';
 import { IRawOrder, IStringSignedOrder } from '../common/types';
 import util from './util';
+const abiDecoder = require('abi-decoder');
 
 export enum Wallet {
 	None,
@@ -38,7 +39,7 @@ export default class Web3Util {
 	private rawMetamaskProvider: any = null;
 	public contractAddresses: ContractAddresses;
 
-	constructor(window: any, live: boolean, mnemonic: string, local: boolean) {
+	constructor(window: any, live: boolean, usePrivateKeyWallet: boolean, local: boolean) {
 		this.networkId = live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN;
 		if (window && typeof window.web3 !== 'undefined') {
 			this.rawMetamaskProvider = window.web3.currentProvider;
@@ -50,6 +51,13 @@ export default class Web3Util {
 			const pe = new Web3ProviderEngine();
 			if (local) pe.addProvider(new RPCSubprovider(CST.PROVIDER_LOCAL));
 			else {
+				if (!window && usePrivateKeyWallet) {
+					const key = require(`./keys/privateKey.${
+						live ? CST.DB_LIVE : CST.DB_DEV
+					}.json`);
+					const privateKeyProvider = new PrivateKeyWalletSubprovider(key);
+					pe.addProvider(privateKeyProvider);
+				}
 				const infura = require('../keys/infura.json');
 				pe.addProvider(
 					new RPCSubprovider(
@@ -58,13 +66,6 @@ export default class Web3Util {
 							infura.token
 					)
 				);
-			}
-			if (!window && mnemonic) {
-				const mnemonicWallet = new MnemonicWalletSubprovider({
-					mnemonic: mnemonic,
-					baseDerivationPath: CST.BASE_DERIVATION_PATH
-				});
-				pe.addProvider(mnemonicWallet);
 			}
 			pe.start();
 			this.web3Wrapper = new Web3Wrapper(pe);
@@ -243,11 +244,23 @@ export default class Web3Util {
 		// TODO: read from DB
 		// else if (CST.REVERSE_TOKEN_MAPPING[tokenName])
 		// 	tokenAddress = CST.REVERSE_TOKEN_MAPPING[tokenName];
-
 		if (tokenAddress)
 			return this.contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
-				this.contractAddresses.etherToken,
+				tokenAddress,
 				await this.getCurrentAddress()
+			);
+		return Promise.resolve();
+	}
+
+	public async getProxyTokenAllowance(tokenName: string, ownerAddr: string) {
+		let tokenAddress = '';
+		if (tokenName === CST.TOKEN_WETH) tokenAddress = this.contractAddresses.etherToken;
+		else if (tokenName === CST.TOKEN_ZRX) tokenAddress = this.contractAddresses.zrxToken;
+
+		if (tokenAddress)
+			return this.contractWrappers.erc20Token.getProxyAllowanceAsync(
+				tokenAddress,
+				ownerAddr.toLowerCase()
 			);
 		return Promise.resolve();
 	}
@@ -292,5 +305,10 @@ export default class Web3Util {
 			util.logDebug(JSON.stringify(err));
 			return false;
 		}
+	}
+
+	public decode(abi: any, input: string): any {
+		abiDecoder.addABI(abi);
+		return abiDecoder.decodeMethod(input);
 	}
 }
