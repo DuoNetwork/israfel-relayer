@@ -1,6 +1,7 @@
 import { SignedOrder } from '0x.js';
 import * as CST from '../common/constants';
 import {
+	ILiveOrder,
 	IMatchingOrderResult,
 	IOrderBook,
 	IOrderQueueItem,
@@ -88,5 +89,16 @@ export class OrderMatcherUtil {
 				//TODO: handle fail
 			}
 		}
+	}
+
+	public async batchAddUserOrders(liveOrders: ILiveOrder[]) {
+		for (const liveOrder of liveOrders)
+			await orderPersistenceUtil.addUserOrderToDB(
+				liveOrder,
+				CST.DB_UPDATE,
+				CST.DB_MATCHING,
+				CST.DB_ORDER_MATCHER,
+				true
+			);
 	}
 }

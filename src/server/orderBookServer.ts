@@ -7,6 +7,7 @@ import {
 	IOrderBookSnapshot,
 	IOrderBookSnapshotUpdate,
 	IOrderQueueItem
+	// IUserOrder
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
@@ -73,25 +74,30 @@ class OrderBookServer {
 		}
 
 		if (this.orderMatcher && method === CST.DB_ADD) {
-			const matchResult: IMatchingOrderResult[] | null = await this.orderMatcher.matchOrders(
-				this.orderBook,
-				orderQueueItem
-			);
-			if (matchResult) {
-				const resLeft = matchResult[0];
-				const resRight = matchResult[1];
+			let matchable = true;
+			const liveOrders: ILiveOrder[] = [];
+			while (matchable) {
+				const matchResult:
+					| IMatchingOrderResult[]
+					| null = await this.orderMatcher.matchOrders(this.orderBook, orderQueueItem);
+				if (matchResult) {
+					const resLeft = matchResult[0];
+					const resRight = matchResult[1];
 
-				orderQueueItem.liveOrder.currentSequence = resLeft.sequence;
-				orderQueueItem.liveOrder.balance = resLeft.newBalance;
-				await this.updateOrderBook(orderQueueItem.liveOrder, CST.DB_UPDATE);
+					orderQueueItem.liveOrder.currentSequence = resLeft.sequence;
+					orderQueueItem.liveOrder.balance = resLeft.newBalance;
+					await this.updateOrderBook(orderQueueItem.liveOrder, CST.DB_UPDATE);
 
-				const rightLiveOrder = this.liveOrders[resRight.orderHash];
-				rightLiveOrder.currentSequence = resRight.sequence;
-				rightLiveOrder.balance = resRight.newBalance;
-				await this.updateOrderBook(rightLiveOrder, CST.DB_UPDATE);
+					const rightLiveOrder = this.liveOrders[resRight.orderHash];
+					rightLiveOrder.currentSequence = resRight.sequence;
+					rightLiveOrder.balance = resRight.newBalance;
+					await this.updateOrderBook(rightLiveOrder, CST.DB_UPDATE);
+					liveOrders.push(orderQueueItem.liveOrder);
+					liveOrders.push(rightLiveOrder);
+				} else matchable = false;
 			}
+			if (liveOrders.length > 0) await this.orderMatcher.batchAddUserOrders(liveOrders);
 		}
-
 		await this.updateOrderBook(orderQueueItem.liveOrder, method);
 	};
 
