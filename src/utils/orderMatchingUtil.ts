@@ -1,4 +1,5 @@
 import { SignedOrder } from '0x.js';
+import moment from 'moment';
 import * as CST from '../common/constants';
 import {
 	ILiveOrder,
@@ -10,7 +11,7 @@ import {
 import dynamoUtil from './dynamoUtil';
 import orderPersistenceUtil from './orderPersistenceUtil';
 import redisUtil from './redisUtil';
-// import util from './util';
+import util from './util';
 import Web3Util from './Web3Util';
 
 class OrderMatchingUtil {
@@ -36,6 +37,26 @@ class OrderMatchingUtil {
 			const rightOrder: SignedOrder = orderPersistenceUtil.parseSignedOrder(
 				rightRawOrder.signedOrder as IStringSignedOrder
 			);
+
+			if (rightOrder.expirationTimeSeconds.toNumber() - moment().valueOf() / 1000 < 3 * 60) {
+				util.logDebug(
+					`the order ${
+						orderLevel.orderHash
+					} is expiring in 3 minutes, removing this order`
+				);
+				return [
+					{
+						orderHash: liveOrder.orderHash,
+						sequence: await redisUtil.increment(`${CST.DB_SEQUENCE}|${pair}`),
+						newBalance: liveOrder.balance
+					},
+					{
+						orderHash: orderLevel.orderHash,
+						sequence: await redisUtil.increment(`${CST.DB_SEQUENCE}|${pair}`),
+						newBalance: 0
+					}
+				];
+			}
 
 			try {
 				await web3Util.contractWrappers.exchange.matchOrdersAsync(
