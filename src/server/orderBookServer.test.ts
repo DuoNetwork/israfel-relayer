@@ -10,6 +10,8 @@ const channel = 'xxx|xxx|pair';
 
 const orderQueueItem = {
 	method: CST.DB_ADD,
+	status: 'status',
+	requestor: 'requestor',
 	liveOrder: liveOrders['orderHash1']
 };
 test('handleOrderUpdate, pair wrong', async () => {

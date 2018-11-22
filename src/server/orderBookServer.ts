@@ -1,6 +1,7 @@
 import * as CST from '../common/constants';
 import {
 	ILiveOrder,
+	IMatchingOrderResult,
 	IOption,
 	IOrderBook,
 	IOrderBookSnapshot,
@@ -10,6 +11,7 @@ import {
 import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
 import orderBookUtil from '../utils/orderBookUtil';
+import { OrderMatcherUtil } from '../utils/OrderMatcherUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
@@ -21,6 +23,7 @@ class OrderBookServer {
 	public pendingUpdates: IOrderQueueItem[] = [];
 	public loadingOrders: boolean = true;
 	public orderSnapshotSequence: number = 0;
+	public orderMatcher: OrderMatcherUtil | null = null;
 	public orderBook: IOrderBook = {
 		bids: [],
 		asks: []
@@ -69,6 +72,31 @@ class OrderBookServer {
 			return;
 		}
 
+		if (this.orderMatcher && method === CST.DB_ADD) {
+			const matchResult: IMatchingOrderResult[] | null = await this.orderMatcher.matchOrders(
+				this.orderBook,
+				orderQueueItem
+			);
+			if (matchResult) {
+				const resLeft = matchResult[0];
+				const resRight = matchResult[1];
+
+				orderQueueItem.liveOrder.currentSequence = resLeft.sequence;
+				orderQueueItem.liveOrder.balance = resLeft.newBalance;
+				await this.updateOrderBook(orderQueueItem.liveOrder, CST.DB_UPDATE);
+
+				const rightLiveOrder = this.liveOrders[resRight.orderHash];
+				rightLiveOrder.currentSequence = resRight.sequence;
+				rightLiveOrder.balance = resRight.newBalance;
+				await this.updateOrderBook(rightLiveOrder, CST.DB_UPDATE);
+			}
+		}
+
+		await this.updateOrderBook(orderQueueItem.liveOrder, method);
+	};
+
+	public async updateOrderBook(liveOrder: ILiveOrder, method: string) {
+		const orderHash = liveOrder.orderHash;
 		const count = orderBookUtil.updateOrderBook(
 			this.orderBook,
 			{
@@ -102,7 +130,7 @@ class OrderBookServer {
 			this.orderBookSnapshot,
 			orderBookSnapshotUpdate
 		);
-	};
+	}
 
 	public updateOrderSequences() {
 		this.processedUpdates = {};
@@ -132,6 +160,7 @@ class OrderBookServer {
 
 	public async startServer(web3Util: Web3Util, option: IOption) {
 		this.web3Util = web3Util;
+		this.orderMatcher = new OrderMatcherUtil(web3Util, option.live);
 		this.pair = option.token + '-' + CST.TOKEN_WETH;
 		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderPersistRequest) =>
 			this.handleOrderUpdate(channel, orderPersistRequest)

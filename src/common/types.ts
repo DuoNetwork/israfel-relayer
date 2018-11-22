@@ -172,3 +172,9 @@ export interface IService {
 	hostname: string;
 	url: string;
 }
+
+export interface IMatchingOrderResult {
+	orderHash: string;
+	newBalance: number;
+	sequence: number;
+}

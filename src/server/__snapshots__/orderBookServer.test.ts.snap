@@ -162,6 +162,8 @@ Array [
       "side": "bid",
     },
     "method": "add",
+    "requestor": "requestor",
+    "status": "status",
   },
 ]
 `;
@@ -314,6 +316,8 @@ Array [
         "side": "bid",
       },
       "method": "add",
+      "requestor": "requestor",
+      "status": "status",
     },
   ],
 ]
