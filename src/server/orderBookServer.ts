@@ -195,7 +195,7 @@ class OrderBookServer {
 
 	public async startServer(web3Util: Web3Util, option: IOption) {
 		this.web3Util = web3Util;
-		this.pair = option.token + '-' + CST.TOKEN_WETH;
+		this.pair = option.token + '|' + CST.TOKEN_WETH;
 		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderPersistRequest) =>
 			this.handleOrderUpdate(channel, orderPersistRequest)
 		);

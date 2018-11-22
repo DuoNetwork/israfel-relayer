@@ -190,7 +190,7 @@ class OrderWatcherServer {
 				cleanupJobIntervalMs: 30000
 			}
 		);
-		this.pair = option.token + '-' + CST.TOKEN_WETH;
+		this.pair = option.token + '|' + CST.TOKEN_WETH;
 
 		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderPersistRequest) =>
 			this.handleOrderUpdate(channel, orderPersistRequest)
