@@ -53,7 +53,7 @@ class Util {
 
 	public defaultOption: IOption = {
 		live: false,
-		token: 'ZRX',
+		token: 'B-PPT-I0',
 		amount: 1,
 		maker: 0,
 		spender: 1,
