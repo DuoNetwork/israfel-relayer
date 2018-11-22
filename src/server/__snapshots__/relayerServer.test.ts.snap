@@ -526,6 +526,15 @@ Array [
 ]
 `;
 
+exports[`handleTokenRequest 1`] = `
+Array [
+  Array [
+    "ws",
+    "{\\"channel\\":\\"tokens\\",\\"method\\":\\"tokens\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"tokens\\":[\\"token1\\",\\"token2\\"]}",
+  ],
+]
+`;
+
 exports[`handleWebSocketMessage invalid requests 1`] = `
 Array [
   Array [
@@ -575,6 +584,8 @@ Array [
   ],
 ]
 `;
+
+exports[`handleWebSocketMessage orderBooks 2`] = `Array []`;
 
 exports[`handleWebSocketMessage orders 1`] = `
 Array [

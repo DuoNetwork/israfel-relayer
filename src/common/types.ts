@@ -149,6 +149,10 @@ export interface IWsOrderBookUpdateResponse extends IWsResponse {
 	orderBookUpdate: IOrderBookSnapshotUpdate;
 }
 
+export interface IWsTokenResponse extends IWsResponse {
+	tokens: IToken[]
+}
+
 export interface IOption {
 	live: boolean;
 	token: string;
