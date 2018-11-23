@@ -1,13 +1,7 @@
-import { SignedOrder } from '0x.js';
+import { assetDataUtils, SignedOrder } from '0x.js';
 import moment from 'moment';
 import * as CST from '../common/constants';
-import {
-	ILiveOrder,
-	IMatchingOrderResult,
-	IOrderBook,
-	IRawOrder,
-	IStringSignedOrder
-} from '../common/types';
+import { ILiveOrder, IMatchingOrderResult, IRawOrder, IStringSignedOrder } from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import orderPersistenceUtil from './orderPersistenceUtil';
 import redisUtil from './redisUtil';
@@ -17,45 +11,114 @@ import Web3Util from './Web3Util';
 class OrderMatchingUtil {
 	public async matchOrders(
 		web3Util: Web3Util,
-		orderBook: IOrderBook,
-		liveOrder: ILiveOrder
-	): Promise<IMatchingOrderResult[]> {
-		const isBid = liveOrder.side === CST.DB_BID;
-		const price = liveOrder.price;
-		const orderBookSide = isBid ? orderBook.asks : orderBook.bids;
-		const orderLevel = orderBookSide[0];
-		const pair = liveOrder.pair;
+		leftLiveOrder: ILiveOrder,
+		rightLiveOrder: ILiveOrder
+	): Promise<IMatchingOrderResult | null> {
+		const price = leftLiveOrder.price;
+		const pair = rightLiveOrder.pair;
+		const isBid = leftLiveOrder.side === CST.DB_BID;
+		util.logInfo(
+			`start matching order ${leftLiveOrder.orderHash} with ${rightLiveOrder.orderHash}`
+		);
 
-		if ((isBid && price < orderLevel.price) || (!isBid && price > orderLevel.price)) return [];
+		const obj: IMatchingOrderResult = {
+			left: {
+				orderHash: leftLiveOrder.orderHash,
+				newBalance: leftLiveOrder.balance,
+				sequence: await redisUtil.increment(`${CST.DB_SEQUENCE}|${pair}`)
+			},
+			right: {
+				orderHash: rightLiveOrder.orderHash,
+				newBalance: rightLiveOrder.balance,
+				sequence: await redisUtil.increment(`${CST.DB_SEQUENCE}|${pair}`)
+			}
+		};
+
+		if (rightLiveOrder.expiry - moment().valueOf() < 3 * 60 * 1000) {
+			util.logDebug(
+				`the order ${
+					rightLiveOrder.orderHash
+				} is expiring in 3 minutes, removing this order`
+			);
+			obj.right.newBalance = 0;
+			return obj;
+		}
+
+		if (leftLiveOrder.expiry - moment().valueOf() < 3 * 60 * 1000) {
+			util.logDebug(
+				`the order ${leftLiveOrder.orderHash} is expiring in 3 minutes, removing this order`
+			);
+			obj.left.newBalance = 0;
+			return obj;
+		}
+
+		if ((isBid && price < rightLiveOrder.price) || (!isBid && price > rightLiveOrder.price))
+			return null;
 		else {
-			const leftRawOrder = (await dynamoUtil.getRawOrder(liveOrder.orderHash)) as IRawOrder;
+			const leftRawOrder = (await dynamoUtil.getRawOrder(
+				leftLiveOrder.orderHash
+			)) as IRawOrder;
 			const leftOrder: SignedOrder = orderPersistenceUtil.parseSignedOrder(
 				leftRawOrder.signedOrder as IStringSignedOrder
 			);
 
-			const rightRawOrder = (await dynamoUtil.getRawOrder(orderLevel.orderHash)) as IRawOrder;
+			const rightRawOrder = (await dynamoUtil.getRawOrder(
+				rightLiveOrder.orderHash
+			)) as IRawOrder;
 			const rightOrder: SignedOrder = orderPersistenceUtil.parseSignedOrder(
 				rightRawOrder.signedOrder as IStringSignedOrder
 			);
 
-			if (rightOrder.expirationTimeSeconds.toNumber() - moment().valueOf() / 1000 < 3 * 60) {
-				util.logDebug(
-					`the order ${
-						orderLevel.orderHash
-					} is expiring in 3 minutes, removing this order`
-				);
-				return [
-					{
-						orderHash: liveOrder.orderHash,
-						sequence: await redisUtil.increment(`${CST.DB_SEQUENCE}|${pair}`),
-						newBalance: liveOrder.balance
-					},
-					{
-						orderHash: orderLevel.orderHash,
-						sequence: await redisUtil.increment(`${CST.DB_SEQUENCE}|${pair}`),
-						newBalance: 0
-					}
-				];
+			//check balance and allowance
+			const leftTokenAddr = (await assetDataUtils.decodeAssetDataOrThrow(
+				leftOrder.makerAssetData
+			)).tokenAddress;
+			const leftMakerBalance = Web3Util.fromWei(
+				await web3Util.contractWrappers.erc20Token.getBalanceAsync(
+					leftTokenAddr,
+					leftOrder.makerAddress
+				)
+			);
+			const leftMakerAllowance = Web3Util.fromWei(
+				await web3Util.contractWrappers.erc20Token.getProxyAllowanceAsync(
+					leftTokenAddr,
+					leftOrder.makerAddress
+				)
+			);
+
+			leftLiveOrder.balance = isBid
+				? Math.min(leftMakerBalance, leftMakerAllowance) / leftLiveOrder.price
+				: Math.min(leftMakerBalance, leftMakerAllowance) * leftLiveOrder.price;
+
+			if (leftLiveOrder.balance === 0) {
+				util.logDebug(`leftOrder ${leftLiveOrder.orderHash} balance is 0`);
+				obj.left.newBalance = 0;
+				return obj;
+			}
+
+			const rightTokenAddr = (await assetDataUtils.decodeAssetDataOrThrow(
+				rightOrder.makerAssetData
+			)).tokenAddress;
+			const rightMakerBalance = Web3Util.fromWei(
+				await web3Util.contractWrappers.erc20Token.getBalanceAsync(
+					rightTokenAddr,
+					leftOrder.makerAddress
+				)
+			);
+			const rightMakerAllowance = Web3Util.fromWei(
+				await web3Util.contractWrappers.erc20Token.getProxyAllowanceAsync(
+					rightTokenAddr,
+					leftOrder.makerAddress
+				)
+			);
+
+			rightLiveOrder.balance = isBid
+				? Math.min(rightMakerBalance, rightMakerAllowance) * rightLiveOrder.price
+				: Math.min(rightMakerBalance, rightMakerAllowance) / rightLiveOrder.price;
+			if (rightLiveOrder.balance === 0) {
+				util.logDebug(`leftOrder ${rightLiveOrder.orderHash} balance is 0`);
+				obj.right.newBalance = 0;
+				return obj;
 			}
 
 			try {
@@ -65,28 +128,24 @@ class OrderMatchingUtil {
 					web3Util.relayerAddress
 				);
 
-				return [
-					{
-						orderHash: liveOrder.orderHash,
-						sequence: await redisUtil.increment(`${CST.DB_SEQUENCE}|${pair}`),
-						newBalance: isBid
-							? Math.min(liveOrder.balance, orderLevel.amount / orderLevel.price)
-							: Math.min(liveOrder.balance, orderLevel.amount * orderLevel.price)
-					},
-					{
-						orderHash: orderLevel.orderHash,
-						sequence: await redisUtil.increment(`${CST.DB_SEQUENCE}|${pair}`),
-						newBalance: isBid
-							? Math.min(liveOrder.balance * price, orderLevel.amount)
-							: Math.min(
-									liveOrder.balance / price,
-									orderLevel.amount * orderLevel.price
-							)
-					}
-				];
+				obj.left.newBalance = isBid
+					? Math.min(leftLiveOrder.balance, rightLiveOrder.balance / rightLiveOrder.price)
+					: Math.min(
+							leftLiveOrder.balance,
+							rightLiveOrder.balance * rightLiveOrder.price
+					);
+
+				obj.right.newBalance = isBid
+					? Math.min(leftLiveOrder.balance * price, rightLiveOrder.balance)
+					: Math.min(
+							leftLiveOrder.balance / price,
+							rightLiveOrder.balance * rightLiveOrder.price
+					);
+
+				return obj;
 			} catch (err) {
-				return [];
-				//TODO: handle fail
+				util.logDebug('error in matching transaction');
+				return null;
 			}
 		}
 	}

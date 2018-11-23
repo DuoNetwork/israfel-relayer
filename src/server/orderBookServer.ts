@@ -76,12 +76,14 @@ class OrderBookServer {
 			let matchable = true;
 			const liveOrders: ILiveOrder[] = [];
 			while (matchable) {
-				const matchResult: IMatchingOrderResult[] = await orderMatchingUtil.matchOrders(
+				const matchResult: IMatchingOrderResult | null = await orderMatchingUtil.matchOrders(
 					this.web3Util,
-					this.orderBook,
-					orderQueueItem.liveOrder
+					orderQueueItem.liveOrder,
+					orderQueueItem.liveOrder.side === CST.DB_BID
+						? this.liveOrders[this.orderBook.asks[0].orderHash]
+						: this.liveOrders[this.orderBook.bids[0].orderHash]
 				);
-				if (matchResult.length > 0)
+				if (matchResult)
 					liveOrders.concat(
 						await this.processMatchingResult(matchResult, orderQueueItem.liveOrder)
 					);
@@ -93,11 +95,11 @@ class OrderBookServer {
 	};
 
 	public async processMatchingResult(
-		matchResult: IMatchingOrderResult[],
+		matchResult: IMatchingOrderResult,
 		liveOrder: ILiveOrder
 	): Promise<ILiveOrder[]> {
-		const resLeft = matchResult[0];
-		const resRight = matchResult[1];
+		const resLeft = matchResult.left;
+		const resRight = matchResult.right;
 		liveOrder.currentSequence = resLeft.sequence;
 		liveOrder.balance = resLeft.newBalance;
 		await this.updateOrderBook(liveOrder, CST.DB_UPDATE);
@@ -177,12 +179,13 @@ class OrderBookServer {
 		if (this.web3Util) {
 			const liveOrders: ILiveOrder[] = [];
 			for (const orderLevel of this.orderBook.bids) {
-				const res: IMatchingOrderResult[] = await orderMatchingUtil.matchOrders(
+				const leftLiveOrder = this.liveOrders[orderLevel.orderHash];
+				const res: IMatchingOrderResult | null = await orderMatchingUtil.matchOrders(
 					this.web3Util,
-					this.orderBook,
-					this.liveOrders[orderLevel.orderHash]
+					leftLiveOrder,
+					this.liveOrders[this.orderBook.asks[0].orderHash]
 				);
-				if (!res.length) return;
+				if (!res) return;
 				else
 					liveOrders.concat(
 						await this.processMatchingResult(res, this.liveOrders[orderLevel.orderHash])

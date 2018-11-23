@@ -151,7 +151,7 @@ export interface IWsOrderBookUpdateResponse extends IWsResponse {
 }
 
 export interface IWsTokenResponse extends IWsResponse {
-	tokens: IToken[]
+	tokens: IToken[];
 }
 
 export interface IOption {
@@ -178,10 +178,15 @@ export interface IService {
 	url: string;
 }
 
-export interface IMatchingOrderResult {
+export interface ISideMatchResult {
 	orderHash: string;
 	newBalance: number;
 	sequence: number;
+}
+
+export interface IMatchingOrderResult {
+	left: ISideMatchResult;
+	right: ISideMatchResult;
 }
 
 export interface IToken {
