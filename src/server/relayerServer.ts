@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as https from 'https';
+import Web3 from 'web3';
 import WebSocket from 'ws';
 import * as CST from '../common/constants';
 import {
@@ -25,6 +26,7 @@ import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
 class RelayerServer {
+	public web3: Web3 | null = null;
 	public web3Util: Web3Util | null = null;
 	public wsServer: WebSocket.Server | null = null;
 	public orderBookPairs: { [pair: string]: WebSocket[] } = {};
@@ -245,8 +247,14 @@ class RelayerServer {
 		}
 	}
 
+	public recoverSignerAddress(orderHash: string, signature: string) {
+		if (!this.web3) return '';
+		return (this.web3.eth.accounts as any).recover(orderHash, signature);
+	}
+
 	public async startServer(web3Util: Web3Util, option: IOption) {
 		this.web3Util = web3Util;
+		this.web3 = new Web3(this.web3Util.web3Wrapper.getProvider());
 		let port = 8080;
 		if (option.server) {
 			const relayerService = await dynamoUtil.getServices(CST.DB_RELAYER, true);
