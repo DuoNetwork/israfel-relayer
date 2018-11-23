@@ -78,6 +78,7 @@ export default class Web3Util {
 
 	public setTokens(tokens: IToken[]) {
 		this.tokens = JSON.parse(JSON.stringify(tokens));
+		this.tokens = this.tokens.filter(token => token.address = token.address.toLowerCase())
 	}
 
 	public onWeb3AccountUpdate(onUpdate: (addr: string, network: number) => any) {
@@ -176,9 +177,8 @@ export default class Web3Util {
 	};
 
 	public assetDataToTokenCode(assetData: string): string {
-		const tokenAddr = assetDataUtils.decodeERC20AssetData(assetData).tokenAddress;
-		if (tokenAddr === this.contractAddresses.etherToken) return CST.TOKEN_WETH;
-
+		const tokenAddr = assetDataUtils.decodeERC20AssetData(assetData).tokenAddress.toLowerCase();
+		if (tokenAddr === this.contractAddresses.etherToken.toLowerCase()) return CST.TOKEN_WETH;
 		const token = this.tokens.find(t => t.address === tokenAddr);
 		return token ? token.code : '';
 	}
