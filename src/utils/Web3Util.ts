@@ -78,7 +78,6 @@ export default class Web3Util {
 
 	public setTokens(tokens: IToken[]) {
 		this.tokens = JSON.parse(JSON.stringify(tokens));
-		this.tokens = this.tokens.filter(token => token.address = token.address.toLowerCase())
 	}
 
 	public onWeb3AccountUpdate(onUpdate: (addr: string, network: number) => any) {
