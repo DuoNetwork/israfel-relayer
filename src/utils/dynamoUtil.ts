@@ -430,10 +430,10 @@ class DynamoUtil {
 	}
 
 	public parseUserOrder(data: AttributeMap): IUserOrder {
-		const [pair, orderHash, seq, status] = (data[CST.DB_PAIR_OH_SEQ_STATUS].S || '').split('|');
+		const [code1, code2, orderHash, seq, status] = (data[CST.DB_PAIR_OH_SEQ_STATUS].S || '').split('|');
 		return {
 			account: (data[CST.DB_ACCOUNT_YM].S || '').split('|')[0],
-			pair: pair,
+			pair: `${code1}|${code2}`,
 			type: data[CST.DB_TYPE].S || '',
 			status: status,
 			orderHash: orderHash,

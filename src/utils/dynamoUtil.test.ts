@@ -402,7 +402,7 @@ test('getUserOrdersForMonth', async () => {
 				[CST.DB_ACCOUNT_YM]: {
 					S: '0xAccount|year-month'
 				},
-				[CST.DB_PAIR_OH_SEQ_STATUS]: { S: 'pair|0xOrderHash|1|status' },
+				[CST.DB_PAIR_OH_SEQ_STATUS]: { S: 'code1|code2|0xOrderHash|1|status' },
 				[CST.DB_TYPE]: { S: 'type' },
 				[CST.DB_PRICE]: {
 					N: '123'

@@ -445,7 +445,7 @@ Array [
     "fill": 234,
     "initialSequence": 1,
     "orderHash": "0xOrderHash",
-    "pair": "pair",
+    "pair": "code1|code2",
     "price": 123,
     "processed": true,
     "side": "side",
