@@ -167,6 +167,7 @@ class OrderBookServer {
 		this.updateOrderSequences();
 		this.orderBook = orderBookUtil.constructOrderBook(this.liveOrders);
 		await this.matchOrderBook();
+		util.logInfo('completed matching orderBook as a whole in cold start');
 		this.orderBookSnapshot = orderBookUtil.renderOrderBookSnapshot(this.pair, this.orderBook);
 		await orderBookPersistenceUtil.publishOrderBookUpdate(this.pair, this.orderBookSnapshot);
 		this.loadingOrders = false;
@@ -185,7 +186,7 @@ class OrderBookServer {
 					leftLiveOrder,
 					this.liveOrders[this.orderBook.asks[0].orderHash]
 				);
-				if (!res) return;
+				if (!res) break;
 				else
 					liveOrders.concat(
 						await this.processMatchingResult(res, this.liveOrders[orderLevel.orderHash])
