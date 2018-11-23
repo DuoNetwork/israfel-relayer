@@ -22,6 +22,9 @@ import * as CST from '../common/constants';
 import { IRawOrder, IStringSignedOrder, IToken } from '../common/types';
 import util from './util';
 
+const Web3Accounts = require('web3-eth-accounts');
+const Web3Personal = require('web3-eth-personal');
+
 export enum Wallet {
 	None,
 	Local,
@@ -37,6 +40,8 @@ export default class Web3Util {
 	public networkId: number = CST.NETWORK_ID_KOVAN;
 	public tokens: IToken[] = [];
 	private rawMetamaskProvider: any = null;
+	private web3Accounts: any = null;
+	private web3Personal: any = null;
 	public contractAddresses: ContractAddresses;
 	public readonly relayerAddress: string;
 
@@ -44,6 +49,7 @@ export default class Web3Util {
 		this.networkId = live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN;
 		if (window && typeof window.web3 !== 'undefined') {
 			this.rawMetamaskProvider = window.web3.currentProvider;
+			this.web3Personal = new Web3Personal(this.rawMetamaskProvider);
 			this.web3Wrapper = new Web3Wrapper(
 				new MetamaskSubprovider(window.web3.currentProvider)
 			);
@@ -65,6 +71,7 @@ export default class Web3Util {
 			}
 			pe.start();
 			this.web3Wrapper = new Web3Wrapper(pe);
+			this.web3Accounts = new Web3Accounts(this.web3Wrapper.getProvider());
 			this.wallet = local || (!window && privateKey) ? Wallet.Local : Wallet.None;
 		}
 
@@ -74,6 +81,16 @@ export default class Web3Util {
 
 		this.contractAddresses = getContractAddressesForNetworkOrThrow(this.networkId);
 		this.relayerAddress = live ? CST.RELAYER_ADDR_MAIN : CST.RELAYER_ADDR_KOVAN;
+	}
+
+	public web3PersonalSign(account: string, message: string): Promise<string> {
+		if (this.wallet !== Wallet.MetaMask) return Promise.reject();
+		return this.web3Personal.sign(message, account);
+	}
+
+	public web3AccountsRecover(message: string, signature: string): string {
+		if (!this.web3Accounts) return '';
+		return this.web3Accounts.recover(message, signature);
 	}
 
 	public setTokens(tokens: IToken[]) {
@@ -86,10 +103,11 @@ export default class Web3Util {
 		const store = this.rawMetamaskProvider.publicConfigStore;
 		if (store)
 			store.on('update', () => {
-				onUpdate(
-					store.getState().selectedAddress || '',
-					Number(store.getState().networkVersion || '')
-				);
+				if (this.wallet === Wallet.MetaMask && store.getState().selectedAddress && store.getState().networkVersion)
+					onUpdate(
+						store.getState().selectedAddress,
+						Number(store.getState().networkVersion)
+					);
 			});
 	}
 
