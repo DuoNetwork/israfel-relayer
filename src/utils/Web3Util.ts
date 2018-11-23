@@ -73,7 +73,7 @@ export default class Web3Util {
 		});
 
 		this.contractAddresses = getContractAddressesForNetworkOrThrow(this.networkId);
-		this.relayerAddress = live ? CST.RELAYER_ADDR_MAIN : CST.RELAYER_ADDR_KOVAN
+		this.relayerAddress = live ? CST.RELAYER_ADDR_MAIN : CST.RELAYER_ADDR_KOVAN;
 	}
 
 	public setTokens(tokens: IToken[]) {
@@ -243,11 +243,13 @@ export default class Web3Util {
 		const tokenAddress = this.getTokenAddressFromCode(code);
 
 		if (tokenAddress)
-			return this.contractWrappers.erc20Token.getProxyAllowanceAsync(
-				tokenAddress,
-				ownerAddr.toLowerCase()
+			return Web3Util.fromWei(
+				await this.contractWrappers.erc20Token.getProxyAllowanceAsync(
+					tokenAddress,
+					ownerAddr.toLowerCase()
+				)
 			);
-		return Promise.reject();
+		return 0;
 	}
 
 	public async removeProxyAllowance(code: string) {
