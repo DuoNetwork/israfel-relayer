@@ -94,7 +94,7 @@ class DynamoUtil {
 
 	public parseToken(data: AttributeMap): IToken {
 		return {
-			address: data[CST.DB_ADDRESS].S || '',
+			address: (data[CST.DB_ADDRESS].S || '').toLowerCase(),
 			code: data[CST.DB_CODE].S || ''
 		};
 	}
