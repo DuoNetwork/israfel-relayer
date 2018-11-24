@@ -200,7 +200,8 @@ class OrderPersistenceUtil {
 			side: side,
 			expiry: Number(signedOrder.expirationTimeSeconds) * 1000,
 			initialSequence: 0,
-			currentSequence: 0
+			currentSequence: 0,
+			createdAt: util.getUTCNowTimestamp()
 		};
 	}
 

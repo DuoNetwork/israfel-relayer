@@ -122,6 +122,7 @@ test('addLiveOrder', async () => {
 		balance: 123,
 		fill: 234,
 		side: CST.DB_BID,
+		createdAt: 1111111111,
 		expiry: 1234567890,
 		initialSequence: 1,
 		currentSequence: 1

@@ -5,6 +5,7 @@ import * as CST from '../common/constants';
 import dynamoUtil from './dynamoUtil';
 import orderPersistenceUtil from './orderPersistenceUtil';
 import redisUtil from './redisUtil';
+import util from './util';
 import Web3Util from './Web3Util';
 
 test('subscribeOrderUpdate', () => {
@@ -12,13 +13,13 @@ test('subscribeOrderUpdate', () => {
 	redisUtil.subscribe = jest.fn();
 	orderPersistenceUtil.subscribeOrderUpdate('pair', (() => ({})) as any);
 	expect((redisUtil.subscribe as jest.Mock).mock.calls).toMatchSnapshot();
-})
+});
 
 test('subscribeOrderUpdate', () => {
 	redisUtil.unsubscribe = jest.fn();
 	orderPersistenceUtil.unsubscribeOrderUpdate('pair');
 	expect((redisUtil.unsubscribe as jest.Mock).mock.calls).toMatchSnapshot();
-})
+});
 
 const signedOrder = {
 	senderAddress: 'senderAddress',
@@ -41,6 +42,7 @@ test('parseSignedOrder', () =>
 	expect(orderPersistenceUtil.parseSignedOrder(signedOrder)).toMatchSnapshot());
 
 test('constructNewLiveOrder', () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	expect(
 		orderPersistenceUtil.constructNewLiveOrder(signedOrder, 'pair', CST.DB_BID, '0xOrderHash')
 	).toMatchSnapshot();
@@ -58,6 +60,7 @@ const liveOrder = {
 	balance: 123,
 	fill: 234,
 	side: CST.DB_BID,
+	createdAt: 1111111111,
 	expiry: 1234567890,
 	initialSequence: 1,
 	currentSequence: 2
@@ -175,18 +178,16 @@ test('persistOrder add missing side', async () => {
 	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
 
 	expect(
-		await orderPersistenceUtil.persistOrder(
-			{
-				method: CST.DB_ADD,
-				status: 'status',
-				requestor: 'requestor',
-				pair: 'pair',
-				orderHash: '0xOrderHash',
-				balance: -1,
-				fill: 123456789,
-				signedOrder: 'may or may not exist' as any
-			}
-		)
+		await orderPersistenceUtil.persistOrder({
+			method: CST.DB_ADD,
+			status: 'status',
+			requestor: 'requestor',
+			pair: 'pair',
+			orderHash: '0xOrderHash',
+			balance: -1,
+			fill: 123456789,
+			signedOrder: 'may or may not exist' as any
+		})
 	).toBeNull();
 	expect(orderPersistenceUtil.getLiveOrderInPersistence as jest.Mock).not.toBeCalled();
 	expect(redisUtil.hashSet as jest.Mock).not.toBeCalled();
@@ -207,19 +208,17 @@ test('persistOrder add', async () => {
 	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
 
 	expect(
-		await orderPersistenceUtil.persistOrder(
-			{
-				method: CST.DB_ADD,
-				status: 'status',
-				requestor: 'requestor',
-				pair: 'pair',
-				side: 'side',
-				orderHash: '0xOrderHash',
-				balance: -1,
-				fill: 123456789,
-				signedOrder: 'may or may not exist' as any
-			}
-		)
+		await orderPersistenceUtil.persistOrder({
+			method: CST.DB_ADD,
+			status: 'status',
+			requestor: 'requestor',
+			pair: 'pair',
+			side: 'side',
+			orderHash: '0xOrderHash',
+			balance: -1,
+			fill: 123456789,
+			signedOrder: 'may or may not exist' as any
+		})
 	).not.toBeNull();
 	expect((redisUtil.hashSet as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((redisUtil.push as jest.Mock).mock.calls).toMatchSnapshot();
@@ -242,18 +241,16 @@ test('persistOrder not add', async () => {
 	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
 
 	expect(
-		await orderPersistenceUtil.persistOrder(
-			{
-				method: 'method',
-				status: 'status',
-				requestor: 'requestor',
-				pair: 'pair',
-				side: 'side',
-				orderHash: '0xOrderHash',
-				balance: 80,
-				fill: 1
-			}
-		)
+		await orderPersistenceUtil.persistOrder({
+			method: 'method',
+			status: 'status',
+			requestor: 'requestor',
+			pair: 'pair',
+			side: 'side',
+			orderHash: '0xOrderHash',
+			balance: 80,
+			fill: 1
+		})
 	).not.toBeNull();
 	expect((redisUtil.hashSet as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((redisUtil.push as jest.Mock).mock.calls).toMatchSnapshot();
@@ -271,18 +268,16 @@ test('persistOrder add existing', async () => {
 	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
 
 	expect(
-		await orderPersistenceUtil.persistOrder(
-			{
-				method: CST.DB_ADD,
-				status: 'status',
-				requestor: 'requestor',
-				pair: 'pair',
-				side: 'side',
-				orderHash: '0xOrderHash',
-				balance: -1,
-				signedOrder: 'signedOrder' as any
-			}
-		)
+		await orderPersistenceUtil.persistOrder({
+			method: CST.DB_ADD,
+			status: 'status',
+			requestor: 'requestor',
+			pair: 'pair',
+			side: 'side',
+			orderHash: '0xOrderHash',
+			balance: -1,
+			signedOrder: 'signedOrder' as any
+		})
 	).toBeNull();
 	expect(redisUtil.hashSet as jest.Mock).not.toBeCalled();
 	expect(redisUtil.push as jest.Mock).not.toBeCalled();
@@ -300,17 +295,15 @@ test('persistOrder not add not existing', async () => {
 	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
 
 	expect(
-		await orderPersistenceUtil.persistOrder(
-			{
-				method: 'method',
-				status: 'status',
-				requestor: 'requestor',
-				pair: 'pair',
-				side: 'side',
-				orderHash: '0xOrderHash',
-				balance: -1
-			}
-		)
+		await orderPersistenceUtil.persistOrder({
+			method: 'method',
+			status: 'status',
+			requestor: 'requestor',
+			pair: 'pair',
+			side: 'side',
+			orderHash: '0xOrderHash',
+			balance: -1
+		})
 	).toBeNull();
 	expect(redisUtil.hashSet as jest.Mock).not.toBeCalled();
 	expect(redisUtil.push as jest.Mock).not.toBeCalled();

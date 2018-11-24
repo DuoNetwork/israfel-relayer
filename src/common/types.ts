@@ -10,7 +10,7 @@ export interface ILiveOrder {
 	fill: number;
 	side: string;
 	expiry: number;
-	createdAt?: number;
+	createdAt: number;
 	updatedAt?: number;
 	initialSequence: number;
 	currentSequence: number;

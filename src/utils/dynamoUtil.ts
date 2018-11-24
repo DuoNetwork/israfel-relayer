@@ -174,7 +174,6 @@ class DynamoUtil {
 	}
 
 	public convertLiveOrderToDynamo(liveOrder: ILiveOrder): AttributeMap {
-		const timestamp = util.getUTCNowTimestamp();
 		return {
 			[CST.DB_ACCOUNT]: { S: liveOrder.account },
 			[CST.DB_PAIR]: { S: liveOrder.pair },
@@ -189,8 +188,8 @@ class DynamoUtil {
 			[CST.DB_EXP]: {N: liveOrder.expiry + ''},
 			[CST.DB_INITIAL_SEQ]: { N: liveOrder.initialSequence + '' },
 			[CST.DB_CURRENT_SEQ]: { N: liveOrder.currentSequence + '' },
-			[CST.DB_CREATED_AT]: { N: timestamp + '' },
-			[CST.DB_UPDATED_AT]: { N: timestamp + '' }
+			[CST.DB_CREATED_AT]: { N: liveOrder.createdAt + '' },
+			[CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' }
 		};
 	}
 
@@ -413,7 +412,7 @@ class DynamoUtil {
 			[CST.DB_SIDE]: { S: userOrder.side },
 			[CST.DB_EXP]: { N: userOrder.expiry + '' },
 			[CST.DB_INITIAL_SEQ]: { N: userOrder.initialSequence + '' },
-			[CST.DB_CREATED_AT]: { N: (userOrder.createdAt || timestamp) + '' },
+			[CST.DB_CREATED_AT]: { N: userOrder.createdAt + '' },
 			[CST.DB_UPDATED_AT]: { N: timestamp + '' },
 			[CST.DB_UPDATED_BY]: { S: userOrder.updatedBy + '' },
 			[CST.DB_PROCESSED]: { BOOL: userOrder.processed }
