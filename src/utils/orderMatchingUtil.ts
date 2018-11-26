@@ -144,6 +144,7 @@ class OrderMatchingUtil {
 
 				return obj;
 			} catch (err) {
+				util.logError(err);
 				util.logDebug('error in matching transaction');
 				return null;
 			}

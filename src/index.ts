@@ -25,7 +25,12 @@ dynamoUtil.init(config, option.live, tool, osUtil.getHostName());
 
 const start = async () => {
 	let web3Util: Web3Util | null = null;
-	if (tool !== CST.DB_ORDERS)
+	if (tool === CST.DB_ORDER_BOOKS) {
+		const privateKeyFile = require(`./keys/privateKey.${
+			option.live ? CST.DB_LIVE : CST.DB_DEV
+		}.json`);
+		web3Util = new Web3Util(null, option.live, privateKeyFile.key, false);
+	} else if (tool !== CST.DB_ORDERS)
 		web3Util = new Web3Util(null, option.live, '', tool === CST.DB_ORDER_WATCHER);
 	if (web3Util) {
 		const tokens = await dynamoUtil.scanTokens();
