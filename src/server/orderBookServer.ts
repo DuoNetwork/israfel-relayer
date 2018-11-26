@@ -181,16 +181,21 @@ class OrderBookServer {
 			const liveOrders: ILiveOrder[] = [];
 			for (const orderLevel of this.orderBook.bids) {
 				const leftLiveOrder = this.liveOrders[orderLevel.orderHash];
-				const res: IMatchingOrderResult | null = await orderMatchingUtil.matchOrders(
-					this.web3Util,
-					leftLiveOrder,
-					this.liveOrders[this.orderBook.asks[0].orderHash]
-				);
-				if (!res) break;
-				else
-					liveOrders.concat(
-						await this.processMatchingResult(res, this.liveOrders[orderLevel.orderHash])
+				if (this.orderBook.asks) {
+					const res: IMatchingOrderResult | null = await orderMatchingUtil.matchOrders(
+						this.web3Util,
+						leftLiveOrder,
+						this.liveOrders[this.orderBook.asks[0].orderHash]
 					);
+					if (!res) break;
+					else
+						liveOrders.concat(
+							await this.processMatchingResult(
+								res,
+								this.liveOrders[orderLevel.orderHash]
+							)
+						);
+				}
 			}
 		}
 	}
