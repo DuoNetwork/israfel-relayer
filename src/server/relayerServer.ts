@@ -10,13 +10,13 @@ import {
 	IStringSignedOrder,
 	IUserOrder,
 	IWsAddOrderRequest,
+	IWsInfoResponse,
 	IWsOrderBookResponse,
 	IWsOrderBookUpdateResponse,
 	IWsOrderRequest,
 	IWsOrderResponse,
 	IWsRequest,
 	IWsResponse,
-	IWsStaticInfoResponse,
 	IWsUserOrderResponse
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
@@ -248,10 +248,10 @@ class RelayerServer {
 		}
 	}
 
-	public sendStaticInfo(ws: WebSocket) {
-		const staticInfoResponse: IWsStaticInfoResponse = {
-			channel: CST.DB_TOKENS,
-			method: CST.DB_TOKENS,
+	public sendInfo(ws: WebSocket) {
+		const staticInfoResponse: IWsInfoResponse = {
+			channel: CST.WS_INFO,
+			method: CST.WS_INFO,
 			status: CST.WS_OK,
 			pair: '',
 			tokens: this.web3Util ? this.web3Util.tokens : [],
@@ -262,7 +262,7 @@ class RelayerServer {
 
 	public handleWebSocketConnection(ws: WebSocket) {
 		if (!this.clients.includes(ws)) this.clients.push(ws);
-		this.sendStaticInfo(ws);
+		this.sendInfo(ws);
 		util.logInfo('new connection');
 		ws.on('message', message => this.handleWebSocketMessage(ws, message.toString()));
 		ws.on('close', () => {
@@ -288,7 +288,7 @@ class RelayerServer {
 		if (this.wsServer) {
 			setInterval(async () => {
 				this.processStatus = await dynamoUtil.scanStatus();
-				this.clients.forEach(ws => this.sendStaticInfo(ws));
+				this.clients.forEach(ws => this.sendInfo(ws));
 			}, 60000);
 			this.wsServer.on('connection', ws => this.handleWebSocketConnection(ws));
 		}

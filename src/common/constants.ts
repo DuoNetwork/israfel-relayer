@@ -22,7 +22,6 @@ export const DB_ORDER_PROCESSOR = 'orderProcessor';
 export const DB_ORDER_MATCHER = 'orderMatcher';
 export const DB_ORDER_WATCHER = 'orderWatcher';
 export const DB_RELAYER = 'relayer';
-export const DB_SERVICE = 'service';
 export const DB_URL = 'url';
 export const DB_SIDE = 'side';
 export const DB_ASK = 'ask';
@@ -39,6 +38,8 @@ export const DB_TOKENS = 'tokens';
 export const DB_ADDRESS = 'address';
 export const DB_CODE = 'code';
 export const DB_EXP = 'expiry';
+export const DB_DENOMINATION = 'denomination';
+export const DB_PRECISION = 'precision';
 
 export const DB_ADD = 'add';
 export const DB_UPDATE = 'update';
@@ -87,6 +88,7 @@ export const PROVIDER_LOCAL = 'http://localhost:8545';
 export const NETWORK_ID_LOCAL = 50;
 export const PENDING_HOURS = 24;
 
+export const WS_INFO = 'info';
 export const WS_SUB = 'subscribe';
 export const WS_UNSUB = 'unsubscribe';
 export const WS_CHANNEL = 'channel';

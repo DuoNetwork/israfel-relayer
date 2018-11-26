@@ -150,7 +150,7 @@ export interface IWsOrderBookUpdateResponse extends IWsResponse {
 	orderBookUpdate: IOrderBookSnapshotUpdate;
 }
 
-export interface IWsStaticInfoResponse extends IWsResponse {
+export interface IWsInfoResponse extends IWsResponse {
 	tokens: IToken[];
 	processStatus: IStatus[];
 }
@@ -187,4 +187,8 @@ export interface IMatchingOrderResult {
 export interface IToken {
 	address: string;
 	code: string;
+	denomination: number;
+	precision: {
+		[key: string]: number
+	};
 }

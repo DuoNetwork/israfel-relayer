@@ -74,17 +74,22 @@ class DynamoUtil {
 	}
 
 	public parseToken(data: AttributeMap): IToken {
-		return {
+		const token: IToken = {
 			address: (data[CST.DB_ADDRESS].S || '').toLowerCase(),
-			code: data[CST.DB_CODE].S || ''
+			code: data[CST.DB_CODE].S || '',
+			denomination: Number(data[CST.DB_DENOMINATION].N),
+			precision: {}
 		};
+		const precision = data[CST.DB_PRECISION].M || {};
+		for (const code in precision)
+			token.precision[code] = Number(precision[code].N);
+
+		return token;
 	}
 
 	public async scanTokens() {
 		const data = await this.scanData({
-			TableName: `${CST.DB_ISRAFEL}.${CST.DB_TOKENS}.${
-				this.live ? CST.DB_LIVE : CST.DB_DEV
-			}`
+			TableName: `${CST.DB_ISRAFEL}.${CST.DB_TOKENS}.${this.live ? CST.DB_LIVE : CST.DB_DEV}`
 		});
 		if (!data.Items || !data.Items.length) return [];
 
@@ -143,7 +148,7 @@ class DynamoUtil {
 			[CST.DB_BALANCE]: { N: liveOrder.balance + '' },
 			[CST.DB_FILL]: { N: liveOrder.fill + '' },
 			[CST.DB_SIDE]: { S: liveOrder.side },
-			[CST.DB_EXP]: {N: liveOrder.expiry + ''},
+			[CST.DB_EXP]: { N: liveOrder.expiry + '' },
 			[CST.DB_INITIAL_SEQ]: { N: liveOrder.initialSequence + '' },
 			[CST.DB_CURRENT_SEQ]: { N: liveOrder.currentSequence + '' },
 			[CST.DB_CREATED_AT]: { N: liveOrder.createdAt + '' },
@@ -387,7 +392,9 @@ class DynamoUtil {
 	}
 
 	public parseUserOrder(data: AttributeMap): IUserOrder {
-		const [code1, code2, orderHash, seq, status] = (data[CST.DB_PAIR_OH_SEQ_STATUS].S || '').split('|');
+		const [code1, code2, orderHash, seq, status] = (
+			data[CST.DB_PAIR_OH_SEQ_STATUS].S || ''
+		).split('|');
 		return {
 			account: (data[CST.DB_ACCOUNT_YM].S || '').split('|')[0],
 			pair: `${code1}|${code2}`,
