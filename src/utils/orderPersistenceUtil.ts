@@ -5,7 +5,6 @@ import {
 	IOption,
 	IOrderPersistRequest,
 	IOrderQueueItem,
-	IRawOrder,
 	IStringSignedOrder,
 	IUserOrder
 } from '../common/types';
@@ -97,20 +96,21 @@ class OrderPersistenceUtil {
 		return allOrders;
 	}
 
-	public async getRawOrderInPersistence(orderHash: string): Promise<IRawOrder> {
+	public async getRawOrderInPersistence(orderHash: string) {
 		const redisStringOrder = await redisUtil.hashGet(
 			`${CST.DB_ORDERS}|${CST.DB_CACHE}`,
 			`${CST.DB_ADD}|${orderHash}`
 		);
-		if (!redisStringOrder) {
-			const dynamoRawOrder = (await dynamoUtil.getRawOrder(orderHash)) as IRawOrder;
-			return dynamoRawOrder;
+		if (redisStringOrder) {
+			const redisRawOrder: IOrderQueueItem = JSON.parse(redisStringOrder);
+			return {
+				orderHash: orderHash,
+				signedOrder: redisRawOrder.signedOrder as IStringSignedOrder
+			};
 		}
-		const redisRawOrder: IOrderQueueItem = JSON.parse(redisStringOrder);
-		return {
-			orderHash: orderHash,
-			signedOrder: redisRawOrder.signedOrder as IStringSignedOrder
-		};
+
+		const dynamoRawOrder = await dynamoUtil.getRawOrder(orderHash);
+		return dynamoRawOrder;
 	}
 
 	public async persistOrder(orderPersistRequest: IOrderPersistRequest) {
