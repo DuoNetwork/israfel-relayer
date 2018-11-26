@@ -181,7 +181,7 @@ class OrderBookServer {
 			const liveOrders: ILiveOrder[] = [];
 			for (const orderLevel of this.orderBook.bids) {
 				const leftLiveOrder = this.liveOrders[orderLevel.orderHash];
-				if (this.orderBook.asks) {
+				if (this.orderBook.asks.length) {
 					const res: IMatchingOrderResult | null = await orderMatchingUtil.matchOrders(
 						this.web3Util,
 						leftLiveOrder,
