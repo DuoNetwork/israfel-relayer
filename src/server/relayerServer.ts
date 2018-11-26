@@ -127,16 +127,73 @@ class RelayerServer {
 		}
 	}
 
-	public handleOrderRequest(ws: WebSocket, req: IWsOrderRequest) {
-		if (![CST.DB_ADD, CST.DB_TERMINATE].includes(req.method) || !req.orderHash) {
-			this.sendErrorOrderResponse(ws, req, CST.WS_INVALID_REQ);
+	public async handleOrderHistorySubscribeRequest(ws: WebSocket, req: IWsOrderHistoryRequest) {
+		const { account, pair } = req;
+		if (!this.clientPairs[account]) this.clientPairs[account] = {};
+		if (!this.clientPairs[account][pair]) this.clientPairs[account][pair] = [];
+		if (!this.clientPairs[account][pair].includes(ws)) this.clientPairs[account][pair].push(ws);
+
+		const now = util.getUTCNowTimestamp();
+		const userOrders = await dynamoUtil.getUserOrders(account, now - 30 * 86400000, now, pair);
+
+		const orderBookResponse: IWsOrderHistoryResponse = {
+			method: CST.WS_HISTORY,
+			channel: CST.DB_ORDERS,
+			status: CST.WS_OK,
+			pair: req.pair,
+			orderHistory: userOrders
+		};
+		util.safeWsSend(ws, JSON.stringify(orderBookResponse));
+	}
+
+	private unsubscribeOrderHistory(ws: WebSocket, account: string, pair: string) {
+		if (
+			this.clientPairs[account] &&
+			this.clientPairs[account][pair] &&
+			this.clientPairs[account][pair].includes(ws)
+		) {
+			this.clientPairs[account][pair] = this.clientPairs[account][pair].filter(e => e !== ws);
+			if (!this.clientPairs[account][pair].length) delete this.clientPairs[account][pair];
+			if (!Object.keys(this.clientPairs[account]).length) delete this.clientPairs[account];
+		}
+	}
+
+	public handleOrderHistoryUnsubscribeRequest(ws: WebSocket, req: IWsOrderHistoryRequest) {
+		this.unsubscribeOrderHistory(ws, req.account, req.pair);
+		this.sendResponse(ws, req, CST.WS_OK);
+	}
+
+	public handleOrderRequest(ws: WebSocket, req: IWsRequest) {
+		if (
+			[CST.WS_SUB, CST.WS_UNSUB].includes(req.method) &&
+			!(req as IWsOrderHistoryRequest).account
+		) {
+			this.sendResponse(ws, req, CST.WS_INVALID_REQ);
 			return Promise.resolve();
 		}
 
-		if (req.method === CST.DB_ADD)
-			return this.handleAddOrderRequest(ws, req as IWsAddOrderRequest);
-		// if (req.method === CST.DB_TERMINATE)
-		else return this.handleTerminateOrderRequest(ws, req);
+		if (
+			[CST.DB_ADD, CST.DB_TERMINATE].includes(req.method) &&
+			!(req as IWsOrderRequest).orderHash
+		) {
+			this.sendErrorOrderResponse(ws, req as IWsOrderRequest, CST.WS_INVALID_REQ);
+			return Promise.resolve();
+		}
+
+		switch (req.method) {
+			case CST.WS_SUB:
+				return this.handleOrderHistorySubscribeRequest(ws, req as IWsOrderHistoryRequest);
+			case CST.WS_UNSUB:
+				this.handleOrderHistoryUnsubscribeRequest(ws, req as IWsOrderHistoryRequest);
+				return Promise.resolve;
+			case CST.DB_ADD:
+				return this.handleAddOrderRequest(ws, req as IWsAddOrderRequest);
+			case CST.DB_TERMINATE:
+				return this.handleTerminateOrderRequest(ws, req as IWsOrderRequest);
+			default:
+				this.sendResponse(ws, req, CST.WS_INVALID_REQ);
+				return Promise.resolve();
+		}
 	}
 
 	public handleOrderBookUpdate(
@@ -212,60 +269,11 @@ class RelayerServer {
 		}
 	}
 
-	public async handleOrderHistorySubscribeRequest(ws: WebSocket, req: IWsOrderHistoryRequest) {
-		const { account, pair } = req;
-		if (!this.clientPairs[account]) this.clientPairs[account] = {};
-		if (!this.clientPairs[account][pair]) this.clientPairs[account][pair] = [];
-		if (!this.clientPairs[account][pair].includes(ws)) this.clientPairs[account][pair].push(ws);
-
-		const now = util.getUTCNowTimestamp();
-		const userOrders = await dynamoUtil.getUserOrders(account, now - 30 * 86400000, now, pair);
-
-		const orderBookResponse: IWsOrderHistoryResponse = {
-			method: CST.WS_ORDER_HISTORY,
-			channel: CST.WS_ORDER_HISTORY,
-			status: CST.WS_OK,
-			pair: req.pair,
-			orderHistory: userOrders
-		};
-		util.safeWsSend(ws, JSON.stringify(orderBookResponse));
-	}
-
-	private unsubscribeOrderHistory(ws: WebSocket, account: string, pair: string) {
-		if (
-			this.clientPairs[account] &&
-			this.clientPairs[account][pair] &&
-			this.clientPairs[account][pair].includes(ws)
-		) {
-			this.clientPairs[account][pair] = this.clientPairs[account][pair].filter(e => e !== ws);
-			if (!this.clientPairs[account][pair].length) delete this.clientPairs[account][pair];
-			if (!Object.keys(this.clientPairs[account]).length) delete this.clientPairs[account];
-		}
-	}
-
-	public handleOrderHistoryUnsubscribeRequest(ws: WebSocket, req: IWsOrderHistoryRequest) {
-		this.unsubscribeOrderHistory(ws, req.account, req.pair);
-		this.sendResponse(ws, req, CST.WS_OK);
-	}
-
-	public handleOrderHistoryRequest(ws: WebSocket, req: IWsOrderHistoryRequest) {
-		if (![CST.WS_SUB, CST.WS_UNSUB].includes(req.method) || !req.account) {
-			this.sendResponse(ws, req, CST.WS_INVALID_REQ);
-			return Promise.resolve();
-		}
-
-		if (req.method === CST.WS_SUB) return this.handleOrderHistorySubscribeRequest(ws, req);
-		else {
-			this.handleOrderHistoryUnsubscribeRequest(ws, req);
-			return Promise.resolve;
-		}
-	}
-
 	public handleWebSocketMessage(ws: WebSocket, m: string) {
 		util.logDebug('received: ' + m);
 		const req: IWsRequest = JSON.parse(m);
 		if (
-			![CST.DB_ORDERS, CST.DB_ORDER_BOOKS, CST.WS_ORDER_HISTORY].includes(req.channel) ||
+			![CST.DB_ORDERS, CST.DB_ORDER_BOOKS].includes(req.channel) ||
 			!req.method ||
 			!this.web3Util ||
 			!this.web3Util.isValidPair(req.pair)
@@ -276,11 +284,9 @@ class RelayerServer {
 
 		switch (req.channel) {
 			case CST.DB_ORDERS:
-				return this.handleOrderRequest(ws, req as IWsOrderRequest);
+				return this.handleOrderRequest(ws, req);
 			case CST.DB_ORDER_BOOKS:
 				return this.handleOrderBookRequest(ws, req);
-			case CST.WS_ORDER_HISTORY:
-				return this.handleOrderHistoryRequest(ws, req as IWsOrderHistoryRequest);
 			default:
 				return Promise.resolve();
 		}
