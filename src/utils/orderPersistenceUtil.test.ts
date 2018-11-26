@@ -594,3 +594,47 @@ test('getAllLiveOrdersInPersistence temrinate in redis and exist in db', async (
 	);
 	expect(await orderPersistenceUtil.getAllLiveOrdersInPersistence('pair')).toEqual({});
 });
+
+test('getRawOrderInPersistence in redis', async () => {
+	redisUtil.hashGet = jest.fn(() =>
+		Promise.resolve(
+			JSON.stringify({
+				method: 'method',
+				status: 'status',
+				requestor: 'requestor',
+				liveOrder: liveOrder,
+				signedOrder: signedOrder
+			})
+		)
+	);
+	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve());
+	const res = await orderPersistenceUtil.getRawOrderInPersistence('orderHash');
+	expect((redisUtil.hashGet as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(dynamoUtil.getRawOrder as jest.Mock).not.toBeCalled();
+	expect(res).toMatchSnapshot();
+});
+
+test('getRawOrderInPersistence in dynamo', async () => {
+	redisUtil.hashGet = jest.fn(() => Promise.resolve());
+	dynamoUtil.getRawOrder = jest.fn(() =>
+		Promise.resolve(
+			JSON.stringify({
+				orderHash: 'orderHash',
+				signedOrder: signedOrder
+			})
+		)
+	);
+	const res = await orderPersistenceUtil.getRawOrderInPersistence('orderHash');
+	expect((redisUtil.hashGet as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(res).toMatchSnapshot();
+	expect((dynamoUtil.getRawOrder as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('getRawOrderInPersistence not in neither', async () => {
+	redisUtil.hashGet = jest.fn(() => Promise.resolve());
+	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve());
+	const res = await orderPersistenceUtil.getRawOrderInPersistence('orderHash');
+	expect((redisUtil.hashGet as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(res).toMatchSnapshot();
+	expect((dynamoUtil.getRawOrder as jest.Mock).mock.calls).toMatchSnapshot();
+});

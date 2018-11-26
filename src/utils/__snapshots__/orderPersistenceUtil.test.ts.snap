@@ -104,6 +104,75 @@ Object {
 }
 `;
 
+exports[`getRawOrderInPersistence in dynamo 1`] = `
+Array [
+  Array [
+    "orders|cache",
+    "add|orderHash",
+  ],
+]
+`;
+
+exports[`getRawOrderInPersistence in dynamo 2`] = `"{\\"orderHash\\":\\"orderHash\\",\\"signedOrder\\":{\\"senderAddress\\":\\"senderAddress\\",\\"makerAddress\\":\\"makerAddress\\",\\"takerAddress\\":\\"takerAddress\\",\\"makerFee\\":\\"0\\",\\"takerFee\\":\\"0\\",\\"makerAssetAmount\\":\\"123\\",\\"takerAssetAmount\\":\\"456\\",\\"makerAssetData\\":\\"makerAssetData\\",\\"takerAssetData\\":\\"takerAssetData\\",\\"salt\\":\\"789\\",\\"exchangeAddress\\":\\"exchangeAddress\\",\\"feeRecipientAddress\\":\\"feeRecipientAddress\\",\\"expirationTimeSeconds\\":\\"1234567890\\",\\"signature\\":\\"signature\\"}}"`;
+
+exports[`getRawOrderInPersistence in dynamo 3`] = `
+Array [
+  Array [
+    "orderHash",
+  ],
+]
+`;
+
+exports[`getRawOrderInPersistence in redis 1`] = `
+Array [
+  Array [
+    "orders|cache",
+    "add|orderHash",
+  ],
+]
+`;
+
+exports[`getRawOrderInPersistence in redis 2`] = `
+Object {
+  "orderHash": "orderHash",
+  "signedOrder": Object {
+    "exchangeAddress": "exchangeAddress",
+    "expirationTimeSeconds": "1234567890",
+    "feeRecipientAddress": "feeRecipientAddress",
+    "makerAddress": "makerAddress",
+    "makerAssetAmount": "123",
+    "makerAssetData": "makerAssetData",
+    "makerFee": "0",
+    "salt": "789",
+    "senderAddress": "senderAddress",
+    "signature": "signature",
+    "takerAddress": "takerAddress",
+    "takerAssetAmount": "456",
+    "takerAssetData": "takerAssetData",
+    "takerFee": "0",
+  },
+}
+`;
+
+exports[`getRawOrderInPersistence not in neither 1`] = `
+Array [
+  Array [
+    "orders|cache",
+    "add|orderHash",
+  ],
+]
+`;
+
+exports[`getRawOrderInPersistence not in neither 2`] = `undefined`;
+
+exports[`getRawOrderInPersistence not in neither 3`] = `
+Array [
+  Array [
+    "orderHash",
+  ],
+]
+`;
+
 exports[`parseSignedOrder 1`] = `
 Object {
   "exchangeAddress": "exchangeAddress",

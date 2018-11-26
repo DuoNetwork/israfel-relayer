@@ -65,13 +65,20 @@ class OrderMatchingUtil {
 			const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
 				leftLiveOrder.orderHash
 			);
-			const leftOrder: SignedOrder = orderPersistenceUtil.parseSignedOrder(
-				leftRawOrder.signedOrder as IStringSignedOrder
-			);
 
 			const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
 				leftLiveOrder.orderHash
 			);
+
+			if (!leftRawOrder || !rightRawOrder) {
+				util.logError(`raw order of ${leftLiveOrder.orderHash} does not exist`);
+				// to remove liveOrder respectively
+				return null;
+			}
+			const leftOrder: SignedOrder = orderPersistenceUtil.parseSignedOrder(
+				leftRawOrder.signedOrder as IStringSignedOrder
+			);
+
 			const rightOrder: SignedOrder = orderPersistenceUtil.parseSignedOrder(
 				rightRawOrder.signedOrder as IStringSignedOrder
 			);
