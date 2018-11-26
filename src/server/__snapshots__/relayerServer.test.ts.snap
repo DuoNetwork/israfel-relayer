@@ -250,8 +250,7 @@ exports[`handleOrderBookSubscribeRequest empty list 3`] = `
 Array [
   Array [
     "ws",
-    "pair",
-    "snapshot",
+    "{\\"method\\":\\"snapshot\\",\\"channel\\":\\"orderBooks\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"orderBookSnapshot\\":\\"snapshot\\"}",
   ],
 ]
 `;
@@ -268,8 +267,7 @@ exports[`handleOrderBookSubscribeRequest existing pair existing ws 2`] = `
 Array [
   Array [
     "ws",
-    "pair",
-    "snapshot",
+    "{\\"method\\":\\"snapshot\\",\\"channel\\":\\"orderBooks\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"orderBookSnapshot\\":\\"snapshot\\"}",
   ],
 ]
 `;
@@ -286,8 +284,7 @@ exports[`handleOrderBookSubscribeRequest existing pair new ws 2`] = `
 Array [
   Array [
     "ws",
-    "pair",
-    "snapshot",
+    "{\\"method\\":\\"snapshot\\",\\"channel\\":\\"orderBooks\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"orderBookSnapshot\\":\\"snapshot\\"}",
   ],
 ]
 `;
@@ -313,8 +310,7 @@ exports[`handleOrderBookSubscribeRequest new pair 3`] = `
 Array [
   Array [
     "ws",
-    "pair",
-    "snapshot",
+    "{\\"method\\":\\"snapshot\\",\\"channel\\":\\"orderBooks\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"orderBookSnapshot\\":\\"snapshot\\"}",
   ],
 ]
 `;
@@ -418,13 +414,205 @@ exports[`handleOrderBookUpdate 1`] = `
 Array [
   Array [
     "ws1",
-    "pair",
-    "any",
+    "{\\"method\\":\\"update\\",\\"channel\\":\\"orderBooks\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"orderBookUpdate\\":\\"any\\"}",
   ],
   Array [
     "ws2",
-    "pair",
-    "any",
+    "{\\"method\\":\\"update\\",\\"channel\\":\\"orderBooks\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"orderBookUpdate\\":\\"any\\"}",
+  ],
+]
+`;
+
+exports[`handleOrderHistoryRequest subscribe 1`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "account": "account",
+      "channel": "channel",
+      "method": "subscribe",
+      "pair": "pair",
+    },
+  ],
+]
+`;
+
+exports[`handleOrderHistoryRequest unsubscribe 1`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "account": "account",
+      "channel": "channel",
+      "method": "unsubscribe",
+      "pair": "pair",
+    },
+  ],
+]
+`;
+
+exports[`handleOrderHistorySubscribeRequest existing account existing pair 1`] = `
+Object {
+  "account": Object {
+    "pair": Array [
+      "ws",
+    ],
+  },
+}
+`;
+
+exports[`handleOrderHistorySubscribeRequest existing account existing pair 2`] = `
+Array [
+  Array [
+    "ws",
+    "{\\"method\\":\\"orderHistory\\",\\"channel\\":\\"orderHistory\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"orderHistory\\":[\\"userOrders\\"]}",
+  ],
+]
+`;
+
+exports[`handleOrderHistorySubscribeRequest existing account existing pair new ws 1`] = `
+Object {
+  "account": Object {
+    "pair": Array [
+      "ws",
+      "ws1",
+    ],
+  },
+}
+`;
+
+exports[`handleOrderHistorySubscribeRequest existing account existing pair new ws 2`] = `
+Array [
+  Array [
+    "ws1",
+    "{\\"method\\":\\"orderHistory\\",\\"channel\\":\\"orderHistory\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"orderHistory\\":[\\"userOrders\\"]}",
+  ],
+]
+`;
+
+exports[`handleOrderHistorySubscribeRequest existing account new pair 1`] = `
+Object {
+  "account": Object {
+    "pair": Array [
+      "ws",
+      "ws1",
+    ],
+    "pair1": Array [
+      "ws",
+    ],
+  },
+}
+`;
+
+exports[`handleOrderHistorySubscribeRequest existing account new pair 2`] = `
+Array [
+  Array [
+    "ws",
+    "{\\"method\\":\\"orderHistory\\",\\"channel\\":\\"orderHistory\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair1\\",\\"orderHistory\\":[\\"userOrders\\"]}",
+  ],
+]
+`;
+
+exports[`handleOrderHistorySubscribeRequest new account new pair 1`] = `
+Object {
+  "account": Object {
+    "pair": Array [
+      "ws",
+    ],
+  },
+}
+`;
+
+exports[`handleOrderHistorySubscribeRequest new account new pair 2`] = `
+Array [
+  Array [
+    "ws",
+    "{\\"method\\":\\"orderHistory\\",\\"channel\\":\\"orderHistory\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"orderHistory\\":[\\"userOrders\\"]}",
+  ],
+]
+`;
+
+exports[`handleOrderHistoryUnsubscribeRequest existing account clear up 1`] = `Object {}`;
+
+exports[`handleOrderHistoryUnsubscribeRequest existing account clear up 2`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "account": "account",
+      "channel": "channel",
+      "method": "method",
+      "pair": "pair",
+    },
+    "ok",
+  ],
+]
+`;
+
+exports[`handleOrderHistoryUnsubscribeRequest existing account existing pair 1`] = `
+Object {
+  "account": Object {
+    "pair": Array [
+      "ws",
+      "ws1",
+    ],
+  },
+}
+`;
+
+exports[`handleOrderHistoryUnsubscribeRequest existing account existing pair 2`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "account": "account",
+      "channel": "channel",
+      "method": "method",
+      "pair": "pair1",
+    },
+    "ok",
+  ],
+]
+`;
+
+exports[`handleOrderHistoryUnsubscribeRequest existing account existing pair more than one 1`] = `
+Object {
+  "account": Object {
+    "pair": Array [
+      "ws",
+    ],
+  },
+}
+`;
+
+exports[`handleOrderHistoryUnsubscribeRequest existing account existing pair more than one 2`] = `
+Array [
+  Array [
+    "ws1",
+    Object {
+      "account": "account",
+      "channel": "channel",
+      "method": "method",
+      "pair": "pair",
+    },
+    "ok",
+  ],
+]
+`;
+
+exports[`handleOrderHistoryUnsubscribeRequest new account 1`] = `Object {}`;
+
+exports[`handleOrderHistoryUnsubscribeRequest new account 2`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "account": "account",
+      "channel": "channel",
+      "method": "method",
+      "pair": "pair",
+    },
+    "ok",
   ],
 ]
 `;
@@ -576,6 +764,19 @@ Array [
 ]
 `;
 
+exports[`handleWebSocketMessage orderHistory 1`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "channel": "orderHistory",
+      "method": "method",
+      "pair": "pair",
+    },
+  ],
+]
+`;
+
 exports[`handleWebSocketMessage orders 1`] = `
 Array [
   Array [
@@ -597,18 +798,10 @@ Array [
 ]
 `;
 
-exports[`sendOrderBookSnapshotResponse 1`] = `
+exports[`sendInfo 1`] = `
 Array [
   Array [
-    "{\\"method\\":\\"snapshot\\",\\"channel\\":\\"orderBooks\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"orderBookSnapshot\\":\\"orderBookSnapshot\\"}",
-  ],
-]
-`;
-
-exports[`sendOrderBookUpdateResponse 1`] = `
-Array [
-  Array [
-    "{\\"method\\":\\"update\\",\\"channel\\":\\"orderBooks\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"orderBookUpdate\\":\\"orderBookUpdate\\"}",
+    "{\\"channel\\":\\"info\\",\\"method\\":\\"info\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"tokens\\":[\\"token1\\"],\\"processStatus\\":[\\"status1\\"]}",
   ],
 ]
 `;

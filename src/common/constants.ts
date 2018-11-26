@@ -88,6 +88,7 @@ export const PROVIDER_LOCAL = 'http://localhost:8545';
 export const NETWORK_ID_LOCAL = 50;
 export const PENDING_HOURS = 24;
 
+export const WS_ORDER_HISTORY = 'orderHistory';
 export const WS_INFO = 'info';
 export const WS_SUB = 'subscribe';
 export const WS_UNSUB = 'unsubscribe';

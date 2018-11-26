@@ -130,6 +130,10 @@ export interface IWsOrderRequest extends IWsRequest {
 	orderHash: string;
 }
 
+export interface IWsOrderHistoryRequest extends IWsRequest {
+	account: string;
+}
+
 export interface IWsAddOrderRequest extends IWsOrderRequest {
 	order: IStringSignedOrder | SignedOrder;
 }
@@ -148,6 +152,10 @@ export interface IWsOrderBookResponse extends IWsResponse {
 
 export interface IWsOrderBookUpdateResponse extends IWsResponse {
 	orderBookUpdate: IOrderBookSnapshotUpdate;
+}
+
+export interface IWsOrderHistoryResponse extends IWsResponse {
+	orderHistory: IUserOrder[];
 }
 
 export interface IWsInfoResponse extends IWsResponse {
