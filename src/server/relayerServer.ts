@@ -143,7 +143,8 @@ class RelayerServer {
 		channel: string,
 		orderBookSnapshotUpdate: IOrderBookSnapshotUpdate
 	) {
-		const pair = channel.split('|')[2];
+		const parts = channel.split('|');
+		const pair = parts[2] + '|' + parts[3];
 		if (!this.orderBookPairs[pair] || !this.orderBookPairs[pair].length) return;
 
 		this.orderBookPairs[pair].forEach(ws => {

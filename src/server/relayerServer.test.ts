@@ -302,20 +302,20 @@ test('handleOrderRequest terminate', async () => {
 test('handleOrderBookUpdate empty ws list', () => {
 	relayerServer.orderBookPairs = {};
 	util.safeWsSend = jest.fn();
-	relayerServer.handleOrderBookUpdate('type|action|pair', 'any' as any);
+	relayerServer.handleOrderBookUpdate('type|action|code1|code2', 'any' as any);
 	relayerServer.orderBookPairs = {
-		pair: []
+		'code1|code2': []
 	};
-	relayerServer.handleOrderBookUpdate('type|action|pair', 'any' as any);
+	relayerServer.handleOrderBookUpdate('type|action|code1|code2', 'any' as any);
 	expect(util.safeWsSend as jest.Mock).not.toBeCalled();
 });
 
 test('handleOrderBookUpdate', () => {
 	util.safeWsSend = jest.fn();
 	relayerServer.orderBookPairs = {
-		pair: ['ws1', 'ws2'] as any
+		'code1|code2': ['ws1', 'ws2'] as any
 	};
-	relayerServer.handleOrderBookUpdate('type|action|pair', 'any' as any);
+	relayerServer.handleOrderBookUpdate('type|action|code1|code2', 'any' as any);
 	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
