@@ -5,10 +5,8 @@ import {
 	ILiveOrder,
 	IMatchingOrderInput,
 	IMatchingOrderResult,
-	IRawOrder,
 	IStringSignedOrder
 } from '../common/types';
-import dynamoUtil from './dynamoUtil';
 import orderPersistenceUtil from './orderPersistenceUtil';
 import redisUtil from './redisUtil';
 import util from './util';
@@ -64,16 +62,16 @@ class OrderMatchingUtil {
 		)
 			return null;
 		else {
-			const leftRawOrder = (await dynamoUtil.getRawOrder(
+			const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
 				leftLiveOrder.orderHash
-			)) as IRawOrder;
+			);
 			const leftOrder: SignedOrder = orderPersistenceUtil.parseSignedOrder(
 				leftRawOrder.signedOrder as IStringSignedOrder
 			);
 
-			const rightRawOrder = (await dynamoUtil.getRawOrder(
-				rightLiveOrder.orderHash
-			)) as IRawOrder;
+			const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
+				leftLiveOrder.orderHash
+			);
 			const rightOrder: SignedOrder = orderPersistenceUtil.parseSignedOrder(
 				rightRawOrder.signedOrder as IStringSignedOrder
 			);

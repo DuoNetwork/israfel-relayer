@@ -5,6 +5,7 @@ import {
 	IOption,
 	IOrderPersistRequest,
 	IOrderQueueItem,
+	IRawOrder,
 	IStringSignedOrder,
 	IUserOrder
 } from '../common/types';
@@ -96,8 +97,33 @@ class OrderPersistenceUtil {
 		return allOrders;
 	}
 
+	public async getRawOrderInPersistence(orderHash: string): Promise<IRawOrder> {
+		const redisStringOrder = await redisUtil.hashGet(
+			`${CST.DB_ORDERS}|${CST.DB_CACHE}`,
+			`${CST.DB_ADD}|${orderHash}`
+		);
+		if (!redisStringOrder) {
+			const dynamoRawOrder = (await dynamoUtil.getRawOrder(orderHash)) as IRawOrder;
+			return dynamoRawOrder;
+		}
+		const redisRawOrder: IOrderQueueItem = JSON.parse(redisStringOrder);
+		return {
+			orderHash: orderHash,
+			signedOrder: redisRawOrder.signedOrder as IStringSignedOrder
+		};
+	}
+
 	public async persistOrder(orderPersistRequest: IOrderPersistRequest) {
-		const { pair, orderHash, method, balance, side, fill, status, requestor } = orderPersistRequest;
+		const {
+			pair,
+			orderHash,
+			method,
+			balance,
+			side,
+			fill,
+			status,
+			requestor
+		} = orderPersistRequest;
 		if (method === CST.DB_ADD && !side) {
 			util.logDebug(`invalid add request ${orderHash}, missing side`);
 			return null;
@@ -154,13 +180,7 @@ class OrderPersistenceUtil {
 			util.logError(error);
 		}
 
-		return this.addUserOrderToDB(
-			orderQueueItem.liveOrder,
-			method,
-			status,
-			requestor,
-			false
-		);
+		return this.addUserOrderToDB(orderQueueItem.liveOrder, method, status, requestor, false);
 	}
 
 	public constructUserOrder(
