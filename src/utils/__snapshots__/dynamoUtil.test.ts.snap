@@ -444,13 +444,13 @@ Array [
   Object {
     "count": 123,
     "hostname": "hostname",
-    "pair": "pair",
+    "pair": "code1|code2",
     "tool": "tool",
     "updatedAt": 1234567890,
   },
   Object {
     "hostname": "hostname",
-    "pair": "",
+    "pair": "tool",
     "tool": "tool",
     "updatedAt": 1234567890,
   },

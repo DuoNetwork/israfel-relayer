@@ -51,13 +51,13 @@ test('scanStatus', async () => {
 	scanOutput = {
 		Items: [
 			{
-				[CST.DB_PROCESS]: { S: 'tool|pair' },
+				[CST.DB_PROCESS]: { S: 'tool|code1|code2|hostname' },
 				[CST.DB_UPDATED_AT]: { N: '1234567890' },
 				[CST.DB_HOSTNAME]: { S: 'hostname' },
 				[CST.DB_COUNT]: { N: '123' }
 			},
 			{
-				[CST.DB_PROCESS]: { S: 'tool|' },
+				[CST.DB_PROCESS]: { S: 'tool|tool|hostname' },
 				[CST.DB_UPDATED_AT]: { N: '1234567890' },
 				[CST.DB_HOSTNAME]: { S: 'hostname' }
 			}

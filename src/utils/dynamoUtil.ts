@@ -114,10 +114,10 @@ class DynamoUtil {
 	}
 
 	public parseStatus(data: AttributeMap): IStatus {
-		const [tool, pair] = (data[CST.DB_PROCESS].S || '').split('|');
+		const parts = (data[CST.DB_PROCESS].S || '').split('|');
 		const status: IStatus = {
-			tool: tool,
-			pair: pair || '',
+			tool: parts[0],
+			pair: parts.length > 3 ? `${parts[1]}|${parts[2]}` : parts[1],
 			hostname: data[CST.DB_HOSTNAME].S || '',
 			updatedAt: Number(data[CST.DB_UPDATED_AT].N)
 		};
