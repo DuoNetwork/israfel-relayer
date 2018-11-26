@@ -212,6 +212,51 @@ Array [
 ]
 `;
 
+exports[`persistOrder terminate fill 1`] = `
+Array [
+  Array [
+    "orders|cache",
+    "terminate|0xOrderHash",
+    "{\\"method\\":\\"terminate\\",\\"status\\":\\"fill\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":100,\\"balance\\":0}}",
+  ],
+]
+`;
+
+exports[`persistOrder terminate fill 2`] = `
+Array [
+  Array [
+    "orders|queue",
+    "terminate|0xOrderHash",
+  ],
+]
+`;
+
+exports[`persistOrder terminate fill 3`] = `
+Array [
+  Array [
+    "orders|pubsub|pair",
+    "{\\"method\\":\\"terminate\\",\\"status\\":\\"fill\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":100,\\"balance\\":0}}",
+  ],
+]
+`;
+
+exports[`persistOrder terminate fill 4`] = `
+Array [
+  Array [
+    Object {
+      "amount": 100,
+      "balance": 0,
+      "currentSequence": 123,
+      "fill": 100,
+    },
+    "terminate",
+    "fill",
+    "requestor",
+    false,
+  ],
+]
+`;
+
 exports[`processOrderQueue add 1`] = `
 Array [
   Array [

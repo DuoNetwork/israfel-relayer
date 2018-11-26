@@ -156,7 +156,10 @@ class OrderPersistenceUtil {
 		};
 		orderQueueItem.liveOrder.currentSequence = sequence;
 		if (method === CST.DB_ADD) orderQueueItem.signedOrder = orderPersistRequest.signedOrder;
-		else {
+		else if (orderPersistRequest.status === CST.DB_FILL) {
+			orderQueueItem.liveOrder.fill = orderQueueItem.liveOrder.amount;
+			orderQueueItem.liveOrder.balance = 0;
+		} else {
 			if (fill) orderQueueItem.liveOrder.fill = fill;
 			if (balance !== -1) orderQueueItem.liveOrder.balance = balance;
 		}

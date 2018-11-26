@@ -311,6 +311,37 @@ test('persistOrder not add not existing', async () => {
 	expect(orderPersistenceUtil.addUserOrderToDB as jest.Mock).not.toBeCalled();
 });
 
+test('persistOrder terminate fill', async () => {
+	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() =>
+		Promise.resolve({
+			amount: 100
+		})
+	);
+	redisUtil.increment = jest.fn(() => Promise.resolve(123));
+	redisUtil.multi = jest.fn(() => Promise.resolve());
+	redisUtil.exec = jest.fn(() => Promise.resolve());
+	redisUtil.hashSet = jest.fn(() => Promise.resolve());
+	redisUtil.push = jest.fn();
+	redisUtil.publish = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
+
+	expect(
+		await orderPersistenceUtil.persistOrder({
+			method: CST.DB_TERMINATE,
+			status: CST.DB_FILL,
+			requestor: 'requestor',
+			pair: 'pair',
+			side: 'side',
+			orderHash: '0xOrderHash',
+			balance: -1
+		})
+	).not.toBeNull();
+	expect((redisUtil.hashSet as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((redisUtil.push as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((redisUtil.publish as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderPersistenceUtil.addUserOrderToDB as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
 test('processOrderQueue empty queue', async () => {
 	redisUtil.pop = jest.fn(() => Promise.resolve(''));
 	redisUtil.putBack = jest.fn();
