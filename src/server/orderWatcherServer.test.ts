@@ -181,6 +181,17 @@ const orderQueueItem = {
 	} as any,
 	signedOrder: signedOrder
 };
+
+test('handle orderUpdate orderWatcher requestor', async () => {
+	orderWatcherServer.orderWatcher = null;
+	orderWatcherServer.addIntoWatch = jest.fn(() => Promise.resolve());
+	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+	await orderWatcherServer.handleOrderUpdate('channel', orderQueueItem);
+	expect(orderWatcherServer.addIntoWatch as jest.Mock).not.toBeCalled();
+	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
+});
+
+orderQueueItem.requestor = 'requestor';
 test('handle orderUpdate invalid method', async () => {
 	orderWatcherServer.orderWatcher = null;
 	orderWatcherServer.addIntoWatch = jest.fn(() => Promise.resolve());
@@ -216,7 +227,7 @@ const orderStateValid: OrderState = {
 	orderRelevantState: {
 		filledTakerAssetAmount: new BigNumber(0),
 		remainingFillableTakerAssetAmount: new BigNumber(567),
-		remainingFillableMakerAssetAmount: new BigNumber(123),
+		remainingFillableMakerAssetAmount: new BigNumber(123)
 	} as any
 };
 

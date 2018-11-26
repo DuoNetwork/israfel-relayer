@@ -165,6 +165,11 @@ class OrderWatcherServer {
 
 	public handleOrderUpdate = (channel: string, orderQueueItem: IOrderQueueItem) => {
 		util.logDebug('receive update from channel: ' + channel);
+		if (orderQueueItem.requestor === CST.DB_ORDER_WATCHER) {
+			util.logDebug('ignore order update requested by self');
+			return;
+		}
+
 		const method = orderQueueItem.method;
 		switch (method) {
 			case CST.DB_ADD:
