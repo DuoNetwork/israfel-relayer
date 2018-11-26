@@ -354,58 +354,6 @@ Object {
 
 exports[`getRawOrder 4`] = `[Error: multiple record for order hash 0xOrderHash]`;
 
-exports[`getServices 1`] = `Array []`;
-
-exports[`getServices 2`] = `
-Array [
-  Array [
-    Object {
-      "ExpressionAttributeValues": Object {
-        ":hostname": Object {
-          "S": "hostname",
-        },
-        ":service": Object {
-          "S": "service",
-        },
-      },
-      "KeyConditionExpression": "service = :service AND hostname = :hostname",
-      "TableName": "israfel.services.dev",
-    },
-  ],
-]
-`;
-
-exports[`getServices 3`] = `
-Array [
-  Object {
-    "hostname": "hostname1",
-    "service": "service",
-    "url": "url1",
-  },
-  Object {
-    "hostname": "hostname2",
-    "service": "service",
-    "url": "",
-  },
-]
-`;
-
-exports[`getServices 4`] = `
-Array [
-  Array [
-    Object {
-      "ExpressionAttributeValues": Object {
-        ":service": Object {
-          "S": "service",
-        },
-      },
-      "KeyConditionExpression": "service = :service",
-      "TableName": "israfel.services.dev",
-    },
-  ],
-]
-`;
-
 exports[`getUserOrders 1`] = `
 Array [
   Array [
@@ -476,33 +424,6 @@ Array [
       "TableName": "israfel.userOrders.dev",
     },
   ],
-]
-`;
-
-exports[`scanServices 1`] = `Array []`;
-
-exports[`scanServices 2`] = `
-Array [
-  Array [
-    Object {
-      "TableName": "israfel.services.dev",
-    },
-  ],
-]
-`;
-
-exports[`scanServices 3`] = `
-Array [
-  Object {
-    "hostname": "hostname1",
-    "service": "service1",
-    "url": "url1",
-  },
-  Object {
-    "hostname": "hostname2",
-    "service": "service2",
-    "url": "",
-  },
 ]
 `;
 

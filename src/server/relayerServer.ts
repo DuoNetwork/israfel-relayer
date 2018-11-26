@@ -6,6 +6,7 @@ import {
 	IOption,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotUpdate,
+	IStatus,
 	IStringSignedOrder,
 	IUserOrder,
 	IWsAddOrderRequest,
@@ -15,7 +16,7 @@ import {
 	IWsOrderResponse,
 	IWsRequest,
 	IWsResponse,
-	IWsTokenResponse,
+	IWsStaticInfoResponse,
 	IWsUserOrderResponse
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
@@ -25,9 +26,11 @@ import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
 class RelayerServer {
+	public processStatus: IStatus[] = [];
 	public web3Util: Web3Util | null = null;
 	public wsServer: WebSocket.Server | null = null;
 	public orderBookPairs: { [pair: string]: WebSocket[] } = {};
+	public clients: WebSocket[] = [];
 
 	public sendResponse(ws: WebSocket, req: IWsRequest, status: string) {
 		const orderResponse: IWsResponse = {
@@ -245,19 +248,34 @@ class RelayerServer {
 		}
 	}
 
+	public sendStaticInfo(ws: WebSocket) {
+		const staticInfoResponse: IWsStaticInfoResponse = {
+			channel: CST.DB_TOKENS,
+			method: CST.DB_TOKENS,
+			status: CST.WS_OK,
+			pair: '',
+			tokens: this.web3Util ? this.web3Util.tokens : [],
+			processStatus: this.processStatus
+		};
+		util.safeWsSend(ws, JSON.stringify(staticInfoResponse));
+	}
+
+	public handleWebSocketConnection(ws: WebSocket) {
+		if (!this.clients.includes(ws)) this.clients.push(ws);
+		this.sendStaticInfo(ws);
+		util.logInfo('new connection');
+		ws.on('message', message => this.handleWebSocketMessage(ws, message.toString()));
+		ws.on('close', () => {
+			util.logInfo('connection close');
+			this.clients = this.clients.filter(w => w !== ws);
+			for (const pair in this.orderBookPairs) this.unsubscribeOrderBook(ws, pair);
+		});
+	}
+
 	public async startServer(web3Util: Web3Util, option: IOption) {
 		this.web3Util = web3Util;
-		let port = 8080;
-		if (option.server) {
-			const relayerService = await dynamoUtil.getServices(CST.DB_RELAYER, true);
-			if (!relayerService.length) {
-				util.logInfo('no relayer service config, exit');
-				return;
-			}
-			util.logInfo('loaded relayer service config');
-			util.logInfo(JSON.stringify(relayerService[0]));
-			port = Number(relayerService[0].url.split(':').slice(-1)[0]);
-		}
+		this.processStatus = await dynamoUtil.scanStatus();
+		const port = 8080;
 		const server = https
 			.createServer({
 				key: fs.readFileSync('./src/keys/websocket/key.pem', 'utf8'),
@@ -267,23 +285,13 @@ class RelayerServer {
 		this.wsServer = new WebSocket.Server({ server: server });
 		util.logInfo(`started relayer service at port ${port}`);
 
-		if (this.wsServer)
-			this.wsServer.on('connection', ws => {
-				const tokenResponse: IWsTokenResponse = {
-					channel: CST.DB_TOKENS,
-					method: CST.DB_TOKENS,
-					status: CST.WS_OK,
-					pair: '',
-					tokens: this.web3Util ? this.web3Util.tokens : []
-				};
-				util.safeWsSend(ws, JSON.stringify(tokenResponse));
-				util.logInfo('new connection');
-				ws.on('message', message => this.handleWebSocketMessage(ws, message.toString()));
-				ws.on('close', () => {
-					util.logInfo('connection close');
-					for (const pair in this.orderBookPairs) this.unsubscribeOrderBook(ws, pair);
-				});
-			});
+		if (this.wsServer) {
+			setInterval(async () => {
+				this.processStatus = await dynamoUtil.scanStatus();
+				this.clients.forEach(ws => this.sendStaticInfo(ws));
+			}, 60000);
+			this.wsServer.on('connection', ws => this.handleWebSocketConnection(ws));
+		}
 
 		if (option.server) {
 			dynamoUtil.updateStatus(CST.DB_RELAYER);

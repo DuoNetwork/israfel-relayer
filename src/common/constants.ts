@@ -22,7 +22,6 @@ export const DB_ORDER_PROCESSOR = 'orderProcessor';
 export const DB_ORDER_MATCHER = 'orderMatcher';
 export const DB_ORDER_WATCHER = 'orderWatcher';
 export const DB_RELAYER = 'relayer';
-export const DB_SERVICES = 'services';
 export const DB_SERVICE = 'service';
 export const DB_URL = 'url';
 export const DB_SIDE = 'side';

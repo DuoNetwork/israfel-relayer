@@ -150,8 +150,9 @@ export interface IWsOrderBookUpdateResponse extends IWsResponse {
 	orderBookUpdate: IOrderBookSnapshotUpdate;
 }
 
-export interface IWsTokenResponse extends IWsResponse {
+export interface IWsStaticInfoResponse extends IWsResponse {
 	tokens: IToken[];
+	processStatus: IStatus[];
 }
 
 export interface IOption {
@@ -170,12 +171,6 @@ export interface IStatus {
 	pair: string;
 	tool: string;
 	count?: number;
-}
-
-export interface IService {
-	service: string;
-	hostname: string;
-	url: string;
 }
 
 export interface ISideMatchResult {

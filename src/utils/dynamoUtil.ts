@@ -11,7 +11,7 @@ import DynamoDB, {
 import AWS from 'aws-sdk/global';
 import moment from 'moment';
 import * as CST from '../common/constants';
-import { ILiveOrder, IRawOrder, IService, IStatus, IToken, IUserOrder } from '../common/types';
+import { ILiveOrder, IRawOrder, IStatus, IToken, IUserOrder } from '../common/types';
 import util from './util';
 
 class DynamoUtil {
@@ -73,25 +73,6 @@ class DynamoUtil {
 		);
 	}
 
-	public parseService(data: AttributeMap): IService {
-		return {
-			service: data[CST.DB_SERVICE].S || '',
-			hostname: data[CST.DB_HOSTNAME].S || '',
-			url: data[CST.DB_URL].S || ''
-		};
-	}
-
-	public async scanServices() {
-		const data = await this.scanData({
-			TableName: `${CST.DB_ISRAFEL}.${CST.DB_SERVICES}.${
-				this.live ? CST.DB_LIVE : CST.DB_DEV
-			}`
-		});
-		if (!data.Items || !data.Items.length) return [];
-
-		return data.Items.map(ob => this.parseService(ob));
-	}
-
 	public parseToken(data: AttributeMap): IToken {
 		return {
 			address: (data[CST.DB_ADDRESS].S || '').toLowerCase(),
@@ -108,29 +89,6 @@ class DynamoUtil {
 		if (!data.Items || !data.Items.length) return [];
 
 		return data.Items.map(ob => this.parseToken(ob));
-	}
-
-	public async getServices(service: string, onlyThisHost: boolean = false) {
-		const params: QueryInput = {
-			TableName: `${CST.DB_ISRAFEL}.${CST.DB_SERVICES}.${
-				this.live ? CST.DB_LIVE : CST.DB_DEV
-			}`,
-			KeyConditionExpression: `${CST.DB_SERVICE} = :${CST.DB_SERVICE}`,
-			ExpressionAttributeValues: {
-				[':' + CST.DB_SERVICE]: { S: service }
-			}
-		};
-
-		if (onlyThisHost) {
-			params.KeyConditionExpression += ` AND ${CST.DB_HOSTNAME} = :${CST.DB_HOSTNAME}`;
-			if (params.ExpressionAttributeValues)
-				params.ExpressionAttributeValues[':' + CST.DB_HOSTNAME] = { S: this.hostname };
-		}
-
-		const data = await this.queryData(params);
-		if (!data.Items || !data.Items.length) return [];
-
-		return data.Items.map(ob => this.parseService(ob));
 	}
 
 	public updateStatus(process: string, count: number = 0) {
