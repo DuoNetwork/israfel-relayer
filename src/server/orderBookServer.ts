@@ -110,12 +110,18 @@ class OrderBookServer {
 		const resRight = matchResult.right;
 		liveOrder.currentSequence = resLeft.sequence;
 		liveOrder.balance = resLeft.newBalance;
-		await this.updateOrderBook(liveOrder, CST.DB_UPDATE);
+		await this.updateOrderBook(
+			liveOrder,
+			liveOrder.balance > 0 ? CST.DB_UPDATE : CST.DB_TERMINATE
+		);
 
 		const rightLiveOrder = this.liveOrders[resRight.orderHash];
 		rightLiveOrder.currentSequence = resRight.sequence;
 		rightLiveOrder.balance = resRight.newBalance;
-		await this.updateOrderBook(rightLiveOrder, CST.DB_UPDATE);
+		await this.updateOrderBook(
+			rightLiveOrder,
+			rightLiveOrder.balance > 0 ? CST.DB_UPDATE : CST.DB_TERMINATE
+		);
 		return [liveOrder, rightLiveOrder];
 	}
 

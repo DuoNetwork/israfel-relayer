@@ -71,9 +71,21 @@ class OrderMatchingUtil {
 			);
 
 			if (!leftRawOrder || !rightRawOrder) {
-				util.logError(`raw order of ${leftLiveOrder.orderHash} does not exist`);
-				// to remove liveOrder respectively
-				return null;
+				if (!leftRawOrder) {
+					obj.left.newBalance = 0;
+					util.logError(
+						`raw order of ${leftLiveOrder.orderHash}	rightLiveOrder.orderHash
+						} does not exist`
+					);
+				}
+				if (!rightRawOrder) {
+					util.logError(
+						`raw order of ${rightLiveOrder.orderHash}	rightLiveOrder.orderHash
+						} does not exist`
+					);
+					obj.right.newBalance = 0;
+				}
+				return obj;
 			}
 			const leftOrder: SignedOrder = orderPersistenceUtil.parseSignedOrder(
 				leftRawOrder.signedOrder as IStringSignedOrder
@@ -118,14 +130,14 @@ class OrderMatchingUtil {
 					: Math.min(
 							leftLiveOrder.balance,
 							rightLiveOrder.balance * rightLiveOrder.price
-					);
+					  );
 
 				obj.right.newBalance = isLeftOrderBid
 					? Math.min(leftLiveOrder.balance * price, rightLiveOrder.balance)
 					: Math.min(
 							leftLiveOrder.balance / price,
 							rightLiveOrder.balance * rightLiveOrder.price
-					);
+					  );
 
 				return obj;
 			} catch (err) {
