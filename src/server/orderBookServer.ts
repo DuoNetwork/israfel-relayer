@@ -38,7 +38,9 @@ class OrderBookServer {
 
 	public handleOrderUpdate = async (channel: string, orderQueueItem: IOrderQueueItem) => {
 		util.logDebug('receive update from channel: ' + channel);
-		const pair = channel.split('|')[2];
+
+		const parts = channel.split('|');
+		const pair = parts[2] + '|' + parts[3];
 		if (pair !== this.pair) {
 			util.logDebug(
 				`received order for pair ${pair}, should only subscribe for ${this.pair}`
@@ -71,10 +73,16 @@ class OrderBookServer {
 			util.logDebug('terminating order not found in cache, ignore');
 			return;
 		}
-
 		if (this.web3Util && method === CST.DB_ADD) {
-			let matchable = true;
+			let matchable = false;
 			const liveOrders: ILiveOrder[] = [];
+
+			if (
+				(orderQueueItem.liveOrder.side === CST.DB_BID && this.orderBook.asks[0]) ||
+				(orderQueueItem.liveOrder.side !== CST.DB_BID && this.orderBook.bids[0])
+			)
+				matchable = true;
+
 			while (matchable) {
 				const matchResult: IMatchingOrderResult | null = await orderMatchingUtil.matchOrders(
 					this.web3Util,
@@ -141,6 +149,8 @@ class OrderBookServer {
 		else delete this.liveOrders[orderHash];
 
 		orderBookUtil.updateOrderBookSnapshot(this.orderBookSnapshot, orderBookSnapshotUpdate);
+		console.log('publish orderBook update');
+		console.log(this.pair, this.orderBookSnapshot, orderBookSnapshotUpdate);
 		await orderBookPersistenceUtil.publishOrderBookUpdate(
 			this.pair,
 			this.orderBookSnapshot,

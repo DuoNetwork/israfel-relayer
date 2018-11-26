@@ -187,6 +187,17 @@ export interface ISideMatchResult {
 	sequence: number;
 }
 
+export interface IMatchingOrderInput {
+	left: {
+		liveOrder: ILiveOrder;
+		signedOrder: SignedOrder;
+	};
+	right: {
+		liveOrder: ILiveOrder;
+		signedOrder: SignedOrder;
+	};
+}
+
 export interface IMatchingOrderResult {
 	left: ISideMatchResult;
 	right: ISideMatchResult;

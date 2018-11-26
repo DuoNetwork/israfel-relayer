@@ -1,7 +1,13 @@
 import { assetDataUtils, SignedOrder } from '0x.js';
 import moment from 'moment';
 import * as CST from '../common/constants';
-import { ILiveOrder, IMatchingOrderResult, IRawOrder, IStringSignedOrder } from '../common/types';
+import {
+	ILiveOrder,
+	IMatchingOrderInput,
+	IMatchingOrderResult,
+	IRawOrder,
+	IStringSignedOrder
+} from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import orderPersistenceUtil from './orderPersistenceUtil';
 import redisUtil from './redisUtil';
@@ -16,7 +22,7 @@ class OrderMatchingUtil {
 	): Promise<IMatchingOrderResult | null> {
 		const price = leftLiveOrder.price;
 		const pair = rightLiveOrder.pair;
-		const isBid = leftLiveOrder.side === CST.DB_BID;
+		const isLeftOrderBid = leftLiveOrder.side === CST.DB_BID;
 		util.logInfo(
 			`start matching order ${leftLiveOrder.orderHash} with ${rightLiveOrder.orderHash}`
 		);
@@ -52,7 +58,10 @@ class OrderMatchingUtil {
 			return obj;
 		}
 
-		if ((isBid && price < rightLiveOrder.price) || (!isBid && price > rightLiveOrder.price))
+		if (
+			(isLeftOrderBid && price < rightLiveOrder.price) ||
+			(!isLeftOrderBid && price > rightLiveOrder.price)
+		)
 			return null;
 		else {
 			const leftRawOrder = (await dynamoUtil.getRawOrder(
@@ -69,53 +78,24 @@ class OrderMatchingUtil {
 				rightRawOrder.signedOrder as IStringSignedOrder
 			);
 
-			//check balance and allowance
-			const leftTokenAddr = (await assetDataUtils.decodeAssetDataOrThrow(
-				leftOrder.makerAssetData
-			)).tokenAddress;
-			const leftMakerBalance = Web3Util.fromWei(
-				await web3Util.contractWrappers.erc20Token.getBalanceAsync(
-					leftTokenAddr,
-					leftOrder.makerAddress
-				)
-			);
-			const leftMakerAllowance = Web3Util.fromWei(
-				await web3Util.contractWrappers.erc20Token.getProxyAllowanceAsync(
-					leftTokenAddr,
-					leftOrder.makerAddress
-				)
-			);
-
-			leftLiveOrder.balance = isBid
-				? Math.min(leftMakerBalance, leftMakerAllowance) / leftLiveOrder.price
-				: Math.min(leftMakerBalance, leftMakerAllowance) * leftLiveOrder.price;
-
-			if (leftLiveOrder.balance === 0) {
+			const orderInput = {
+				left: {
+					liveOrder: leftLiveOrder,
+					signedOrder: leftOrder
+				},
+				right: {
+					liveOrder: rightLiveOrder,
+					signedOrder: rightOrder
+				}
+			};
+			let balances = await this.checkBalance(web3Util, orderInput, isLeftOrderBid);
+			if (balances[0] === 0) {
 				util.logDebug(`leftOrder ${leftLiveOrder.orderHash} balance is 0`);
 				obj.left.newBalance = 0;
 				return obj;
 			}
 
-			const rightTokenAddr = (await assetDataUtils.decodeAssetDataOrThrow(
-				rightOrder.makerAssetData
-			)).tokenAddress;
-			const rightMakerBalance = Web3Util.fromWei(
-				await web3Util.contractWrappers.erc20Token.getBalanceAsync(
-					rightTokenAddr,
-					leftOrder.makerAddress
-				)
-			);
-			const rightMakerAllowance = Web3Util.fromWei(
-				await web3Util.contractWrappers.erc20Token.getProxyAllowanceAsync(
-					rightTokenAddr,
-					leftOrder.makerAddress
-				)
-			);
-
-			rightLiveOrder.balance = isBid
-				? Math.min(rightMakerBalance, rightMakerAllowance) * rightLiveOrder.price
-				: Math.min(rightMakerBalance, rightMakerAllowance) / rightLiveOrder.price;
-			if (rightLiveOrder.balance === 0) {
+			if (balances[1] === 0) {
 				util.logDebug(`leftOrder ${rightLiveOrder.orderHash} balance is 0`);
 				obj.right.newBalance = 0;
 				return obj;
@@ -128,14 +108,14 @@ class OrderMatchingUtil {
 					web3Util.relayerAddress
 				);
 
-				obj.left.newBalance = isBid
+				obj.left.newBalance = isLeftOrderBid
 					? Math.min(leftLiveOrder.balance, rightLiveOrder.balance / rightLiveOrder.price)
 					: Math.min(
 							leftLiveOrder.balance,
 							rightLiveOrder.balance * rightLiveOrder.price
 					);
 
-				obj.right.newBalance = isBid
+				obj.right.newBalance = isLeftOrderBid
 					? Math.min(leftLiveOrder.balance * price, rightLiveOrder.balance)
 					: Math.min(
 							leftLiveOrder.balance / price,
@@ -146,9 +126,65 @@ class OrderMatchingUtil {
 			} catch (err) {
 				util.logError(err);
 				util.logDebug('error in matching transaction');
-				return null;
+				balances = await this.checkBalance(web3Util, orderInput, isLeftOrderBid);
+				obj.left.newBalance = balances[0];
+				obj.right.newBalance = balances[1];
+				return obj;
 			}
 		}
+	}
+
+	public async checkBalance(
+		web3Util: Web3Util,
+		orderInput: IMatchingOrderInput,
+		isLeftOrderBid: boolean
+	): Promise<number[]> {
+		//check balance and allowance
+		const leftOrder = orderInput.left.signedOrder;
+		const leftLiveOrder = orderInput.left.liveOrder;
+		const rightOrder = orderInput.right.signedOrder;
+		const rightLiveOrder = orderInput.right.liveOrder;
+		const leftTokenAddr = (await assetDataUtils.decodeAssetDataOrThrow(
+			leftOrder.makerAssetData
+		)).tokenAddress;
+		const leftMakerBalance = Web3Util.fromWei(
+			await web3Util.contractWrappers.erc20Token.getBalanceAsync(
+				leftTokenAddr,
+				leftOrder.makerAddress
+			)
+		);
+		const leftMakerAllowance = Web3Util.fromWei(
+			await web3Util.contractWrappers.erc20Token.getProxyAllowanceAsync(
+				leftTokenAddr,
+				leftOrder.makerAddress
+			)
+		);
+
+		leftLiveOrder.balance = isLeftOrderBid
+			? Math.min(leftMakerBalance, leftMakerAllowance) / leftLiveOrder.price
+			: Math.min(leftMakerBalance, leftMakerAllowance) * leftLiveOrder.price;
+
+		const rightTokenAddr = (await assetDataUtils.decodeAssetDataOrThrow(
+			rightOrder.makerAssetData
+		)).tokenAddress;
+		const rightMakerBalance = Web3Util.fromWei(
+			await web3Util.contractWrappers.erc20Token.getBalanceAsync(
+				rightTokenAddr,
+				leftOrder.makerAddress
+			)
+		);
+		const rightMakerAllowance = Web3Util.fromWei(
+			await web3Util.contractWrappers.erc20Token.getProxyAllowanceAsync(
+				rightTokenAddr,
+				leftOrder.makerAddress
+			)
+		);
+
+		rightLiveOrder.balance = isLeftOrderBid
+			? Math.min(rightMakerBalance, rightMakerAllowance) * rightLiveOrder.price
+			: Math.min(rightMakerBalance, rightMakerAllowance) / rightLiveOrder.price;
+
+		return [leftLiveOrder.balance, rightLiveOrder.balance];
 	}
 
 	public async batchAddUserOrders(liveOrders: ILiveOrder[]) {

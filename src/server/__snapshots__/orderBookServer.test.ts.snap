@@ -46,7 +46,7 @@ Object {
 exports[`handleOrderUpdate, update orderBooks , add 3`] = `
 Array [
   Array [
-    "pair",
+    "code1|code2",
     Object {
       "asks": Array [],
       "bids": Array [
@@ -62,7 +62,7 @@ Array [
     Object {
       "amount": 10,
       "count": 1,
-      "pair": "pair",
+      "pair": "code1|code2",
       "prevVersion": 0,
       "price": 100,
       "side": "bid",
@@ -112,7 +112,7 @@ exports[`handleOrderUpdate, update orderBooks , terminate 2`] = `Object {}`;
 exports[`handleOrderUpdate, update orderBooks , terminate 3`] = `
 Array [
   Array [
-    "pair",
+    "code1|code2",
     Object {
       "asks": Array [],
       "bids": Array [],
@@ -122,7 +122,7 @@ Array [
     Object {
       "amount": -10,
       "count": -1,
-      "pair": "pair",
+      "pair": "code1|code2",
       "prevVersion": 123456789,
       "price": 100,
       "side": "bid",
@@ -261,7 +261,7 @@ Object {
       "price": 100,
     },
   ],
-  "pair": "pair",
+  "pair": "code1|code2",
   "version": 123456789,
 }
 `;
@@ -269,7 +269,7 @@ Object {
 exports[`loadLiveOrders 3`] = `
 Array [
   Array [
-    "pair",
+    "code1|code2",
     Object {
       "asks": Array [
         Object {
@@ -295,7 +295,7 @@ Array [
           "price": 100,
         },
       ],
-      "pair": "pair",
+      "pair": "code1|code2",
       "version": 123456789,
     },
   ],

@@ -5,8 +5,8 @@ import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import util from '../utils/util';
 import orderBookServer from './orderBookServer';
 
-orderBookServer.pair = 'pair';
-const channel = 'xxx|xxx|pair';
+orderBookServer.pair = 'code1|code2';
+const channel = 'xxx|xxx|code1|code2';
 
 const orderQueueItem = {
 	method: CST.DB_ADD,
