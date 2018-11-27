@@ -28,11 +28,13 @@ class OrderMatchingUtil {
 		const obj: IMatchingOrderResult = {
 			left: {
 				orderHash: leftLiveOrder.orderHash,
+				method: CST.DB_UPDATE,
 				newBalance: leftLiveOrder.balance,
 				sequence: await redisUtil.increment(`${CST.DB_SEQUENCE}|${pair}`)
 			},
 			right: {
 				orderHash: rightLiveOrder.orderHash,
+				method: CST.DB_UPDATE,
 				newBalance: rightLiveOrder.balance,
 				sequence: await redisUtil.increment(`${CST.DB_SEQUENCE}|${pair}`)
 			}
@@ -45,6 +47,7 @@ class OrderMatchingUtil {
 				} is expiring in 3 minutes, removing this order`
 			);
 			obj.right.newBalance = 0;
+			obj.right.method = CST.DB_TERMINATE;
 			return obj;
 		}
 
@@ -53,6 +56,7 @@ class OrderMatchingUtil {
 				`the order ${leftLiveOrder.orderHash} is expiring in 3 minutes, removing this order`
 			);
 			obj.left.newBalance = 0;
+			obj.left.method = CST.DB_TERMINATE;
 			return obj;
 		}
 
@@ -72,11 +76,12 @@ class OrderMatchingUtil {
 
 			if (!leftRawOrder || !rightRawOrder) {
 				if (!leftRawOrder) {
-					obj.left.newBalance = 0;
 					util.logError(
 						`raw order of ${leftLiveOrder.orderHash}	rightLiveOrder.orderHash
 						} does not exist`
 					);
+					obj.left.newBalance = 0;
+					obj.left.method = CST.DB_TERMINATE;
 				}
 				if (!rightRawOrder) {
 					util.logError(
@@ -84,6 +89,7 @@ class OrderMatchingUtil {
 						} does not exist`
 					);
 					obj.right.newBalance = 0;
+					obj.right.method = CST.DB_TERMINATE;
 				}
 				return obj;
 			}
@@ -130,14 +136,14 @@ class OrderMatchingUtil {
 					: Math.min(
 							leftLiveOrder.balance,
 							rightLiveOrder.balance * rightLiveOrder.price
-					  );
+					);
 
 				obj.right.newBalance = isLeftOrderBid
 					? Math.min(leftLiveOrder.balance * price, rightLiveOrder.balance)
 					: Math.min(
 							leftLiveOrder.balance / price,
 							rightLiveOrder.balance * rightLiveOrder.price
-					  );
+					);
 
 				return obj;
 			} catch (err) {

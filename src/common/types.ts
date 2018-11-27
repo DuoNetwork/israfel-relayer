@@ -183,6 +183,7 @@ export interface IStatus {
 
 export interface ISideMatchResult {
 	orderHash: string;
+	method: string;
 	newBalance: number;
 	sequence: number;
 }

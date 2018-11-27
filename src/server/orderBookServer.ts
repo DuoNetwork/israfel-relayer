@@ -112,7 +112,7 @@ class OrderBookServer {
 		liveOrder.balance = resLeft.newBalance;
 		await this.updateOrderBook(
 			liveOrder,
-			liveOrder.balance > 0 ? CST.DB_UPDATE : CST.DB_TERMINATE
+			resLeft.method,
 		);
 
 		const rightLiveOrder = this.liveOrders[resRight.orderHash];
@@ -120,7 +120,7 @@ class OrderBookServer {
 		rightLiveOrder.balance = resRight.newBalance;
 		await this.updateOrderBook(
 			rightLiveOrder,
-			rightLiveOrder.balance > 0 ? CST.DB_UPDATE : CST.DB_TERMINATE
+			resRight.method
 		);
 		return [liveOrder, rightLiveOrder];
 	}
@@ -155,8 +155,6 @@ class OrderBookServer {
 		else delete this.liveOrders[orderHash];
 
 		orderBookUtil.updateOrderBookSnapshot(this.orderBookSnapshot, orderBookSnapshotUpdate);
-		console.log('publish orderBook update');
-		console.log(this.pair, this.orderBookSnapshot, orderBookSnapshotUpdate);
 		await orderBookPersistenceUtil.publishOrderBookUpdate(
 			this.pair,
 			this.orderBookSnapshot,
