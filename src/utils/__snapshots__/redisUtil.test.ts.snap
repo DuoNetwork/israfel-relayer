@@ -1,5 +1,90 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`exec 1`] = `
+Array [
+  Array [],
+]
+`;
+
+exports[`get 1`] = `
+Array [
+  Array [
+    "key",
+  ],
+]
+`;
+
+exports[`getQueueLength 1`] = `
+Array [
+  Array [
+    "key",
+  ],
+]
+`;
+
+exports[`hashDelete 1`] = `
+Array [
+  Array [
+    "key",
+    "field",
+  ],
+]
+`;
+
+exports[`hashGet 1`] = `
+Array [
+  Array [
+    "key",
+    "field",
+  ],
+]
+`;
+
+exports[`hashGetAll 1`] = `
+Array [
+  Array [
+    "key",
+  ],
+]
+`;
+
+exports[`hashMultiGet 1`] = `
+Array [
+  Array [
+    "key",
+    "field",
+  ],
+]
+`;
+
+exports[`hashSet 1`] = `
+Array [
+  Array [
+    "key",
+    "field",
+    "value",
+  ],
+]
+`;
+
+exports[`increment 1`] = `
+Array [
+  Array [
+    "key",
+  ],
+]
+`;
+
+exports[`multi 1`] = `
+Array [
+  Array [
+    Object {
+      "pipeline": false,
+    },
+  ],
+]
+`;
+
 exports[`onMessage orderBooks 1`] = `
 Array [
   Array [
@@ -14,6 +99,86 @@ Array [
   Array [
     "orders|any",
     "test",
+  ],
+]
+`;
+
+exports[`patternSubscribe 1`] = `
+Array [
+  Array [
+    "channel",
+  ],
+]
+`;
+
+exports[`patternUnsubscribe 1`] = `
+Array [
+  Array [
+    "channel",
+  ],
+]
+`;
+
+exports[`pop 1`] = `
+Array [
+  Array [
+    "key",
+  ],
+]
+`;
+
+exports[`publish 1`] = `
+Array [
+  Array [
+    "channel",
+    "msg",
+  ],
+]
+`;
+
+exports[`push 1`] = `
+Array [
+  Array [
+    "key",
+    Array [
+      "field",
+    ],
+  ],
+]
+`;
+
+exports[`putBack 1`] = `
+Array [
+  Array [
+    "key",
+    Array [
+      "field",
+    ],
+  ],
+]
+`;
+
+exports[`set 1`] = `
+Array [
+  Array [
+    "key",
+    "value",
+  ],
+]
+`;
+
+exports[`subscribe 1`] = `
+Array [
+  Array [
+    "channel",
+  ],
+]
+`;
+
+exports[`unsubscribe 1`] = `
+Array [
+  Array [
+    "channel",
   ],
 ]
 `;

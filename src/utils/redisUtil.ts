@@ -4,8 +4,8 @@ import {  IOrderBookSnapshotUpdate, IOrderQueueItem } from '../common/types';
 import util from './util';
 
 class RedisUtil {
-	private redisPub: Redis.Redis | null = null;
-	private redisSub: Redis.Redis | null = null;
+	public redisPub: Redis.Redis | null = null;
+	public redisSub: Redis.Redis | null = null;
 	private handleOrderBookUpdate:
 		| ((channel: string, orderBookUpdate: IOrderBookSnapshotUpdate) => any)
 		| null = null;
@@ -62,7 +62,7 @@ class RedisUtil {
 
 	public increment(key: string) {
 		if (this.redisPub) return this.redisPub.incr(key);
-		return Promise.reject();
+		return Promise.resolve(0);
 	}
 
 	public set(key: string, value: string) {
@@ -82,7 +82,7 @@ class RedisUtil {
 
 	public hashGet(key: string, field: string): Promise<string | null> {
 		if (this.redisPub) return this.redisPub.hget(key, field);
-		return Promise.resolve(null);
+		return Promise.resolve('');
 	}
 
 	public async hashMultiGet(key: string, ...fields: string[]) {
@@ -97,7 +97,7 @@ class RedisUtil {
 
 	public hashGetAll(key: string): Promise<any> {
 		if (this.redisPub) return this.redisPub.hgetall(key);
-		return Promise.resolve(null);
+		return Promise.resolve({});
 	}
 
 	public hashDelete(key: string, field: string) {

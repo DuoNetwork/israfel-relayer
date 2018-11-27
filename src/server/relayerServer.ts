@@ -20,7 +20,7 @@ import {
 	IWsRequest,
 	IWsResponse,
 	IWsTerminateOrderRequest,
-	IWsUserOrderResponse,
+	IWsUserOrderResponse
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
