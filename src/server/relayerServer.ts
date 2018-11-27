@@ -5,6 +5,7 @@ import * as CST from '../common/constants';
 import {
 	IOption,
 	IOrderBookSnapshotUpdate,
+	IOrderQueueItem,
 	IStatus,
 	IStringSignedOrder,
 	IUserOrder,
@@ -32,7 +33,7 @@ class RelayerServer {
 	public wsServer: WebSocket.Server | null = null;
 	public orderBookPairs: { [pair: string]: WebSocket[] } = {};
 	public clients: WebSocket[] = [];
-	public clientPairs: { [account: string]: { [pair: string]: WebSocket[] } } = {};
+	public pairClients: { [pair: string]: { [account: string]: WebSocket[] } } = {};
 
 	public sendResponse(ws: WebSocket, req: IWsRequest, status: string) {
 		const orderResponse: IWsResponse = {
@@ -55,9 +56,9 @@ class RelayerServer {
 		util.safeWsSend(ws, JSON.stringify(orderResponse));
 	}
 
-	public sendUserOrderResponse(ws: WebSocket, userOrder: IUserOrder, type: string) {
+	public sendUserOrderResponse(ws: WebSocket, userOrder: IUserOrder, method: string) {
 		const orderResponse: IWsUserOrderResponse = {
-			method: type,
+			method: method,
 			channel: CST.DB_ORDERS,
 			status: CST.WS_OK,
 			pair: userOrder.pair,
@@ -129,9 +130,15 @@ class RelayerServer {
 
 	public async handleOrderHistorySubscribeRequest(ws: WebSocket, req: IWsOrderHistoryRequest) {
 		const { account, pair } = req;
-		if (!this.clientPairs[account]) this.clientPairs[account] = {};
-		if (!this.clientPairs[account][pair]) this.clientPairs[account][pair] = [];
-		if (!this.clientPairs[account][pair].includes(ws)) this.clientPairs[account][pair].push(ws);
+		if (!this.pairClients[pair]) {
+			this.pairClients[pair] = {};
+			orderPersistenceUtil.subscribeOrderUpdate(pair, (channel, orderQueueItem) =>
+				this.handleOrderUpdate(channel, orderQueueItem)
+			);
+		}
+		if (!this.pairClients[pair][account]) this.pairClients[pair][account] = [];
+
+		if (!this.pairClients[pair][account].includes(ws)) this.pairClients[pair][account].push(ws);
 
 		const now = util.getUTCNowTimestamp();
 		const userOrders = await dynamoUtil.getUserOrders(account, now - 30 * 86400000, now, pair);
@@ -148,13 +155,17 @@ class RelayerServer {
 
 	private unsubscribeOrderHistory(ws: WebSocket, account: string, pair: string) {
 		if (
-			this.clientPairs[account] &&
-			this.clientPairs[account][pair] &&
-			this.clientPairs[account][pair].includes(ws)
+			this.pairClients[pair] &&
+			this.pairClients[pair][account] &&
+			this.pairClients[pair][account].includes(ws)
 		) {
-			this.clientPairs[account][pair] = this.clientPairs[account][pair].filter(e => e !== ws);
-			if (!this.clientPairs[account][pair].length) delete this.clientPairs[account][pair];
-			if (!Object.keys(this.clientPairs[account]).length) delete this.clientPairs[account];
+			this.pairClients[pair][account] = this.pairClients[pair][account].filter(e => e !== ws);
+			if (!this.pairClients[pair][account].length) delete this.pairClients[pair][account];
+
+			if (!Object.keys(this.pairClients[pair]).length) {
+				delete this.pairClients[pair];
+				orderPersistenceUtil.unsubscribeOrderUpdate(pair);
+			}
 		}
 	}
 
@@ -193,6 +204,32 @@ class RelayerServer {
 			default:
 				this.sendResponse(ws, req, CST.WS_INVALID_REQ);
 				return Promise.resolve();
+		}
+	}
+
+	public handleOrderUpdate(channel: string, orderQueueItem: IOrderQueueItem) {
+		util.logDebug('receive update from channel: ' + channel);
+		if (orderQueueItem.requestor === CST.DB_RELAYER) {
+			util.logDebug('ignore order update requested by self');
+			return;
+		}
+
+		const { account, pair } = orderQueueItem.liveOrder;
+		if (
+			this.pairClients[pair] &&
+			this.pairClients[pair][account] &&
+			this.pairClients[pair][account].length
+		) {
+			const userOrder = orderPersistenceUtil.constructUserOrder(
+				orderQueueItem.liveOrder,
+				orderQueueItem.method,
+				orderQueueItem.status,
+				orderQueueItem.requestor,
+				true
+			);
+			this.pairClients[pair][account].forEach(ws =>
+				this.sendUserOrderResponse(ws, userOrder, orderQueueItem.method)
+			);
 		}
 	}
 
@@ -316,8 +353,9 @@ class RelayerServer {
 		util.logInfo('connection close');
 		this.clients = this.clients.filter(w => w !== ws);
 		for (const pair in this.orderBookPairs) this.unsubscribeOrderBook(ws, pair);
-		for (const account in this.clientPairs)
-			for (const pair in this.clientPairs) this.unsubscribeOrderHistory(ws, account, pair);
+		for (const pair in this.pairClients)
+			for (const account in this.pairClients[pair])
+				this.unsubscribeOrderHistory(ws, account, pair);
 	}
 
 	public async startServer(web3Util: Web3Util, option: IOption) {

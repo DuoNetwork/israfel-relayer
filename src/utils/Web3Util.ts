@@ -17,6 +17,7 @@ import {
 import { getContractAddressesForNetworkOrThrow } from '@0x/contract-addresses';
 import { schemas, SchemaValidator } from '@0x/json-schemas';
 import { MetamaskSubprovider, PrivateKeyWalletSubprovider } from '@0x/subproviders';
+import { addressUtils } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as CST from '../common/constants';
 import { IRawOrder, IStringSignedOrder, IToken } from '../common/types';
@@ -337,5 +338,9 @@ export default class Web3Util {
 			util.logDebug(err);
 			return false;
 		}
+	}
+
+	public isValidAddress(address: string) {
+		return address !== CST.DUMMY_ADDR && addressUtils.isAddress(address);
 	}
 }

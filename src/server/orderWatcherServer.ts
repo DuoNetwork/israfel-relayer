@@ -197,8 +197,8 @@ class OrderWatcherServer {
 		);
 		this.pair = option.token + '|' + CST.TOKEN_WETH;
 
-		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderPersistRequest) =>
-			this.handleOrderUpdate(channel, orderPersistRequest)
+		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderQueueItem) =>
+			this.handleOrderUpdate(channel, orderQueueItem)
 		);
 
 		const allOrders = await orderPersistenceUtil.getAllLiveOrdersInPersistence(this.pair);

@@ -234,108 +234,124 @@ test('handleTerminateOrderRequest', async () => {
 	expect((relayerServer.sendUserOrderResponse as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('handleOrderHistorySubscribeRequest new account new pair', async () => {
+test('handleOrderHistorySubscribeRequest new pair new account ', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders']));
 	util.safeWsSend = jest.fn();
+	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
 	await relayerServer.handleOrderHistorySubscribeRequest('ws' as any, {
 		channel: 'channel',
 		method: 'method',
 		pair: 'pair',
 		account: 'account'
 	});
-	expect(relayerServer.clientPairs).toMatchSnapshot();
+	expect(relayerServer.pairClients).toMatchSnapshot();
 	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('handleOrderHistorySubscribeRequest existing account existing pair', async () => {
+test('handleOrderHistorySubscribeRequest existing pair existing account same ws', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders']));
 	util.safeWsSend = jest.fn();
+	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
 	await relayerServer.handleOrderHistorySubscribeRequest('ws' as any, {
 		channel: 'channel',
 		method: 'method',
 		pair: 'pair',
 		account: 'account'
 	});
-	expect(relayerServer.clientPairs).toMatchSnapshot();
+	expect(relayerServer.pairClients).toMatchSnapshot();
 	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).not.toBeCalled();
 });
 
 test('handleOrderHistorySubscribeRequest existing account existing pair new ws', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders']));
 	util.safeWsSend = jest.fn();
+	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
 	await relayerServer.handleOrderHistorySubscribeRequest('ws1' as any, {
 		channel: 'channel',
 		method: 'method',
 		pair: 'pair',
 		account: 'account'
 	});
-	expect(relayerServer.clientPairs).toMatchSnapshot();
+	expect(relayerServer.pairClients).toMatchSnapshot();
 	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).not.toBeCalled();
 });
 
-test('handleOrderHistorySubscribeRequest existing account new pair', async () => {
+test('handleOrderHistorySubscribeRequest new pair', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders']));
 	util.safeWsSend = jest.fn();
+	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
 	await relayerServer.handleOrderHistorySubscribeRequest('ws' as any, {
 		channel: 'channel',
 		method: 'method',
 		pair: 'pair1',
 		account: 'account'
 	});
-	expect(relayerServer.clientPairs).toMatchSnapshot();
+	expect(relayerServer.pairClients).toMatchSnapshot();
 	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('handleOrderHistoryUnsubscribeRequest existing account existing pair', async () => {
+test('handleOrderHistoryUnsubscribeRequest existing pair existing account', async () => {
 	relayerServer.sendResponse = jest.fn();
+	orderPersistenceUtil.unsubscribeOrderUpdate = jest.fn();
 	await relayerServer.handleOrderHistoryUnsubscribeRequest('ws' as any, {
 		channel: 'channel',
 		method: 'method',
 		pair: 'pair1',
 		account: 'account'
 	});
-	expect(relayerServer.clientPairs).toMatchSnapshot();
+	expect(relayerServer.pairClients).toMatchSnapshot();
 	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderPersistenceUtil.unsubscribeOrderUpdate as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleOrderHistoryUnsubscribeRequest existing account existing pair more than one', async () => {
 	relayerServer.sendResponse = jest.fn();
+	orderPersistenceUtil.unsubscribeOrderUpdate = jest.fn();
 	await relayerServer.handleOrderHistoryUnsubscribeRequest('ws1' as any, {
 		channel: 'channel',
 		method: 'method',
 		pair: 'pair',
 		account: 'account'
 	});
-	expect(relayerServer.clientPairs).toMatchSnapshot();
+	expect(relayerServer.pairClients).toMatchSnapshot();
 	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(orderPersistenceUtil.unsubscribeOrderUpdate as jest.Mock).not.toBeCalled();
 });
 
 test('handleOrderHistoryUnsubscribeRequest existing account clear up', async () => {
 	relayerServer.sendResponse = jest.fn();
+	orderPersistenceUtil.unsubscribeOrderUpdate = jest.fn();
 	await relayerServer.handleOrderHistoryUnsubscribeRequest('ws' as any, {
 		channel: 'channel',
 		method: 'method',
 		pair: 'pair',
 		account: 'account'
 	});
-	expect(relayerServer.clientPairs).toMatchSnapshot();
+	expect(relayerServer.pairClients).toMatchSnapshot();
 	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderPersistenceUtil.unsubscribeOrderUpdate as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleOrderHistoryUnsubscribeRequest new account', async () => {
 	relayerServer.sendResponse = jest.fn();
+	orderPersistenceUtil.unsubscribeOrderUpdate = jest.fn();
 	await relayerServer.handleOrderHistoryUnsubscribeRequest('ws' as any, {
 		channel: 'channel',
 		method: 'method',
 		pair: 'pair',
 		account: 'account'
 	});
-	expect(relayerServer.clientPairs).toMatchSnapshot();
+	expect(relayerServer.pairClients).toMatchSnapshot();
 	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(orderPersistenceUtil.unsubscribeOrderUpdate as jest.Mock).not.toBeCalled();
 });
 
 test('handleOrderRequest invalid requests', async () => {

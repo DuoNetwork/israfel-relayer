@@ -423,29 +423,10 @@ Array [
 ]
 `;
 
-exports[`handleOrderHistorySubscribeRequest existing account existing pair 1`] = `
-Object {
-  "account": Object {
-    "pair": Array [
-      "ws",
-    ],
-  },
-}
-`;
-
-exports[`handleOrderHistorySubscribeRequest existing account existing pair 2`] = `
-Array [
-  Array [
-    "ws",
-    "{\\"method\\":\\"history\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"orderHistory\\":[\\"userOrders\\"]}",
-  ],
-]
-`;
-
 exports[`handleOrderHistorySubscribeRequest existing account existing pair new ws 1`] = `
 Object {
-  "account": Object {
-    "pair": Array [
+  "pair": Object {
+    "account": Array [
       "ws",
       "ws1",
     ],
@@ -462,21 +443,42 @@ Array [
 ]
 `;
 
-exports[`handleOrderHistorySubscribeRequest existing account new pair 1`] = `
+exports[`handleOrderHistorySubscribeRequest existing pair existing account same ws 1`] = `
 Object {
-  "account": Object {
-    "pair": Array [
-      "ws",
-      "ws1",
-    ],
-    "pair1": Array [
+  "pair": Object {
+    "account": Array [
       "ws",
     ],
   },
 }
 `;
 
-exports[`handleOrderHistorySubscribeRequest existing account new pair 2`] = `
+exports[`handleOrderHistorySubscribeRequest existing pair existing account same ws 2`] = `
+Array [
+  Array [
+    "ws",
+    "{\\"method\\":\\"history\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"orderHistory\\":[\\"userOrders\\"]}",
+  ],
+]
+`;
+
+exports[`handleOrderHistorySubscribeRequest new pair 1`] = `
+Object {
+  "pair": Object {
+    "account": Array [
+      "ws",
+      "ws1",
+    ],
+  },
+  "pair1": Object {
+    "account": Array [
+      "ws",
+    ],
+  },
+}
+`;
+
+exports[`handleOrderHistorySubscribeRequest new pair 2`] = `
 Array [
   Array [
     "ws",
@@ -485,21 +487,39 @@ Array [
 ]
 `;
 
-exports[`handleOrderHistorySubscribeRequest new account new pair 1`] = `
+exports[`handleOrderHistorySubscribeRequest new pair 3`] = `
+Array [
+  Array [
+    "pair1",
+    [Function],
+  ],
+]
+`;
+
+exports[`handleOrderHistorySubscribeRequest new pair new account  1`] = `
 Object {
-  "account": Object {
-    "pair": Array [
+  "pair": Object {
+    "account": Array [
       "ws",
     ],
   },
 }
 `;
 
-exports[`handleOrderHistorySubscribeRequest new account new pair 2`] = `
+exports[`handleOrderHistorySubscribeRequest new pair new account  2`] = `
 Array [
   Array [
     "ws",
     "{\\"method\\":\\"history\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"orderHistory\\":[\\"userOrders\\"]}",
+  ],
+]
+`;
+
+exports[`handleOrderHistorySubscribeRequest new pair new account  3`] = `
+Array [
+  Array [
+    "pair",
+    [Function],
   ],
 ]
 `;
@@ -521,36 +541,18 @@ Array [
 ]
 `;
 
-exports[`handleOrderHistoryUnsubscribeRequest existing account existing pair 1`] = `
-Object {
-  "account": Object {
-    "pair": Array [
-      "ws",
-      "ws1",
-    ],
-  },
-}
-`;
-
-exports[`handleOrderHistoryUnsubscribeRequest existing account existing pair 2`] = `
+exports[`handleOrderHistoryUnsubscribeRequest existing account clear up 3`] = `
 Array [
   Array [
-    "ws",
-    Object {
-      "account": "account",
-      "channel": "channel",
-      "method": "method",
-      "pair": "pair1",
-    },
-    "ok",
+    "pair",
   ],
 ]
 `;
 
 exports[`handleOrderHistoryUnsubscribeRequest existing account existing pair more than one 1`] = `
 Object {
-  "account": Object {
-    "pair": Array [
+  "pair": Object {
+    "account": Array [
       "ws",
     ],
   },
@@ -568,6 +570,40 @@ Array [
       "pair": "pair",
     },
     "ok",
+  ],
+]
+`;
+
+exports[`handleOrderHistoryUnsubscribeRequest existing pair existing account 1`] = `
+Object {
+  "pair": Object {
+    "account": Array [
+      "ws",
+      "ws1",
+    ],
+  },
+}
+`;
+
+exports[`handleOrderHistoryUnsubscribeRequest existing pair existing account 2`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "account": "account",
+      "channel": "channel",
+      "method": "method",
+      "pair": "pair1",
+    },
+    "ok",
+  ],
+]
+`;
+
+exports[`handleOrderHistoryUnsubscribeRequest existing pair existing account 3`] = `
+Array [
+  Array [
+    "pair1",
   ],
 ]
 `;
