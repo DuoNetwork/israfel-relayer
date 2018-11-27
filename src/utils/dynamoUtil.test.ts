@@ -14,18 +14,42 @@ test('scanTokens', async () => {
 			{
 				[CST.DB_ADDRESS]: { S: 'addr1' },
 				[CST.DB_CODE]: { S: 'code1' },
-				[CST.DB_DENOMINATION]: {N: '1'},
-				[CST.DB_PRECISION]: {M : {
-					WETH: {N: '0.000005'}
-				}}
+				[CST.DB_DENOMINATION]: { N: '1' },
+				[CST.DB_PRECISION]: {
+					M: {
+						WETH: { N: '0.000005' }
+					}
+				},
+				[CST.DB_FEE]: {
+					M: {
+						WETH: {
+							M: {
+								value: { N: '1' }
+							}
+						}
+					}
+				}
 			},
 			{
 				[CST.DB_ADDRESS]: { S: 'addr2' },
 				[CST.DB_CODE]: { S: 'code2' },
-				[CST.DB_DENOMINATION]: {N: '10'},
-				[CST.DB_PRECISION]: {M : {
-					WETH: {N: '0.000005'}
-				}}
+				[CST.DB_DENOMINATION]: { N: '10' },
+				[CST.DB_PRECISION]: {
+					M: {
+						WETH: { N: '0.000005' }
+					}
+				},
+				[CST.DB_FEE]: {
+					M: {
+						WETH: {
+							M: {
+								asset: { S: 'asset' },
+								isRatio: { BOOL: true },
+								value: { N: '1' }
+							}
+						}
+					}
+				}
 			}
 		]
 	};
@@ -82,7 +106,9 @@ test('addLiveOrder', async () => {
 		createdAt: 1111111111,
 		expiry: 1234567890,
 		initialSequence: 1,
-		currentSequence: 1
+		currentSequence: 1,
+		fee: 1,
+		feeAsset: 'feeAsset'
 	});
 	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
 });
@@ -103,7 +129,9 @@ test('updateLiveOrder', async () => {
 		createdAt: 1234560000,
 		updatedAt: 1234560000,
 		initialSequence: 1,
-		currentSequence: 2
+		currentSequence: 2,
+		fee: 1,
+		feeAsset: 'feeAsset'
 	});
 	expect((dynamoUtil.updateData as jest.Mock).mock.calls).toMatchSnapshot();
 });
@@ -123,7 +151,9 @@ test('deleteLiveOrder', async () => {
 		createdAt: 1234560000,
 		updatedAt: 1234560000,
 		initialSequence: 1,
-		currentSequence: 2
+		currentSequence: 2,
+		fee: 1,
+		feeAsset: 'feeAsset'
 	});
 	expect((dynamoUtil.deleteData as jest.Mock).mock.calls).toMatchSnapshot();
 });
@@ -149,11 +179,13 @@ test('getLiveOrders', async () => {
 				[CST.DB_BALANCE]: { N: '123' },
 				[CST.DB_FILL]: { N: '234' },
 				[CST.DB_SIDE]: { S: 'side' },
-				[CST.DB_EXP]: {N: '1234567890'},
+				[CST.DB_EXP]: { N: '1234567890' },
 				[CST.DB_INITIAL_SEQ]: { N: '1' },
 				[CST.DB_CURRENT_SEQ]: { N: '2' },
 				[CST.DB_CREATED_AT]: { N: '1234560000' },
-				[CST.DB_UPDATED_AT]: { N: '1234567890' }
+				[CST.DB_UPDATED_AT]: { N: '1234567890' },
+				[CST.DB_FEE]: { N: '1' },
+				[CST.DB_FEE_ASSET]: { S: 'feeAsset' }
 			}
 		]
 	};
@@ -182,11 +214,13 @@ test('getLiveOrders with orderHash', async () => {
 				[CST.DB_BALANCE]: { N: '123' },
 				[CST.DB_FILL]: { N: '234' },
 				[CST.DB_SIDE]: { S: 'side' },
-				[CST.DB_EXP]: {N: '1234567890'},
+				[CST.DB_EXP]: { N: '1234567890' },
 				[CST.DB_INITIAL_SEQ]: { N: '1' },
 				[CST.DB_CURRENT_SEQ]: { N: '2' },
 				[CST.DB_CREATED_AT]: { N: '1234560000' },
-				[CST.DB_UPDATED_AT]: { N: '1234567890' }
+				[CST.DB_UPDATED_AT]: { N: '1234567890' },
+				[CST.DB_FEE]: { N: '1' },
+				[CST.DB_FEE_ASSET]: { S: 'feeAsset' }
 			}
 		]
 	};
@@ -342,7 +376,9 @@ test('addUserOrder', async () => {
 		initialSequence: 1,
 		currentSequence: 2,
 		updatedBy: 'updatedBy',
-		processed: false
+		processed: false,
+		fee: 1,
+		feeAsset: 'feeAsset'
 	});
 	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
 });
@@ -369,12 +405,14 @@ test('getUserOrdersForMonth', async () => {
 				[CST.DB_AMOUNT]: { N: '456' },
 				[CST.DB_FILL]: { N: '234' },
 				[CST.DB_SIDE]: { S: 'side' },
-				[CST.DB_EXP]: {N: '1234567890'},
+				[CST.DB_EXP]: { N: '1234567890' },
 				[CST.DB_INITIAL_SEQ]: { N: '1' },
 				[CST.DB_CREATED_AT]: { N: '1234560000' },
 				[CST.DB_UPDATED_AT]: { N: '1234567890' },
 				[CST.DB_UPDATED_BY]: { S: 'updatedBy' },
 				[CST.DB_PROCESSED]: { BOOL: true },
+				[CST.DB_FEE]: { N: '1' },
+				[CST.DB_FEE_ASSET]: { S: 'feeAsset' }
 			}
 		]
 	};

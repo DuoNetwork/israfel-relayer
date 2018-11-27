@@ -14,6 +14,8 @@ export interface ILiveOrder {
 	updatedAt?: number;
 	initialSequence: number;
 	currentSequence: number;
+	fee: number;
+	feeAsset: string;
 }
 
 export interface IMatchingOrders {
@@ -211,4 +213,13 @@ export interface IToken {
 	precision: {
 		[key: string]: number
 	};
+	fee: {
+		[key: string]: IFee
+	}
+}
+
+export interface IFee {
+	asset: string;
+	isRatio: boolean;
+	value: number;
 }

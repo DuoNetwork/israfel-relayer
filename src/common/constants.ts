@@ -40,6 +40,8 @@ export const DB_CODE = 'code';
 export const DB_EXP = 'expiry';
 export const DB_DENOMINATION = 'denomination';
 export const DB_PRECISION = 'precision';
+export const DB_FEE = 'fee';
+export const DB_FEE_ASSET = 'feeAsset';
 
 export const DB_ADD = 'add';
 export const DB_UPDATE = 'update';

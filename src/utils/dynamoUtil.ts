@@ -78,11 +78,21 @@ class DynamoUtil {
 			address: (data[CST.DB_ADDRESS].S || '').toLowerCase(),
 			code: data[CST.DB_CODE].S || '',
 			denomination: Number(data[CST.DB_DENOMINATION].N),
-			precision: {}
+			precision: {},
+			fee: {}
 		};
 		const precision = data[CST.DB_PRECISION].M || {};
-		for (const code in precision)
-			token.precision[code] = Number(precision[code].N);
+		for (const code in precision) token.precision[code] = Number(precision[code].N);
+
+		const fee = data[CST.DB_FEE].M || {};
+		for (const base in fee) {
+			const feeBase = fee[base].M || {};
+			token.fee[base] = {
+				asset: feeBase.asset ? feeBase.asset.S || token.code : token.code,
+				isRatio: feeBase.isFlat ? feeBase.isFlat.BOOL || false : false,
+				value: Number(feeBase.value.N)
+			};
+		}
 
 		return token;
 	}
@@ -152,7 +162,9 @@ class DynamoUtil {
 			[CST.DB_INITIAL_SEQ]: { N: liveOrder.initialSequence + '' },
 			[CST.DB_CURRENT_SEQ]: { N: liveOrder.currentSequence + '' },
 			[CST.DB_CREATED_AT]: { N: liveOrder.createdAt + '' },
-			[CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' }
+			[CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' },
+			[CST.DB_FEE]: { N: liveOrder.fee + '' },
+			[CST.DB_FEE_ASSET]: { S: liveOrder.feeAsset }
 		};
 	}
 
@@ -225,6 +237,8 @@ class DynamoUtil {
 			expiry: Number(data[CST.DB_EXP].N),
 			initialSequence: Number(data[CST.DB_INITIAL_SEQ].N),
 			currentSequence: Number(data[CST.DB_CURRENT_SEQ].N),
+			fee: Number(data[CST.DB_FEE].N),
+			feeAsset: data[CST.DB_FEE_ASSET].S || '',
 			createdAt: Number(data[CST.DB_CREATED_AT].N),
 			updatedAt: Number(data[CST.DB_UPDATED_AT].N)
 		};
@@ -378,7 +392,9 @@ class DynamoUtil {
 			[CST.DB_CREATED_AT]: { N: userOrder.createdAt + '' },
 			[CST.DB_UPDATED_AT]: { N: timestamp + '' },
 			[CST.DB_UPDATED_BY]: { S: userOrder.updatedBy + '' },
-			[CST.DB_PROCESSED]: { BOOL: userOrder.processed }
+			[CST.DB_PROCESSED]: { BOOL: userOrder.processed },
+			[CST.DB_FEE]: { N: userOrder.fee + '' },
+			[CST.DB_FEE_ASSET]: { S: userOrder.feeAsset }
 		};
 	}
 
@@ -411,6 +427,8 @@ class DynamoUtil {
 			currentSequence: Number(seq),
 			createdAt: Number(data[CST.DB_CREATED_AT].N),
 			updatedAt: Number(data[CST.DB_UPDATED_AT].N),
+			fee: Number(data[CST.DB_FEE].N),
+			feeAsset: data[CST.DB_FEE_ASSET].S || '',
 			updatedBy: data[CST.DB_UPDATED_BY].S || '',
 			processed: !!data[CST.DB_PROCESSED].BOOL
 		};

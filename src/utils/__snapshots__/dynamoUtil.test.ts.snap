@@ -23,6 +23,12 @@ Array [
         "expiry": Object {
           "N": "1234567890",
         },
+        "fee": Object {
+          "N": "1",
+        },
+        "feeAsset": Object {
+          "S": "feeAsset",
+        },
         "fill": Object {
           "N": "234",
         },
@@ -134,6 +140,12 @@ Array [
         "expiry": Object {
           "N": "1234567890",
         },
+        "fee": Object {
+          "N": "1",
+        },
+        "feeAsset": Object {
+          "S": "feeAsset",
+        },
         "fill": Object {
           "N": "234",
         },
@@ -234,6 +246,8 @@ Array [
     "createdAt": 1234560000,
     "currentSequence": 2,
     "expiry": 1234567890,
+    "fee": 1,
+    "feeAsset": "feeAsset",
     "fill": 234,
     "initialSequence": 1,
     "orderHash": "0xOrderHash",
@@ -275,6 +289,8 @@ Array [
     "createdAt": 1234560000,
     "currentSequence": 2,
     "expiry": 1234567890,
+    "fee": 1,
+    "feeAsset": "feeAsset",
     "fill": 234,
     "initialSequence": 1,
     "orderHash": "0xOrderHash",
@@ -390,6 +406,8 @@ Array [
     "createdAt": 1234560000,
     "currentSequence": 1,
     "expiry": 1234567890,
+    "fee": 1,
+    "feeAsset": "feeAsset",
     "fill": 234,
     "initialSequence": 1,
     "orderHash": "0xOrderHash",
@@ -475,6 +493,13 @@ Array [
     "address": "addr1",
     "code": "code1",
     "denomination": 1,
+    "fee": Object {
+      "WETH": Object {
+        "asset": "code1",
+        "isRatio": false,
+        "value": 1,
+      },
+    },
     "precision": Object {
       "WETH": 0.000005,
     },
@@ -483,6 +508,13 @@ Array [
     "address": "addr2",
     "code": "code2",
     "denomination": 10,
+    "fee": Object {
+      "WETH": Object {
+        "asset": "asset",
+        "isRatio": false,
+        "value": 1,
+      },
+    },
     "precision": Object {
       "WETH": 0.000005,
     },
