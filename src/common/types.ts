@@ -221,7 +221,7 @@ export interface IToken {
 }
 
 export interface IFee {
-	asset: string;
-	isRatio: boolean;
+	asset?: string;
+	isRatio?: boolean;
 	value: number;
 }

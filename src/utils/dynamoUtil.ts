@@ -11,7 +11,7 @@ import DynamoDB, {
 import AWS from 'aws-sdk/global';
 import moment from 'moment';
 import * as CST from '../common/constants';
-import { ILiveOrder, IRawOrder, IStatus, IToken, IUserOrder } from '../common/types';
+import { IFee, ILiveOrder, IRawOrder, IStatus, IToken, IUserOrder } from '../common/types';
 import util from './util';
 
 class DynamoUtil {
@@ -84,14 +84,15 @@ class DynamoUtil {
 		const precision = data[CST.DB_PRECISION].M || {};
 		for (const code in precision) token.precision[code] = Number(precision[code].N);
 
-		const fee = data[CST.DB_FEE].M || {};
-		for (const base in fee) {
-			const feeBase = fee[base].M || {};
-			token.fee[base] = {
-				asset: feeBase.asset ? feeBase.asset.S || token.code : token.code,
-				isRatio: feeBase.isFlat ? feeBase.isFlat.BOOL || false : false,
-				value: Number(feeBase.value.N)
+		const allFees = data[CST.DB_FEE].M || {};
+		for (const code in allFees) {
+			const fee = allFees[code].M || {};
+			const parsedFee: IFee = {
+				value: Number(fee[CST.DB_VALUE].N)
 			};
+			if (fee[CST.DB_ASSET]) parsedFee.asset = fee[CST.DB_ASSET].S || '';
+			if (fee[CST.DB_IS_RATIO]) parsedFee.isRatio = !!fee[CST.DB_IS_RATIO].BOOL;
+			token.fee[code] = parsedFee;
 		}
 
 		return token;
@@ -159,12 +160,12 @@ class DynamoUtil {
 			[CST.DB_FILL]: { N: liveOrder.fill + '' },
 			[CST.DB_SIDE]: { S: liveOrder.side },
 			[CST.DB_EXP]: { N: liveOrder.expiry + '' },
+			[CST.DB_FEE]: { N: liveOrder.fee + '' },
+			[CST.DB_FEE_ASSET]: { S: liveOrder.feeAsset },
 			[CST.DB_INITIAL_SEQ]: { N: liveOrder.initialSequence + '' },
 			[CST.DB_CURRENT_SEQ]: { N: liveOrder.currentSequence + '' },
 			[CST.DB_CREATED_AT]: { N: liveOrder.createdAt + '' },
-			[CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' },
-			[CST.DB_FEE]: { N: liveOrder.fee + '' },
-			[CST.DB_FEE_ASSET]: { S: liveOrder.feeAsset }
+			[CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' }
 		};
 	}
 
@@ -235,10 +236,10 @@ class DynamoUtil {
 			balance: Number(data[CST.DB_BALANCE].N),
 			fill: Number(data[CST.DB_FILL].N),
 			expiry: Number(data[CST.DB_EXP].N),
-			initialSequence: Number(data[CST.DB_INITIAL_SEQ].N),
-			currentSequence: Number(data[CST.DB_CURRENT_SEQ].N),
 			fee: Number(data[CST.DB_FEE].N),
 			feeAsset: data[CST.DB_FEE_ASSET].S || '',
+			initialSequence: Number(data[CST.DB_INITIAL_SEQ].N),
+			currentSequence: Number(data[CST.DB_CURRENT_SEQ].N),
 			createdAt: Number(data[CST.DB_CREATED_AT].N),
 			updatedAt: Number(data[CST.DB_UPDATED_AT].N)
 		};
@@ -388,13 +389,13 @@ class DynamoUtil {
 			[CST.DB_FILL]: { N: userOrder.fill + '' },
 			[CST.DB_SIDE]: { S: userOrder.side },
 			[CST.DB_EXP]: { N: userOrder.expiry + '' },
+			[CST.DB_FEE]: { N: userOrder.fee + '' },
+			[CST.DB_FEE_ASSET]: { S: userOrder.feeAsset },
 			[CST.DB_INITIAL_SEQ]: { N: userOrder.initialSequence + '' },
 			[CST.DB_CREATED_AT]: { N: userOrder.createdAt + '' },
 			[CST.DB_UPDATED_AT]: { N: timestamp + '' },
 			[CST.DB_UPDATED_BY]: { S: userOrder.updatedBy + '' },
-			[CST.DB_PROCESSED]: { BOOL: userOrder.processed },
-			[CST.DB_FEE]: { N: userOrder.fee + '' },
-			[CST.DB_FEE_ASSET]: { S: userOrder.feeAsset }
+			[CST.DB_PROCESSED]: { BOOL: userOrder.processed }
 		};
 	}
 
@@ -423,12 +424,12 @@ class DynamoUtil {
 			balance: Number(data[CST.DB_BALANCE].N),
 			fill: Number(data[CST.DB_FILL].N),
 			expiry: Number(data[CST.DB_EXP].N),
+			fee: Number(data[CST.DB_FEE].N),
+			feeAsset: data[CST.DB_FEE_ASSET].S || '',
 			initialSequence: Number(data[CST.DB_INITIAL_SEQ].N),
 			currentSequence: Number(seq),
 			createdAt: Number(data[CST.DB_CREATED_AT].N),
 			updatedAt: Number(data[CST.DB_UPDATED_AT].N),
-			fee: Number(data[CST.DB_FEE].N),
-			feeAsset: data[CST.DB_FEE_ASSET].S || '',
 			updatedBy: data[CST.DB_UPDATED_BY].S || '',
 			processed: !!data[CST.DB_PROCESSED].BOOL
 		};
