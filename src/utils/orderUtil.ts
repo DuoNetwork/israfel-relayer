@@ -1,6 +1,6 @@
 import { SignedOrder } from '0x.js';
 import * as CST from '../common/constants';
-import { ILiveOrder, IStringSignedOrder, IToken, IUserOrder } from '../common/types';
+import { IFee, ILiveOrder, IStringSignedOrder, IToken, IUserOrder } from '../common/types';
 import util from './util';
 import Web3Util from './Web3Util';
 
@@ -21,6 +21,55 @@ class OrderUtil {
 		};
 	}
 
+	public getPriceBeforeFee(
+		tokenAmountAfterFee: number,
+		baseAmountAfterFee: number,
+		fee: IFee,
+		isBid: boolean
+	) {
+		let feeAmount = 0;
+		let price = 0;
+		let tokenAmountBeforeFee = tokenAmountAfterFee;
+		let baseAmountBeforeFee = baseAmountAfterFee;
+		if (isBid) {
+			if (fee.asset) {
+				feeAmount = Math.max((baseAmountAfterFee * fee.rate) / (1 + fee.rate), fee.minimum);
+				baseAmountBeforeFee = baseAmountAfterFee - feeAmount;
+			} else {
+				feeAmount = Math.max(
+					(tokenAmountAfterFee * fee.rate) / (1 - fee.rate),
+					fee.minimum
+				);
+				tokenAmountBeforeFee = tokenAmountAfterFee + feeAmount;
+			}
+			price = tokenAmountBeforeFee / baseAmountBeforeFee;
+		} else {
+			if (fee.asset) {
+				feeAmount = Math.max((baseAmountAfterFee * fee.rate) / (1 - fee.rate), fee.minimum);
+				baseAmountBeforeFee = baseAmountAfterFee + feeAmount;
+			} else {
+				feeAmount = Math.max(
+					(tokenAmountAfterFee * fee.rate) / (1 + fee.rate),
+					fee.minimum
+				);
+				tokenAmountBeforeFee = tokenAmountAfterFee - feeAmount;
+			}
+			price = tokenAmountBeforeFee / baseAmountBeforeFee;
+		}
+
+		util.logDebug(
+			`isBid ${isBid} feeAsset ${
+				fee.asset
+			} fee ${feeAmount} tokenAmountBeforeFee ${tokenAmountBeforeFee} baseAmountBeforeFee ${baseAmountBeforeFee} price ${price}`
+		);
+
+		return {
+			price: price,
+			amount: tokenAmountBeforeFee,
+			feeAmount: feeAmount
+		};
+	}
+
 	public constructNewLiveOrder(
 		signedOrder: IStringSignedOrder,
 		token: IToken,
@@ -36,56 +85,26 @@ class OrderUtil {
 		const baseAmountAfterFee = Web3Util.fromWei(
 			isBid ? signedOrder.makerAssetAmount : signedOrder.takerAssetAmount
 		);
-		let tokenAmountBeforeFee = tokenAmountAfterFee;
-		let baseAmountBeforeFee = baseAmountAfterFee;
 		const fee = token.fee[code2];
-		let feeAmount = 0;
-		let feeAsset = code1;
-		let price = 0;
-		if (isBid) {
-			if (fee.asset === code2) {
-				feeAsset = code2;
-				feeAmount = Math.max((baseAmountAfterFee * fee.rate) / (1 + fee.rate), fee.minimum);
-				baseAmountBeforeFee = baseAmountAfterFee - feeAmount;
-			} else {
-				feeAmount = Math.max(
-					(tokenAmountAfterFee * fee.rate) / (1 - fee.rate),
-					fee.minimum
-				);
-				tokenAmountBeforeFee = tokenAmountAfterFee + feeAmount;
-			}
-			price = tokenAmountBeforeFee / baseAmountBeforeFee;
-		} else {
-			if (fee.asset === code2) {
-				feeAsset = code2;
-				feeAmount = Math.max((baseAmountAfterFee * fee.rate) / (1 - fee.rate), fee.minimum);
-				baseAmountBeforeFee = baseAmountAfterFee + feeAmount;
-			} else {
-				feeAmount = Math.max(
-					(tokenAmountAfterFee * fee.rate) / (1 + fee.rate),
-					fee.minimum
-				);
-				tokenAmountBeforeFee = tokenAmountAfterFee - feeAmount;
-			}
-			price = tokenAmountBeforeFee / baseAmountBeforeFee;
-		}
-
-		util.logDebug(
-			`isBid ${isBid} feeAsset ${feeAsset} fee ${feeAmount} tokenAmountBeforeFee ${tokenAmountBeforeFee} baseAmountBeforeFee ${baseAmountBeforeFee} price ${price}`
+		const priceBeforeFee = this.getPriceBeforeFee(
+			tokenAmountAfterFee,
+			baseAmountAfterFee,
+			fee,
+			isBid
 		);
 
 		return {
 			account: signedOrder.makerAddress,
 			pair: pair,
 			orderHash: orderHash,
-			price: price,
-			amount: tokenAmountBeforeFee,
-			balance: tokenAmountBeforeFee,
+			price: priceBeforeFee.price,
+			amount: priceBeforeFee.amount,
+			balance: priceBeforeFee.amount,
 			fill: 0,
 			side: side,
 			expiry: Number(signedOrder.expirationTimeSeconds) * 1000,
-			fee: feeAmount,
-			feeAsset: feeAsset,
+			fee: priceBeforeFee.feeAmount,
+			feeAsset: fee.asset || code1,
 			initialSequence: 0,
 			currentSequence: 0,
 			createdAt: util.getUTCNowTimestamp()
