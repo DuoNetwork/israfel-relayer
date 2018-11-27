@@ -298,68 +298,6 @@ Array [
 
 exports[`handleOrderWatcherUpdate invalid default 1`] = `Array []`;
 
-exports[`handleOrderWatcherUpdate isValid ask fill 1`] = `
-Array [
-  Array [
-    Object {
-      "balance": 1.23e-16,
-      "fill": 1e-17,
-      "method": "update",
-      "orderHash": "orderHash",
-      "pair": "pair",
-      "requestor": "orderWatcher",
-      "status": "pFill",
-    },
-  ],
-]
-`;
-
-exports[`handleOrderWatcherUpdate isValid ask no fill 1`] = `
-Array [
-  Array [
-    Object {
-      "balance": 1.23e-16,
-      "method": "update",
-      "orderHash": "orderHash",
-      "pair": "pair",
-      "requestor": "orderWatcher",
-      "status": "update",
-    },
-  ],
-]
-`;
-
-exports[`handleOrderWatcherUpdate isValid bid fill 1`] = `
-Array [
-  Array [
-    Object {
-      "balance": 5.67e-16,
-      "fill": 1e-18,
-      "method": "update",
-      "orderHash": "orderHash",
-      "pair": "pair",
-      "requestor": "orderWatcher",
-      "status": "pFill",
-    },
-  ],
-]
-`;
-
-exports[`handleOrderWatcherUpdate isValid bid no fill 1`] = `
-Array [
-  Array [
-    Object {
-      "balance": 5.67e-16,
-      "method": "update",
-      "orderHash": "orderHash",
-      "pair": "pair",
-      "requestor": "orderWatcher",
-      "status": "update",
-    },
-  ],
-]
-`;
-
 exports[`remove from watch, exisitng order 1`] = `
 Array [
   Array [

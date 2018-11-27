@@ -50,7 +50,7 @@ class OrderWatcherServer {
 			util.logDebug(orderState.orderHash + ' not in cache, ignored');
 			return;
 		}
-		const stringSignedOrder = JSON.parse(
+		const stringSignedOrder: IStringSignedOrder = JSON.parse(
 			JSON.stringify(this.watchingOrders[orderState.orderHash])
 		);
 		const orderPersistRequest: IOrderPersistRequest = {
@@ -63,21 +63,49 @@ class OrderWatcherServer {
 		};
 		util.logDebug(JSON.stringify(orderState));
 		if (orderState.isValid) {
-			const side = Web3Util.getSideFromSignedOrder(stringSignedOrder, this.token as IToken);
+			const isBid =
+				Web3Util.getSideFromSignedOrder(stringSignedOrder, this.token as IToken) ===
+				CST.DB_BID;
 			const {
 				remainingFillableTakerAssetAmount,
 				remainingFillableMakerAssetAmount,
 				filledTakerAssetAmount
 			} = (orderState as OrderStateValid).orderRelevantState;
-			const price = Web3Util.getPriceFromSignedOrder(stringSignedOrder, side);
-			orderPersistRequest.balance = Web3Util.fromWei(
-				side === CST.DB_BID
-					? remainingFillableTakerAssetAmount
-					: remainingFillableMakerAssetAmount
+			const remainingTokenAfterFee = Web3Util.fromWei(
+				isBid ? remainingFillableTakerAssetAmount : remainingFillableMakerAssetAmount
 			);
+			const remainingBaseAfterFee = Web3Util.fromWei(
+				isBid ? remainingFillableMakerAssetAmount : remainingFillableTakerAssetAmount
+			);
+
+			const fee = (this.token as IToken).fee[CST.TOKEN_WETH];
+			const remainingPriceBeforeFee = orderUtil.getPriceBeforeFee(
+				remainingTokenAfterFee,
+				remainingBaseAfterFee,
+				fee,
+				isBid
+			);
+			orderPersistRequest.balance = remainingPriceBeforeFee.amount;
 			const fill = Web3Util.fromWei(filledTakerAssetAmount);
 			if (fill) {
-				orderPersistRequest.fill = side === CST.DB_BID ? fill : fill * price;
+				orderPersistRequest.fill = isBid
+					? fill
+					: (fill / Web3Util.fromWei(stringSignedOrder.takerAssetAmount)) *
+					Web3Util.fromWei(stringSignedOrder.makerAssetAmount);
+				if (!fee.asset) {
+					const originalLiveOrder = orderUtil.constructNewLiveOrder(
+						stringSignedOrder,
+						this.token as IToken,
+						this.pair,
+						orderState.orderHash
+					);
+					const filledFee =
+						(originalLiveOrder.fee * fill) /
+						Web3Util.fromWei(stringSignedOrder.takerAssetAmount);
+					orderPersistRequest.fill =
+						orderPersistRequest.fill + (isBid ? filledFee : -filledFee);
+				}
+
 				orderPersistRequest.status = CST.DB_PFILL;
 			}
 		} else {
@@ -124,9 +152,7 @@ class OrderWatcherServer {
 					}
 					signedOrder = rawOrder.signedOrder as IStringSignedOrder;
 				}
-				const rawSignedOrder: SignedOrder = orderUtil.parseSignedOrder(
-					signedOrder
-				);
+				const rawSignedOrder: SignedOrder = orderUtil.parseSignedOrder(signedOrder);
 
 				if (!(await this.web3Util.validateOrderFillable(rawSignedOrder))) {
 					util.logDebug(orderHash + ' not fillable, send update');

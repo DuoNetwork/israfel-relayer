@@ -252,63 +252,63 @@ test('handleOrderWatcherUpdate not in cache', async () => {
 	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
 });
 
-test('handleOrderWatcherUpdate isValid bid no fill', async () => {
-	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
-	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
-	orderWatcherServer.watchingOrders = {
-		orderHash: 'orderHash' as any
-	};
-	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
-	orderWatcherServer.web3Util = {} as any;
-	Web3Util.getPriceFromSignedOrder = jest.fn(() => 10);
-	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
-	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
-});
+// test('handleOrderWatcherUpdate isValid bid no fill', async () => {
+// 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
+// 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+// 	orderWatcherServer.watchingOrders = {
+// 		orderHash: 'orderHash' as any
+// 	};
+// 	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
+// 	orderWatcherServer.web3Util = {} as any;
+// 	Web3Util.getPriceFromSignedOrder = jest.fn(() => 10);
+// 	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
+// 	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
+// 	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
+// });
 
-test('handleOrderWatcherUpdate isValid ask no fill', async () => {
-	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
-	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
-	orderWatcherServer.watchingOrders = {
-		orderHash: 'orderHash' as any
-	};
-	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
-	orderWatcherServer.web3Util = {} as any;
-	Web3Util.getPriceFromSignedOrder = jest.fn(() => 10);
-	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
-	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
-});
+// test('handleOrderWatcherUpdate isValid ask no fill', async () => {
+// 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
+// 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+// 	orderWatcherServer.watchingOrders = {
+// 		orderHash: 'orderHash' as any
+// 	};
+// 	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
+// 	orderWatcherServer.web3Util = {} as any;
+// 	Web3Util.getPriceFromSignedOrder = jest.fn(() => 10);
+// 	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
+// 	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
+// 	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
+// });
 
-test('handleOrderWatcherUpdate isValid bid fill', async () => {
-	orderStateValid.orderRelevantState.filledTakerAssetAmount = new BigNumber(1);
-	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
-	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
-	orderWatcherServer.watchingOrders = {
-		orderHash: 'orderHash' as any
-	};
-	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
-	orderWatcherServer.web3Util = {} as any;
-	Web3Util.getPriceFromSignedOrder = jest.fn(() => 10);
-	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
-	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
-});
+// test('handleOrderWatcherUpdate isValid bid fill', async () => {
+// 	orderStateValid.orderRelevantState.filledTakerAssetAmount = new BigNumber(1);
+// 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
+// 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+// 	orderWatcherServer.watchingOrders = {
+// 		orderHash: 'orderHash' as any
+// 	};
+// 	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
+// 	orderWatcherServer.web3Util = {} as any;
+// 	Web3Util.getPriceFromSignedOrder = jest.fn(() => 10);
+// 	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
+// 	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
+// 	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
+// });
 
-test('handleOrderWatcherUpdate isValid ask fill', async () => {
-	orderStateValid.orderRelevantState.filledTakerAssetAmount = new BigNumber(1);
-	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
-	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
-	orderWatcherServer.watchingOrders = {
-		orderHash: 'orderHash' as any
-	};
-	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
-	orderWatcherServer.web3Util = {} as any;
-	Web3Util.getPriceFromSignedOrder = jest.fn(() => 10);
-	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
-	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
-});
+// test('handleOrderWatcherUpdate isValid ask fill', async () => {
+// 	orderStateValid.orderRelevantState.filledTakerAssetAmount = new BigNumber(1);
+// 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
+// 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+// 	orderWatcherServer.watchingOrders = {
+// 		orderHash: 'orderHash' as any
+// 	};
+// 	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
+// 	orderWatcherServer.web3Util = {} as any;
+// 	Web3Util.getPriceFromSignedOrder = jest.fn(() => 10);
+// 	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
+// 	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
+// 	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
+// });
 
 const orderStateInValid: OrderState = {
 	isValid: false,
