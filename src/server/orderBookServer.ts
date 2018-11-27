@@ -73,28 +73,27 @@ class OrderBookServer {
 			util.logDebug('terminating order not found in cache, ignore');
 			return;
 		}
+
+		const leftLiveOrder = orderQueueItem.liveOrder;
 		if (this.web3Util && method === CST.DB_ADD) {
 			let matchable = true;
 			const liveOrders: ILiveOrder[] = [];
-			const leftLiveOrder = orderQueueItem.liveOrder;
+			const isLeftOrderBid = leftLiveOrder.side === CST.DB_BID;
 
 			if (
-				(leftLiveOrder.side === CST.DB_BID && !this.orderBook.asks.length) ||
-				(leftLiveOrder.side !== CST.DB_BID && !this.orderBook.bids.length)
+				(isLeftOrderBid && !this.orderBook.asks.length) ||
+				(!isLeftOrderBid && !this.orderBook.bids.length)
 			)
 				matchable = false;
 
 			while (matchable) {
-				const rightLiveOrder =
-					orderQueueItem.liveOrder.side === CST.DB_BID
-						? this.liveOrders[this.orderBook.asks[0].orderHash]
-						: this.liveOrders[this.orderBook.bids[0].orderHash];
+				const rightLiveOrder = isLeftOrderBid
+					? this.liveOrders[this.orderBook.asks[0].orderHash]
+					: this.liveOrders[this.orderBook.bids[0].orderHash];
 
 				if (
-					(leftLiveOrder.side === CST.DB_BID &&
-						leftLiveOrder.price < rightLiveOrder.price) ||
-					(leftLiveOrder.side !== CST.DB_BID &&
-						leftLiveOrder.price > rightLiveOrder.price)
+					(isLeftOrderBid && leftLiveOrder.price < rightLiveOrder.price) ||
+					(!isLeftOrderBid && leftLiveOrder.price > rightLiveOrder.price)
 				) {
 					matchable = false;
 					break;
@@ -102,36 +101,32 @@ class OrderBookServer {
 
 				const matchResult: IMatchingOrderResult = await orderMatchingUtil.matchOrders(
 					this.web3Util,
-					orderQueueItem.liveOrder,
-					orderQueueItem.liveOrder.side === CST.DB_BID
-						? this.liveOrders[this.orderBook.asks[0].orderHash]
-						: this.liveOrders[this.orderBook.bids[0].orderHash]
+					leftLiveOrder,
+					rightLiveOrder
 				);
 
-				liveOrders.concat(
-					await this.processMatchingResult(matchResult, orderQueueItem.liveOrder)
-				);
+				liveOrders.concat(await this.processMatchingResult(matchResult, leftLiveOrder));
 			}
 			if (liveOrders.length > 0) await orderMatchingUtil.batchAddUserOrders(liveOrders);
 		}
-		await this.updateOrderBook(orderQueueItem.liveOrder, method);
+		await this.updateOrderBook(leftLiveOrder, method);
 	};
 
 	public async processMatchingResult(
 		matchResult: IMatchingOrderResult,
-		liveOrder: ILiveOrder
+		leftLiveOrder: ILiveOrder
 	): Promise<ILiveOrder[]> {
 		const resLeft = matchResult.left;
 		const resRight = matchResult.right;
-		liveOrder.currentSequence = resLeft.sequence;
-		liveOrder.balance = resLeft.newBalance;
-		await this.updateOrderBook(liveOrder, resLeft.method);
+		leftLiveOrder.currentSequence = resLeft.sequence;
+		leftLiveOrder.balance = resLeft.newBalance;
+		await this.updateOrderBook(leftLiveOrder, resLeft.method);
 
 		const rightLiveOrder = this.liveOrders[resRight.orderHash];
 		rightLiveOrder.currentSequence = resRight.sequence;
 		rightLiveOrder.balance = resRight.newBalance;
 		await this.updateOrderBook(rightLiveOrder, resRight.method);
-		return [liveOrder, rightLiveOrder];
+		return [leftLiveOrder, rightLiveOrder];
 	}
 
 	public async updateOrderBook(liveOrder: ILiveOrder, method: string) {
