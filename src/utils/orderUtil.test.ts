@@ -25,7 +25,7 @@ const signedOrder = {
 
 test('parseSignedOrder', () => expect(orderUtil.parseSignedOrder(signedOrder)).toMatchSnapshot());
 
-test('constructNewLiveOrder bid flat', () => {
+test('constructNewLiveOrder bid', () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
 	expect(
@@ -51,7 +51,7 @@ test('constructNewLiveOrder bid flat', () => {
 	).toMatchSnapshot();
 });
 
-test('constructNewLiveOrder ask flat', () => {
+test('constructNewLiveOrder ask', () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
 	expect(
@@ -77,162 +77,118 @@ test('constructNewLiveOrder ask flat', () => {
 	).toMatchSnapshot();
 });
 
-test('constructNewLiveOrder bid ratio', () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
+test('getPriceBeforeFee bid flat', () => {
 	expect(
-		orderUtil.constructNewLiveOrder(
-			signedOrder,
+		orderUtil.getPriceBeforeFee(
+			123,
+			456,
 			{
-				address: 'takerAddress',
-				code: 'takerCode',
-				denomination: 1,
-				precision: {
-					makerCode: 0.000005
-				},
-				fee: {
-					makerCode: {
-						rate: 0.01,
-						minimum: 1
-					}
-				}
+				rate: 0,
+				minimum: 1
 			},
-			'takerCode|makerCode',
-			'0xOrderHash'
+			true
 		)
 	).toMatchSnapshot();
 });
 
-test('constructNewLiveOrder ask ratio', () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
+test('getPriceBeforeFee ask flat', () => {
 	expect(
-		orderUtil.constructNewLiveOrder(
-			signedOrder,
+		orderUtil.getPriceBeforeFee(
+			123,
+			456,
 			{
-				address: 'makerAddress',
-				code: 'makerCode',
-				denomination: 1,
-				precision: {
-					takerCode: 0.000005
-				},
-				fee: {
-					takerCode: {
-						rate: 0.01,
-						minimum: 1
-					}
-				}
+				rate: 0,
+				minimum: 1
 			},
-			'makerCode|takerCode',
-			'0xOrderHash'
+			false
 		)
 	).toMatchSnapshot();
 });
 
-test('constructNewLiveOrder bid base flat', () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
+test('getPriceBeforeFee bid ratio', () => {
 	expect(
-		orderUtil.constructNewLiveOrder(
-			signedOrder,
+		orderUtil.getPriceBeforeFee(
+			123,
+			456,
 			{
-				address: 'takerAddress',
-				code: 'takerCode',
-				denomination: 1,
-				precision: {
-					makerCode: 0.000005
-				},
-				fee: {
-					makerCode: {
-						asset: 'makerCode',
-						rate: 0,
-						minimum: 1
-					}
-				}
+				rate: 0.01,
+				minimum: 1
 			},
-			'takerCode|makerCode',
-			'0xOrderHash'
+			true
 		)
 	).toMatchSnapshot();
 });
 
-test('constructNewLiveOrder ask base flat', () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
+test('getPriceBeforeFee ask ratio', () => {
 	expect(
-		orderUtil.constructNewLiveOrder(
-			signedOrder,
+		orderUtil.getPriceBeforeFee(
+			123,
+			456,
 			{
-				address: 'makerAddress',
-				code: 'makerCode',
-				denomination: 1,
-				precision: {
-					takerCode: 0.000005
-				},
-				fee: {
-					takerCode: {
-						asset: 'takerCode',
-						rate: 0,
-						minimum: 1
-					}
-				}
+				rate: 0.01,
+				minimum: 1
 			},
-			'makerCode|takerCode',
-			'0xOrderHash'
+			false
 		)
 	).toMatchSnapshot();
 });
 
-test('constructNewLiveOrder bid base ratio', () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
+test('getPriceBeforeFee bid base flat', () => {
 	expect(
-		orderUtil.constructNewLiveOrder(
-			signedOrder,
+		orderUtil.getPriceBeforeFee(
+			123,
+			456,
 			{
-				address: 'takerAddress',
-				code: 'takerCode',
-				denomination: 1,
-				precision: {
-					makerCode: 0.000005
-				},
-				fee: {
-					makerCode: {
-						asset: 'makerCode',
-						rate: 0.01,
-						minimum: 1
-					}
-				}
+				asset: 'asset',
+				rate: 0,
+				minimum: 1
 			},
-			'takerCode|makerCode',
-			'0xOrderHash'
+			true
 		)
 	).toMatchSnapshot();
 });
 
-test('constructNewLiveOrder ask base ratio', () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
+test('getPriceBeforeFee ask base flat', () => {
 	expect(
-		orderUtil.constructNewLiveOrder(
-			signedOrder,
+		orderUtil.getPriceBeforeFee(
+			123,
+			456,
 			{
-				address: 'makerAddress',
-				code: 'makerCode',
-				denomination: 1,
-				precision: {
-					takerCode: 0.000005
-				},
-				fee: {
-					takerCode: {
-						asset: 'takerCode',
-						rate: 0.01,
-						minimum: 1
-					}
-				}
+				asset: 'asset',
+				rate: 0,
+				minimum: 1
 			},
-			'makerCode|takerCode',
-			'0xOrderHash'
+			false
+		)
+	).toMatchSnapshot();
+});
+
+test('getPriceBeforeFee bid base ratio', () => {
+	expect(
+		orderUtil.getPriceBeforeFee(
+			123,
+			456,
+			{
+				asset: 'asset',
+				rate: 0.01,
+				minimum: 1
+			},
+			true
+		)
+	).toMatchSnapshot();
+});
+
+test('getPriceBeforeFee ask base ratio', () => {
+	expect(
+		orderUtil.getPriceBeforeFee(
+			123,
+			456,
+			{
+				asset: 'asset',
+				rate: 0.01,
+				minimum: 1
+			},
+			false
 		)
 	).toMatchSnapshot();
 });
