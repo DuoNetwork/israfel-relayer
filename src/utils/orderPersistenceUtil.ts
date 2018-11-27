@@ -222,27 +222,32 @@ class OrderPersistenceUtil {
 		const fee = token.fee[code2];
 		let feeAmount = 0;
 		let feeAsset = code1;
+		let price = 0;
 		if (isBid) {
 			if (fee.asset === code2) {
 				feeAsset = code2;
 				feeAmount = Math.max((totalBaseAmount * fee.rate) / (1 + fee.rate), fee.minimum);
+				price = totalTokenAmount / (totalBaseAmount - feeAmount);
 			} else {
 				feeAmount = Math.max((totalTokenAmount * fee.rate) / (1 - fee.rate), fee.minimum);
 				amountNetOfFee = totalTokenAmount + feeAmount;
+				price = amountNetOfFee / totalBaseAmount;
 			}
 			util.logDebug(
-				`bid feeAsset ${feeAsset} fee ${feeAmount} amountNetOfFee ${amountNetOfFee}`
+				`bid feeAsset ${feeAsset} fee ${feeAmount} amountNetOfFee ${amountNetOfFee} price ${price}`
 			);
 		} else {
 			if (fee.asset === code2) {
 				feeAsset = code2;
 				feeAmount = Math.max((totalBaseAmount * fee.rate) / (1 - fee.rate), fee.minimum);
+				price = totalTokenAmount / (totalBaseAmount - feeAmount);
 			} else {
 				feeAmount = Math.max((totalTokenAmount * fee.rate) / (1 + fee.rate), fee.minimum);
 				amountNetOfFee = totalTokenAmount - feeAmount;
+				price = amountNetOfFee / totalBaseAmount;
 			}
 			util.logDebug(
-				`ask feeAsset ${feeAsset} fee ${feeAmount} amountNetOfFee ${amountNetOfFee}`
+				`ask feeAsset ${feeAsset} fee ${feeAmount} amountNetOfFee ${amountNetOfFee} price ${price}`
 			);
 		}
 
@@ -250,7 +255,7 @@ class OrderPersistenceUtil {
 			account: signedOrder.makerAddress,
 			pair: pair,
 			orderHash: orderHash,
-			price: Web3Util.getPriceFromSignedOrder(signedOrder, side),
+			price: price,
 			amount: amountNetOfFee,
 			balance: amountNetOfFee,
 			fill: 0,
