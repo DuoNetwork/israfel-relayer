@@ -122,7 +122,9 @@ class OrderPersistenceUtil {
 			side,
 			fill,
 			status,
-			requestor
+			requestor,
+			fee,
+			feeAsset
 		} = orderPersistRequest;
 		if (method === CST.DB_ADD && !side) {
 			util.logDebug(`invalid add request ${orderHash}, missing side`);
@@ -144,7 +146,9 @@ class OrderPersistenceUtil {
 				orderPersistRequest.signedOrder as IStringSignedOrder,
 				pair,
 				side || '',
-				orderHash
+				orderHash,
+				fee || 0,
+				feeAsset || ''
 			);
 			liveOrder.initialSequence = sequence;
 		}
@@ -206,7 +210,9 @@ class OrderPersistenceUtil {
 		signedOrder: IStringSignedOrder,
 		pair: string,
 		side: string,
-		orderHash: string
+		orderHash: string,
+		fee: number,
+		feeAsset: string
 	): ILiveOrder {
 		const isBid = side === CST.DB_BID;
 		const amount = Web3Util.fromWei(
@@ -224,7 +230,10 @@ class OrderPersistenceUtil {
 			expiry: Number(signedOrder.expirationTimeSeconds) * 1000,
 			initialSequence: 0,
 			currentSequence: 0,
-			createdAt: util.getUTCNowTimestamp()
+			createdAt: util.getUTCNowTimestamp(),
+			fee: fee,
+			feeAsset: feeAsset
+
 		};
 	}
 

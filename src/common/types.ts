@@ -63,6 +63,8 @@ export interface IOrderPersistRequest {
 	status: string;
 	side?: string;
 	fill?: number;
+	fee?: number;
+	feeAsset?: string;
 	signedOrder?: IStringSignedOrder;
 }
 
