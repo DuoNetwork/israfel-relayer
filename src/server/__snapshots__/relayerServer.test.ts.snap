@@ -777,23 +777,22 @@ exports[`handleTerminateOrderRequest 2`] = `
 Array [
   Array [
     Object {},
-    Object {
-      "userOrder": "userOrder",
-    },
+    "userOrder",
     "terminate",
   ],
 ]
 `;
 
-exports[`handleTerminateOrderRequest invalid request and order 1`] = `
+exports[`handleTerminateOrderRequest invalid request and liveOrder does not exist 1`] = `
 Array [
   Array [
     Object {},
     Object {
       "channel": "orders",
       "method": "terminate",
-      "orderHash": "",
+      "orderHash": "0xOrderHash",
       "pair": "pair",
+      "signature": "signature",
     },
     "invalid request",
   ],
@@ -804,8 +803,9 @@ Array [
       "method": "terminate",
       "orderHash": "0xOrderHash",
       "pair": "pair",
+      "signature": "siganature",
     },
-    "invalid order",
+    "invalid request",
   ],
 ]
 `;
@@ -819,8 +819,40 @@ Array [
       "method": "terminate",
       "orderHash": "0xOrderHash",
       "pair": "pair",
+      "signature": "signature",
     },
     "error",
+  ],
+]
+`;
+
+exports[`handleTerminateOrderRequest persist error 2`] = `
+Array [
+  Array [
+    Object {
+      "balance": -1,
+      "method": "terminate",
+      "orderHash": "0xOrderHash",
+      "pair": "pair",
+      "requestor": "relayer",
+      "status": "confirmed",
+    },
+  ],
+]
+`;
+
+exports[`handleTerminateOrderRequest siganature is wrong 1`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "channel": "orders",
+      "method": "terminate",
+      "orderHash": "0xOrderHash",
+      "pair": "pair",
+      "signature": "siganature",
+    },
+    "invalid request",
   ],
 ]
 `;

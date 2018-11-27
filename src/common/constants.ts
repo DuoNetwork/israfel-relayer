@@ -131,3 +131,6 @@ export const LOG_RANKING: { [level: string]: number } = {
 export const PRICE_PRECISION = 8;
 
 export const BASE_DERIVATION_PATH = `44'/60'/0'/0`;
+
+export const TERMINATE_SIGN_MSG =
+	'By signing this message, your are confirming to cancel this order (no gas cost involved): ';

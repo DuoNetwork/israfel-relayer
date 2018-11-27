@@ -8,6 +8,7 @@ import {
 	IStringSignedOrder
 } from '../common/types';
 import orderPersistenceUtil from './orderPersistenceUtil';
+import orderUtil from './orderUtil';
 import redisUtil from './redisUtil';
 import util from './util';
 import Web3Util from './Web3Util';
@@ -17,7 +18,7 @@ class OrderMatchingUtil {
 		web3Util: Web3Util,
 		leftLiveOrder: ILiveOrder,
 		rightLiveOrder: ILiveOrder
-	): Promise<IMatchingOrderResult | null> {
+	): Promise<IMatchingOrderResult> {
 		const price = leftLiveOrder.price;
 		const pair = rightLiveOrder.pair;
 		const isLeftOrderBid = leftLiveOrder.side === CST.DB_BID;
@@ -60,100 +61,90 @@ class OrderMatchingUtil {
 			return obj;
 		}
 
-		if (
-			(isLeftOrderBid && price < rightLiveOrder.price) ||
-			(!isLeftOrderBid && price > rightLiveOrder.price)
-		)
-			return null;
-		else {
-			const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
-				leftLiveOrder.orderHash
-			);
+		const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
+			leftLiveOrder.orderHash
+		);
 
-			const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
-				leftLiveOrder.orderHash
-			);
+		const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
+			leftLiveOrder.orderHash
+		);
 
-			if (!leftRawOrder || !rightRawOrder) {
-				if (!leftRawOrder) {
-					util.logError(
-						`raw order of ${leftLiveOrder.orderHash}	rightLiveOrder.orderHash
+		if (!leftRawOrder || !rightRawOrder) {
+			if (!leftRawOrder) {
+				util.logError(
+					`raw order of ${leftLiveOrder.orderHash}	rightLiveOrder.orderHash
 						} does not exist`
-					);
-					obj.left.newBalance = 0;
-					obj.left.method = CST.DB_TERMINATE;
-				}
-				if (!rightRawOrder) {
-					util.logError(
-						`raw order of ${rightLiveOrder.orderHash}	rightLiveOrder.orderHash
-						} does not exist`
-					);
-					obj.right.newBalance = 0;
-					obj.right.method = CST.DB_TERMINATE;
-				}
-				return obj;
-			}
-			const leftOrder: SignedOrder = orderPersistenceUtil.parseSignedOrder(
-				leftRawOrder.signedOrder as IStringSignedOrder
-			);
-
-			const rightOrder: SignedOrder = orderPersistenceUtil.parseSignedOrder(
-				rightRawOrder.signedOrder as IStringSignedOrder
-			);
-
-			const orderInput = {
-				left: {
-					liveOrder: leftLiveOrder,
-					signedOrder: leftOrder
-				},
-				right: {
-					liveOrder: rightLiveOrder,
-					signedOrder: rightOrder
-				}
-			};
-			let balances = await this.checkBalance(web3Util, orderInput, isLeftOrderBid);
-			if (balances[0] === 0) {
-				util.logDebug(`leftOrder ${leftLiveOrder.orderHash} balance is 0`);
+				);
 				obj.left.newBalance = 0;
-				return obj;
+				obj.left.method = CST.DB_TERMINATE;
 			}
-
-			if (balances[1] === 0) {
-				util.logDebug(`leftOrder ${rightLiveOrder.orderHash} balance is 0`);
+			if (!rightRawOrder) {
+				util.logError(
+					`raw order of ${rightLiveOrder.orderHash}	rightLiveOrder.orderHash
+						} does not exist`
+				);
 				obj.right.newBalance = 0;
-				return obj;
+				obj.right.method = CST.DB_TERMINATE;
 			}
+			return obj;
+		}
+		const leftOrder: SignedOrder = orderUtil.parseSignedOrder(
+			leftRawOrder.signedOrder as IStringSignedOrder
+		);
 
-			try {
-				await web3Util.contractWrappers.exchange.matchOrdersAsync(
-					leftOrder,
-					rightOrder,
-					web3Util.relayerAddress
+		const rightOrder: SignedOrder = orderUtil.parseSignedOrder(
+			rightRawOrder.signedOrder as IStringSignedOrder
+		);
+
+		const orderInput = {
+			left: {
+				liveOrder: leftLiveOrder,
+				signedOrder: leftOrder
+			},
+			right: {
+				liveOrder: rightLiveOrder,
+				signedOrder: rightOrder
+			}
+		};
+		let balances = await this.checkBalance(web3Util, orderInput, isLeftOrderBid);
+		if (balances[0] === 0) {
+			util.logDebug(`leftOrder ${leftLiveOrder.orderHash} balance is 0`);
+			obj.left.newBalance = 0;
+			return obj;
+		}
+
+		if (balances[1] === 0) {
+			util.logDebug(`leftOrder ${rightLiveOrder.orderHash} balance is 0`);
+			obj.right.newBalance = 0;
+			return obj;
+		}
+
+		try {
+			await web3Util.contractWrappers.exchange.matchOrdersAsync(
+				leftOrder,
+				rightOrder,
+				web3Util.relayerAddress
+			);
+
+			obj.left.newBalance = isLeftOrderBid
+				? Math.min(leftLiveOrder.balance, rightLiveOrder.balance / rightLiveOrder.price)
+				: Math.min(leftLiveOrder.balance, rightLiveOrder.balance * rightLiveOrder.price);
+
+			obj.right.newBalance = isLeftOrderBid
+				? Math.min(leftLiveOrder.balance * price, rightLiveOrder.balance)
+				: Math.min(
+						leftLiveOrder.balance / price,
+						rightLiveOrder.balance * rightLiveOrder.price
 				);
 
-				obj.left.newBalance = isLeftOrderBid
-					? Math.min(leftLiveOrder.balance, rightLiveOrder.balance / rightLiveOrder.price)
-					: Math.min(
-							leftLiveOrder.balance,
-							rightLiveOrder.balance * rightLiveOrder.price
-					);
-
-				obj.right.newBalance = isLeftOrderBid
-					? Math.min(leftLiveOrder.balance * price, rightLiveOrder.balance)
-					: Math.min(
-							leftLiveOrder.balance / price,
-							rightLiveOrder.balance * rightLiveOrder.price
-					);
-
-				return obj;
-			} catch (err) {
-				util.logError(err);
-				util.logDebug('error in matching transaction');
-				balances = await this.checkBalance(web3Util, orderInput, isLeftOrderBid);
-				obj.left.newBalance = balances[0];
-				obj.right.newBalance = balances[1];
-				return obj;
-			}
+			return obj;
+		} catch (err) {
+			util.logError(err);
+			util.logDebug('error in matching transaction');
+			balances = await this.checkBalance(web3Util, orderInput, isLeftOrderBid);
+			obj.left.newBalance = balances[0];
+			obj.right.newBalance = balances[1];
+			return obj;
 		}
 	}
 

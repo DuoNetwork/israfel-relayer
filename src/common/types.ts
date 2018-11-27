@@ -140,6 +140,10 @@ export interface IWsAddOrderRequest extends IWsOrderRequest {
 	order: IStringSignedOrder | SignedOrder;
 }
 
+export interface IWsTerminateOrderRequest extends IWsOrderRequest {
+	signature: string;
+}
+
 export interface IWsOrderResponse extends IWsResponse {
 	orderHash: string;
 }

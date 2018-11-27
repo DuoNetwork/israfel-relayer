@@ -74,28 +74,43 @@ class OrderBookServer {
 			return;
 		}
 		if (this.web3Util && method === CST.DB_ADD) {
-			let matchable = false;
+			let matchable = true;
 			const liveOrders: ILiveOrder[] = [];
+			const leftLiveOrder = orderQueueItem.liveOrder;
 
 			if (
-				(orderQueueItem.liveOrder.side === CST.DB_BID && this.orderBook.asks[0]) ||
-				(orderQueueItem.liveOrder.side !== CST.DB_BID && this.orderBook.bids[0])
+				(leftLiveOrder.side === CST.DB_BID && !this.orderBook.asks.length) ||
+				(leftLiveOrder.side !== CST.DB_BID && !this.orderBook.bids.length)
 			)
-				matchable = true;
+				matchable = false;
 
 			while (matchable) {
-				const matchResult: IMatchingOrderResult | null = await orderMatchingUtil.matchOrders(
+				const rightLiveOrder =
+					orderQueueItem.liveOrder.side === CST.DB_BID
+						? this.liveOrders[this.orderBook.asks[0].orderHash]
+						: this.liveOrders[this.orderBook.bids[0].orderHash];
+
+				if (
+					(leftLiveOrder.side === CST.DB_BID &&
+						leftLiveOrder.price < rightLiveOrder.price) ||
+					(leftLiveOrder.side !== CST.DB_BID &&
+						leftLiveOrder.price > rightLiveOrder.price)
+				) {
+					matchable = false;
+					break;
+				}
+
+				const matchResult: IMatchingOrderResult = await orderMatchingUtil.matchOrders(
 					this.web3Util,
 					orderQueueItem.liveOrder,
 					orderQueueItem.liveOrder.side === CST.DB_BID
 						? this.liveOrders[this.orderBook.asks[0].orderHash]
 						: this.liveOrders[this.orderBook.bids[0].orderHash]
 				);
-				if (matchResult)
-					liveOrders.concat(
-						await this.processMatchingResult(matchResult, orderQueueItem.liveOrder)
-					);
-				else matchable = false;
+
+				liveOrders.concat(
+					await this.processMatchingResult(matchResult, orderQueueItem.liveOrder)
+				);
 			}
 			if (liveOrders.length > 0) await orderMatchingUtil.batchAddUserOrders(liveOrders);
 		}
@@ -110,18 +125,12 @@ class OrderBookServer {
 		const resRight = matchResult.right;
 		liveOrder.currentSequence = resLeft.sequence;
 		liveOrder.balance = resLeft.newBalance;
-		await this.updateOrderBook(
-			liveOrder,
-			resLeft.method,
-		);
+		await this.updateOrderBook(liveOrder, resLeft.method);
 
 		const rightLiveOrder = this.liveOrders[resRight.orderHash];
 		rightLiveOrder.currentSequence = resRight.sequence;
 		rightLiveOrder.balance = resRight.newBalance;
-		await this.updateOrderBook(
-			rightLiveOrder,
-			resRight.method
-		);
+		await this.updateOrderBook(rightLiveOrder, resRight.method);
 		return [liveOrder, rightLiveOrder];
 	}
 

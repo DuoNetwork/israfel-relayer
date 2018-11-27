@@ -19,7 +19,8 @@ import {
 	IWsOrderResponse,
 	IWsRequest,
 	IWsResponse,
-	IWsUserOrderResponse
+	IWsTerminateOrderRequest,
+	IWsUserOrderResponse,
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
@@ -108,9 +109,14 @@ class RelayerServer {
 		}
 	}
 
-	public async handleTerminateOrderRequest(ws: WebSocket, req: IWsOrderRequest) {
+	public async handleTerminateOrderRequest(ws: WebSocket, req: IWsTerminateOrderRequest) {
 		util.logDebug(`terminate order ${req.orderHash}`);
-		if (req.orderHash)
+		const { pair, orderHash, signature } = req;
+		const account = this.web3Util
+			? this.web3Util.web3AccountsRecover(CST.TERMINATE_SIGN_MSG + orderHash, signature)
+			: '';
+		const liveOrder = await orderPersistenceUtil.getLiveOrderInPersistence(pair, orderHash);
+		if (account && liveOrder && liveOrder.account === account)
 			try {
 				const userOrder = await orderPersistenceUtil.persistOrder({
 					method: req.method,
@@ -204,7 +210,7 @@ class RelayerServer {
 			case CST.DB_ADD:
 				return this.handleAddOrderRequest(ws, req as IWsAddOrderRequest);
 			case CST.DB_TERMINATE:
-				return this.handleTerminateOrderRequest(ws, req as IWsOrderRequest);
+				return this.handleTerminateOrderRequest(ws, req as IWsTerminateOrderRequest);
 			default:
 				this.sendResponse(ws, req, CST.WS_INVALID_REQ);
 				return Promise.resolve();

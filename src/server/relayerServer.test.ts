@@ -210,35 +210,68 @@ test('handleAddOrderRequest', async () => {
 	expect(relayerServer.sendErrorOrderResponse as jest.Mock).not.toBeCalled();
 });
 
-test('handleTerminateOrderRequest invalid request and order', async () => {
+test('handleTerminateOrderRequest invalid request and liveOrder does not exist', async () => {
 	relayerServer.sendErrorOrderResponse = jest.fn();
 	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve('userOrder'));
+	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
+	relayerServer.web3Util = {
+		web3AccountsRecover: jest.fn(() => '')
+	} as any;
 	await relayerServer.handleTerminateOrderRequest(
 		{} as any,
 		{
 			channel: CST.DB_ORDERS,
 			method: CST.DB_TERMINATE,
 			pair: 'pair',
-			orderHash: ''
+			orderHash: '0xOrderHash',
+			signature: 'signature',
 		} as any
 	);
-	await relayerServer.handleTerminateOrderRequest(
-		{} as any,
-		{
-			channel: CST.DB_ORDERS,
-			method: CST.DB_TERMINATE,
-			pair: 'pair',
-			orderHash: '0xOrderHash'
-		} as any
-	);
+
+	await relayerServer.handleTerminateOrderRequest({} as any, {
+		channel: CST.DB_ORDERS,
+		method: CST.DB_TERMINATE,
+		pair: 'pair',
+		orderHash: '0xOrderHash',
+		signature: 'siganature',
+	});
 	expect(relayerServer.sendUserOrderResponse as jest.Mock).not.toBeCalled();
+	expect(orderPersistenceUtil.persistOrder as jest.Mock).not.toBeCalled();
+	expect((relayerServer.sendErrorOrderResponse as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleTerminateOrderRequest siganature is wrong', async () => {
+	relayerServer.sendErrorOrderResponse = jest.fn();
+	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve('userOrder'));
+	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve({
+		account: 'account'
+	}));
+	relayerServer.web3Util = {
+		web3AccountsRecover: jest.fn(() => 'xxx')
+	} as any;
+	await relayerServer.handleTerminateOrderRequest({} as any, {
+		channel: CST.DB_ORDERS,
+		method: CST.DB_TERMINATE,
+		pair: 'pair',
+		orderHash: '0xOrderHash',
+		signature: 'siganature',
+	});
+	expect(relayerServer.sendUserOrderResponse as jest.Mock).not.toBeCalled();
+	expect(orderPersistenceUtil.persistOrder as jest.Mock).not.toBeCalled();
 	expect((relayerServer.sendErrorOrderResponse as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleTerminateOrderRequest persist error', async () => {
 	relayerServer.sendErrorOrderResponse = jest.fn();
 	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve({
+		account: 'account'
+	}));
+	relayerServer.web3Util = {
+		web3AccountsRecover: jest.fn(() => 'account')
+	} as any;
 	orderPersistenceUtil.persistOrder = jest.fn(() =>
 		Promise.reject('handleTerminateOrderRequest')
 	);
@@ -246,21 +279,30 @@ test('handleTerminateOrderRequest persist error', async () => {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_TERMINATE,
 		pair: 'pair',
-		orderHash: '0xOrderHash'
+		orderHash: '0xOrderHash',
+		signature: 'signature',
 	});
 	expect(relayerServer.sendUserOrderResponse as jest.Mock).not.toBeCalled();
 	expect((relayerServer.sendErrorOrderResponse as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleTerminateOrderRequest', async () => {
 	relayerServer.sendErrorOrderResponse = jest.fn();
 	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve({ userOrder: 'userOrder' }));
+	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve({
+		account: 'account'
+	}));
+	relayerServer.web3Util = {
+		web3AccountsRecover: jest.fn(() => 'account')
+	} as any;
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve('userOrder'));
 	await relayerServer.handleTerminateOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_TERMINATE,
 		pair: 'pair',
-		orderHash: '0xOrderHash'
+		orderHash: '0xOrderHash',
+		signature: 'signature',
 	});
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(relayerServer.sendErrorOrderResponse as jest.Mock).not.toBeCalled();
