@@ -4,8 +4,8 @@ import '@babel/polyfill';
 import * as CST from '../common/constants';
 import dynamoUtil from './dynamoUtil';
 import orderPersistenceUtil from './orderPersistenceUtil';
+import orderUtil from './orderUtil';
 import redisUtil from './redisUtil';
-import util from './util';
 import Web3Util from './Web3Util';
 
 test('subscribeOrderUpdate', () => {
@@ -19,138 +19,6 @@ test('subscribeOrderUpdate', () => {
 	redisUtil.unsubscribe = jest.fn();
 	orderPersistenceUtil.unsubscribeOrderUpdate('pair');
 	expect((redisUtil.unsubscribe as jest.Mock).mock.calls).toMatchSnapshot();
-});
-
-const signedOrder = {
-	senderAddress: 'senderAddress',
-	makerAddress: 'makerAddress',
-	takerAddress: 'takerAddress',
-	makerFee: '0',
-	takerFee: '0',
-	makerAssetAmount: '123000000000000000000',
-	takerAssetAmount: '456000000000000000000',
-	makerAssetData: 'makerAssetData',
-	takerAssetData: 'takerAssetData',
-	salt: '789',
-	exchangeAddress: 'exchangeAddress',
-	feeRecipientAddress: 'feeRecipientAddress',
-	expirationTimeSeconds: '1234567890',
-	signature: 'signature'
-};
-
-test('parseSignedOrder', () =>
-	expect(orderPersistenceUtil.parseSignedOrder(signedOrder)).toMatchSnapshot());
-
-const takerFlat = {
-	address: 'takerAddress',
-	code: 'takerCode',
-	denomination: 1,
-	precision: {
-		makerCode: 0.000005
-	},
-	fee: {
-		makerCode: {
-			rate: 0,
-			minimum: 1
-		}
-	}
-};
-
-const makerFlat = {
-	address: 'makerAddress',
-	code: 'makerCode',
-	denomination: 1,
-	precision: {
-		takerCode: 0.000005
-	},
-	fee: {
-		takerCode: {
-			rate: 0,
-			minimum: 1
-		}
-	}
-};
-
-const takerRatio = {
-	address: 'takerAddress',
-	code: 'takerCode',
-	denomination: 1,
-	precision: {
-		makerCode: 0.000005
-	},
-	fee: {
-		makerCode: {
-			rate: 0.01,
-			minimum: 1
-		}
-	}
-};
-
-const makerRatio = {
-	address: 'makerAddress',
-	code: 'makerCode',
-	denomination: 1,
-	precision: {
-		takerCode: 0.000005
-	},
-	fee: {
-		takerCode: {
-			rate: 0.01,
-			minimum: 1
-		}
-	}
-};
-
-test('constructNewLiveOrder bid flat', () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
-	expect(
-		orderPersistenceUtil.constructNewLiveOrder(
-			signedOrder,
-			takerFlat,
-			'takerCode|makerCode',
-			'0xOrderHash'
-		)
-	).toMatchSnapshot();
-});
-
-test('constructNewLiveOrder ask flat', () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
-	expect(
-		orderPersistenceUtil.constructNewLiveOrder(
-			signedOrder,
-			makerFlat,
-			'makerCode|takerCode',
-			'0xOrderHash'
-		)
-	).toMatchSnapshot();
-});
-
-test('constructNewLiveOrder bid ratio', () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
-	expect(
-		orderPersistenceUtil.constructNewLiveOrder(
-			signedOrder,
-			takerRatio,
-			'takerCode|makerCode',
-			'0xOrderHash'
-		)
-	).toMatchSnapshot();
-});
-
-test('constructNewLiveOrder ask ratio', () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
-	expect(
-		orderPersistenceUtil.constructNewLiveOrder(
-			signedOrder,
-			makerRatio,
-			'makerCode|takerCode',
-			'0xOrderHash'
-		)
-	).toMatchSnapshot();
 });
 
 const liveOrder = {
@@ -278,7 +146,7 @@ test('persistOrder add missing token', async () => {
 	redisUtil.hashSet = jest.fn(() => Promise.resolve());
 	redisUtil.push = jest.fn();
 	redisUtil.publish = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' }));
+	orderUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' }));
 	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
 
 	expect(
@@ -308,7 +176,7 @@ test('persistOrder add', async () => {
 	redisUtil.hashSet = jest.fn(() => Promise.resolve());
 	redisUtil.push = jest.fn();
 	redisUtil.publish = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' }));
+	orderUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' }));
 	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
 
 	expect(
@@ -707,7 +575,7 @@ test('getRawOrderInPersistence in redis', async () => {
 				status: 'status',
 				requestor: 'requestor',
 				liveOrder: liveOrder,
-				signedOrder: signedOrder
+				signedOrder: 'signedOrder'
 			})
 		)
 	);
@@ -724,7 +592,7 @@ test('getRawOrderInPersistence in dynamo', async () => {
 		Promise.resolve(
 			JSON.stringify({
 				orderHash: 'orderHash',
-				signedOrder: signedOrder
+				signedOrder: 'signedOrder'
 			})
 		)
 	);

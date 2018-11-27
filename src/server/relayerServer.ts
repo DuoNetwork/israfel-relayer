@@ -24,6 +24,7 @@ import {
 import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
+import orderUtil from '../utils/orderUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
@@ -72,7 +73,7 @@ class RelayerServer {
 		util.logDebug(`add new order ${req.orderHash}`);
 		const stringSignedOrder = req.order as IStringSignedOrder;
 
-		const parsedSignedorder = orderPersistenceUtil.parseSignedOrder(stringSignedOrder);
+		const parsedSignedorder = orderUtil.parseSignedOrder(stringSignedOrder);
 		const orderHash = this.web3Util ? await this.web3Util.validateOrder(parsedSignedorder) : '';
 		const code = req.pair.split('|')[0];
 		const token = this.web3Util ? this.web3Util.tokens.find(t => t.code === code) : null;
@@ -223,7 +224,7 @@ class RelayerServer {
 			this.pairClients[pair][account] &&
 			this.pairClients[pair][account].length
 		) {
-			const userOrder = orderPersistenceUtil.constructUserOrder(
+			const userOrder = orderUtil.constructUserOrder(
 				orderQueueItem.liveOrder,
 				orderQueueItem.method,
 				orderQueueItem.status,

@@ -46,82 +46,6 @@ Object {
 }
 `;
 
-exports[`constructNewLiveOrder ask flat 1`] = `
-Object {
-  "account": "makerAddress",
-  "amount": 122,
-  "balance": 122,
-  "createdAt": 1234567890,
-  "currentSequence": 0,
-  "expiry": 1234567890000,
-  "fee": 1,
-  "feeAsset": "makerCode",
-  "fill": 0,
-  "initialSequence": 0,
-  "orderHash": "0xOrderHash",
-  "pair": "makerCode|takerCode",
-  "price": 0.2675438596491228,
-  "side": "ask",
-}
-`;
-
-exports[`constructNewLiveOrder ask ratio 1`] = `
-Object {
-  "account": "makerAddress",
-  "amount": 121.78217821782178,
-  "balance": 121.78217821782178,
-  "createdAt": 1234567890,
-  "currentSequence": 0,
-  "expiry": 1234567890000,
-  "fee": 1.2178217821782178,
-  "feeAsset": "makerCode",
-  "fill": 0,
-  "initialSequence": 0,
-  "orderHash": "0xOrderHash",
-  "pair": "makerCode|takerCode",
-  "price": 0.2670661803022407,
-  "side": "ask",
-}
-`;
-
-exports[`constructNewLiveOrder bid flat 1`] = `
-Object {
-  "account": "makerAddress",
-  "amount": 457,
-  "balance": 457,
-  "createdAt": 1234567890,
-  "currentSequence": 0,
-  "expiry": 1234567890000,
-  "fee": 1,
-  "feeAsset": "takerCode",
-  "fill": 0,
-  "initialSequence": 0,
-  "orderHash": "0xOrderHash",
-  "pair": "takerCode|makerCode",
-  "price": 3.7154471544715446,
-  "side": "bid",
-}
-`;
-
-exports[`constructNewLiveOrder bid ratio 1`] = `
-Object {
-  "account": "makerAddress",
-  "amount": 460.6060606060606,
-  "balance": 460.6060606060606,
-  "createdAt": 1234567890,
-  "currentSequence": 0,
-  "expiry": 1234567890000,
-  "fee": 4.606060606060606,
-  "feeAsset": "takerCode",
-  "fill": 0,
-  "initialSequence": 0,
-  "orderHash": "0xOrderHash",
-  "pair": "takerCode|makerCode",
-  "price": 3.7447647203744765,
-  "side": "bid",
-}
-`;
-
 exports[`getAllLiveOrdersInPersistence add and update in redis 1`] = `
 Object {
   "0xOrderHash": "update",
@@ -159,7 +83,7 @@ Array [
 ]
 `;
 
-exports[`getRawOrderInPersistence in dynamo 2`] = `"{\\"orderHash\\":\\"orderHash\\",\\"signedOrder\\":{\\"senderAddress\\":\\"senderAddress\\",\\"makerAddress\\":\\"makerAddress\\",\\"takerAddress\\":\\"takerAddress\\",\\"makerFee\\":\\"0\\",\\"takerFee\\":\\"0\\",\\"makerAssetAmount\\":\\"123000000000000000000\\",\\"takerAssetAmount\\":\\"456000000000000000000\\",\\"makerAssetData\\":\\"makerAssetData\\",\\"takerAssetData\\":\\"takerAssetData\\",\\"salt\\":\\"789\\",\\"exchangeAddress\\":\\"exchangeAddress\\",\\"feeRecipientAddress\\":\\"feeRecipientAddress\\",\\"expirationTimeSeconds\\":\\"1234567890\\",\\"signature\\":\\"signature\\"}}"`;
+exports[`getRawOrderInPersistence in dynamo 2`] = `"{\\"orderHash\\":\\"orderHash\\",\\"signedOrder\\":\\"signedOrder\\"}"`;
 
 exports[`getRawOrderInPersistence in dynamo 3`] = `
 Array [
@@ -181,22 +105,7 @@ Array [
 exports[`getRawOrderInPersistence in redis 2`] = `
 Object {
   "orderHash": "orderHash",
-  "signedOrder": Object {
-    "exchangeAddress": "exchangeAddress",
-    "expirationTimeSeconds": "1234567890",
-    "feeRecipientAddress": "feeRecipientAddress",
-    "makerAddress": "makerAddress",
-    "makerAssetAmount": "123000000000000000000",
-    "makerAssetData": "makerAssetData",
-    "makerFee": "0",
-    "salt": "789",
-    "senderAddress": "senderAddress",
-    "signature": "signature",
-    "takerAddress": "takerAddress",
-    "takerAssetAmount": "456000000000000000000",
-    "takerAssetData": "takerAssetData",
-    "takerFee": "0",
-  },
+  "signedOrder": "signedOrder",
 }
 `;
 
@@ -217,25 +126,6 @@ Array [
     "orderHash",
   ],
 ]
-`;
-
-exports[`parseSignedOrder 1`] = `
-Object {
-  "exchangeAddress": "exchangeAddress",
-  "expirationTimeSeconds": "1234567890",
-  "feeRecipientAddress": "feeRecipientAddress",
-  "makerAddress": "makerAddress",
-  "makerAssetAmount": "123000000000000000000",
-  "makerAssetData": "makerAssetData",
-  "makerFee": "0",
-  "salt": "789",
-  "senderAddress": "senderAddress",
-  "signature": "signature",
-  "takerAddress": "takerAddress",
-  "takerAssetAmount": "456000000000000000000",
-  "takerAssetData": "takerAssetData",
-  "takerFee": "0",
-}
 `;
 
 exports[`persistOrder add 1`] = `

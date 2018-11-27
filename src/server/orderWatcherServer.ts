@@ -17,6 +17,7 @@ import {
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
+import orderUtil from '../utils/orderUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
@@ -123,7 +124,7 @@ class OrderWatcherServer {
 					}
 					signedOrder = rawOrder.signedOrder as IStringSignedOrder;
 				}
-				const rawSignedOrder: SignedOrder = orderPersistenceUtil.parseSignedOrder(
+				const rawSignedOrder: SignedOrder = orderUtil.parseSignedOrder(
 					signedOrder
 				);
 

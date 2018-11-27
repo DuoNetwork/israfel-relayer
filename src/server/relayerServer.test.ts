@@ -4,6 +4,7 @@ import * as CST from '../common/constants';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
+import orderUtil from '../utils/orderUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 import relayerServer from './relayerServer';
@@ -363,7 +364,7 @@ test('handleOrderUpdate requested existing pair account not exist', () => {
 
 test('handleOrderUpdate requested existing pair existing account', () => {
 	relayerServer.sendUserOrderResponse = jest.fn();
-	orderPersistenceUtil.constructUserOrder = jest.fn(() => 'userOrder');
+	orderUtil.constructUserOrder = jest.fn(() => 'userOrder');
 	relayerServer.handleOrderUpdate('channel', {
 		requestor: 'requestor',
 		method: 'method',
