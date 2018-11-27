@@ -715,6 +715,21 @@ Array [
 ]
 `;
 
+exports[`handleOrderUpdate requested existing pair existing account 1`] = `
+Array [
+  Array [
+    "ws",
+    "userOrder",
+    "method",
+  ],
+  Array [
+    "ws1",
+    "userOrder",
+    "method",
+  ],
+]
+`;
+
 exports[`handleTerminateOrderRequest 1`] = `
 Array [
   Array [

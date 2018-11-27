@@ -298,6 +298,52 @@ test('handleOrderHistorySubscribeRequest new pair', async () => {
 	expect((orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
+test('handleOrderUpdate requested by self', () => {
+	relayerServer.sendUserOrderResponse = jest.fn();
+	relayerServer.handleOrderUpdate('channel', {
+		requestor: CST.DB_RELAYER
+	} as any);
+	expect(relayerServer.sendUserOrderResponse as jest.Mock).not.toBeCalled();
+});
+
+test('handleOrderUpdate requested pair not exist', () => {
+	relayerServer.sendUserOrderResponse = jest.fn();
+	relayerServer.handleOrderUpdate('channel', {
+		requestor: 'requestor',
+		liveOrder: {
+			pair: 'pair2'
+		}
+	} as any);
+	expect(relayerServer.sendUserOrderResponse as jest.Mock).not.toBeCalled();
+});
+
+test('handleOrderUpdate requested existing pair account not exist', () => {
+	relayerServer.sendUserOrderResponse = jest.fn();
+	relayerServer.handleOrderUpdate('channel', {
+		requestor: 'requestor',
+		liveOrder: {
+			pair: 'pair',
+			account: 'account1'
+		}
+	} as any);
+	expect(relayerServer.sendUserOrderResponse as jest.Mock).not.toBeCalled();
+});
+
+test('handleOrderUpdate requested existing pair existing account', () => {
+	relayerServer.sendUserOrderResponse = jest.fn();
+	orderPersistenceUtil.constructUserOrder = jest.fn(() => 'userOrder');
+	relayerServer.handleOrderUpdate('channel', {
+		requestor: 'requestor',
+		method: 'method',
+		status: 'status',
+		liveOrder: {
+			pair: 'pair',
+			account: 'account',
+		}
+	} as any);
+	expect((relayerServer.sendUserOrderResponse as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
 test('handleOrderHistoryUnsubscribeRequest existing pair existing account', async () => {
 	relayerServer.sendResponse = jest.fn();
 	orderPersistenceUtil.unsubscribeOrderUpdate = jest.fn();
