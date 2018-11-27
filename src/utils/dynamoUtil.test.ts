@@ -24,7 +24,8 @@ test('scanTokens', async () => {
 					M: {
 						WETH: {
 							M: {
-								[CST.DB_VALUE]: { N: '1' }
+								[CST.DB_RATE]: { N: '0' },
+								[CST.DB_MIN]: { N: '1' }
 							}
 						}
 					}
@@ -44,8 +45,8 @@ test('scanTokens', async () => {
 						WETH: {
 							M: {
 								[CST.DB_ASSET]: { S: 'asset' },
-								[CST.DB_IS_RATIO]: { BOOL: true },
-								[CST.DB_VALUE]: { N: '1' }
+								[CST.DB_RATE]: { N: '0' },
+								[CST.DB_MIN]: { N: '1' }
 							}
 						}
 					}

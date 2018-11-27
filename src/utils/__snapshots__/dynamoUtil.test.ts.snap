@@ -495,7 +495,8 @@ Array [
     "denomination": 1,
     "fee": Object {
       "WETH": Object {
-        "value": 1,
+        "minimum": 1,
+        "rate": 0,
       },
     },
     "precision": Object {
@@ -509,8 +510,8 @@ Array [
     "fee": Object {
       "WETH": Object {
         "asset": "asset",
-        "isRatio": true,
-        "value": 1,
+        "minimum": 1,
+        "rate": 0,
       },
     },
     "precision": Object {

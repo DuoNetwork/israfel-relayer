@@ -194,17 +194,9 @@ export default class Web3Util {
 		return Number(Web3Wrapper.toWei(new BigNumber(value)).valueOf());
 	};
 
-	public assetDataToTokenCode(assetData: string): string {
-		const tokenAddr = assetDataUtils.decodeERC20AssetData(assetData).tokenAddress.toLowerCase();
-		if (tokenAddr === this.contractAddresses.etherToken.toLowerCase()) return CST.TOKEN_WETH;
-		const token = this.tokens.find(t => t.address === tokenAddr);
-		return token ? token.code : '';
-	}
-
-	public getSideFromSignedOrder(order: SignedOrder | IStringSignedOrder, pair: string): string {
-		return this.assetDataToTokenCode(order.takerAssetData) === pair.split('|')[0]
-			? CST.DB_BID
-			: CST.DB_ASK;
+	public static getSideFromSignedOrder(order: SignedOrder | IStringSignedOrder, token: IToken): string {
+		const takerAssetAddress = assetDataUtils.decodeERC20AssetData(order.takerAssetData).tokenAddress.toLowerCase();
+		return takerAssetAddress === token.address ? CST.DB_BID : CST.DB_ASK;
 	}
 
 	public static getPriceFromSignedOrder = (order: IStringSignedOrder, side: string): number => {

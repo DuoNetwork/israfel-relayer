@@ -6,6 +6,7 @@ import {
 	IOrderPersistRequest,
 	IOrderQueueItem,
 	IStringSignedOrder,
+	IToken,
 	IUserOrder
 } from '../common/types';
 import dynamoUtil from './dynamoUtil';
@@ -119,15 +120,13 @@ class OrderPersistenceUtil {
 			orderHash,
 			method,
 			balance,
-			side,
+			token,
 			fill,
 			status,
-			requestor,
-			fee,
-			feeAsset
+			requestor
 		} = orderPersistRequest;
-		if (method === CST.DB_ADD && !side) {
-			util.logDebug(`invalid add request ${orderHash}, missing side`);
+		if (method === CST.DB_ADD && !token) {
+			util.logDebug(`invalid add request ${orderHash}, missing token`);
 			return null;
 		}
 
@@ -144,11 +143,9 @@ class OrderPersistenceUtil {
 		if (method === CST.DB_ADD) {
 			liveOrder = this.constructNewLiveOrder(
 				orderPersistRequest.signedOrder as IStringSignedOrder,
+				token as IToken,
 				pair,
-				side || '',
-				orderHash,
-				fee || 0,
-				feeAsset || ''
+				orderHash
 			);
 			liveOrder.initialSequence = sequence;
 		}
@@ -208,32 +205,62 @@ class OrderPersistenceUtil {
 
 	public constructNewLiveOrder(
 		signedOrder: IStringSignedOrder,
+		token: IToken,
 		pair: string,
-		side: string,
-		orderHash: string,
-		fee: number,
-		feeAsset: string
+		orderHash: string
 	): ILiveOrder {
+		const [code1, code2] = pair.split('|');
+		const side = Web3Util.getSideFromSignedOrder(signedOrder, token);
 		const isBid = side === CST.DB_BID;
-		const amount = Web3Util.fromWei(
+		const totalTokenAmount = Web3Util.fromWei(
 			isBid ? signedOrder.takerAssetAmount : signedOrder.makerAssetAmount
 		);
+		const totalBaseAmount = Web3Util.fromWei(
+			isBid ? signedOrder.makerAssetAmount : signedOrder.takerAssetAmount
+		);
+		let amountNetOfFee = totalTokenAmount;
+		const fee = token.fee[code2];
+		let feeAmount = 0;
+		let feeAsset = code1;
+		if (isBid) {
+			if (fee.asset === code2) {
+				feeAsset = code2;
+				feeAmount = Math.max((totalBaseAmount * fee.rate) / (1 + fee.rate), fee.minimum);
+			} else {
+				feeAmount = Math.max((totalTokenAmount * fee.rate) / (1 - fee.rate), fee.minimum);
+				amountNetOfFee = totalTokenAmount + feeAmount;
+			}
+			util.logDebug(
+				`bid feeAsset ${feeAsset} fee ${feeAmount} amountNetOfFee ${amountNetOfFee}`
+			);
+		} else {
+			if (fee.asset === code2) {
+				feeAsset = code2;
+				feeAmount = Math.max((totalBaseAmount * fee.rate) / (1 - fee.rate), fee.minimum);
+			} else {
+				feeAmount = Math.max((totalTokenAmount * fee.rate) / (1 + fee.rate), fee.minimum);
+				amountNetOfFee = totalTokenAmount - feeAmount;
+			}
+			util.logDebug(
+				`ask feeAsset ${feeAsset} fee ${feeAmount} amountNetOfFee ${amountNetOfFee}`
+			);
+		}
+
 		return {
 			account: signedOrder.makerAddress,
 			pair: pair,
 			orderHash: orderHash,
 			price: Web3Util.getPriceFromSignedOrder(signedOrder, side),
-			amount: amount,
-			balance: amount,
+			amount: amountNetOfFee,
+			balance: amountNetOfFee,
 			fill: 0,
 			side: side,
 			expiry: Number(signedOrder.expirationTimeSeconds) * 1000,
+			fee: feeAmount,
+			feeAsset: feeAsset,
 			initialSequence: 0,
 			currentSequence: 0,
-			createdAt: util.getUTCNowTimestamp(),
-			fee: fee,
-			feeAsset: feeAsset
-
+			createdAt: util.getUTCNowTimestamp()
 		};
 	}
 

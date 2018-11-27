@@ -12,7 +12,8 @@ import {
 	IOrderPersistRequest,
 	IOrderQueueItem,
 	IRawOrder,
-	IStringSignedOrder
+	IStringSignedOrder,
+	IToken
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
@@ -20,6 +21,7 @@ import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
 class OrderWatcherServer {
+	public token: IToken | undefined = undefined;
 	public pair: string = 'pair';
 	public orderWatcher: OrderWatcher | null = null;
 	public web3Util: Web3Util | null = null;
@@ -60,7 +62,7 @@ class OrderWatcherServer {
 		};
 		util.logDebug(JSON.stringify(orderState));
 		if (orderState.isValid) {
-			const side = this.web3Util.getSideFromSignedOrder(stringSignedOrder, this.pair);
+			const side = Web3Util.getSideFromSignedOrder(stringSignedOrder, this.token as IToken);
 			const {
 				remainingFillableTakerAssetAmount,
 				remainingFillableMakerAssetAmount,
@@ -132,7 +134,6 @@ class OrderWatcherServer {
 						status: CST.DB_UPDATE,
 						requestor: CST.DB_ORDER_WATCHER,
 						pair: this.pair,
-						side: this.web3Util.getSideFromSignedOrder(signedOrder, this.pair),
 						orderHash: orderHash,
 						balance: 0
 					});
@@ -196,6 +197,7 @@ class OrderWatcherServer {
 			}
 		);
 		this.pair = option.token + '|' + CST.TOKEN_WETH;
+		this.token = this.web3Util.tokens.find(t => t.code === option.token);
 
 		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderQueueItem) =>
 			this.handleOrderUpdate(channel, orderQueueItem)

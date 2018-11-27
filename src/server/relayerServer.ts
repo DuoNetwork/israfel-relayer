@@ -74,9 +74,12 @@ class RelayerServer {
 
 		const parsedSignedorder = orderPersistenceUtil.parseSignedOrder(stringSignedOrder);
 		const orderHash = this.web3Util ? await this.web3Util.validateOrder(parsedSignedorder) : '';
+		const code = req.pair.split('|')[0];
+		const token = this.web3Util ? this.web3Util.tokens.find(t => t.code === code) : null;
 		if (
 			orderHash &&
 			orderHash === req.orderHash &&
+			token &&
 			this.web3Util &&
 			(await this.web3Util.validateOrderFillable(parsedSignedorder))
 		) {
@@ -89,7 +92,7 @@ class RelayerServer {
 					pair: req.pair,
 					orderHash: orderHash,
 					balance: -1,
-					side: this.web3Util.getSideFromSignedOrder(stringSignedOrder, req.pair),
+					token: token,
 					signedOrder: stringSignedOrder
 				});
 				if (userOrder) this.sendUserOrderResponse(ws, userOrder, req.method);

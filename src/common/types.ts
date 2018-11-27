@@ -61,10 +61,8 @@ export interface IOrderPersistRequest {
 	balance: number;
 	requestor: string;
 	status: string;
-	side?: string;
+	token?: IToken;
 	fill?: number;
-	fee?: number;
-	feeAsset?: string;
 	signedOrder?: IStringSignedOrder;
 }
 
@@ -222,6 +220,6 @@ export interface IToken {
 
 export interface IFee {
 	asset?: string;
-	isRatio?: boolean;
-	value: number;
+	rate: number;
+	minimum: number;
 }

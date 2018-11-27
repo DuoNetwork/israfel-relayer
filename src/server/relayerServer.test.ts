@@ -5,6 +5,7 @@ import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import util from '../utils/util';
+import Web3Util from '../utils/Web3Util';
 import relayerServer from './relayerServer';
 
 test('sendInfo', () => {
@@ -90,20 +91,42 @@ test('handleAddOrderRequest invalid order', async () => {
 		orderHash: '0xOrderHash'
 	});
 	relayerServer.web3Util = {
+		tokens: [],
 		validateOrder: jest.fn(() => '0xOrderHash'),
 		validateOrderFillable: jest.fn(() => Promise.resolve(false))
 	} as any;
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
-		pair: 'pair',
+		pair: 'code1|code2',
 		order: signedOrder,
-		orderHash: '0xInvalidHash'
+		orderHash: '0xOrderHash'
 	});
+	relayerServer.web3Util = {
+		tokens: [{
+			code: 'code1'
+		}],
+		validateOrder: jest.fn(() => '0xOrderHash'),
+		validateOrderFillable: jest.fn(() => Promise.resolve(false))
+	} as any;
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
-		pair: 'pair',
+		pair: 'code1|code2',
+		order: signedOrder,
+		orderHash: '0xInvalidHash'
+	});
+	relayerServer.web3Util = {
+		tokens: [{
+			code: 'code1'
+		}],
+		validateOrder: jest.fn(() => '0xOrderHash'),
+		validateOrderFillable: jest.fn(() => Promise.resolve(false))
+	} as any;
+	await relayerServer.handleAddOrderRequest({} as any, {
+		channel: CST.DB_ORDERS,
+		method: CST.DB_ADD,
+		pair: 'code1|code2',
 		order: signedOrder,
 		orderHash: '0xOrderHash'
 	});
@@ -115,16 +138,19 @@ test('handleAddOrderRequest invalid order', async () => {
 test('handleAddOrderRequest invalid persist', async () => {
 	relayerServer.sendErrorOrderResponse = jest.fn();
 	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
+	Web3Util.getSideFromSignedOrder = jest.fn(() => 'side');
 	relayerServer.web3Util = {
+		tokens: [{
+			code: 'code1'
+		}],
 		validateOrder: jest.fn(() => '0xOrderHash'),
-		validateOrderFillable: jest.fn(() => Promise.resolve(true)),
-		getSideFromSignedOrder: jest.fn(() => 'side')
+		validateOrderFillable: jest.fn(() => Promise.resolve(true))
 	} as any;
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
-		pair: 'pair',
+		pair: 'code1|code2',
 		order: signedOrder,
 		orderHash: '0xOrderHash'
 	});
@@ -135,16 +161,19 @@ test('handleAddOrderRequest invalid persist', async () => {
 test('handleAddOrderRequest persist error', async () => {
 	relayerServer.sendErrorOrderResponse = jest.fn();
 	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
+	Web3Util.getSideFromSignedOrder = jest.fn(() => 'side');
 	relayerServer.web3Util = {
+		tokens: [{
+			code: 'code1'
+		}],
 		validateOrder: jest.fn(() => '0xOrderHash'),
-		validateOrderFillable: jest.fn(() => Promise.resolve(true)),
-		getSideFromSignedOrder: jest.fn(() => 'side')
+		validateOrderFillable: jest.fn(() => Promise.resolve(true))
 	} as any;
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.reject('handleAddOrderRequest'));
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
-		pair: 'pair',
+		pair: 'code1|code2',
 		order: signedOrder,
 		orderHash: '0xOrderHash'
 	});
@@ -155,10 +184,13 @@ test('handleAddOrderRequest persist error', async () => {
 test('handleAddOrderRequest', async () => {
 	relayerServer.sendErrorOrderResponse = jest.fn();
 	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
+	Web3Util.getSideFromSignedOrder = jest.fn(() => 'side');
 	relayerServer.web3Util = {
+		tokens: [{
+			code: 'code1'
+		}],
 		validateOrder: jest.fn(() => '0xOrderHash'),
 		validateOrderFillable: jest.fn(() => Promise.resolve(true)),
-		getSideFromSignedOrder: jest.fn(() => 'side')
 	} as any;
 	orderPersistenceUtil.persistOrder = jest.fn(() =>
 		Promise.resolve({
@@ -168,7 +200,7 @@ test('handleAddOrderRequest', async () => {
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
-		pair: 'pair',
+		pair: 'code1|code2',
 		order: signedOrder,
 		orderHash: '0xOrderHash'
 	});

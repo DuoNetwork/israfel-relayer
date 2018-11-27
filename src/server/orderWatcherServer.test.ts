@@ -39,7 +39,6 @@ test('updateOrder isValid no userOrder', async () => {
 		status: 'status',
 		requestor: CST.DB_ORDER_WATCHER,
 		pair: 'pair',
-		side: 'side',
 		orderHash: 'orderHash',
 		balance: -1
 	});
@@ -70,7 +69,6 @@ test('updateOrder isValid userOrder', async () => {
 		pair: 'pair',
 		status: 'status',
 		requestor: CST.DB_ORDER_WATCHER,
-		side: 'side',
 		orderHash: '0xOrderHash',
 		balance: -1
 	});
@@ -120,9 +118,9 @@ test('addIntoWatch with signed order non fillable', async () => {
 	} as any;
 	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({}));
 	orderWatcherServer.watchingOrders = {};
+	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
 	orderWatcherServer.web3Util = {
-		validateOrderFillable: jest.fn(() => Promise.resolve(false)),
-		getSideFromSignedOrder: jest.fn(() => CST.DB_BID)
+		validateOrderFillable: jest.fn(() => Promise.resolve(false))
 	} as any;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	await orderWatcherServer.addIntoWatch('orderHash', signedOrder);
@@ -246,9 +244,8 @@ test('handleOrderWatcherUpdate no web3Util', async () => {
 test('handleOrderWatcherUpdate not in cache', async () => {
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
-	orderWatcherServer.web3Util = {
-		getSideFromSignedOrder: jest.fn(() => CST.DB_BID)
-	} as any;
+	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
+	orderWatcherServer.web3Util = {} as any;
 	orderWatcherServer.watchingOrders = {};
 	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
 	expect(orderWatcherServer.updateOrder as jest.Mock).not.toBeCalled();
@@ -261,9 +258,8 @@ test('handleOrderWatcherUpdate isValid bid no fill', async () => {
 	orderWatcherServer.watchingOrders = {
 		orderHash: 'orderHash' as any
 	};
-	orderWatcherServer.web3Util = {
-		getSideFromSignedOrder: jest.fn(() => CST.DB_BID)
-	} as any;
+	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
+	orderWatcherServer.web3Util = {} as any;
 	Web3Util.getPriceFromSignedOrder = jest.fn(() => 10);
 	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
 	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
@@ -276,9 +272,8 @@ test('handleOrderWatcherUpdate isValid ask no fill', async () => {
 	orderWatcherServer.watchingOrders = {
 		orderHash: 'orderHash' as any
 	};
-	orderWatcherServer.web3Util = {
-		getSideFromSignedOrder: jest.fn(() => CST.DB_ASK)
-	} as any;
+	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
+	orderWatcherServer.web3Util = {} as any;
 	Web3Util.getPriceFromSignedOrder = jest.fn(() => 10);
 	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
 	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
@@ -292,9 +287,8 @@ test('handleOrderWatcherUpdate isValid bid fill', async () => {
 	orderWatcherServer.watchingOrders = {
 		orderHash: 'orderHash' as any
 	};
-	orderWatcherServer.web3Util = {
-		getSideFromSignedOrder: jest.fn(() => CST.DB_BID)
-	} as any;
+	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
+	orderWatcherServer.web3Util = {} as any;
 	Web3Util.getPriceFromSignedOrder = jest.fn(() => 10);
 	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
 	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
@@ -308,9 +302,8 @@ test('handleOrderWatcherUpdate isValid ask fill', async () => {
 	orderWatcherServer.watchingOrders = {
 		orderHash: 'orderHash' as any
 	};
-	orderWatcherServer.web3Util = {
-		getSideFromSignedOrder: jest.fn(() => CST.DB_ASK)
-	} as any;
+	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
+	orderWatcherServer.web3Util = {} as any;
 	Web3Util.getPriceFromSignedOrder = jest.fn(() => 10);
 	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
 	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();

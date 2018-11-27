@@ -43,11 +43,39 @@ test('parseSignedOrder', () =>
 
 test('constructNewLiveOrder', () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
 	expect(
-		orderPersistenceUtil.constructNewLiveOrder(signedOrder, 'pair', CST.DB_BID, '0xOrderHash')
+		orderPersistenceUtil.constructNewLiveOrder(signedOrder, {
+			address: 'takerAddress',
+			code: 'takerCode',
+			denomination: 1,
+			precision: {
+				makerCode: 0.000005
+			},
+			fee: {
+				makerCode: {
+					rate: 0,
+					minimum: 1
+				}
+			}
+		}, 'takerCode|makerCode', '0xOrderHash')
 	).toMatchSnapshot();
+	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
 	expect(
-		orderPersistenceUtil.constructNewLiveOrder(signedOrder, 'pair', CST.DB_ASK, '0xOrderHash')
+		orderPersistenceUtil.constructNewLiveOrder(signedOrder, {
+			address: 'makerAddress',
+			code: 'makerCode',
+			denomination: 1,
+			precision: {
+				makerCode: 0.000005
+			},
+			fee: {
+				takerCode: {
+					rate: 0,
+					minimum: 1
+				}
+			}
+		}, 'makerCode|takerCode', '0xOrderHash')
 	).toMatchSnapshot();
 });
 
@@ -60,6 +88,8 @@ const liveOrder = {
 	balance: 123,
 	fill: 234,
 	side: CST.DB_BID,
+	fee: 1,
+	feeAsset: 'feeAsset',
 	createdAt: 1111111111,
 	expiry: 1234567890,
 	initialSequence: 1,
@@ -166,7 +196,7 @@ test('getLiveOrderInPersistence only in db', async () => {
 	).toMatchSnapshot();
 });
 
-test('persistOrder add missing side', async () => {
+test('persistOrder add missing token', async () => {
 	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
 	redisUtil.increment = jest.fn(() => Promise.resolve(123));
 	redisUtil.multi = jest.fn(() => Promise.resolve());
@@ -213,7 +243,7 @@ test('persistOrder add', async () => {
 			status: 'status',
 			requestor: 'requestor',
 			pair: 'pair',
-			side: 'side',
+			token: 'token' as any,
 			orderHash: '0xOrderHash',
 			balance: -1,
 			fill: 123456789,
@@ -246,7 +276,7 @@ test('persistOrder not add', async () => {
 			status: 'status',
 			requestor: 'requestor',
 			pair: 'pair',
-			side: 'side',
+			token: 'token' as any,
 			orderHash: '0xOrderHash',
 			balance: 80,
 			fill: 1
@@ -273,7 +303,7 @@ test('persistOrder add existing', async () => {
 			status: 'status',
 			requestor: 'requestor',
 			pair: 'pair',
-			side: 'side',
+			token: 'token' as any,
 			orderHash: '0xOrderHash',
 			balance: -1,
 			signedOrder: 'signedOrder' as any
@@ -300,7 +330,7 @@ test('persistOrder not add not existing', async () => {
 			status: 'status',
 			requestor: 'requestor',
 			pair: 'pair',
-			side: 'side',
+			token: 'token' as any,
 			orderHash: '0xOrderHash',
 			balance: -1
 		})
@@ -331,7 +361,7 @@ test('persistOrder terminate fill', async () => {
 			status: CST.DB_FILL,
 			requestor: 'requestor',
 			pair: 'pair',
-			side: 'side',
+			token: 'token' as any,
 			orderHash: '0xOrderHash',
 			balance: -1
 		})

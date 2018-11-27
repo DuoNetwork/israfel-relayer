@@ -88,10 +88,10 @@ class DynamoUtil {
 		for (const code in allFees) {
 			const fee = allFees[code].M || {};
 			const parsedFee: IFee = {
-				value: Number(fee[CST.DB_VALUE].N)
+				rate: Number(fee[CST.DB_RATE].N),
+				minimum: Number(fee[CST.DB_MIN].N)
 			};
 			if (fee[CST.DB_ASSET]) parsedFee.asset = fee[CST.DB_ASSET].S || '';
-			if (fee[CST.DB_IS_RATIO]) parsedFee.isRatio = !!fee[CST.DB_IS_RATIO].BOOL;
 			token.fee[code] = parsedFee;
 		}
 

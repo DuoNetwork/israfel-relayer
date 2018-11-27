@@ -42,9 +42,9 @@ export const DB_DENOMINATION = 'denomination';
 export const DB_PRECISION = 'precision';
 export const DB_FEE = 'fee';
 export const DB_FEE_ASSET = 'feeAsset';
-export const DB_VALUE = 'value';
+export const DB_MIN = 'minimum';
 export const DB_ASSET = 'asset';
-export const DB_IS_RATIO = 'isRatio';
+export const DB_RATE = 'ratio';
 
 export const DB_ADD = 'add';
 export const DB_UPDATE = 'update';
