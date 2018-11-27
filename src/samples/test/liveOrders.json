@@ -11,7 +11,9 @@
 		"createdAt": 1234567890,
 		"expiry": 1234567890000,
 		"initialSequence": 1,
-		"currentSequence": 5
+		"currentSequence": 5,
+		"fee": 1,
+		"feeAsset": "feeAsset"
 	},
 	"orderHash2": {
 		"account": "account2",
@@ -25,7 +27,9 @@
 		"createdAt": 1234567890,
 		"expiry": 1234567890000,
 		"initialSequence": 2,
-		"currentSequence": 6
+		"currentSequence": 6,
+		"fee": 1,
+		"feeAsset": "feeAsset"
 	},
 	"orderHash3": {
 		"account": "account3",
@@ -39,7 +43,9 @@
 		"createdAt": 1234567890,
 		"expiry": 1234567890000,
 		"initialSequence": 3,
-		"currentSequence": 7
+		"currentSequence": 7,
+		"fee": 1,
+		"feeAsset": "feeAsset"
 	},
 	"orderHash4": {
 		"account": "account2",
@@ -53,7 +59,9 @@
 		"createdAt": 1234567890,
 		"expiry": 1234567890000,
 		"initialSequence": 4,
-		"currentSequence": 8
+		"currentSequence": 8,
+		"fee": 1,
+		"feeAsset": "feeAsset"
 	},
 	"orderHash5": {
 		"account": "account5",
@@ -67,7 +75,9 @@
 		"createdAt": 1234567890,
 		"expiry": 1234567890000,
 		"initialSequence": 9,
-		"currentSequence": 13
+		"currentSequence": 13,
+		"fee": 1,
+		"feeAsset": "feeAsset"
 	},
 	"orderHash6": {
 		"account": "account6",
@@ -81,7 +91,9 @@
 		"createdAt": 1234567890,
 		"expiry": 1234567890000,
 		"initialSequence": 10,
-		"currentSequence": 14
+		"currentSequence": 14,
+		"fee": 1,
+		"feeAsset": "feeAsset"
 	},
 	"orderHash7": {
 		"account": "account7",
@@ -95,7 +107,9 @@
 		"createdAt": 1234567890,
 		"expiry": 1234567890000,
 		"initialSequence": 11,
-		"currentSequence": 15
+		"currentSequence": 15,
+		"fee": 1,
+		"feeAsset": "feeAsset"
 	},
 	"orderHash8": {
 		"account": "account8",
@@ -109,6 +123,8 @@
 		"createdAt": 1234567890,
 		"expiry": 1234567890000,
 		"initialSequence": 12,
-		"currentSequence": 16
+		"currentSequence": 16,
+		"fee": 1,
+		"feeAsset": "feeAsset"
 	}
 }
