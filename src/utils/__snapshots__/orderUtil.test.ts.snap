@@ -1,5 +1,43 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`constructNewLiveOrder ask base flat 1`] = `
+Object {
+  "account": "makerAddress",
+  "amount": 123,
+  "balance": 123,
+  "createdAt": 1234567890,
+  "currentSequence": 0,
+  "expiry": 1234567890000,
+  "fee": 1,
+  "feeAsset": "takerCode",
+  "fill": 0,
+  "initialSequence": 0,
+  "orderHash": "0xOrderHash",
+  "pair": "makerCode|takerCode",
+  "price": 0.26914660831509846,
+  "side": "ask",
+}
+`;
+
+exports[`constructNewLiveOrder ask base ratio 1`] = `
+Object {
+  "account": "makerAddress",
+  "amount": 123,
+  "balance": 123,
+  "createdAt": 1234567890,
+  "currentSequence": 0,
+  "expiry": 1234567890000,
+  "fee": 4.606060606060606,
+  "feeAsset": "takerCode",
+  "fill": 0,
+  "initialSequence": 0,
+  "orderHash": "0xOrderHash",
+  "pair": "makerCode|takerCode",
+  "price": 0.2670394736842105,
+  "side": "ask",
+}
+`;
+
 exports[`constructNewLiveOrder ask flat 1`] = `
 Object {
   "account": "makerAddress",
@@ -35,6 +73,44 @@ Object {
   "pair": "makerCode|takerCode",
   "price": 0.2670661803022407,
   "side": "ask",
+}
+`;
+
+exports[`constructNewLiveOrder bid base flat 1`] = `
+Object {
+  "account": "makerAddress",
+  "amount": 456,
+  "balance": 456,
+  "createdAt": 1234567890,
+  "currentSequence": 0,
+  "expiry": 1234567890000,
+  "fee": 1,
+  "feeAsset": "makerCode",
+  "fill": 0,
+  "initialSequence": 0,
+  "orderHash": "0xOrderHash",
+  "pair": "takerCode|makerCode",
+  "price": 3.737704918032787,
+  "side": "bid",
+}
+`;
+
+exports[`constructNewLiveOrder bid base ratio 1`] = `
+Object {
+  "account": "makerAddress",
+  "amount": 456,
+  "balance": 456,
+  "createdAt": 1234567890,
+  "currentSequence": 0,
+  "expiry": 1234567890000,
+  "fee": 1.2178217821782178,
+  "feeAsset": "makerCode",
+  "fill": 0,
+  "initialSequence": 0,
+  "orderHash": "0xOrderHash",
+  "pair": "takerCode|makerCode",
+  "price": 3.7443902439024392,
+  "side": "bid",
 }
 `;
 

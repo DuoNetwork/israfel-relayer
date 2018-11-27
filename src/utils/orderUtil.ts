@@ -1,11 +1,6 @@
 import { SignedOrder } from '0x.js';
 import * as CST from '../common/constants';
-import {
-	ILiveOrder,
-	IStringSignedOrder,
-	IToken,
-	IUserOrder
-} from '../common/types';
+import { ILiveOrder, IStringSignedOrder, IToken, IUserOrder } from '../common/types';
 import util from './util';
 import Web3Util from './Web3Util';
 
@@ -35,13 +30,14 @@ class OrderUtil {
 		const [code1, code2] = pair.split('|');
 		const side = Web3Util.getSideFromSignedOrder(signedOrder, token);
 		const isBid = side === CST.DB_BID;
-		const totalTokenAmount = Web3Util.fromWei(
+		const tokenAmountAfterFee = Web3Util.fromWei(
 			isBid ? signedOrder.takerAssetAmount : signedOrder.makerAssetAmount
 		);
-		const totalBaseAmount = Web3Util.fromWei(
+		const baseAmountAfterFee = Web3Util.fromWei(
 			isBid ? signedOrder.makerAssetAmount : signedOrder.takerAssetAmount
 		);
-		let amountNetOfFee = totalTokenAmount;
+		let tokenAmountBeforeFee = tokenAmountAfterFee;
+		let baseAmountBeforeFee = baseAmountAfterFee;
 		const fee = token.fee[code2];
 		let feeAmount = 0;
 		let feeAsset = code1;
@@ -49,38 +45,42 @@ class OrderUtil {
 		if (isBid) {
 			if (fee.asset === code2) {
 				feeAsset = code2;
-				feeAmount = Math.max((totalBaseAmount * fee.rate) / (1 + fee.rate), fee.minimum);
-				price = totalTokenAmount / (totalBaseAmount - feeAmount);
+				feeAmount = Math.max((baseAmountAfterFee * fee.rate) / (1 + fee.rate), fee.minimum);
+				baseAmountBeforeFee = baseAmountAfterFee - feeAmount;
 			} else {
-				feeAmount = Math.max((totalTokenAmount * fee.rate) / (1 - fee.rate), fee.minimum);
-				amountNetOfFee = totalTokenAmount + feeAmount;
-				price = amountNetOfFee / totalBaseAmount;
+				feeAmount = Math.max(
+					(tokenAmountAfterFee * fee.rate) / (1 - fee.rate),
+					fee.minimum
+				);
+				tokenAmountBeforeFee = tokenAmountAfterFee + feeAmount;
 			}
-			util.logDebug(
-				`bid feeAsset ${feeAsset} fee ${feeAmount} amountNetOfFee ${amountNetOfFee} price ${price}`
-			);
+			price = tokenAmountBeforeFee / baseAmountBeforeFee;
 		} else {
 			if (fee.asset === code2) {
 				feeAsset = code2;
-				feeAmount = Math.max((totalBaseAmount * fee.rate) / (1 - fee.rate), fee.minimum);
-				price = totalTokenAmount / (totalBaseAmount - feeAmount);
+				feeAmount = Math.max((baseAmountAfterFee * fee.rate) / (1 - fee.rate), fee.minimum);
+				baseAmountBeforeFee = baseAmountAfterFee + feeAmount;
 			} else {
-				feeAmount = Math.max((totalTokenAmount * fee.rate) / (1 + fee.rate), fee.minimum);
-				amountNetOfFee = totalTokenAmount - feeAmount;
-				price = amountNetOfFee / totalBaseAmount;
+				feeAmount = Math.max(
+					(tokenAmountAfterFee * fee.rate) / (1 + fee.rate),
+					fee.minimum
+				);
+				tokenAmountBeforeFee = tokenAmountAfterFee - feeAmount;
 			}
-			util.logDebug(
-				`ask feeAsset ${feeAsset} fee ${feeAmount} amountNetOfFee ${amountNetOfFee} price ${price}`
-			);
+			price = tokenAmountBeforeFee / baseAmountBeforeFee;
 		}
+
+		util.logDebug(
+			`isBid ${isBid} feeAsset ${feeAsset} fee ${feeAmount} tokenAmountBeforeFee ${tokenAmountBeforeFee} baseAmountBeforeFee ${baseAmountBeforeFee} price ${price}`
+		);
 
 		return {
 			account: signedOrder.makerAddress,
 			pair: pair,
 			orderHash: orderHash,
 			price: price,
-			amount: amountNetOfFee,
-			balance: amountNetOfFee,
+			amount: tokenAmountBeforeFee,
+			balance: tokenAmountBeforeFee,
 			fill: 0,
 			side: side,
 			expiry: Number(signedOrder.expirationTimeSeconds) * 1000,
