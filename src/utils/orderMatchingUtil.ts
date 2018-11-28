@@ -66,7 +66,7 @@ class OrderMatchingUtil {
 		);
 
 		const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
-			leftLiveOrder.orderHash
+			rightLiveOrder.orderHash
 		);
 
 		if (!leftRawOrder || !rightRawOrder) {
