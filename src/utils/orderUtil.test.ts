@@ -203,8 +203,7 @@ test('getFillBeforeFee bid flat', () => {
 				address: 'takerAddress',
 				code: 'takerTokenCode',
 				denomination: 1,
-				precisions: {
-				},
+				precisions: {},
 				feeSchedules: {
 					makerTokenCode: {
 						rate: 0,
@@ -227,8 +226,7 @@ test('getFillBeforeFee bid ratio', () => {
 				address: 'takerAddress',
 				code: 'takerTokenCode',
 				denomination: 1,
-				precisions: {
-				},
+				precisions: {},
 				feeSchedules: {
 					makerTokenCode: {
 						rate: 0.01,
@@ -251,8 +249,7 @@ test('getFillBeforeFee ask flat', () => {
 				address: 'makerAddress',
 				code: 'makerTokenCode',
 				denomination: 1,
-				precisions: {
-				},
+				precisions: {},
 				feeSchedules: {
 					takerTokenCode: {
 						rate: 0,
@@ -275,8 +272,7 @@ test('getFillBeforeFee ask ratio', () => {
 				address: 'makerAddress',
 				code: 'makerTokenCode',
 				denomination: 1,
-				precisions: {
-				},
+				precisions: {},
 				feeSchedules: {
 					takerTokenCode: {
 						rate: 0.01,
@@ -299,11 +295,10 @@ test('getFillBeforeFee bid base flat', () => {
 				address: 'takerAddress',
 				code: 'takerTokenCode',
 				denomination: 1,
-				precisions: {
-				},
+				precisions: {},
 				feeSchedules: {
 					makerTokenCode: {
-						asset: "makerTokenCode",
+						asset: 'makerTokenCode',
 						rate: 0,
 						minimum: 1
 					}
@@ -324,11 +319,10 @@ test('getFillBeforeFee bid base ratio', () => {
 				address: 'takerAddress',
 				code: 'takerTokenCode',
 				denomination: 1,
-				precisions: {
-				},
+				precisions: {},
 				feeSchedules: {
 					makerTokenCode: {
-						asset: "maketTokenCode",
+						asset: 'maketTokenCode',
 						rate: 0.01,
 						minimum: 1
 					}
@@ -349,8 +343,7 @@ test('getFillBeforeFee ask base flat', () => {
 				address: 'makerAddress',
 				code: 'makerTokenCode',
 				denomination: 1,
-				precisions: {
-				},
+				precisions: {},
 				feeSchedules: {
 					takerTokenCode: {
 						asset: 'takerTokenCode',
@@ -374,8 +367,7 @@ test('getFillBeforeFee ask base ratio', () => {
 				address: 'makerAddress',
 				code: 'makerTokenCode',
 				denomination: 1,
-				precisions: {
-				},
+				precisions: {},
 				feeSchedules: {
 					takerTokenCode: {
 						asset: 'takerTokenCode',
@@ -385,6 +377,122 @@ test('getFillBeforeFee ask base ratio', () => {
 				}
 			},
 			'makerTokenCode|takerTokenCode'
+		)
+	).toMatchSnapshot();
+});
+
+test('getAmountAfterFee bid flat', () => {
+	expect(
+		orderUtil.getAmountAfterFee(
+			100,
+			0.01,
+			{
+				rate: 0,
+				minimum: 1
+			},
+			true
+		)
+	).toMatchSnapshot();
+});
+
+test('getAmountAfterFee bid ratio', () => {
+	expect(
+		orderUtil.getAmountAfterFee(
+			100,
+			0.01,
+			{
+				rate: 0.01,
+				minimum: 1
+			},
+			true
+		)
+	).toMatchSnapshot();
+});
+
+test('getAmountAfterFee ask flat', () => {
+	expect(
+		orderUtil.getAmountAfterFee(
+			100,
+			0.01,
+			{
+				rate: 0,
+				minimum: 1
+			},
+			false
+		)
+	).toMatchSnapshot();
+});
+
+test('getAmountAfterFee ask ratio', () => {
+	expect(
+		orderUtil.getAmountAfterFee(
+			100,
+			0.01,
+			{
+				rate: 0.01,
+				minimum: 1
+			},
+			false
+		)
+	).toMatchSnapshot();
+});
+
+test('getAmountAfterFee bid base flat', () => {
+	expect(
+		orderUtil.getAmountAfterFee(
+			100,
+			0.01,
+			{
+				asset: 'asset',
+				rate: 0,
+				minimum: 0.01
+			},
+			true
+		)
+	).toMatchSnapshot();
+});
+
+test('getAmountAfterFee bid base ratio', () => {
+	expect(
+		orderUtil.getAmountAfterFee(
+			150,
+			0.01,
+			{
+				asset: 'asset',
+				rate: 0.01,
+				minimum: 0.01
+			},
+			true
+		)
+	).toMatchSnapshot();
+});
+
+test('getAmountAfterFee ask base flat', () => {
+	expect(
+		orderUtil.getAmountAfterFee(
+			150,
+			0.01,
+			{
+				asset: 'asset',
+				rate: 0,
+				minimum: 0.01
+			},
+			false
+		)
+	).toMatchSnapshot();
+});
+
+test('getAmountAfterFee ask base ratio', () => {
+	expect(
+		orderUtil.getAmountAfterFee(
+			150,
+			0.01,
+			{
+				asset: 'asset',
+				rate: 0.01,
+				minimum: 0.01
+			},
+			false
 		)
 	).toMatchSnapshot();
 });

@@ -48,26 +48,27 @@ class OrderUtil {
 		isBid: boolean
 	) {
 		let tokenAmountAfterFee = tokenAmountBeforeFee;
-		let baseAmountAfterFee = tokenAmountBeforeFee * priceBeforeFee;
+		const baseAmountBeforeFee = tokenAmountBeforeFee * priceBeforeFee;
+		let baseAmountAfterFee = baseAmountBeforeFee;
 		if (isBid)
 			if (feeSchedule.asset)
 				baseAmountAfterFee += Math.max(
-					baseAmountAfterFee * feeSchedule.rate,
+					baseAmountBeforeFee * feeSchedule.rate,
 					feeSchedule.minimum
 				);
 			else
 				tokenAmountAfterFee -= Math.max(
-					tokenAmountAfterFee * feeSchedule.rate,
+					tokenAmountBeforeFee * feeSchedule.rate,
 					feeSchedule.minimum
 				);
 		else if (feeSchedule.asset)
 			baseAmountAfterFee -= Math.max(
-				baseAmountAfterFee * feeSchedule.rate,
+				baseAmountBeforeFee * feeSchedule.rate,
 				feeSchedule.minimum
 			);
 		else
 			tokenAmountAfterFee += Math.max(
-				tokenAmountAfterFee * feeSchedule.rate,
+				tokenAmountBeforeFee * feeSchedule.rate,
 				feeSchedule.minimum
 			);
 
