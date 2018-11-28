@@ -201,6 +201,21 @@ class OrderWatcherServer {
 		}
 	};
 
+	public async loadOrders() {
+		const prevOrderHashes = Object.keys(this.watchingOrders);
+
+		const currentOrdersOrderHash = Object.keys(
+			await orderPersistenceUtil.getAllLiveOrdersInPersistence(this.pair)
+		);
+		util.logInfo('loaded live orders : ' + Object.keys(currentOrdersOrderHash).length);
+		const ordersToRemove = prevOrderHashes.filter(
+			orderHash => !currentOrdersOrderHash.includes(orderHash)
+		);
+		for (const orderHash of ordersToRemove) await this.removeFromWatch(orderHash);
+		for (const orderHash of currentOrdersOrderHash) await this.addIntoWatch(orderHash);
+		util.logInfo('added live orders into watch');
+	}
+
 	public async startServer(web3Util: Web3Util, option: IOption) {
 		this.web3Util = web3Util;
 		const provider = this.web3Util.web3Wrapper.getProvider();
@@ -219,23 +234,17 @@ class OrderWatcherServer {
 			this.handleOrderUpdate(channel, orderQueueItem)
 		);
 
-		const allOrders = await orderPersistenceUtil.getAllLiveOrdersInPersistence(this.pair);
-		util.logInfo('loaded live orders : ' + Object.keys(allOrders).length);
-		for (const orderHash in allOrders) await this.addIntoWatch(orderHash);
-		util.logInfo('added live orders into watch');
-		setInterval(async () => {
-			const prevOrderHashes = Object.keys(this.watchingOrders);
+		await this.loadOrders();
+		setInterval(() => this.loadOrders(), CST.ONE_MINUTE_MS * 60);
 
-			const currentOrdersOrderHash = Object.keys(
-				await orderPersistenceUtil.getAllLiveOrdersInPersistence(this.pair)
-			);
-			util.logInfo('loaded live orders');
-			const ordersToRemove = prevOrderHashes.filter(
-				orderHash => !currentOrdersOrderHash.includes(orderHash)
-			);
-			for (const orderHash of ordersToRemove) await this.removeFromWatch(orderHash);
-			for (const orderHash of currentOrdersOrderHash) await this.addIntoWatch(orderHash);
-		}, CST.ONE_MINUTE_MS * 60);
+		this.orderWatcher.subscribe(async (err, orderState) => {
+			if (err || !orderState) {
+				util.logError(err ? err : 'orderState empty');
+				return;
+			}
+
+			this.handleOrderWatcherUpdate(orderState);
+		});
 
 		if (option.server) {
 			dynamoUtil.updateStatus(this.pair);
@@ -248,15 +257,6 @@ class OrderWatcherServer {
 				10000
 			);
 		}
-
-		this.orderWatcher.subscribe(async (err, orderState) => {
-			if (err || !orderState) {
-				util.logError(err ? err : 'orderState empty');
-				return;
-			}
-
-			this.handleOrderWatcherUpdate(orderState);
-		});
 	}
 }
 

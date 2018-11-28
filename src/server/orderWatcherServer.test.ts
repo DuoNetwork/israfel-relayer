@@ -525,3 +525,20 @@ test('handleOrderWatcherUpdate invalid default', async () => {
 	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
 	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });
+
+test('loadOrders', async () => {
+	orderWatcherServer.watchingOrders = {
+		orderHash3: {}
+	} as any;
+	orderPersistenceUtil.getAllLiveOrdersInPersistence = jest.fn(() =>
+		Promise.resolve({
+			orderHash1: {},
+			orderHash2: {}
+		})
+	);
+	orderWatcherServer.addIntoWatch = jest.fn(() => Promise.resolve());
+	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
+	await orderWatcherServer.loadOrders();
+	expect((orderWatcherServer.addIntoWatch as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
+});

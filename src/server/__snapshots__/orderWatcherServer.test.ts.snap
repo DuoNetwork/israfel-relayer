@@ -464,6 +464,25 @@ Array [
 ]
 `;
 
+exports[`loadOrders 1`] = `
+Array [
+  Array [
+    "orderHash1",
+  ],
+  Array [
+    "orderHash2",
+  ],
+]
+`;
+
+exports[`loadOrders 2`] = `
+Array [
+  Array [
+    "orderHash3",
+  ],
+]
+`;
+
 exports[`remove from watch, exisitng order 1`] = `
 Array [
   Array [
