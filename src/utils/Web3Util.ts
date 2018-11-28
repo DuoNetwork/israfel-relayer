@@ -104,7 +104,11 @@ export default class Web3Util {
 		const store = this.rawMetamaskProvider.publicConfigStore;
 		if (store)
 			store.on('update', () => {
-				if (this.wallet === Wallet.MetaMask && store.getState().selectedAddress && store.getState().networkVersion)
+				if (
+					this.wallet === Wallet.MetaMask &&
+					store.getState().selectedAddress &&
+					store.getState().networkVersion
+				)
 					onUpdate(
 						store.getState().selectedAddress,
 						Number(store.getState().networkVersion)
@@ -194,8 +198,13 @@ export default class Web3Util {
 		return Number(Web3Wrapper.toWei(new BigNumber(value)).valueOf());
 	};
 
-	public static getSideFromSignedOrder(order: SignedOrder | IStringSignedOrder, token: IToken): string {
-		const takerAssetAddress = assetDataUtils.decodeERC20AssetData(order.takerAssetData).tokenAddress.toLowerCase();
+	public static getSideFromSignedOrder(
+		order: SignedOrder | IStringSignedOrder,
+		token: IToken
+	): string {
+		const takerAssetAddress = assetDataUtils
+			.decodeERC20AssetData(order.takerAssetData)
+			.tokenAddress.toLowerCase();
 		return takerAssetAddress === token.address ? CST.DB_BID : CST.DB_ASK;
 	}
 
@@ -309,10 +318,13 @@ export default class Web3Util {
 	public async isValidPair(pair: string) {
 		try {
 			const codes = pair.split('|');
+			if (codes.length !== 2) return false;
+			const token1 = this.tokens.find(t => t.code === codes[0]);
+			if (!token1) return false;
 			if (
-				codes.length !== 2 ||
-				!this.getTokenAddressFromCode(codes[0]) ||
-				!this.getTokenAddressFromCode(codes[1])
+				!token1.precision[codes[1]] ||
+				!token1.fee[codes[1]] ||
+				(token1.maturity && token1.maturity < util.getUTCNowTimestamp())
 			)
 				return false;
 

@@ -219,7 +219,8 @@ export interface IToken {
 	};
 	fee: {
 		[key: string]: IFee
-	}
+	},
+	maturity?: number
 }
 
 export interface IFee {

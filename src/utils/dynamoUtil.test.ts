@@ -50,7 +50,8 @@ test('scanTokens', async () => {
 							}
 						}
 					}
-				}
+				},
+				[CST.DB_MATURITY]: { N: 1234567890 }
 			}
 		]
 	};

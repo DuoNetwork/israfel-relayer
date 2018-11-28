@@ -45,6 +45,7 @@ export const DB_FEE_ASSET = 'feeAsset';
 export const DB_MIN = 'minimum';
 export const DB_ASSET = 'asset';
 export const DB_RATE = 'ratio';
+export const DB_MATURITY = 'maturity';
 
 export const DB_ADD = 'add';
 export const DB_UPDATE = 'update';

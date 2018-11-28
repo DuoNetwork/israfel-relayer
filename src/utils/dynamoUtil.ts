@@ -81,6 +81,8 @@ class DynamoUtil {
 			precision: {},
 			fee: {}
 		};
+		if (data[CST.DB_MATURITY]) token.maturity = Number(data[CST.DB_MATURITY].N);
+
 		const precision = data[CST.DB_PRECISION].M || {};
 		for (const code in precision) token.precision[code] = Number(precision[code].N);
 
