@@ -187,6 +187,40 @@ Array [
 ]
 `;
 
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientMakerAllowance 1`] = `Array []`;
+
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientMakerAllowance 2`] = `
+Array [
+  Array [
+    Object {
+      "balance": 0,
+      "method": "update",
+      "orderHash": "orderHash",
+      "pair": "pair",
+      "requestor": "orderWatcher",
+      "status": "update",
+    },
+  ],
+]
+`;
+
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientMakerBalance 1`] = `Array []`;
+
+exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientMakerBalance 2`] = `
+Array [
+  Array [
+    Object {
+      "balance": 0,
+      "method": "update",
+      "orderHash": "orderHash",
+      "pair": "pair",
+      "requestor": "orderWatcher",
+      "status": "update",
+    },
+  ],
+]
+`;
+
 exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientMakerFeeAllowance 1`] = `Array []`;
 
 exports[`handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientMakerFeeAllowance 2`] = `Array []`;
