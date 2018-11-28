@@ -265,7 +265,7 @@ test('handleOrderWatcherUpdate isValid bid no fill', async () => {
 		amount: 111
 	}));
 	orderWatcherServer.token = {
-		fee: {}
+		feeSchedules: {}
 	} as any;
 	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
 	expect((orderUtil.getPriceBeforeFee as jest.Mock).mock.calls).toMatchSnapshot();
@@ -285,7 +285,7 @@ test('handleOrderWatcherUpdate isValid ask no fill', async () => {
 		amount: 111
 	}));
 	orderWatcherServer.token = {
-		fee: {}
+		feeSchedules: {}
 	} as any;
 	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
 	expect((orderUtil.getPriceBeforeFee as jest.Mock).mock.calls).toMatchSnapshot();
@@ -306,7 +306,7 @@ test('handleOrderWatcherUpdate isValid bid fill', async () => {
 	}));
 	orderUtil.getFillBeforeFee = jest.fn(() => 2);
 	orderWatcherServer.token = {
-		fee: {}
+		feeSchedules: {}
 	} as any;
 	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
 	expect((orderUtil.getPriceBeforeFee as jest.Mock).mock.calls).toMatchSnapshot();
@@ -329,7 +329,7 @@ test('handleOrderWatcherUpdate isValid ask fill', async () => {
 	}));
 	orderUtil.getFillBeforeFee = jest.fn(() => 2);
 	orderWatcherServer.token = {
-		fee: {}
+		feeSchedules: {}
 	} as any;
 	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
 	expect((orderUtil.getPriceBeforeFee as jest.Mock).mock.calls).toMatchSnapshot();

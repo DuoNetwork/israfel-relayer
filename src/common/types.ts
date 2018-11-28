@@ -214,16 +214,16 @@ export interface IToken {
 	address: string;
 	code: string;
 	denomination: number;
-	precision: {
+	precisions: {
 		[key: string]: number
 	};
-	fee: {
-		[key: string]: IFee
+	feeSchedules: {
+		[key: string]: IFeeSchedule
 	},
 	maturity?: number
 }
 
-export interface IFee {
+export interface IFeeSchedule {
 	asset?: string;
 	rate: number;
 	minimum: number;

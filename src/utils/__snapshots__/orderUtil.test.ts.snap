@@ -38,6 +38,22 @@ Object {
 }
 `;
 
+exports[`getFillBeforeFee ask base flat 1`] = `15.105263157894736`;
+
+exports[`getFillBeforeFee ask base ratio 1`] = `15.105263157894736`;
+
+exports[`getFillBeforeFee ask flat 1`] = `14.982456140350877`;
+
+exports[`getFillBeforeFee ask ratio 1`] = `14.95570609692548`;
+
+exports[`getFillBeforeFee bid base flat 1`] = `56`;
+
+exports[`getFillBeforeFee bid base ratio 1`] = `56`;
+
+exports[`getFillBeforeFee bid flat 1`] = `56.122807017543856`;
+
+exports[`getFillBeforeFee bid ratio 1`] = `56.56565656565657`;
+
 exports[`getPriceBeforeFee ask base flat 1`] = `
 Object {
   "amount": 123,

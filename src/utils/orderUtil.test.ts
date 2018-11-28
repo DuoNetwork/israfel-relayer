@@ -35,10 +35,10 @@ test('constructNewLiveOrder bid', () => {
 				address: 'takerAddress',
 				code: 'takerCode',
 				denomination: 1,
-				precision: {
+				precisions: {
 					makerCode: 0.000005
 				},
-				fee: {
+				feeSchedules: {
 					makerCode: {
 						rate: 0,
 						minimum: 1
@@ -61,10 +61,10 @@ test('constructNewLiveOrder ask', () => {
 				address: 'makerAddress',
 				code: 'makerCode',
 				denomination: 1,
-				precision: {
+				precisions: {
 					takerCode: 0.000005
 				},
-				fee: {
+				feeSchedules: {
 					takerCode: {
 						rate: 0,
 						minimum: 1
@@ -189,6 +189,202 @@ test('getPriceBeforeFee ask base ratio', () => {
 				minimum: 1
 			},
 			false
+		)
+	).toMatchSnapshot();
+});
+
+test('getFillBeforeFee bid flat', () => {
+	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
+	expect(
+		orderUtil.getFillBeforeFee(
+			signedOrder,
+			56,
+			{
+				address: 'takerAddress',
+				code: 'takerTokenCode',
+				denomination: 1,
+				precisions: {
+				},
+				feeSchedules: {
+					makerTokenCode: {
+						rate: 0,
+						minimum: 1
+					}
+				}
+			},
+			'takerTokenCode|makerTokenCode'
+		)
+	).toMatchSnapshot();
+});
+
+test('getFillBeforeFee bid ratio', () => {
+	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
+	expect(
+		orderUtil.getFillBeforeFee(
+			signedOrder,
+			56,
+			{
+				address: 'takerAddress',
+				code: 'takerTokenCode',
+				denomination: 1,
+				precisions: {
+				},
+				feeSchedules: {
+					makerTokenCode: {
+						rate: 0.01,
+						minimum: 1
+					}
+				}
+			},
+			'takerTokenCode|makerTokenCode'
+		)
+	).toMatchSnapshot();
+});
+
+test('getFillBeforeFee ask flat', () => {
+	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
+	expect(
+		orderUtil.getFillBeforeFee(
+			signedOrder,
+			56,
+			{
+				address: 'makerAddress',
+				code: 'makerTokenCode',
+				denomination: 1,
+				precisions: {
+				},
+				feeSchedules: {
+					takerTokenCode: {
+						rate: 0,
+						minimum: 1
+					}
+				}
+			},
+			'makerTokenCode|takerTokenCode'
+		)
+	).toMatchSnapshot();
+});
+
+test('getFillBeforeFee ask ratio', () => {
+	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
+	expect(
+		orderUtil.getFillBeforeFee(
+			signedOrder,
+			56,
+			{
+				address: 'makerAddress',
+				code: 'makerTokenCode',
+				denomination: 1,
+				precisions: {
+				},
+				feeSchedules: {
+					takerTokenCode: {
+						rate: 0.01,
+						minimum: 1
+					}
+				}
+			},
+			'makerTokenCode|takerTokenCode'
+		)
+	).toMatchSnapshot();
+});
+
+test('getFillBeforeFee bid base flat', () => {
+	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
+	expect(
+		orderUtil.getFillBeforeFee(
+			signedOrder,
+			56,
+			{
+				address: 'takerAddress',
+				code: 'takerTokenCode',
+				denomination: 1,
+				precisions: {
+				},
+				feeSchedules: {
+					makerTokenCode: {
+						asset: "makerTokenCode",
+						rate: 0,
+						minimum: 1
+					}
+				}
+			},
+			'takerTokenCode|makerTokenCode'
+		)
+	).toMatchSnapshot();
+});
+
+test('getFillBeforeFee bid base ratio', () => {
+	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
+	expect(
+		orderUtil.getFillBeforeFee(
+			signedOrder,
+			56,
+			{
+				address: 'takerAddress',
+				code: 'takerTokenCode',
+				denomination: 1,
+				precisions: {
+				},
+				feeSchedules: {
+					makerTokenCode: {
+						asset: "maketTokenCode",
+						rate: 0.01,
+						minimum: 1
+					}
+				}
+			},
+			'takerTokenCode|makerTokenCode'
+		)
+	).toMatchSnapshot();
+});
+
+test('getFillBeforeFee ask base flat', () => {
+	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
+	expect(
+		orderUtil.getFillBeforeFee(
+			signedOrder,
+			56,
+			{
+				address: 'makerAddress',
+				code: 'makerTokenCode',
+				denomination: 1,
+				precisions: {
+				},
+				feeSchedules: {
+					takerTokenCode: {
+						asset: 'takerTokenCode',
+						rate: 0,
+						minimum: 1
+					}
+				}
+			},
+			'makerTokenCode|takerTokenCode'
+		)
+	).toMatchSnapshot();
+});
+
+test('getFillBeforeFee ask base ratio', () => {
+	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
+	expect(
+		orderUtil.getFillBeforeFee(
+			signedOrder,
+			56,
+			{
+				address: 'makerAddress',
+				code: 'makerTokenCode',
+				denomination: 1,
+				precisions: {
+				},
+				feeSchedules: {
+					takerTokenCode: {
+						asset: 'takerTokenCode',
+						rate: 0.01,
+						minimum: 1
+					}
+				}
+			},
+			'makerTokenCode|takerTokenCode'
 		)
 	).toMatchSnapshot();
 });

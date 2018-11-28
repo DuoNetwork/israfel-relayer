@@ -493,13 +493,13 @@ Array [
     "address": "addr1",
     "code": "code1",
     "denomination": 1,
-    "fee": Object {
+    "feeSchedules": Object {
       "WETH": Object {
         "minimum": 1,
         "rate": 0,
       },
     },
-    "precision": Object {
+    "precisions": Object {
       "WETH": 0.000005,
     },
   },
@@ -507,7 +507,7 @@ Array [
     "address": "addr2",
     "code": "code2",
     "denomination": 10,
-    "fee": Object {
+    "feeSchedules": Object {
       "WETH": Object {
         "asset": "asset",
         "minimum": 1,
@@ -515,7 +515,7 @@ Array [
       },
     },
     "maturity": 1234567890,
-    "precision": Object {
+    "precisions": Object {
       "WETH": 0.000005,
     },
   },

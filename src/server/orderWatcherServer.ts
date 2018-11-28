@@ -63,9 +63,8 @@ class OrderWatcherServer {
 		};
 		util.logDebug(JSON.stringify(orderState));
 		if (orderState.isValid) {
-			const isBid =
-				Web3Util.getSideFromSignedOrder(stringSignedOrder, this.token as IToken) ===
-				CST.DB_BID;
+			const token = this.token as IToken;
+			const isBid = Web3Util.getSideFromSignedOrder(stringSignedOrder, token) === CST.DB_BID;
 			const {
 				remainingFillableTakerAssetAmount,
 				remainingFillableMakerAssetAmount,
@@ -78,11 +77,11 @@ class OrderWatcherServer {
 				isBid ? remainingFillableMakerAssetAmount : remainingFillableTakerAssetAmount
 			);
 
-			const fee = (this.token as IToken).fee[CST.TOKEN_WETH];
+			const feeSchedule = token.feeSchedules[CST.TOKEN_WETH];
 			const remainingPriceBeforeFee = orderUtil.getPriceBeforeFee(
 				remainingTokenAfterFee,
 				remainingBaseAfterFee,
-				fee,
+				feeSchedule,
 				isBid
 			);
 			orderPersistRequest.balance = remainingPriceBeforeFee.amount;
@@ -91,7 +90,7 @@ class OrderWatcherServer {
 				orderPersistRequest.fill = orderUtil.getFillBeforeFee(
 					stringSignedOrder,
 					fill,
-					this.token as IToken,
+					token,
 					this.pair
 				);
 

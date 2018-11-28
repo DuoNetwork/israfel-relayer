@@ -1,6 +1,6 @@
 import { SignedOrder } from '0x.js';
 import * as CST from '../common/constants';
-import { IFee, ILiveOrder, IStringSignedOrder, IToken, IUserOrder } from '../common/types';
+import { IFeeSchedule, ILiveOrder, IStringSignedOrder, IToken, IUserOrder } from '../common/types';
 import util from './util';
 import Web3Util from './Web3Util';
 
@@ -27,26 +27,24 @@ class OrderUtil {
 		token: IToken,
 		pair: string
 	) {
-		const base = pair.split('|')[1];
 		const isBid = Web3Util.getSideFromSignedOrder(signedOrder, token) === CST.DB_BID;
-		const fee = token.fee[base];
-		let tokenFill = isBid
+		const tokenAfterFee = Web3Util.fromWei(
+			isBid ? signedOrder.takerAssetAmount : signedOrder.makerAssetAmount
+		);
+		const baseAfterFee = Web3Util.fromWei(
+			isBid ? signedOrder.makerAssetAmount : signedOrder.takerAssetAmount
+		);
+		const tokenFillAfterFee = isBid
 			? filledTakerAmount
-			: (filledTakerAmount / Web3Util.fromWei(signedOrder.takerAssetAmount)) *
-			Web3Util.fromWei(signedOrder.makerAssetAmount);
-		if (!fee.asset) {
-			const originalLiveOrder = this.constructNewLiveOrder(signedOrder, token, pair, '');
-			const filledFee = (originalLiveOrder.fee * tokenFill) / originalLiveOrder.amount;
-			tokenFill = tokenFill + (isBid ? filledFee : -filledFee);
-		}
-
-		return tokenFill;
+			: (filledTakerAmount / baseAfterFee) * tokenAfterFee;
+		const originalLiveOrder = this.constructNewLiveOrder(signedOrder, token, pair, '');
+		return (tokenFillAfterFee / tokenAfterFee) * originalLiveOrder.amount;
 	}
 
 	public getPriceBeforeFee(
 		tokenAmountAfterFee: number,
 		baseAmountAfterFee: number,
-		fee: IFee,
+		feeSchedule: IFeeSchedule,
 		isBid: boolean
 	) {
 		let feeAmount = 0;
@@ -54,25 +52,31 @@ class OrderUtil {
 		let tokenAmountBeforeFee = tokenAmountAfterFee;
 		let baseAmountBeforeFee = baseAmountAfterFee;
 		if (isBid) {
-			if (fee.asset) {
-				feeAmount = Math.max((baseAmountAfterFee * fee.rate) / (1 + fee.rate), fee.minimum);
+			if (feeSchedule.asset) {
+				feeAmount = Math.max(
+					(baseAmountAfterFee * feeSchedule.rate) / (1 + feeSchedule.rate),
+					feeSchedule.minimum
+				);
 				baseAmountBeforeFee = baseAmountAfterFee - feeAmount;
 			} else {
 				feeAmount = Math.max(
-					(tokenAmountAfterFee * fee.rate) / (1 - fee.rate),
-					fee.minimum
+					(tokenAmountAfterFee * feeSchedule.rate) / (1 - feeSchedule.rate),
+					feeSchedule.minimum
 				);
 				tokenAmountBeforeFee = tokenAmountAfterFee + feeAmount;
 			}
 			price = baseAmountBeforeFee / tokenAmountBeforeFee;
 		} else {
-			if (fee.asset) {
-				feeAmount = Math.max((baseAmountAfterFee * fee.rate) / (1 - fee.rate), fee.minimum);
+			if (feeSchedule.asset) {
+				feeAmount = Math.max(
+					(baseAmountAfterFee * feeSchedule.rate) / (1 - feeSchedule.rate),
+					feeSchedule.minimum
+				);
 				baseAmountBeforeFee = baseAmountAfterFee + feeAmount;
 			} else {
 				feeAmount = Math.max(
-					(tokenAmountAfterFee * fee.rate) / (1 + fee.rate),
-					fee.minimum
+					(tokenAmountAfterFee * feeSchedule.rate) / (1 + feeSchedule.rate),
+					feeSchedule.minimum
 				);
 				tokenAmountBeforeFee = tokenAmountAfterFee - feeAmount;
 			}
@@ -81,7 +85,7 @@ class OrderUtil {
 
 		util.logDebug(
 			`isBid ${isBid} feeAsset ${
-				fee.asset
+				feeSchedule.asset
 			} fee ${feeAmount} tokenAmountBeforeFee ${tokenAmountBeforeFee} baseAmountBeforeFee ${baseAmountBeforeFee} price ${price}`
 		);
 
@@ -107,11 +111,11 @@ class OrderUtil {
 		const baseAmountAfterFee = Web3Util.fromWei(
 			isBid ? signedOrder.makerAssetAmount : signedOrder.takerAssetAmount
 		);
-		const fee = token.fee[code2];
+		const feeSchedule = token.feeSchedules[code2];
 		const priceBeforeFee = this.getPriceBeforeFee(
 			tokenAmountAfterFee,
 			baseAmountAfterFee,
-			fee,
+			feeSchedule,
 			isBid
 		);
 
@@ -126,7 +130,7 @@ class OrderUtil {
 			side: side,
 			expiry: Number(signedOrder.expirationTimeSeconds) * 1000,
 			fee: priceBeforeFee.feeAmount,
-			feeAsset: fee.asset || code1,
+			feeAsset: feeSchedule.asset || code1,
 			initialSequence: 0,
 			currentSequence: 0,
 			createdAt: util.getUTCNowTimestamp()

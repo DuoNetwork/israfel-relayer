@@ -322,8 +322,8 @@ export default class Web3Util {
 			const token1 = this.tokens.find(t => t.code === codes[0]);
 			if (!token1) return false;
 			if (
-				!token1.precision[codes[1]] ||
-				!token1.fee[codes[1]] ||
+				!token1.precisions[codes[1]] ||
+				!token1.feeSchedules[codes[1]] ||
 				(token1.maturity && token1.maturity < util.getUTCNowTimestamp())
 			)
 				return false;

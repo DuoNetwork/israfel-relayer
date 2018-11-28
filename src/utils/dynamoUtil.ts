@@ -11,7 +11,7 @@ import DynamoDB, {
 import AWS from 'aws-sdk/global';
 import moment from 'moment';
 import * as CST from '../common/constants';
-import { IFee, ILiveOrder, IRawOrder, IStatus, IToken, IUserOrder } from '../common/types';
+import { IFeeSchedule, ILiveOrder, IRawOrder, IStatus, IToken, IUserOrder } from '../common/types';
 import util from './util';
 
 class DynamoUtil {
@@ -78,23 +78,23 @@ class DynamoUtil {
 			address: (data[CST.DB_ADDRESS].S || '').toLowerCase(),
 			code: data[CST.DB_CODE].S || '',
 			denomination: Number(data[CST.DB_DENOMINATION].N),
-			precision: {},
-			fee: {}
+			precisions: {},
+			feeSchedules: {}
 		};
 		if (data[CST.DB_MATURITY]) token.maturity = Number(data[CST.DB_MATURITY].N);
 
-		const precision = data[CST.DB_PRECISION].M || {};
-		for (const code in precision) token.precision[code] = Number(precision[code].N);
+		const precision = data[CST.DB_PRECISIONS].M || {};
+		for (const code in precision) token.precisions[code] = Number(precision[code].N);
 
-		const allFees = data[CST.DB_FEE].M || {};
+		const allFees = data[CST.DB_FEE_SCHEDULES].M || {};
 		for (const code in allFees) {
 			const fee = allFees[code].M || {};
-			const parsedFee: IFee = {
+			const parsedFee: IFeeSchedule = {
 				rate: Number(fee[CST.DB_RATE].N),
 				minimum: Number(fee[CST.DB_MIN].N)
 			};
 			if (fee[CST.DB_ASSET]) parsedFee.asset = fee[CST.DB_ASSET].S || '';
-			token.fee[code] = parsedFee;
+			token.feeSchedules[code] = parsedFee;
 		}
 
 		return token;

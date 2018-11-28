@@ -15,12 +15,12 @@ test('scanTokens', async () => {
 				[CST.DB_ADDRESS]: { S: 'addr1' },
 				[CST.DB_CODE]: { S: 'code1' },
 				[CST.DB_DENOMINATION]: { N: '1' },
-				[CST.DB_PRECISION]: {
+				[CST.DB_PRECISIONS]: {
 					M: {
 						WETH: { N: '0.000005' }
 					}
 				},
-				[CST.DB_FEE]: {
+				[CST.DB_FEE_SCHEDULES]: {
 					M: {
 						WETH: {
 							M: {
@@ -35,12 +35,12 @@ test('scanTokens', async () => {
 				[CST.DB_ADDRESS]: { S: 'addr2' },
 				[CST.DB_CODE]: { S: 'code2' },
 				[CST.DB_DENOMINATION]: { N: '10' },
-				[CST.DB_PRECISION]: {
+				[CST.DB_PRECISIONS]: {
 					M: {
 						WETH: { N: '0.000005' }
 					}
 				},
-				[CST.DB_FEE]: {
+				[CST.DB_FEE_SCHEDULES]: {
 					M: {
 						WETH: {
 							M: {

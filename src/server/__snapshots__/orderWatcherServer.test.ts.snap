@@ -349,7 +349,7 @@ Array [
     "orderHash",
     1e-18,
     Object {
-      "fee": Object {},
+      "feeSchedules": Object {},
     },
     "pair",
   ],
@@ -415,7 +415,7 @@ Array [
     "orderHash",
     1e-18,
     Object {
-      "fee": Object {},
+      "feeSchedules": Object {},
     },
     "pair",
   ],
