@@ -9,7 +9,7 @@ import {
 } from '../common/types';
 import orderPersistenceUtil from './orderPersistenceUtil';
 import orderUtil from './orderUtil';
-import redisUtil from './redisUtil';
+// import redisUtil from './redisUtil';
 import util from './util';
 import Web3Util from './Web3Util';
 
@@ -19,8 +19,8 @@ class OrderMatchingUtil {
 		leftLiveOrder: ILiveOrder,
 		rightLiveOrder: ILiveOrder
 	): Promise<IMatchingOrderResult> {
-		const price = leftLiveOrder.price;
-		const pair = rightLiveOrder.pair;
+		// const price = leftLiveOrder.price;
+		// const pair = rightLiveOrder.pair;
 		const isLeftOrderBid = leftLiveOrder.side === CST.DB_BID;
 		util.logInfo(
 			`start matching order ${leftLiveOrder.orderHash} with ${rightLiveOrder.orderHash}`
@@ -30,14 +30,12 @@ class OrderMatchingUtil {
 			left: {
 				orderHash: leftLiveOrder.orderHash,
 				method: CST.DB_UPDATE,
-				newBalance: leftLiveOrder.balance,
-				sequence: await redisUtil.increment(`${CST.DB_SEQUENCE}|${pair}`)
+				newBalance: leftLiveOrder.balance
 			},
 			right: {
 				orderHash: rightLiveOrder.orderHash,
 				method: CST.DB_UPDATE,
-				newBalance: rightLiveOrder.balance,
-				sequence: await redisUtil.increment(`${CST.DB_SEQUENCE}|${pair}`)
+				newBalance: rightLiveOrder.balance
 			}
 		};
 
@@ -126,17 +124,11 @@ class OrderMatchingUtil {
 				web3Util.relayerAddress
 			);
 
-			obj.left.newBalance = isLeftOrderBid
-				? Math.min(leftLiveOrder.balance, rightLiveOrder.balance / rightLiveOrder.price)
-				: Math.min(leftLiveOrder.balance, rightLiveOrder.balance * rightLiveOrder.price);
+			obj.left.newBalance =
+				leftLiveOrder.balance - Math.min(leftLiveOrder.balance, rightLiveOrder.balance);
 
-			obj.right.newBalance = isLeftOrderBid
-				? Math.min(leftLiveOrder.balance * price, rightLiveOrder.balance)
-				: Math.min(
-						leftLiveOrder.balance / price,
-						rightLiveOrder.balance * rightLiveOrder.price
-				);
-
+			obj.right.newBalance =
+				rightLiveOrder.balance - Math.min(leftLiveOrder.balance, rightLiveOrder.balance);
 			return obj;
 		} catch (err) {
 			util.logError(JSON.stringify(err));
@@ -175,8 +167,12 @@ class OrderMatchingUtil {
 		);
 
 		leftLiveOrder.balance = isLeftOrderBid
-			? Math.min(leftMakerBalance, leftMakerAllowance) / leftLiveOrder.price
-			: Math.min(leftMakerBalance, leftMakerAllowance) * leftLiveOrder.price;
+			? Math.min(
+					leftMakerBalance / leftLiveOrder.price,
+					leftMakerAllowance / leftLiveOrder.price,
+					leftLiveOrder.balance
+			)
+			: Math.min(leftMakerBalance, leftMakerAllowance, leftLiveOrder.balance);
 
 		const rightTokenAddr = (await assetDataUtils.decodeAssetDataOrThrow(
 			rightOrder.makerAssetData
@@ -195,8 +191,12 @@ class OrderMatchingUtil {
 		);
 
 		rightLiveOrder.balance = isLeftOrderBid
-			? Math.min(rightMakerBalance, rightMakerAllowance) * rightLiveOrder.price
-			: Math.min(rightMakerBalance, rightMakerAllowance) / rightLiveOrder.price;
+			? Math.min(rightMakerBalance, rightMakerAllowance, rightLiveOrder.balance)
+			: Math.min(
+					rightMakerBalance / rightLiveOrder.price,
+					rightMakerAllowance / rightLiveOrder.price,
+					rightLiveOrder.balance
+			);
 
 		return [leftLiveOrder.balance, rightLiveOrder.balance];
 	}

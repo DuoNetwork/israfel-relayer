@@ -191,7 +191,6 @@ export interface ISideMatchResult {
 	orderHash: string;
 	method: string;
 	newBalance: number;
-	sequence: number;
 }
 
 export interface IMatchingOrderInput {

@@ -14,6 +14,7 @@ import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
 import orderBookUtil from '../utils/orderBookUtil';
 import orderMatchingUtil from '../utils/orderMatchingUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
+import redisUtil from '../utils/redisUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
@@ -118,13 +119,19 @@ class OrderBookServer {
 	): Promise<ILiveOrder[]> {
 		const resLeft = matchResult.left;
 		const resRight = matchResult.right;
-		leftLiveOrder.currentSequence = resLeft.sequence;
+		// leftLiveOrder.currentSequence = resLeft.sequence;
 		leftLiveOrder.balance = resLeft.newBalance;
+		leftLiveOrder.currentSequence = await redisUtil.increment(
+			`${CST.DB_SEQUENCE}|${leftLiveOrder.pair}`
+		);
 		await this.updateOrderBook(leftLiveOrder, resLeft.method);
 
 		const rightLiveOrder = this.liveOrders[resRight.orderHash];
-		rightLiveOrder.currentSequence = resRight.sequence;
+		// rightLiveOrder.currentSequence = resRight.sequence;
 		rightLiveOrder.balance = resRight.newBalance;
+		rightLiveOrder.currentSequence = await redisUtil.increment(
+			`${CST.DB_SEQUENCE}|${rightLiveOrder.pair}`
+		);
 		await this.updateOrderBook(rightLiveOrder, resRight.method);
 		return [leftLiveOrder, rightLiveOrder];
 	}
