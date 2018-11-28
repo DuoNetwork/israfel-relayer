@@ -32,10 +32,7 @@ const start = async () => {
 		web3Util = new Web3Util(null, option.live, privateKeyFile.key, false);
 	} else if (tool !== CST.DB_ORDERS)
 		web3Util = new Web3Util(null, option.live, '', tool === CST.DB_ORDER_WATCHER);
-	if (web3Util) {
-		const tokens = await dynamoUtil.scanTokens();
-		web3Util.setTokens(tokens);
-	}
+	if (web3Util) web3Util.setTokens(await dynamoUtil.scanTokens());
 	switch (tool) {
 		case CST.DB_ORDER_WATCHER:
 			orderWatcherServer.startServer(web3Util as Web3Util, option);

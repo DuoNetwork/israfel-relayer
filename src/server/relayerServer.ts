@@ -370,6 +370,9 @@ class RelayerServer {
 
 	public async startServer(web3Util: Web3Util, option: IOption) {
 		this.web3Util = web3Util;
+		setInterval(async () => {
+			if (this.web3Util) this.web3Util.setTokens(await dynamoUtil.scanTokens());
+		}, 3600000);
 		this.processStatus = await dynamoUtil.scanStatus();
 		const port = 8080;
 		const server = https
