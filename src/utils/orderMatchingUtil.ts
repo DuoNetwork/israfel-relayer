@@ -139,7 +139,7 @@ class OrderMatchingUtil {
 
 			return obj;
 		} catch (err) {
-			util.logError(err);
+			util.logError(JSON.stringify(err));
 			util.logDebug('error in matching transaction');
 			balances = await this.checkBalance(web3Util, orderInput, isLeftOrderBid);
 			obj.left.newBalance = balances[0];
@@ -184,13 +184,13 @@ class OrderMatchingUtil {
 		const rightMakerBalance = Web3Util.fromWei(
 			await web3Util.contractWrappers.erc20Token.getBalanceAsync(
 				rightTokenAddr,
-				leftOrder.makerAddress
+				rightOrder.makerAddress
 			)
 		);
 		const rightMakerAllowance = Web3Util.fromWei(
 			await web3Util.contractWrappers.erc20Token.getProxyAllowanceAsync(
 				rightTokenAddr,
-				leftOrder.makerAddress
+				rightOrder.makerAddress
 			)
 		);
 

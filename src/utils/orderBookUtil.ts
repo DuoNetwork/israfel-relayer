@@ -32,14 +32,16 @@ class OrderBookUtil {
 		const asks: IOrderBookLevel[] = [];
 		for (const orderHash in liveOrders) {
 			const liveOrder = liveOrders[orderHash];
-			const level: IOrderBookLevel = {
-				orderHash: orderHash,
-				price: liveOrder.price,
-				amount: liveOrder.amount,
-				initialSequence: liveOrder.initialSequence
-			};
-			if (liveOrder.side === CST.DB_BID) bids.push(level);
-			else asks.push(level);
+			if (liveOrder.balance > 0) {
+				const level: IOrderBookLevel = {
+					orderHash: orderHash,
+					price: liveOrder.price,
+					amount: liveOrder.amount,
+					initialSequence: liveOrder.initialSequence
+				};
+				if (liveOrder.side === CST.DB_BID) bids.push(level);
+				else asks.push(level);
+			}
 		}
 
 		this.sortOrderBookLevels(bids, true);
