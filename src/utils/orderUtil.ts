@@ -21,6 +21,28 @@ class OrderUtil {
 		};
 	}
 
+	public getFillBeforeFee(
+		signedOrder: IStringSignedOrder,
+		filledTakerAmount: number,
+		token: IToken,
+		pair: string
+	) {
+		const base = pair.split('|')[1];
+		const isBid = Web3Util.getSideFromSignedOrder(signedOrder, token) === CST.DB_BID;
+		const fee = token.fee[base];
+		let tokenFill = isBid
+			? filledTakerAmount
+			: (filledTakerAmount / Web3Util.fromWei(signedOrder.takerAssetAmount)) *
+			Web3Util.fromWei(signedOrder.makerAssetAmount);
+		if (!fee.asset) {
+			const originalLiveOrder = this.constructNewLiveOrder(signedOrder, token, pair, '');
+			const filledFee = (originalLiveOrder.fee * tokenFill) / originalLiveOrder.amount;
+			tokenFill = tokenFill + (isBid ? filledFee : -filledFee);
+		}
+
+		return tokenFill;
+	}
+
 	public getPriceBeforeFee(
 		tokenAmountAfterFee: number,
 		baseAmountAfterFee: number,
@@ -42,7 +64,7 @@ class OrderUtil {
 				);
 				tokenAmountBeforeFee = tokenAmountAfterFee + feeAmount;
 			}
-			price = tokenAmountBeforeFee / baseAmountBeforeFee;
+			price = baseAmountBeforeFee / tokenAmountBeforeFee;
 		} else {
 			if (fee.asset) {
 				feeAmount = Math.max((baseAmountAfterFee * fee.rate) / (1 - fee.rate), fee.minimum);
@@ -54,7 +76,7 @@ class OrderUtil {
 				);
 				tokenAmountBeforeFee = tokenAmountAfterFee - feeAmount;
 			}
-			price = tokenAmountBeforeFee / baseAmountBeforeFee;
+			price = baseAmountBeforeFee / tokenAmountBeforeFee;
 		}
 
 		util.logDebug(

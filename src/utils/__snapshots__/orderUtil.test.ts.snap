@@ -14,7 +14,7 @@ Object {
   "initialSequence": 0,
   "orderHash": "0xOrderHash",
   "pair": "makerCode|takerCode",
-  "price": 0.2675438596491228,
+  "price": 3.737704918032787,
   "side": "ask",
 }
 `;
@@ -33,7 +33,7 @@ Object {
   "initialSequence": 0,
   "orderHash": "0xOrderHash",
   "pair": "takerCode|makerCode",
-  "price": 3.7154471544715446,
+  "price": 0.26914660831509846,
   "side": "bid",
 }
 `;
@@ -42,7 +42,7 @@ exports[`getPriceBeforeFee ask base flat 1`] = `
 Object {
   "amount": 123,
   "feeAmount": 1,
-  "price": 0.26914660831509846,
+  "price": 3.7154471544715446,
 }
 `;
 
@@ -50,7 +50,7 @@ exports[`getPriceBeforeFee ask base ratio 1`] = `
 Object {
   "amount": 123,
   "feeAmount": 4.606060606060606,
-  "price": 0.2670394736842105,
+  "price": 3.7447647203744765,
 }
 `;
 
@@ -58,7 +58,7 @@ exports[`getPriceBeforeFee ask flat 1`] = `
 Object {
   "amount": 122,
   "feeAmount": 1,
-  "price": 0.2675438596491228,
+  "price": 3.737704918032787,
 }
 `;
 
@@ -66,7 +66,7 @@ exports[`getPriceBeforeFee ask ratio 1`] = `
 Object {
   "amount": 121.78217821782178,
   "feeAmount": 1.2178217821782178,
-  "price": 0.2670661803022407,
+  "price": 3.7443902439024392,
 }
 `;
 
@@ -74,7 +74,7 @@ exports[`getPriceBeforeFee bid base flat 1`] = `
 Object {
   "amount": 123,
   "feeAmount": 1,
-  "price": 0.2703296703296703,
+  "price": 3.6991869918699187,
 }
 `;
 
@@ -82,7 +82,7 @@ exports[`getPriceBeforeFee bid base ratio 1`] = `
 Object {
   "amount": 123,
   "feeAmount": 4.514851485148515,
-  "price": 0.2724342105263158,
+  "price": 3.6706109635353776,
 }
 `;
 
@@ -90,7 +90,7 @@ exports[`getPriceBeforeFee bid flat 1`] = `
 Object {
   "amount": 124,
   "feeAmount": 1,
-  "price": 0.2719298245614035,
+  "price": 3.6774193548387095,
 }
 `;
 
@@ -98,7 +98,7 @@ exports[`getPriceBeforeFee bid ratio 1`] = `
 Object {
   "amount": 124.24242424242425,
   "feeAmount": 1.2424242424242424,
-  "price": 0.272461456671983,
+  "price": 3.670243902439024,
 }
 `;
 

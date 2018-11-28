@@ -199,15 +199,6 @@ export default class Web3Util {
 		return takerAssetAddress === token.address ? CST.DB_BID : CST.DB_ASK;
 	}
 
-	public static getPriceFromSignedOrder = (order: IStringSignedOrder, side: string): number => {
-		const isBid = side === CST.DB_BID;
-		return util.round(
-			Web3Util.stringToBN(isBid ? order.makerAssetAmount : order.takerAssetAmount)
-				.div(isBid ? order.takerAssetAmount : order.makerAssetAmount)
-				.valueOf()
-		);
-	};
-
 	public async validateOrder(signedOrder: SignedOrder): Promise<string> {
 		const { orderSchema } = schemas;
 		const { signature, ...order } = signedOrder;

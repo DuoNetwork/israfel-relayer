@@ -88,23 +88,12 @@ class OrderWatcherServer {
 			orderPersistRequest.balance = remainingPriceBeforeFee.amount;
 			const fill = Web3Util.fromWei(filledTakerAssetAmount);
 			if (fill) {
-				orderPersistRequest.fill = isBid
-					? fill
-					: (fill / Web3Util.fromWei(stringSignedOrder.takerAssetAmount)) *
-					Web3Util.fromWei(stringSignedOrder.makerAssetAmount);
-				if (!fee.asset) {
-					const originalLiveOrder = orderUtil.constructNewLiveOrder(
-						stringSignedOrder,
-						this.token as IToken,
-						this.pair,
-						orderState.orderHash
-					);
-					const filledFee =
-						(originalLiveOrder.fee * fill) /
-						Web3Util.fromWei(stringSignedOrder.takerAssetAmount);
-					orderPersistRequest.fill =
-						orderPersistRequest.fill + (isBid ? filledFee : -filledFee);
-				}
+				orderPersistRequest.fill = orderUtil.getFillBeforeFee(
+					stringSignedOrder,
+					fill,
+					this.token as IToken,
+					this.pair
+				);
 
 				orderPersistRequest.status = CST.DB_PFILL;
 			}
