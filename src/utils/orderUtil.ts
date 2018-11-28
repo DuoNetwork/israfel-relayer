@@ -41,6 +41,42 @@ class OrderUtil {
 		return (tokenFillAfterFee / tokenAfterFee) * originalLiveOrder.amount;
 	}
 
+	public getAmountAfterFee(
+		tokenAmountBeforeFee: number,
+		priceBeforeFee: number,
+		feeSchedule: IFeeSchedule,
+		isBid: boolean
+	) {
+		let tokenAmountAfterFee = tokenAmountBeforeFee;
+		let baseAmountAfterFee = tokenAmountBeforeFee * priceBeforeFee;
+		if (isBid)
+			if (feeSchedule.asset)
+				baseAmountAfterFee += Math.max(
+					baseAmountAfterFee * feeSchedule.rate,
+					feeSchedule.minimum
+				);
+			else
+				tokenAmountAfterFee -= Math.max(
+					tokenAmountAfterFee * feeSchedule.rate,
+					feeSchedule.minimum
+				);
+		else if (feeSchedule.asset)
+			baseAmountAfterFee -= Math.max(
+				baseAmountAfterFee * feeSchedule.rate,
+				feeSchedule.minimum
+			);
+		else
+			tokenAmountAfterFee += Math.max(
+				tokenAmountAfterFee * feeSchedule.rate,
+				feeSchedule.minimum
+			);
+
+		return {
+			takerAssetAmount: isBid ? tokenAmountAfterFee : baseAmountAfterFee,
+			makerAssetAmount: isBid ? baseAmountAfterFee : tokenAmountAfterFee,
+		}
+	}
+
 	public getPriceBeforeFee(
 		tokenAmountAfterFee: number,
 		baseAmountAfterFee: number,
@@ -51,7 +87,7 @@ class OrderUtil {
 		let price = 0;
 		let tokenAmountBeforeFee = tokenAmountAfterFee;
 		let baseAmountBeforeFee = baseAmountAfterFee;
-		if (isBid) {
+		if (isBid)
 			if (feeSchedule.asset) {
 				feeAmount = Math.max(
 					(baseAmountAfterFee * feeSchedule.rate) / (1 + feeSchedule.rate),
@@ -65,23 +101,21 @@ class OrderUtil {
 				);
 				tokenAmountBeforeFee = tokenAmountAfterFee + feeAmount;
 			}
-			price = baseAmountBeforeFee / tokenAmountBeforeFee;
+		else if (feeSchedule.asset) {
+			feeAmount = Math.max(
+				(baseAmountAfterFee * feeSchedule.rate) / (1 - feeSchedule.rate),
+				feeSchedule.minimum
+			);
+			baseAmountBeforeFee = baseAmountAfterFee + feeAmount;
 		} else {
-			if (feeSchedule.asset) {
-				feeAmount = Math.max(
-					(baseAmountAfterFee * feeSchedule.rate) / (1 - feeSchedule.rate),
-					feeSchedule.minimum
-				);
-				baseAmountBeforeFee = baseAmountAfterFee + feeAmount;
-			} else {
-				feeAmount = Math.max(
-					(tokenAmountAfterFee * feeSchedule.rate) / (1 + feeSchedule.rate),
-					feeSchedule.minimum
-				);
-				tokenAmountBeforeFee = tokenAmountAfterFee - feeAmount;
-			}
-			price = baseAmountBeforeFee / tokenAmountBeforeFee;
+			feeAmount = Math.max(
+				(tokenAmountAfterFee * feeSchedule.rate) / (1 + feeSchedule.rate),
+				feeSchedule.minimum
+			);
+			tokenAmountBeforeFee = tokenAmountAfterFee - feeAmount;
 		}
+
+		price = baseAmountBeforeFee / tokenAmountBeforeFee;
 
 		util.logDebug(
 			`isBid ${isBid} feeAsset ${
