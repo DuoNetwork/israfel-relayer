@@ -15,14 +15,14 @@ class OrderBookUtil {
 			levels.sort(
 				(a, b) =>
 					-a.price + b.price ||
-					-a.amount + b.amount ||
+					-a.balance + b.balance ||
 					a.initialSequence - b.initialSequence
 			);
 		else
 			levels.sort(
 				(a, b) =>
 					a.price - b.price ||
-					-a.amount + b.amount ||
+					-a.balance + b.balance ||
 					a.initialSequence - b.initialSequence
 			);
 	}
@@ -36,7 +36,7 @@ class OrderBookUtil {
 				const level: IOrderBookLevel = {
 					orderHash: orderHash,
 					price: liveOrder.price,
-					amount: liveOrder.amount,
+					balance: liveOrder.balance,
 					initialSequence: liveOrder.initialSequence
 				};
 				if (liveOrder.side === CST.DB_BID) bids.push(level);
@@ -69,7 +69,7 @@ class OrderBookUtil {
 			l => l.orderHash === newLevel.orderHash
 		);
 		if (existingOrder) {
-			existingOrder.amount = newLevel.amount;
+			existingOrder.balance = newLevel.balance;
 			return 0;
 		} else if (isBid) {
 			orderBook.bids.push(newLevel);
@@ -92,9 +92,9 @@ class OrderBookUtil {
 			l => l.price === levelUpdate.price
 		);
 		if (existingLevel) {
-			existingLevel.amount += levelUpdate.amount;
+			existingLevel.balance += levelUpdate.balance;
 			existingLevel.count += levelUpdate.count;
-			if (!existingLevel.amount || !existingLevel.count)
+			if (!existingLevel.balance || !existingLevel.count)
 				if (isBid)
 					orderBookSnapshot.bids = orderBookSnapshot.bids.filter(
 						l => l.price !== levelUpdate.price
@@ -106,7 +106,7 @@ class OrderBookUtil {
 		} else if (levelUpdate.count > 0) {
 			const newLevel: IOrderBookSnapshotLevel = {
 				price: levelUpdate.price,
-				amount: levelUpdate.amount,
+				balance: levelUpdate.balance,
 				count: levelUpdate.count
 			};
 			if (isBid) {
@@ -134,7 +134,7 @@ class OrderBookUtil {
 		const side: IOrderBookSnapshotLevel[] = [];
 		let currLevel: IOrderBookSnapshotLevel = {
 			price: 0,
-			amount: 0,
+			balance: 0,
 			count: 0
 		};
 		for (let i = 0; i < orderBookLevels.length; i++) {
@@ -143,12 +143,12 @@ class OrderBookUtil {
 				if (i) side.push(currLevel);
 				currLevel = {
 					price: level.price,
-					amount: level.amount,
+					balance: level.balance,
 					count: 1
 				};
 			} else {
 				currLevel.count++;
-				currLevel.amount += level.amount;
+				currLevel.balance += level.balance;
 			}
 		}
 		if (currLevel.count) side.push(currLevel);

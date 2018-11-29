@@ -95,20 +95,20 @@ export interface IOrderBookSnapshot {
 export interface IOrderBookLevel {
 	orderHash: string;
 	price: number;
-	amount: number;
+	balance: number;
 	initialSequence: number;
 }
 
 export interface IOrderBookSnapshotLevel {
 	price: number;
-	amount: number;
+	balance: number;
 	count: number;
 }
 
 export interface IOrderBookSnapshotUpdate {
 	pair: string;
 	price: number;
-	amount: number;
+	balance: number;
 	count: number;
 	side: string;
 	prevVersion: number;

@@ -136,7 +136,7 @@ class OrderBookServer {
 			{
 				orderHash: orderHash,
 				price: liveOrder.price,
-				amount: liveOrder.amount,
+				balance: liveOrder.balance,
 				initialSequence: liveOrder.initialSequence
 			},
 			liveOrder.side === CST.DB_BID,
@@ -146,9 +146,9 @@ class OrderBookServer {
 		const orderBookSnapshotUpdate: IOrderBookSnapshotUpdate = {
 			pair: this.pair,
 			price: liveOrder.price,
-			amount:
-				(method === CST.DB_TERMINATE ? 0 : liveOrder.amount) -
-				(this.liveOrders[orderHash] ? this.liveOrders[orderHash].amount : 0),
+			balance:
+				(method === CST.DB_TERMINATE ? 0 : liveOrder.balance) -
+				(this.liveOrders[orderHash] ? this.liveOrders[orderHash].balance : 0),
 			count: count,
 			side: liveOrder.side,
 			prevVersion: this.orderBookSnapshot.version,

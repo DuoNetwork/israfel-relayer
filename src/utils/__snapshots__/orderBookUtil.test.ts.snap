@@ -4,25 +4,25 @@ exports[`constructOrderBook 1`] = `
 Object {
   "asks": Array [
     Object {
-      "amount": 20,
-      "initialSequence": 11,
-      "orderHash": "orderHash7",
-      "price": 110,
-    },
-    Object {
-      "amount": 10,
+      "balance": 5,
       "initialSequence": 9,
       "orderHash": "orderHash5",
       "price": 110,
     },
     Object {
-      "amount": 10,
+      "balance": 5,
+      "initialSequence": 11,
+      "orderHash": "orderHash7",
+      "price": 110,
+    },
+    Object {
+      "balance": 5,
       "initialSequence": 12,
       "orderHash": "orderHash8",
       "price": 110,
     },
     Object {
-      "amount": 10,
+      "balance": 5,
       "initialSequence": 10,
       "orderHash": "orderHash6",
       "price": 120,
@@ -30,25 +30,25 @@ Object {
   ],
   "bids": Array [
     Object {
-      "amount": 10,
+      "balance": 5,
       "initialSequence": 2,
       "orderHash": "orderHash2",
       "price": 110,
     },
     Object {
-      "amount": 20,
-      "initialSequence": 3,
-      "orderHash": "orderHash3",
-      "price": 100,
-    },
-    Object {
-      "amount": 10,
+      "balance": 5,
       "initialSequence": 1,
       "orderHash": "orderHash1",
       "price": 100,
     },
     Object {
-      "amount": 10,
+      "balance": 5,
+      "initialSequence": 3,
+      "orderHash": "orderHash3",
+      "price": 100,
+    },
+    Object {
+      "balance": 5,
       "initialSequence": 4,
       "orderHash": "orderHash4",
       "price": 100,
@@ -61,24 +61,24 @@ exports[`renderOrderBookSnapshot 1`] = `
 Object {
   "asks": Array [
     Object {
-      "amount": 70,
+      "balance": 70,
       "count": 3,
       "price": 120,
     },
     Object {
-      "amount": 50,
+      "balance": 50,
       "count": 2,
       "price": 140,
     },
   ],
   "bids": Array [
     Object {
-      "amount": 50,
+      "balance": 50,
       "count": 2,
       "price": 120,
     },
     Object {
-      "amount": 70,
+      "balance": 70,
       "count": 3,
       "price": 100,
     },
@@ -91,12 +91,12 @@ Object {
 exports[`renderOrderBookSnapshotSide 1`] = `
 Array [
   Object {
-    "amount": 20,
+    "balance": 20,
     "count": 1,
     "price": 120,
   },
   Object {
-    "amount": 70,
+    "balance": 70,
     "count": 3,
     "price": 100,
   },
@@ -106,12 +106,12 @@ Array [
 exports[`renderOrderBookSnapshotSide 2`] = `
 Array [
   Object {
-    "amount": 70,
+    "balance": 70,
     "count": 3,
     "price": 120,
   },
   Object {
-    "amount": 20,
+    "balance": 20,
     "count": 1,
     "price": 140,
   },
@@ -121,25 +121,25 @@ Array [
 exports[`sortOrderBookLevels | ask 1`] = `
 Array [
   Object {
-    "amount": 30,
+    "balance": 30,
     "initialSequence": 12,
     "orderHash": "orderHash3",
     "price": 120,
   },
   Object {
-    "amount": 20,
+    "balance": 20,
     "initialSequence": 10,
     "orderHash": "orderHash1",
     "price": 120,
   },
   Object {
-    "amount": 20,
+    "balance": 20,
     "initialSequence": 13,
     "orderHash": "orderHash4",
     "price": 120,
   },
   Object {
-    "amount": 20,
+    "balance": 20,
     "initialSequence": 11,
     "orderHash": "orderHash2",
     "price": 140,
@@ -150,25 +150,25 @@ Array [
 exports[`sortOrderBookLevels | bid 1`] = `
 Array [
   Object {
-    "amount": 20,
+    "balance": 20,
     "initialSequence": 11,
     "orderHash": "orderHash2",
     "price": 120,
   },
   Object {
-    "amount": 30,
+    "balance": 30,
     "initialSequence": 12,
     "orderHash": "orderHash3",
     "price": 100,
   },
   Object {
-    "amount": 20,
+    "balance": 20,
     "initialSequence": 10,
     "orderHash": "orderHash1",
     "price": 100,
   },
   Object {
-    "amount": 20,
+    "balance": 20,
     "initialSequence": 13,
     "orderHash": "orderHash4",
     "price": 100,
@@ -180,31 +180,31 @@ exports[`updateOrderBook, isBid false, isTerminate false, existing order 1`] = `
 Object {
   "asks": Array [
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 12,
       "orderHash": "orderHash3",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 10,
       "orderHash": "orderHash1",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 13,
       "orderHash": "orderHash4",
       "price": 120,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 15,
       "orderHash": "orderHash5",
       "price": 140,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 11,
       "orderHash": "orderHash2",
       "price": 140,
@@ -212,31 +212,31 @@ Object {
   ],
   "bids": Array [
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 15,
       "orderHash": "orderHash5",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 11,
       "orderHash": "orderHash2",
       "price": 120,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 12,
       "orderHash": "orderHash3",
       "price": 100,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 10,
       "orderHash": "orderHash1",
       "price": 100,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 13,
       "orderHash": "orderHash4",
       "price": 100,
@@ -249,31 +249,31 @@ exports[`updateOrderBook, isBid false, isTerminate false, not existing order 1`]
 Object {
   "asks": Array [
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 12,
       "orderHash": "orderHash3",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 10,
       "orderHash": "orderHash1",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 13,
       "orderHash": "orderHash4",
       "price": 120,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 15,
       "orderHash": "orderHash5",
       "price": 140,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 11,
       "orderHash": "orderHash2",
       "price": 140,
@@ -281,31 +281,31 @@ Object {
   ],
   "bids": Array [
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 15,
       "orderHash": "orderHash5",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 11,
       "orderHash": "orderHash2",
       "price": 120,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 12,
       "orderHash": "orderHash3",
       "price": 100,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 10,
       "orderHash": "orderHash1",
       "price": 100,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 13,
       "orderHash": "orderHash4",
       "price": 100,
@@ -318,25 +318,25 @@ exports[`updateOrderBook, isBid false, isTerminate true 1`] = `
 Object {
   "asks": Array [
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 12,
       "orderHash": "orderHash3",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 10,
       "orderHash": "orderHash1",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 13,
       "orderHash": "orderHash4",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 11,
       "orderHash": "orderHash2",
       "price": 140,
@@ -344,31 +344,31 @@ Object {
   ],
   "bids": Array [
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 15,
       "orderHash": "orderHash5",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 11,
       "orderHash": "orderHash2",
       "price": 120,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 12,
       "orderHash": "orderHash3",
       "price": 100,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 10,
       "orderHash": "orderHash1",
       "price": 100,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 13,
       "orderHash": "orderHash4",
       "price": 100,
@@ -381,25 +381,25 @@ exports[`updateOrderBook, isBid false, isTerminate true, newLevel does not exist
 Object {
   "asks": Array [
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 12,
       "orderHash": "orderHash3",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 10,
       "orderHash": "orderHash1",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 13,
       "orderHash": "orderHash4",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 11,
       "orderHash": "orderHash2",
       "price": 140,
@@ -407,31 +407,31 @@ Object {
   ],
   "bids": Array [
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 15,
       "orderHash": "orderHash5",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 11,
       "orderHash": "orderHash2",
       "price": 120,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 12,
       "orderHash": "orderHash3",
       "price": 100,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 10,
       "orderHash": "orderHash1",
       "price": 100,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 13,
       "orderHash": "orderHash4",
       "price": 100,
@@ -444,25 +444,25 @@ exports[`updateOrderBook, isBid true, isTerminate false, existing order 1`] = `
 Object {
   "asks": Array [
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 12,
       "orderHash": "orderHash3",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 10,
       "orderHash": "orderHash1",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 13,
       "orderHash": "orderHash4",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 11,
       "orderHash": "orderHash2",
       "price": 140,
@@ -470,31 +470,31 @@ Object {
   ],
   "bids": Array [
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 15,
       "orderHash": "orderHash5",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 11,
       "orderHash": "orderHash2",
       "price": 120,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 12,
       "orderHash": "orderHash3",
       "price": 100,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 10,
       "orderHash": "orderHash1",
       "price": 100,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 13,
       "orderHash": "orderHash4",
       "price": 100,
@@ -507,25 +507,25 @@ exports[`updateOrderBook, isBid true, isTerminate false, not existing order 1`] 
 Object {
   "asks": Array [
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 12,
       "orderHash": "orderHash3",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 10,
       "orderHash": "orderHash1",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 13,
       "orderHash": "orderHash4",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 11,
       "orderHash": "orderHash2",
       "price": 140,
@@ -533,31 +533,31 @@ Object {
   ],
   "bids": Array [
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 15,
       "orderHash": "orderHash5",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 11,
       "orderHash": "orderHash2",
       "price": 120,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 12,
       "orderHash": "orderHash3",
       "price": 100,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 10,
       "orderHash": "orderHash1",
       "price": 100,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 13,
       "orderHash": "orderHash4",
       "price": 100,
@@ -570,25 +570,25 @@ exports[`updateOrderBook, isBid true, isTerminate true 1`] = `
 Object {
   "asks": Array [
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 12,
       "orderHash": "orderHash3",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 10,
       "orderHash": "orderHash1",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 13,
       "orderHash": "orderHash4",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 11,
       "orderHash": "orderHash2",
       "price": 140,
@@ -596,25 +596,25 @@ Object {
   ],
   "bids": Array [
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 11,
       "orderHash": "orderHash2",
       "price": 120,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 12,
       "orderHash": "orderHash3",
       "price": 100,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 10,
       "orderHash": "orderHash1",
       "price": 100,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 13,
       "orderHash": "orderHash4",
       "price": 100,
@@ -627,25 +627,25 @@ exports[`updateOrderBook, isBid true, isTerminate true, newLevel does not exist 
 Object {
   "asks": Array [
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 12,
       "orderHash": "orderHash3",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 10,
       "orderHash": "orderHash1",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 13,
       "orderHash": "orderHash4",
       "price": 120,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 11,
       "orderHash": "orderHash2",
       "price": 140,
@@ -653,25 +653,25 @@ Object {
   ],
   "bids": Array [
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 11,
       "orderHash": "orderHash2",
       "price": 120,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "initialSequence": 12,
       "orderHash": "orderHash3",
       "price": 100,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 10,
       "orderHash": "orderHash1",
       "price": 100,
     },
     Object {
-      "amount": 20,
+      "balance": 20,
       "initialSequence": 13,
       "orderHash": "orderHash4",
       "price": 100,
@@ -687,11 +687,6 @@ Object {
       "amount": 20,
       "count": 4,
       "price": 130,
-    },
-    Object {
-      "amount": 20,
-      "count": 7,
-      "price": 140,
     },
     Object {
       "amount": 30,
@@ -812,7 +807,7 @@ Object {
       "price": 140,
     },
     Object {
-      "amount": 10,
+      "balance": 10,
       "count": 1,
       "price": 145,
     },
@@ -868,11 +863,6 @@ Object {
       "amount": 20,
       "count": 4,
       "price": 120,
-    },
-    Object {
-      "amount": 20,
-      "count": 7,
-      "price": 110,
     },
     Object {
       "amount": 30,
@@ -988,7 +978,7 @@ Object {
       "price": 120,
     },
     Object {
-      "amount": 10,
+      "balance": 10,
       "count": 1,
       "price": 115,
     },

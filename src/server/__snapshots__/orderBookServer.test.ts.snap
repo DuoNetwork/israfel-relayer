@@ -51,7 +51,7 @@ Array [
       "asks": Array [],
       "bids": Array [
         Object {
-          "amount": 10,
+          "balance": 5,
           "count": 1,
           "price": 100,
         },
@@ -60,7 +60,7 @@ Array [
       "version": 123456789,
     },
     Object {
-      "amount": 10,
+      "balance": 5,
       "count": 1,
       "pair": "code1|code2",
       "prevVersion": 0,
@@ -77,7 +77,7 @@ Object {
   "asks": Array [],
   "bids": Array [
     Object {
-      "amount": 10,
+      "balance": 5,
       "initialSequence": 1,
       "orderHash": "orderHash1",
       "price": 100,
@@ -91,7 +91,7 @@ Object {
   "asks": Array [],
   "bids": Array [
     Object {
-      "amount": 10,
+      "balance": 5,
       "count": 1,
       "price": 100,
     },
@@ -120,7 +120,7 @@ Array [
       "version": 123456789,
     },
     Object {
-      "amount": -10,
+      "balance": -5,
       "count": -1,
       "pair": "code1|code2",
       "prevVersion": 123456789,
@@ -184,25 +184,25 @@ exports[`loadLiveOrders 1`] = `
 Object {
   "asks": Array [
     Object {
-      "amount": 20,
-      "initialSequence": 11,
-      "orderHash": "orderHash7",
-      "price": 110,
-    },
-    Object {
-      "amount": 10,
+      "balance": 5,
       "initialSequence": 9,
       "orderHash": "orderHash5",
       "price": 110,
     },
     Object {
-      "amount": 10,
+      "balance": 5,
+      "initialSequence": 11,
+      "orderHash": "orderHash7",
+      "price": 110,
+    },
+    Object {
+      "balance": 5,
       "initialSequence": 12,
       "orderHash": "orderHash8",
       "price": 110,
     },
     Object {
-      "amount": 10,
+      "balance": 5,
       "initialSequence": 10,
       "orderHash": "orderHash6",
       "price": 120,
@@ -210,25 +210,25 @@ Object {
   ],
   "bids": Array [
     Object {
-      "amount": 10,
+      "balance": 5,
       "initialSequence": 2,
       "orderHash": "orderHash2",
       "price": 110,
     },
     Object {
-      "amount": 20,
-      "initialSequence": 3,
-      "orderHash": "orderHash3",
-      "price": 100,
-    },
-    Object {
-      "amount": 10,
+      "balance": 5,
       "initialSequence": 1,
       "orderHash": "orderHash1",
       "price": 100,
     },
     Object {
-      "amount": 10,
+      "balance": 5,
+      "initialSequence": 3,
+      "orderHash": "orderHash3",
+      "price": 100,
+    },
+    Object {
+      "balance": 5,
       "initialSequence": 4,
       "orderHash": "orderHash4",
       "price": 100,
@@ -241,24 +241,24 @@ exports[`loadLiveOrders 2`] = `
 Object {
   "asks": Array [
     Object {
-      "amount": 40,
+      "balance": 15,
       "count": 3,
       "price": 110,
     },
     Object {
-      "amount": 10,
+      "balance": 5,
       "count": 1,
       "price": 120,
     },
   ],
   "bids": Array [
     Object {
-      "amount": 10,
+      "balance": 5,
       "count": 1,
       "price": 110,
     },
     Object {
-      "amount": 40,
+      "balance": 15,
       "count": 3,
       "price": 100,
     },
@@ -275,24 +275,24 @@ Array [
     Object {
       "asks": Array [
         Object {
-          "amount": 40,
+          "balance": 15,
           "count": 3,
           "price": 110,
         },
         Object {
-          "amount": 10,
+          "balance": 5,
           "count": 1,
           "price": 120,
         },
       ],
       "bids": Array [
         Object {
-          "amount": 10,
+          "balance": 5,
           "count": 1,
           "price": 110,
         },
         Object {
-          "amount": 40,
+          "balance": 15,
           "count": 3,
           "price": 100,
         },
