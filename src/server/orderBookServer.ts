@@ -207,21 +207,22 @@ class OrderBookServer {
 			const liveOrders: ILiveOrder[] = [];
 			for (const orderLevel of this.orderBook.bids) {
 				const leftLiveOrder = this.liveOrders[orderLevel.orderHash];
+				const isLeftOrderBid = leftLiveOrder.side === CST.DB_BID;
 				if (this.orderBook.asks.length) {
+					const rightLiveOrder = this.liveOrders[this.orderBook.asks[0].orderHash];
+					if (
+						(isLeftOrderBid && leftLiveOrder.price < rightLiveOrder.price) ||
+						(!isLeftOrderBid && leftLiveOrder.price > rightLiveOrder.price)
+					) break;
 					const res: IMatchingOrderResult | null = await orderMatchingUtil.matchOrders(
 						this.web3Util,
 						leftLiveOrder,
-						this.liveOrders[this.orderBook.asks[0].orderHash],
+						rightLiveOrder,
 						leftLiveOrder.side === CST.DB_BID
 					);
-					if (!res) break;
-					else
-						liveOrders.concat(
-							await this.processMatchingResult(
-								res,
-								this.liveOrders[orderLevel.orderHash]
-							)
-						);
+					liveOrders.concat(
+						await this.processMatchingResult(res, this.liveOrders[orderLevel.orderHash])
+					);
 				}
 			}
 		}
