@@ -4,7 +4,7 @@ import {
 	// IMatchingOrderResult,
 	IOption,
 	IOrderBook,
-	IOrderBookLevel,
+	// IOrderBookLevel,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotUpdate,
 	IOrderQueueItem
@@ -179,13 +179,15 @@ class OrderBookServer {
 
 		if (method !== CST.DB_TERMINATE) this.liveOrders[orderHash] = liveOrder;
 		else delete this.liveOrders[orderHash];
-		console.log(orderBookSnapshotUpdate);
-		orderBookUtil.updateOrderBookSnapshot(this.orderBookSnapshot, orderBookSnapshotUpdate);
-		await orderBookPersistenceUtil.publishOrderBookUpdate(
-			this.pair,
-			this.orderBookSnapshot,
-			orderBookSnapshotUpdate
-		);
+		if (!this.loadingOrders) {
+			console.log(orderBookSnapshotUpdate);
+			orderBookUtil.updateOrderBookSnapshot(this.orderBookSnapshot, orderBookSnapshotUpdate);
+			await orderBookPersistenceUtil.publishOrderBookUpdate(
+				this.pair,
+				this.orderBookSnapshot,
+				orderBookSnapshotUpdate
+			);
+		}
 	}
 
 	public updateOrderSequences() {
@@ -228,8 +230,8 @@ class OrderBookServer {
 			if (bestAsk.price > bestBid.price)
 				return;
 
-			const bidsToMatch: IOrderBookLevel[] = util.clone(bids.filter(b => b.price >= bestAsk.price && b.balance > 0));
-			const asksToMatch: IOrderBookLevel[] = util.clone(asks.filter(a => a.price <= bestBid.price && a.balance > 0));
+			const bidsToMatch = bids.filter(b => b.price >= bestAsk.price && b.balance > 0);
+			const asksToMatch = asks.filter(a => a.price <= bestBid.price && a.balance > 0);
 
 			const ordersToMatch = [];
 			let done = false;
@@ -238,29 +240,36 @@ class OrderBookServer {
 			while (!done) {
 				const bid = bidsToMatch[bidIdx];
 				const ask = asksToMatch[askIdx];
+				const bidLiveOrder = this.liveOrders[bid.orderHash];
+				if (!bidLiveOrder) {
+					util.logDebug('missing live order for ' + bid.orderHash);
+					bidIdx++;
+					continue;
+				}
+				const askLiveOrder = this.liveOrders[ask.orderHash];
+				if (!askLiveOrder) {
+					util.logDebug('missing live order for ' + ask.orderHash);
+					askIdx++;
+					continue;
+				}
+				ordersToMatch.push([bid.orderHash, ask.orderHash, Math.min(bid.balance, ask.balance)]);
 				if (bid.balance < ask.balance) {
-					const askToMatch: IOrderBookLevel = util.clone(ask);
-					askToMatch.balance = bid.balance;
+					bid.balance = 0;
 					ask.balance -= bid.balance;
-					ordersToMatch.push({
-						left: bid,
-						right: askToMatch
-					});
+					bidLiveOrder.balance = 0;
+					askLiveOrder.balance -= bid.balance;
 					bidIdx++;
 				} else if (bid.balance > ask.balance) {
-					const bidToMatch: IOrderBookLevel = util.clone(bid);
-					bidToMatch.balance = ask.balance;
 					bid.balance -= ask.balance;
-					ordersToMatch.push({
-						left: bidToMatch,
-						right: ask
-					});
+					ask.balance = 0;
+					bidLiveOrder.balance -= ask.balance;
+					askLiveOrder.balance = 0;
 					askIdx++;
 				} else {
-					ordersToMatch.push({
-						left: bid,
-						right: ask
-					});
+					bid.balance = 0;
+					ask.balance = 0;
+					bidLiveOrder.balance = 0;
+					askLiveOrder.balance = 0;
 					bidIdx++;
 					askIdx++;
 				}
