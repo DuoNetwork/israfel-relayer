@@ -5,7 +5,8 @@ import {
 	IOrderBookLevel,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotLevel,
-	IOrderBookSnapshotUpdate
+	IOrderBookSnapshotUpdate,
+	// IOrderUpdateInput
 } from '../common/types';
 import util from './util';
 
@@ -87,36 +88,40 @@ class OrderBookUtil {
 		levelUpdate: IOrderBookSnapshotUpdate
 	) {
 		orderBookSnapshot.version = levelUpdate.version;
-		const isBid = levelUpdate.side === CST.DB_BID;
-		const existingLevel = (isBid ? orderBookSnapshot.bids : orderBookSnapshot.asks).find(
-			l => l.price === levelUpdate.price
-		);
-		if (existingLevel) {
-			existingLevel.balance += levelUpdate.balance;
-			existingLevel.count += levelUpdate.count;
-			if (!existingLevel.balance || !existingLevel.count)
-				if (isBid)
-					orderBookSnapshot.bids = orderBookSnapshot.bids.filter(
-						l => l.price !== levelUpdate.price
-					);
-				else
-					orderBookSnapshot.asks = orderBookSnapshot.asks.filter(
-						l => l.price !== levelUpdate.price
-					);
-		} else if (levelUpdate.count > 0) {
-			const newLevel: IOrderBookSnapshotLevel = {
-				price: levelUpdate.price,
-				balance: levelUpdate.balance,
-				count: levelUpdate.count
-			};
-			if (isBid) {
-				orderBookSnapshot.bids.push(newLevel);
-				orderBookSnapshot.bids.sort((a, b) => -a.price + b.price);
-			} else {
-				orderBookSnapshot.asks.push(newLevel);
-				orderBookSnapshot.asks.sort((a, b) => a.price - b.price);
-			}
-		} else util.logDebug('trying to remove non existing order book snapshot level, ignore ');
+		const updates = levelUpdate.updates;
+		for (const update of updates) {
+			const isBid = update.side === CST.DB_BID;
+			const existingLevel = (isBid ? orderBookSnapshot.bids : orderBookSnapshot.asks).find(
+				l => l.price === update.price
+			);
+			if (existingLevel) {
+				existingLevel.balance += update.balance;
+				existingLevel.count += update.count;
+				if (!existingLevel.balance || !existingLevel.count)
+					if (isBid)
+						orderBookSnapshot.bids = orderBookSnapshot.bids.filter(
+							l => l.price !== update.price
+						);
+					else
+						orderBookSnapshot.asks = orderBookSnapshot.asks.filter(
+							l => l.price !== update.price
+						);
+			} else if (update.count > 0) {
+				const newLevel: IOrderBookSnapshotLevel = {
+					price: update.price,
+					balance: update.balance,
+					count: update.count
+				};
+				if (isBid) {
+					orderBookSnapshot.bids.push(newLevel);
+					orderBookSnapshot.bids.sort((a, b) => -a.price + b.price);
+				} else {
+					orderBookSnapshot.asks.push(newLevel);
+					orderBookSnapshot.asks.sort((a, b) => a.price - b.price);
+				}
+			} else
+				util.logDebug('trying to remove non existing order book snapshot level, ignore ');
+		}
 	}
 
 	public renderOrderBookSnapshot(pair: string, orderBook: IOrderBook): IOrderBookSnapshot {

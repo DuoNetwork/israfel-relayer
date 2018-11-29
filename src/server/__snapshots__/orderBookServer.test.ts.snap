@@ -60,12 +60,16 @@ Array [
       "version": 123456789,
     },
     Object {
-      "balance": 5,
-      "count": 1,
       "pair": "code1|code2",
       "prevVersion": 0,
-      "price": 100,
-      "side": "bid",
+      "updates": Array [
+        Object {
+          "balance": 5,
+          "count": 1,
+          "price": 100,
+          "side": "bid",
+        },
+      ],
       "version": 123456789,
     },
   ],
@@ -120,12 +124,16 @@ Array [
       "version": 123456789,
     },
     Object {
-      "balance": -5,
-      "count": -1,
       "pair": "code1|code2",
       "prevVersion": 123456789,
-      "price": 100,
-      "side": "bid",
+      "updates": Array [
+        Object {
+          "balance": -5,
+          "count": -1,
+          "price": 100,
+          "side": "bid",
+        },
+      ],
       "version": 123456789,
     },
   ],

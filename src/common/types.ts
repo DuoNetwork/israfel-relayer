@@ -1,4 +1,5 @@
 import { SignedOrder } from '0x.js';
+import { ListResolverEndpointIpAddressesRequest } from 'aws-sdk/clients/route53resolver';
 
 export interface ILiveOrder {
 	account: string;
@@ -105,12 +106,16 @@ export interface IOrderBookSnapshotLevel {
 	count: number;
 }
 
-export interface IOrderBookSnapshotUpdate {
-	pair: string;
+export interface IOrderBookLevelUpdate {
 	price: number;
 	balance: number;
 	count: number;
 	side: string;
+}
+
+export interface IOrderBookSnapshotUpdate {
+	pair: string;
+	updates: IOrderBookLevelUpdate[];
 	prevVersion: number;
 	version: number;
 }
@@ -187,6 +192,17 @@ export interface IStatus {
 	count?: number;
 }
 
+export interface IOrderUpdateInput {
+	liveOrder: ILiveOrder;
+	method: string;
+}
+
+export interface IMatchingCandidate {
+	leftHash: string;
+	rightHash: string;
+	amount: number;
+}
+
 export interface ISideMatchResult {
 	orderHash: string;
 	method: string;
@@ -214,12 +230,12 @@ export interface IToken {
 	code: string;
 	denomination: number;
 	precisions: {
-		[key: string]: number
+		[key: string]: number;
 	};
 	feeSchedules: {
-		[key: string]: IFeeSchedule
-	},
-	maturity?: number
+		[key: string]: IFeeSchedule;
+	};
+	maturity?: number;
 }
 
 export interface IFeeSchedule {

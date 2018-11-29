@@ -1,13 +1,14 @@
 import * as CST from '../common/constants';
 import {
 	ILiveOrder,
-	// IMatchingOrderResult,
+	IMatchingCandidate,
 	IOption,
 	IOrderBook,
 	// IOrderBookLevel,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotUpdate,
-	IOrderQueueItem
+	IOrderQueueItem,
+	IOrderUpdateInput
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
@@ -70,10 +71,9 @@ class OrderBookServer {
 		const leftLiveOrder = orderQueueItem.liveOrder;
 		if (this.web3Util && method === CST.DB_ADD) {
 			let matchable = true;
-			// const liveOrders: ILiveOrder[] = [];
 			const isLeftOrderBid = leftLiveOrder.side === CST.DB_BID;
-
-			const ordersToMatch = [];
+			let rightLiveOrder;
+			const ordersToMatch: IMatchingCandidate[] = [];
 			while (matchable) {
 				if (
 					(isLeftOrderBid && !this.orderBook.asks.length) ||
@@ -82,7 +82,6 @@ class OrderBookServer {
 					matchable = false;
 					break;
 				}
-				let rightLiveOrder = this.liveOrders[this.orderBook.asks[0].orderHash];
 				if (isLeftOrderBid) {
 					const rightLevel = this.orderBook.asks.find(level => level.balance > 0);
 					if (!rightLevel) {
@@ -106,35 +105,43 @@ class OrderBookServer {
 					matchable = false;
 					break;
 				}
-				ordersToMatch.push({
-					left: leftLiveOrder,
-					right: rightLiveOrder
-				});
 				const matchedAmt = Math.min(leftLiveOrder.balance, rightLiveOrder.balance);
+				ordersToMatch.push({
+					leftHash: leftLiveOrder.orderHash,
+					rightHash: rightLiveOrder.orderHash,
+					amount: matchedAmt
+				});
 				util.logDebug('matchinged amount ' + matchedAmt);
 				leftLiveOrder.balance = leftLiveOrder.balance - matchedAmt;
 				rightLiveOrder.balance = rightLiveOrder.balance - matchedAmt;
-				await this.updateOrderBook(leftLiveOrder, CST.DB_UPDATE);
-				await this.updateOrderBook(rightLiveOrder, CST.DB_UPDATE);
 			}
 			if (this.web3Util && ordersToMatch.length > 0) {
-				// send matching transactions
-				let currentNonce = await this.web3Util.getTransactionCount();
-				// const gasPrice = await this.web3Util.getGasPrice();
-				ordersToMatch.map(orders =>
-					orderMatchingUtil.matchOrders(
-						this.web3Util as Web3Util,
-						orders.left,
-						orders.right,
-						isLeftOrderBid,
-						{ nonce: currentNonce++ }
-					)
-				);
-			}
+				await this.updateOrderBook([
+					{
+						liveOrder: leftLiveOrder,
+						method: CST.DB_UPDATE
+					},
+					{
+						liveOrder: rightLiveOrder as ILiveOrder,
+						method: CST.DB_UPDATE
+					}
+				]);
 
-			// liveOrders.concat(await this.processMatchingResult(matchResult, leftLiveOrder));
-			// if (liveOrders.length > 0) await orderMatchingUtil.batchAddUserOrders(liveOrders);
-		} else await this.updateOrderBook(leftLiveOrder, method);
+				let currentNonce = await this.web3Util.getTransactionCount();
+				ordersToMatch.map(order =>
+					orderMatchingUtil.matchOrders(this.web3Util as Web3Util, order, {
+						nonce: currentNonce++
+					})
+				);
+				return;
+			}
+		}
+		await this.updateOrderBook([
+			{
+				liveOrder: leftLiveOrder,
+				method: method
+			}
+		]);
 	}
 
 	// public async processMatchingResult(
@@ -151,36 +158,43 @@ class OrderBookServer {
 	// 	return [leftLiveOrder, rightLiveOrder];
 	// }
 
-	public async updateOrderBook(liveOrder: ILiveOrder, method: string) {
-		const orderHash = liveOrder.orderHash;
-		const count = orderBookUtil.updateOrderBook(
-			this.orderBook,
-			{
-				orderHash: orderHash,
-				price: liveOrder.price,
-				balance: liveOrder.balance,
-				initialSequence: liveOrder.initialSequence
-			},
-			liveOrder.side === CST.DB_BID,
-			method === CST.DB_TERMINATE
-		);
-
+	public async updateOrderBook(orderUpdates: IOrderUpdateInput[]) {
 		const orderBookSnapshotUpdate: IOrderBookSnapshotUpdate = {
 			pair: this.pair,
-			price: liveOrder.price,
-			balance:
-				(method === CST.DB_TERMINATE ? 0 : liveOrder.balance) -
-				(this.liveOrders[orderHash] ? this.liveOrders[orderHash].balance : 0),
-			count: count,
-			side: liveOrder.side,
+			updates: [],
 			prevVersion: this.orderBookSnapshot.version,
 			version: util.getUTCNowTimestamp()
 		};
+		for (const update of orderUpdates) {
+			const liveOrder = update.liveOrder;
+			const method = update.method;
+			const orderHash = liveOrder.orderHash;
+			const count = orderBookUtil.updateOrderBook(
+				this.orderBook,
+				{
+					orderHash: orderHash,
+					price: liveOrder.price,
+					balance: liveOrder.balance,
+					initialSequence: liveOrder.initialSequence
+				},
+				liveOrder.side === CST.DB_BID,
+				method === CST.DB_TERMINATE
+			);
 
-		if (method !== CST.DB_TERMINATE) this.liveOrders[orderHash] = liveOrder;
-		else delete this.liveOrders[orderHash];
+			orderBookSnapshotUpdate.updates.push({
+				price: liveOrder.price,
+				balance:
+					(method === CST.DB_TERMINATE ? 0 : liveOrder.balance) -
+					(this.liveOrders[orderHash] ? this.liveOrders[orderHash].balance : 0),
+				count: count,
+				side: liveOrder.side
+			});
+
+			if (method !== CST.DB_TERMINATE) this.liveOrders[orderHash] = liveOrder;
+			else delete this.liveOrders[orderHash];
+		}
+
 		if (!this.loadingOrders) {
-			console.log(orderBookSnapshotUpdate);
 			orderBookUtil.updateOrderBookSnapshot(this.orderBookSnapshot, orderBookSnapshotUpdate);
 			await orderBookPersistenceUtil.publishOrderBookUpdate(
 				this.pair,
