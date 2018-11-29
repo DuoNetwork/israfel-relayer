@@ -5,6 +5,7 @@ import {
 	ILiveOrder,
 	IMatchingOrderInput,
 	IMatchingOrderResult,
+	IRawOrder,
 	IStringSignedOrder
 } from '../common/types';
 import orderPersistenceUtil from './orderPersistenceUtil';
@@ -17,11 +18,12 @@ class OrderMatchingUtil {
 	public async matchOrders(
 		web3Util: Web3Util,
 		leftLiveOrder: ILiveOrder,
-		rightLiveOrder: ILiveOrder
+		rightLiveOrder: ILiveOrder,
+		isLeftOrderBid: boolean
 	): Promise<IMatchingOrderResult> {
 		// const price = leftLiveOrder.price;
 		// const pair = rightLiveOrder.pair;
-		const isLeftOrderBid = leftLiveOrder.side === CST.DB_BID;
+		// const isLeftOrderBid = leftLiveOrder.side === CST.DB_BID;
 		util.logInfo(
 			`start matching order ${leftLiveOrder.orderHash} with ${rightLiveOrder.orderHash}`
 		);
@@ -39,7 +41,11 @@ class OrderMatchingUtil {
 			}
 		};
 
-		if (rightLiveOrder.expiry - moment().valueOf() < 3 * 60 * 1000) {
+		let shouldReturn = false;
+
+		// check expiring
+		const currentTime = moment().valueOf();
+		if (rightLiveOrder.expiry - currentTime < 3 * 60 * 1000) {
 			util.logDebug(
 				`the order ${
 					rightLiveOrder.orderHash
@@ -47,53 +53,50 @@ class OrderMatchingUtil {
 			);
 			obj.right.newBalance = 0;
 			obj.right.method = CST.DB_TERMINATE;
-			return obj;
+			shouldReturn = true;
 		}
-
-		if (leftLiveOrder.expiry - moment().valueOf() < 3 * 60 * 1000) {
+		if (leftLiveOrder.expiry - currentTime < 3 * 60 * 1000) {
 			util.logDebug(
 				`the order ${leftLiveOrder.orderHash} is expiring in 3 minutes, removing this order`
 			);
 			obj.left.newBalance = 0;
 			obj.left.method = CST.DB_TERMINATE;
-			return obj;
+			shouldReturn = true;
 		}
+		if (shouldReturn) return obj;
 
+		//check order isExisting
 		const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
 			leftLiveOrder.orderHash
 		);
-
 		const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
 			rightLiveOrder.orderHash
 		);
-
-		if (!leftRawOrder || !rightRawOrder) {
-			if (!leftRawOrder) {
-				util.logError(
-					`raw order of ${leftLiveOrder.orderHash}	rightLiveOrder.orderHash
-						} does not exist`
-				);
-				obj.left.newBalance = 0;
-				obj.left.method = CST.DB_TERMINATE;
-			}
-			if (!rightRawOrder) {
-				util.logError(
-					`raw order of ${rightLiveOrder.orderHash}	rightLiveOrder.orderHash
-						} does not exist`
-				);
-				obj.right.newBalance = 0;
-				obj.right.method = CST.DB_TERMINATE;
-			}
-			return obj;
+		if (!leftRawOrder) {
+			util.logError(
+				`raw order of ${leftLiveOrder.orderHash}	rightLiveOrder.orderHash
+					} does not exist`
+			);
+			obj.left.newBalance = 0;
+			obj.left.method = CST.DB_TERMINATE;
+			shouldReturn = true;
 		}
-		const leftOrder: SignedOrder = orderUtil.parseSignedOrder(
-			leftRawOrder.signedOrder as IStringSignedOrder
-		);
+		if (!rightRawOrder) {
+			util.logError(
+				`raw order of ${rightLiveOrder.orderHash}	rightLiveOrder.orderHash
+					} does not exist`
+			);
+			obj.right.newBalance = 0;
+			obj.right.method = CST.DB_TERMINATE;
+			shouldReturn = true;
+		}
+		if (shouldReturn) return obj;
 
-		const rightOrder: SignedOrder = orderUtil.parseSignedOrder(
-			rightRawOrder.signedOrder as IStringSignedOrder
-		);
-
+		//check order balance
+		const leftOrder: SignedOrder = orderUtil.parseSignedOrder((leftRawOrder as IRawOrder)
+			.signedOrder as IStringSignedOrder);
+		const rightOrder: SignedOrder = orderUtil.parseSignedOrder((rightRawOrder as IRawOrder)
+			.signedOrder as IStringSignedOrder);
 		const orderInput = {
 			left: {
 				liveOrder: leftLiveOrder,
@@ -108,14 +111,15 @@ class OrderMatchingUtil {
 		if (balances[0] === 0) {
 			util.logDebug(`leftOrder ${leftLiveOrder.orderHash} balance is 0`);
 			obj.left.newBalance = 0;
-			return obj;
+			shouldReturn = true;
 		}
 
 		if (balances[1] === 0) {
 			util.logDebug(`leftOrder ${rightLiveOrder.orderHash} balance is 0`);
 			obj.right.newBalance = 0;
-			return obj;
+			shouldReturn = true;
 		}
+		if (shouldReturn) return obj;
 
 		try {
 			await web3Util.contractWrappers.exchange.matchOrdersAsync(
@@ -123,12 +127,9 @@ class OrderMatchingUtil {
 				rightOrder,
 				web3Util.relayerAddress
 			);
-
-			obj.left.newBalance =
-				leftLiveOrder.balance - Math.min(leftLiveOrder.balance, rightLiveOrder.balance);
-
-			obj.right.newBalance =
-				rightLiveOrder.balance - Math.min(leftLiveOrder.balance, rightLiveOrder.balance);
+			const matchedAmt = Math.min(leftLiveOrder.balance, rightLiveOrder.balance);
+			obj.left.newBalance = leftLiveOrder.balance - matchedAmt;
+			obj.right.newBalance = rightLiveOrder.balance - matchedAmt;
 			return obj;
 		} catch (err) {
 			util.logError(JSON.stringify(err));

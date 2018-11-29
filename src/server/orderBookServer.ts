@@ -103,7 +103,8 @@ class OrderBookServer {
 				const matchResult: IMatchingOrderResult = await orderMatchingUtil.matchOrders(
 					this.web3Util,
 					leftLiveOrder,
-					rightLiveOrder
+					rightLiveOrder,
+					isLeftOrderBid
 				);
 
 				liveOrders.concat(await this.processMatchingResult(matchResult, leftLiveOrder));
@@ -210,7 +211,8 @@ class OrderBookServer {
 					const res: IMatchingOrderResult | null = await orderMatchingUtil.matchOrders(
 						this.web3Util,
 						leftLiveOrder,
-						this.liveOrders[this.orderBook.asks[0].orderHash]
+						this.liveOrders[this.orderBook.asks[0].orderHash],
+						leftLiveOrder.side === CST.DB_BID
 					);
 					if (!res) break;
 					else
