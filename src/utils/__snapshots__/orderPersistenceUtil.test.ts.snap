@@ -58,6 +58,14 @@ Object {
 }
 `;
 
+exports[`getAllLiveOrdersInPersistence only add in redis 2`] = `
+Array [
+  Array [
+    "orders|cache",
+  ],
+]
+`;
+
 exports[`getAllLiveOrdersInPersistence update in redis and exist in db 1`] = `
 Object {
   "0xOrderHash": "update",
@@ -74,56 +82,52 @@ Object {
 }
 `;
 
-exports[`getRawOrderInPersistence in dynamo 1`] = `
-Array [
-  Array [
-    "orders|cache",
-    "add|orderHash",
-  ],
-]
-`;
-
-exports[`getRawOrderInPersistence in dynamo 2`] = `"{\\"orderHash\\":\\"orderHash\\",\\"signedOrder\\":\\"signedOrder\\"}"`;
-
-exports[`getRawOrderInPersistence in dynamo 3`] = `
-Array [
-  Array [
-    "orderHash",
-  ],
-]
-`;
-
-exports[`getRawOrderInPersistence in redis 1`] = `
-Array [
-  Array [
-    "orders|cache",
-    "add|orderHash",
-  ],
-]
-`;
-
-exports[`getRawOrderInPersistence in redis 2`] = `
+exports[`getRawOrderInPersistence in add queue 1`] = `
 Object {
-  "orderHash": "orderHash",
+  "orderHash": "0xOrderHash",
   "signedOrder": "signedOrder",
 }
+`;
+
+exports[`getRawOrderInPersistence in dynamo 1`] = `
+Object {
+  "orderHash": "0xOrderHash",
+  "signedOrder": Object {
+    "signature": "signature",
+  },
+}
+`;
+
+exports[`getRawOrderInPersistence in dynamo 2`] = `
+Array [
+  Array [
+    "0xOrderHash",
+  ],
+]
+`;
+
+exports[`getRawOrderInPersistence in dynamo but no signature 1`] = `
+Array [
+  Array [
+    "0xOrderHash",
+  ],
+]
+`;
+
+exports[`getRawOrderInPersistence in terminate queue 1`] = `
+Array [
+  Array [
+    "orders|cache",
+    "terminate|0xOrderHash",
+    "add|0xOrderHash",
+  ],
+]
 `;
 
 exports[`getRawOrderInPersistence not in neither 1`] = `
 Array [
   Array [
-    "orders|cache",
-    "add|orderHash",
-  ],
-]
-`;
-
-exports[`getRawOrderInPersistence not in neither 2`] = `undefined`;
-
-exports[`getRawOrderInPersistence not in neither 3`] = `
-Array [
-  Array [
-    "orderHash",
+    "0xOrderHash",
   ],
 ]
 `;

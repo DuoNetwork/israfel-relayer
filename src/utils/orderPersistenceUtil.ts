@@ -96,19 +96,26 @@ class OrderPersistenceUtil {
 	}
 
 	public async getRawOrderInPersistence(orderHash: string) {
-		const redisStringOrder = await redisUtil.hashGet(
+		const queueStrings = await redisUtil.hashMultiGet(
 			`${CST.DB_ORDERS}|${CST.DB_CACHE}`,
+			`${CST.DB_TERMINATE}|${orderHash}`,
 			`${CST.DB_ADD}|${orderHash}`
 		);
-		if (redisStringOrder) {
-			const redisRawOrder: IOrderQueueItem = JSON.parse(redisStringOrder);
+		if (queueStrings[`${CST.DB_TERMINATE}|${orderHash}`]) return null;
+
+		const addQueueString = queueStrings[`${CST.DB_ADD}|${orderHash}`];
+		if (addQueueString) {
+			const orderQueueItem: IOrderQueueItem = JSON.parse(addQueueString);
 			return {
 				orderHash: orderHash,
-				signedOrder: redisRawOrder.signedOrder as IStringSignedOrder
+				signedOrder: orderQueueItem.signedOrder as IStringSignedOrder
 			};
 		}
 
 		const dynamoRawOrder = await dynamoUtil.getRawOrder(orderHash);
+		if (!dynamoRawOrder || !dynamoRawOrder.signedOrder.signature)
+			return null;
+
 		return dynamoRawOrder;
 	}
 
