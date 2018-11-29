@@ -2,10 +2,8 @@ import { assetDataUtils, OrderTransactionOpts, SignedOrder } from '0x.js';
 // import moment from 'moment';
 import * as CST from '../common/constants';
 import {
-	ILiveOrder,
 	IMatchingCandidate,
 	IMatchingOrderInput,
-	// IMatchingOrderResult,
 	IRawOrder,
 	IStringSignedOrder
 } from '../common/types';
@@ -139,7 +137,16 @@ class OrderMatchingUtil {
 		} catch (err) {
 			util.logError(JSON.stringify(err));
 			util.logDebug('error in matching transaction');
-			// TODO: add failure handling
+			// TODO: removeLeftOrder
+			const persistRequestRight = {
+				method: CST.DB_TERMINATE,
+				pair: order.pair,
+				orderHash: order.left.orderHash,
+				balance: 0,
+				requestor: CST.DB_ORDER_MATCHER,
+				status: CST.DB_CONFIRMED
+			};
+			await orderPersistenceUtil.persistOrder(persistRequestRight);
 		}
 	}
 
@@ -148,7 +155,6 @@ class OrderMatchingUtil {
 		orderInput: IMatchingOrderInput,
 		isLeftOrderBid: boolean
 	): Promise<number[]> {
-		//check balance and allowance
 		const leftOrder = orderInput.left.signedOrder;
 		const leftLiveOrder = orderInput.left.liveOrder;
 		const rightOrder = orderInput.right.signedOrder;
@@ -202,17 +208,6 @@ class OrderMatchingUtil {
 			);
 
 		return [leftLiveOrder.balance, rightLiveOrder.balance];
-	}
-
-	public async batchAddUserOrders(liveOrders: ILiveOrder[]) {
-		for (const liveOrder of liveOrders)
-			await orderPersistenceUtil.addUserOrderToDB(
-				liveOrder,
-				CST.DB_UPDATE,
-				CST.DB_MATCHING,
-				CST.DB_ORDER_MATCHER,
-				true
-			);
 	}
 }
 

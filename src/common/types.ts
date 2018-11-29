@@ -1,5 +1,4 @@
 import { SignedOrder } from '0x.js';
-import { ListResolverEndpointIpAddressesRequest } from 'aws-sdk/clients/route53resolver';
 
 export interface ILiveOrder {
 	account: string;
