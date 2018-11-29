@@ -220,15 +220,13 @@ class OrderBookServer {
 	}
 
 	public async matchOrderBook() {
-		const {bids, asks} = this.orderBook;
+		const { bids, asks } = this.orderBook;
 		if (this.web3Util && bids.length && asks.length) {
 			const bestBid = bids.find(level => level.balance > 0);
 			const bestAsk = asks.find(level => level.balance > 0);
-			if (!bestBid || !bestAsk)
-				return;
+			if (!bestBid || !bestAsk) return;
 
-			if (bestAsk.price > bestBid.price)
-				return;
+			if (bestAsk.price > bestBid.price) return;
 
 			const bidsToMatch = bids.filter(b => b.price >= bestAsk.price && b.balance > 0);
 			const asksToMatch = asks.filter(a => a.price <= bestBid.price && a.balance > 0);
@@ -252,62 +250,21 @@ class OrderBookServer {
 					askIdx++;
 					continue;
 				}
-				ordersToMatch.push([bid.orderHash, ask.orderHash, Math.min(bid.balance, ask.balance)]);
-				if (bid.balance < ask.balance) {
-					bid.balance = 0;
-					ask.balance -= bid.balance;
-					bidLiveOrder.balance = 0;
-					askLiveOrder.balance -= bid.balance;
-					bidIdx++;
-				} else if (bid.balance > ask.balance) {
-					bid.balance -= ask.balance;
-					ask.balance = 0;
-					bidLiveOrder.balance -= ask.balance;
-					askLiveOrder.balance = 0;
-					askIdx++;
-				} else {
-					bid.balance = 0;
-					ask.balance = 0;
-					bidLiveOrder.balance = 0;
-					askLiveOrder.balance = 0;
+				const matchBalance = Math.min(bid.balance, ask.balance);
+				ordersToMatch.push([bid.orderHash, ask.orderHash, matchBalance]);
+				bid.balance -= matchBalance;
+				ask.balance -= matchBalance;
+				bidLiveOrder.balance -= matchBalance;
+				askLiveOrder.balance -= matchBalance;
+				if (bid.balance < ask.balance) bidIdx++;
+				else if (bid.balance > ask.balance) askIdx++;
+				else {
 					bidIdx++;
 					askIdx++;
 				}
 
-				if (bidIdx >= bidsToMatch.length || askIdx >= asksToMatch.length)
-					done = true;
+				if (bidIdx >= bidsToMatch.length || askIdx >= asksToMatch.length) done = true;
 			}
-
-			// for (const orderLevel of this.orderBook.bids) {
-			// 	if (orderLevel.balance <= 0) continue;
-			// 	const leftLiveOrder = this.liveOrders[orderLevel.orderHash];
-			// 	let matchable = true;
-			// 	while (matchable) {
-			// 		if (!this.orderBook.asks.length) matchable = false;
-
-			// 		const rightLevel = this.orderBook.asks.find(level => level.balance > 0);
-			// 		let rightLiveOrder = this.liveOrders[this.orderBook.asks[0].orderHash];
-			// 		if (!rightLevel) matchable = false;
-			// 		else rightLiveOrder = this.liveOrders[rightLevel.orderHash];
-
-			// 		if (leftLiveOrder.price < rightLiveOrder.price) matchable = false;
-			// 		if (matchable) {
-			// 			ordersToMatch.push({
-			// 				left: leftLiveOrder,
-			// 				right: rightLiveOrder
-			// 			});
-			// 			const matchedAmt = Math.min(
-			// 				orderLevel.balance,
-			// 				(rightLevel as IOrderBookLevel).balance
-			// 			);
-			// 			util.logDebug('matched amount ' + matchedAmt);
-			// 			leftLiveOrder.balance = leftLiveOrder.balance - matchedAmt;
-			// 			rightLiveOrder.balance = rightLiveOrder.balance - matchedAmt;
-			// 			await this.updateOrderBook(leftLiveOrder, CST.DB_UPDATE);
-			// 			await this.updateOrderBook(rightLiveOrder, CST.DB_UPDATE);
-			// 		}
-			// 	}
-			// }
 		}
 	}
 

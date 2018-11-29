@@ -139,20 +139,20 @@ class OrderBookUtil {
 		};
 		for (let i = 0; i < orderBookLevels.length; i++) {
 			const level = orderBookLevels[i];
-			if (level.price !== currLevel.price) {
-				if (i) side.push(currLevel);
-				currLevel = {
-					price: level.price,
-					balance: level.balance,
-					count: 1
-				};
-			} else {
-				currLevel.count++;
-				currLevel.balance += level.balance;
-			}
+			if (level.balance > 0)
+				if (level.price !== currLevel.price) {
+					if (i) side.push(currLevel);
+					currLevel = {
+						price: level.price,
+						balance: level.balance,
+						count: 1
+					};
+				} else {
+					currLevel.count++;
+					currLevel.balance += level.balance;
+				}
 		}
 		if (currLevel.count) side.push(currLevel);
-
 		return side;
 	}
 }
