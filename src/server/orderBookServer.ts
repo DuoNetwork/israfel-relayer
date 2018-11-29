@@ -37,17 +37,9 @@ class OrderBookServer {
 	};
 	public processedUpdates: { [orderHash: string]: number } = {};
 
-	public handleOrderUpdate = async (channel: string, orderQueueItem: IOrderQueueItem) => {
+	public async handleOrderUpdate(channel: string, orderQueueItem: IOrderQueueItem) {
 		util.logDebug('receive update from channel: ' + channel);
 
-		const parts = channel.split('|');
-		const pair = parts[2] + '|' + parts[3];
-		if (pair !== this.pair) {
-			util.logDebug(
-				`received order for pair ${pair}, should only subscribe for ${this.pair}`
-			);
-			return;
-		}
 		if (this.loadingOrders) {
 			this.pendingUpdates.push(orderQueueItem);
 			util.logDebug('loading orders, queue update');
@@ -112,7 +104,7 @@ class OrderBookServer {
 			if (liveOrders.length > 0) await orderMatchingUtil.batchAddUserOrders(liveOrders);
 		}
 		await this.updateOrderBook(leftLiveOrder, method);
-	};
+	}
 
 	public async processMatchingResult(
 		matchResult: IMatchingOrderResult,
@@ -231,8 +223,8 @@ class OrderBookServer {
 	public async startServer(web3Util: Web3Util, option: IOption) {
 		this.web3Util = web3Util;
 		this.pair = option.token + '|' + CST.TOKEN_WETH;
-		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderPersistRequest) =>
-			this.handleOrderUpdate(channel, orderPersistRequest)
+		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderQueueItem) =>
+			this.handleOrderUpdate(channel, orderQueueItem)
 		);
 
 		await this.loadLiveOrders();

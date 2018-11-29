@@ -10,8 +10,6 @@ Object {
 }
 `;
 
-exports[`handleOrderUpdate, pair wrong 1`] = `Object {}`;
-
 exports[`handleOrderUpdate, terminate a non existing liveOrder 1`] = `
 Object {
   "orderHash1": 5,

@@ -442,11 +442,11 @@ exports[`handleOrderBookUpdate 1`] = `
 Array [
   Array [
     "ws1",
-    "{\\"method\\":\\"update\\",\\"channel\\":\\"orderBooks\\",\\"status\\":\\"ok\\",\\"pair\\":\\"code1|code2\\",\\"orderBookUpdate\\":\\"any\\"}",
+    "{\\"method\\":\\"update\\",\\"channel\\":\\"orderBooks\\",\\"status\\":\\"ok\\",\\"pair\\":\\"code1|code2\\",\\"orderBookUpdate\\":{\\"pair\\":\\"code1|code2\\"}}",
   ],
   Array [
     "ws2",
-    "{\\"method\\":\\"update\\",\\"channel\\":\\"orderBooks\\",\\"status\\":\\"ok\\",\\"pair\\":\\"code1|code2\\",\\"orderBookUpdate\\":\\"any\\"}",
+    "{\\"method\\":\\"update\\",\\"channel\\":\\"orderBooks\\",\\"status\\":\\"ok\\",\\"pair\\":\\"code1|code2\\",\\"orderBookUpdate\\":{\\"pair\\":\\"code1|code2\\"}}",
   ],
 ]
 `;
