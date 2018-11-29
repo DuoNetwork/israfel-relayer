@@ -14,15 +14,6 @@ const orderQueueItem = {
 	requestor: 'requestor',
 	liveOrder: liveOrders['orderHash1']
 };
-test('handleOrderUpdate, pair wrong', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 123456789);
-	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve(true));
-	await orderBookServer.handleOrderUpdate('xxx', orderQueueItem);
-	expect(orderBookServer.pendingUpdates.length).toBe(0);
-	expect(orderBookServer.processedUpdates).toMatchSnapshot();
-	expect(util.getUTCNowTimestamp as jest.Mock).not.toBeCalled();
-	expect(orderBookPersistenceUtil.publishOrderBookUpdate as jest.Mock).not.toBeCalled();
-});
 
 test('handleOrderUpdate, method wrong, not loadingPairs', async () => {
 	orderQueueItem.method = 'xxx';
