@@ -107,8 +107,15 @@ class OrderBookServer {
 				}
 				const matchedAmt = Math.min(leftLiveOrder.balance, rightLiveOrder.balance);
 				ordersToMatch.push({
-					leftHash: leftLiveOrder.orderHash,
-					rightHash: rightLiveOrder.orderHash,
+					left: {
+						orderHash: leftLiveOrder.orderHash,
+						balance: leftLiveOrder.balance
+					},
+					right: {
+						orderHash: rightLiveOrder.orderHash,
+						balance: rightLiveOrder.balance
+					},
+					pair: this.pair,
 					amount: matchedAmt
 				});
 				util.logDebug('matchinged amount ' + matchedAmt);
@@ -143,20 +150,6 @@ class OrderBookServer {
 			}
 		]);
 	}
-
-	// public async processMatchingResult(
-	// 	matchResult: IMatchingOrderResult,
-	// 	leftLiveOrder: ILiveOrder
-	// ): Promise<ILiveOrder[]> {
-	// 	const resLeft = matchResult.left;
-	// 	const resRight = matchResult.right;
-	// 	leftLiveOrder.amount = resLeft.newBalance;
-	// 	await this.updateOrderBook(leftLiveOrder, resLeft.method);
-	// 	const rightLiveOrder = this.liveOrders[resRight.orderHash];
-	// 	rightLiveOrder.amount = resRight.newBalance;
-	// 	await this.updateOrderBook(rightLiveOrder, resRight.method);
-	// 	return [leftLiveOrder, rightLiveOrder];
-	// }
 
 	public async updateOrderBook(orderUpdates: IOrderUpdateInput[]) {
 		const orderBookSnapshotUpdate: IOrderBookSnapshotUpdate = {
@@ -245,7 +238,7 @@ class OrderBookServer {
 			const bidsToMatch = bids.filter(b => b.price >= bestAsk.price && b.balance > 0);
 			const asksToMatch = asks.filter(a => a.price <= bestBid.price && a.balance > 0);
 
-			const ordersToMatch = [];
+			const ordersToMatch: IMatchingCandidate[] = [];
 			let done = false;
 			let bidIdx = 0;
 			let askIdx = 0;
@@ -265,7 +258,18 @@ class OrderBookServer {
 					continue;
 				}
 				const matchBalance = Math.min(bid.balance, ask.balance);
-				ordersToMatch.push([bid.orderHash, ask.orderHash, matchBalance]);
+				ordersToMatch.push({
+					pair: this.pair,
+					amount: matchBalance,
+					left: {
+						orderHash: bid.orderHash,
+						balance: bid.balance
+					},
+					right: {
+						orderHash: ask.orderHash,
+						balance: ask.balance
+					}
+				});
 				bid.balance -= matchBalance;
 				ask.balance -= matchBalance;
 				bidLiveOrder.balance -= matchBalance;
@@ -279,6 +283,13 @@ class OrderBookServer {
 
 				if (bidIdx >= bidsToMatch.length || askIdx >= asksToMatch.length) done = true;
 			}
+
+			let currentNonce = await this.web3Util.getTransactionCount();
+			ordersToMatch.map(order =>
+				orderMatchingUtil.matchOrders(this.web3Util as Web3Util, order, {
+					nonce: currentNonce++
+				})
+			);
 		}
 	}
 

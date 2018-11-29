@@ -24,7 +24,7 @@ class OrderMatchingUtil {
 		// const price = leftLiveOrder.price;
 		// const pair = rightLiveOrder.pair;
 		// const isLeftOrderBid = leftLiveOrder.side === CST.DB_BID;
-		util.logInfo(`start matching order ${order.leftHash} with ${order.rightHash}`);
+		util.logInfo(`start matching order ${order.left.orderHash} with ${order.right.orderHash}`);
 
 		// const obj: IMatchingOrderResult = {
 		// 	left: {
@@ -64,17 +64,17 @@ class OrderMatchingUtil {
 		// if (shouldReturn) return obj;
 
 		//check order isExisting
-		const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(order.leftHash);
-		const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(order.rightHash);
+		const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(order.left.orderHash);
+		const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(order.right.orderHash);
 		if (!leftRawOrder)
 			util.logError(
-				`raw order of ${order.leftHash}	rightLiveOrder.orderHash
+				`raw order of ${order.left.orderHash}	rightLiveOrder.orderHash
 					} does not exist`
 			);
 
 		if (!rightRawOrder)
 			util.logError(
-				`raw order of ${order.rightHash}	rightLiveOrder.orderHash
+				`raw order of ${order.right.orderHash}	rightLiveOrder.orderHash
 					} does not exist`
 			);
 
@@ -116,17 +116,30 @@ class OrderMatchingUtil {
 				web3Util.relayerAddress,
 				option
 			);
-			// const matchedAmt = Math.min(leftLiveOrder.balance, rightLiveOrder.balance);
-			// obj.left.newBalance = leftLiveOrder.balance - matchedAmt;
-			// obj.right.newBalance = rightLiveOrder.balance - matchedAmt;
-			// return obj;
+
+			const persistRequestLeft = {
+				method: CST.DB_UPDATE,
+				pair: order.pair,
+				orderHash: order.left.orderHash,
+				balance: order.left.balance - order.amount,
+				requestor: CST.DB_ORDER_MATCHER,
+				status: order.amount < order.left.balance ? 'pMatching' : 'matching'
+			};
+			await orderPersistenceUtil.persistOrder(persistRequestLeft);
+
+			const persistRequestRight = {
+				method: CST.DB_UPDATE,
+				pair: order.pair,
+				orderHash: order.right.orderHash,
+				balance: order.right.balance - order.amount,
+				requestor: CST.DB_ORDER_MATCHER,
+				status: order.amount < order.right.balance ? 'pMatching' : 'matching'
+			};
+			await orderPersistenceUtil.persistOrder(persistRequestRight);
 		} catch (err) {
 			util.logError(JSON.stringify(err));
 			util.logDebug('error in matching transaction');
-			// balances = await this.checkBalance(web3Util, orderInput, isLeftOrderBid);
-			// obj.left.newBalance = balances[0];
-			// obj.right.newBalance = balances[1];
-			// return obj;
+			// TODO: add failure handling
 		}
 	}
 
@@ -161,7 +174,7 @@ class OrderMatchingUtil {
 					leftMakerBalance / leftLiveOrder.price,
 					leftMakerAllowance / leftLiveOrder.price,
 					leftLiveOrder.balance
-			)
+		)
 			: Math.min(leftMakerBalance, leftMakerAllowance, leftLiveOrder.balance);
 
 		const rightTokenAddr = (await assetDataUtils.decodeAssetDataOrThrow(

@@ -198,9 +198,16 @@ export interface IOrderUpdateInput {
 }
 
 export interface IMatchingCandidate {
-	leftHash: string;
-	rightHash: string;
+	pair: string;
 	amount: number;
+	left: {
+		orderHash: string;
+		balance: number;
+	};
+	right: {
+		orderHash: string;
+		balance: number;
+	};
 }
 
 export interface ISideMatchResult {
