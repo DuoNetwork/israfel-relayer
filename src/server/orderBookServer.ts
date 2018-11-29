@@ -1,20 +1,20 @@
 import * as CST from '../common/constants';
 import {
 	ILiveOrder,
-	IMatchingOrderResult,
+	// IMatchingOrderResult,
 	IOption,
 	IOrderBook,
+	IOrderBookLevel,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotUpdate,
 	IOrderQueueItem
-	// IUserOrder
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
 import orderBookUtil from '../utils/orderBookUtil';
 import orderMatchingUtil from '../utils/orderMatchingUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
-import redisUtil from '../utils/redisUtil';
+// import redisUtil from '../utils/redisUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
@@ -70,19 +70,34 @@ class OrderBookServer {
 		const leftLiveOrder = orderQueueItem.liveOrder;
 		if (this.web3Util && method === CST.DB_ADD) {
 			let matchable = true;
-			const liveOrders: ILiveOrder[] = [];
+			// const liveOrders: ILiveOrder[] = [];
 			const isLeftOrderBid = leftLiveOrder.side === CST.DB_BID;
 
-			if (
-				(isLeftOrderBid && !this.orderBook.asks.length) ||
-				(!isLeftOrderBid && !this.orderBook.bids.length)
-			)
-				matchable = false;
-
+			const ordersToMatch = [];
 			while (matchable) {
-				const rightLiveOrder = isLeftOrderBid
-					? this.liveOrders[this.orderBook.asks[0].orderHash]
-					: this.liveOrders[this.orderBook.bids[0].orderHash];
+				if (
+					(isLeftOrderBid && !this.orderBook.asks.length) ||
+					(!isLeftOrderBid && !this.orderBook.bids.length)
+				) {
+					matchable = false;
+					break;
+				}
+				let rightLiveOrder = this.liveOrders[this.orderBook.asks[0].orderHash];
+				if (isLeftOrderBid) {
+					const rightLevel = this.orderBook.asks.find(level => level.balance > 0);
+					if (!rightLevel) {
+						matchable = false;
+						break;
+					}
+					rightLiveOrder = this.liveOrders[rightLevel.orderHash];
+				} else {
+					const rightLevel = this.orderBook.bids.find(level => level.balance > 0);
+					if (!rightLevel) {
+						matchable = false;
+						break;
+					}
+					rightLiveOrder = this.liveOrders[rightLevel.orderHash];
+				}
 
 				if (
 					(isLeftOrderBid && leftLiveOrder.price < rightLiveOrder.price) ||
@@ -91,43 +106,50 @@ class OrderBookServer {
 					matchable = false;
 					break;
 				}
-
-				const matchResult: IMatchingOrderResult = await orderMatchingUtil.matchOrders(
-					this.web3Util,
-					leftLiveOrder,
-					rightLiveOrder,
-					isLeftOrderBid
-				);
-
-				liveOrders.concat(await this.processMatchingResult(matchResult, leftLiveOrder));
+				ordersToMatch.push({
+					left: leftLiveOrder,
+					right: rightLiveOrder
+				});
+				const matchedAmt = Math.min(leftLiveOrder.balance, rightLiveOrder.balance);
+				util.logDebug('matchinged amount ' + matchedAmt);
+				leftLiveOrder.balance = leftLiveOrder.balance - matchedAmt;
+				rightLiveOrder.balance = rightLiveOrder.balance - matchedAmt;
+				await this.updateOrderBook(leftLiveOrder, CST.DB_UPDATE);
+				await this.updateOrderBook(rightLiveOrder, CST.DB_UPDATE);
 			}
-			if (liveOrders.length > 0) await orderMatchingUtil.batchAddUserOrders(liveOrders);
-		}
-		await this.updateOrderBook(leftLiveOrder, method);
+			if (this.web3Util && ordersToMatch.length > 0) {
+				// send matching transactions
+				let currentNonce = await this.web3Util.getTransactionCount();
+				// const gasPrice = await this.web3Util.getGasPrice();
+				ordersToMatch.map(orders =>
+					orderMatchingUtil.matchOrders(
+						this.web3Util as Web3Util,
+						orders.left,
+						orders.right,
+						isLeftOrderBid,
+						{ nonce: currentNonce++ }
+					)
+				);
+			}
+
+			// liveOrders.concat(await this.processMatchingResult(matchResult, leftLiveOrder));
+			// if (liveOrders.length > 0) await orderMatchingUtil.batchAddUserOrders(liveOrders);
+		} else await this.updateOrderBook(leftLiveOrder, method);
 	}
 
-	public async processMatchingResult(
-		matchResult: IMatchingOrderResult,
-		leftLiveOrder: ILiveOrder
-	): Promise<ILiveOrder[]> {
-		const resLeft = matchResult.left;
-		const resRight = matchResult.right;
-		// leftLiveOrder.currentSequence = resLeft.sequence;
-		leftLiveOrder.balance = resLeft.newBalance;
-		leftLiveOrder.currentSequence = await redisUtil.increment(
-			`${CST.DB_SEQUENCE}|${leftLiveOrder.pair}`
-		);
-		await this.updateOrderBook(leftLiveOrder, resLeft.method);
-
-		const rightLiveOrder = this.liveOrders[resRight.orderHash];
-		// rightLiveOrder.currentSequence = resRight.sequence;
-		rightLiveOrder.balance = resRight.newBalance;
-		rightLiveOrder.currentSequence = await redisUtil.increment(
-			`${CST.DB_SEQUENCE}|${rightLiveOrder.pair}`
-		);
-		await this.updateOrderBook(rightLiveOrder, resRight.method);
-		return [leftLiveOrder, rightLiveOrder];
-	}
+	// public async processMatchingResult(
+	// 	matchResult: IMatchingOrderResult,
+	// 	leftLiveOrder: ILiveOrder
+	// ): Promise<ILiveOrder[]> {
+	// 	const resLeft = matchResult.left;
+	// 	const resRight = matchResult.right;
+	// 	leftLiveOrder.amount = resLeft.newBalance;
+	// 	await this.updateOrderBook(leftLiveOrder, resLeft.method);
+	// 	const rightLiveOrder = this.liveOrders[resRight.orderHash];
+	// 	rightLiveOrder.amount = resRight.newBalance;
+	// 	await this.updateOrderBook(rightLiveOrder, resRight.method);
+	// 	return [leftLiveOrder, rightLiveOrder];
+	// }
 
 	public async updateOrderBook(liveOrder: ILiveOrder, method: string) {
 		const orderHash = liveOrder.orderHash;
@@ -157,7 +179,7 @@ class OrderBookServer {
 
 		if (method !== CST.DB_TERMINATE) this.liveOrders[orderHash] = liveOrder;
 		else delete this.liveOrders[orderHash];
-
+		console.log(orderBookSnapshotUpdate);
 		orderBookUtil.updateOrderBookSnapshot(this.orderBookSnapshot, orderBookSnapshotUpdate);
 		await orderBookPersistenceUtil.publishOrderBookUpdate(
 			this.pair,
@@ -184,6 +206,7 @@ class OrderBookServer {
 		util.logInfo('loaded live orders : ' + Object.keys(this.liveOrders).length);
 		this.updateOrderSequences();
 		this.orderBook = orderBookUtil.constructOrderBook(this.liveOrders);
+		util.logDebug('start matchig ordderBook');
 		await this.matchOrderBook();
 		util.logInfo('completed matching orderBook as a whole in cold start');
 		this.orderBookSnapshot = orderBookUtil.renderOrderBookSnapshot(this.pair, this.orderBook);
@@ -196,25 +219,35 @@ class OrderBookServer {
 
 	public async matchOrderBook() {
 		if (this.web3Util) {
-			const liveOrders: ILiveOrder[] = [];
+			const ordersToMatch = [];
 			for (const orderLevel of this.orderBook.bids) {
+				if (orderLevel.balance <= 0) continue;
 				const leftLiveOrder = this.liveOrders[orderLevel.orderHash];
-				const isLeftOrderBid = leftLiveOrder.side === CST.DB_BID;
-				if (this.orderBook.asks.length) {
-					const rightLiveOrder = this.liveOrders[this.orderBook.asks[0].orderHash];
-					if (
-						(isLeftOrderBid && leftLiveOrder.price < rightLiveOrder.price) ||
-						(!isLeftOrderBid && leftLiveOrder.price > rightLiveOrder.price)
-					) break;
-					const res: IMatchingOrderResult | null = await orderMatchingUtil.matchOrders(
-						this.web3Util,
-						leftLiveOrder,
-						rightLiveOrder,
-						leftLiveOrder.side === CST.DB_BID
-					);
-					liveOrders.concat(
-						await this.processMatchingResult(res, this.liveOrders[orderLevel.orderHash])
-					);
+				let matchable = true;
+				while (matchable) {
+					if (!this.orderBook.asks.length) matchable = false;
+
+					const rightLevel = this.orderBook.asks.find(level => level.balance > 0);
+					let rightLiveOrder = this.liveOrders[this.orderBook.asks[0].orderHash];
+					if (!rightLevel) matchable = false;
+					else rightLiveOrder = this.liveOrders[rightLevel.orderHash];
+
+					if (leftLiveOrder.price < rightLiveOrder.price) matchable = false;
+					if (matchable) {
+						ordersToMatch.push({
+							left: leftLiveOrder,
+							right: rightLiveOrder
+						});
+						const matchedAmt = Math.min(
+							orderLevel.balance,
+							(rightLevel as IOrderBookLevel).balance
+						);
+						util.logDebug('matched amount ' + matchedAmt);
+						leftLiveOrder.balance = leftLiveOrder.balance - matchedAmt;
+						rightLiveOrder.balance = rightLiveOrder.balance - matchedAmt;
+						await this.updateOrderBook(leftLiveOrder, CST.DB_UPDATE);
+						await this.updateOrderBook(rightLiveOrder, CST.DB_UPDATE);
+					}
 				}
 			}
 		}

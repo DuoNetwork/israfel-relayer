@@ -1,4 +1,4 @@
-import { assetDataUtils, SignedOrder } from '0x.js';
+import { assetDataUtils, OrderTransactionOpts, SignedOrder } from '0x.js';
 import moment from 'moment';
 import * as CST from '../common/constants';
 import {
@@ -10,7 +10,6 @@ import {
 } from '../common/types';
 import orderPersistenceUtil from './orderPersistenceUtil';
 import orderUtil from './orderUtil';
-// import redisUtil from './redisUtil';
 import util from './util';
 import Web3Util from './Web3Util';
 
@@ -19,7 +18,8 @@ class OrderMatchingUtil {
 		web3Util: Web3Util,
 		leftLiveOrder: ILiveOrder,
 		rightLiveOrder: ILiveOrder,
-		isLeftOrderBid: boolean
+		isLeftOrderBid: boolean,
+		option: OrderTransactionOpts
 	): Promise<IMatchingOrderResult> {
 		// const price = leftLiveOrder.price;
 		// const pair = rightLiveOrder.pair;
@@ -125,7 +125,8 @@ class OrderMatchingUtil {
 			await web3Util.contractWrappers.exchange.matchOrdersAsync(
 				leftOrder,
 				rightOrder,
-				web3Util.relayerAddress
+				web3Util.relayerAddress,
+				option
 			);
 			const matchedAmt = Math.min(leftLiveOrder.balance, rightLiveOrder.balance);
 			obj.left.newBalance = leftLiveOrder.balance - matchedAmt;
