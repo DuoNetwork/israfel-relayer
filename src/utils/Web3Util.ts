@@ -23,6 +23,7 @@ import * as CST from '../common/constants';
 import { IRawOrder, IStringSignedOrder, IToken } from '../common/types';
 import util from './util';
 
+const Web3Eth = require('web3-eth');
 const Web3Accounts = require('web3-eth-accounts');
 const Web3Personal = require('web3-eth-personal');
 
@@ -41,6 +42,7 @@ export default class Web3Util {
 	public networkId: number = CST.NETWORK_ID_KOVAN;
 	public tokens: IToken[] = [];
 	private rawMetamaskProvider: any = null;
+	private web3Eth: any = null;
 	private web3Accounts: any = null;
 	private web3Personal: any = null;
 	public contractAddresses: ContractAddresses;
@@ -59,16 +61,17 @@ export default class Web3Util {
 			const pe = new Web3ProviderEngine();
 			if (local) pe.addProvider(new RPCSubprovider(CST.PROVIDER_LOCAL));
 			else {
-				if (!window && privateKey)
-					pe.addProvider(new PrivateKeyWalletSubprovider(privateKey));
 				const infura = require('../keys/infura.json');
-				pe.addProvider(
-					new RPCSubprovider(
-						(live ? CST.PROVIDER_INFURA_MAIN : CST.PROVIDER_INFURA_KOVAN) +
-							'/' +
-							infura.token
-					)
-				);
+				const infuraProvider =
+					(live ? CST.PROVIDER_INFURA_MAIN : CST.PROVIDER_INFURA_KOVAN) +
+					'/' +
+					infura.token;
+				if (!window && privateKey) {
+					pe.addProvider(new PrivateKeyWalletSubprovider(privateKey));
+					this.web3Eth = new Web3Eth(infuraProvider);
+				}
+
+				pe.addProvider(new RPCSubprovider(infuraProvider));
 			}
 			pe.start();
 			this.web3Wrapper = new Web3Wrapper(pe);
@@ -82,6 +85,14 @@ export default class Web3Util {
 
 		this.contractAddresses = getContractAddressesForNetworkOrThrow(this.networkId);
 		this.relayerAddress = live ? CST.RELAYER_ADDR_MAIN : CST.RELAYER_ADDR_KOVAN;
+	}
+
+	public getTransactionCount() {
+		return this.web3Eth.getTransactionCount(this.relayerAddress);
+	}
+
+	public getGasPrice() {
+		return this.web3Eth.getGasPrice();
 	}
 
 	public web3PersonalSign(account: string, message: string): Promise<string> {
