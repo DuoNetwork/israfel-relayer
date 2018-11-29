@@ -14,6 +14,7 @@
 		"orderBooks": "ts-node ./src/index orderBooks"
 	},
 	"jest": {
+		"testEnvironment": "node",
 		"roots": [
 			"<rootDir>/src"
 		],
