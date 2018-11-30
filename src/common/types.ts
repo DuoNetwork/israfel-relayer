@@ -198,7 +198,6 @@ export interface IOrderUpdateInput {
 
 export interface IMatchingCandidate {
 	pair: string;
-	amount: number;
 	left: {
 		orderHash: string;
 		balance: number;

@@ -118,9 +118,9 @@ class OrderMatchingUtil {
 				method: CST.DB_UPDATE,
 				pair: order.pair,
 				orderHash: order.left.orderHash,
-				balance: order.left.balance - order.amount,
+				balance: order.left.balance,
 				requestor: CST.DB_ORDER_MATCHER,
-				status: order.amount < order.left.balance ? 'pMatching' : 'matching'
+				status: order.left.balance > 0 ? 'pMatching' : 'matching'
 			};
 			await orderPersistenceUtil.persistOrder(persistRequestLeft);
 
@@ -128,9 +128,9 @@ class OrderMatchingUtil {
 				method: CST.DB_UPDATE,
 				pair: order.pair,
 				orderHash: order.right.orderHash,
-				balance: order.right.balance - order.amount,
+				balance: order.right.balance,
 				requestor: CST.DB_ORDER_MATCHER,
-				status: order.amount < order.right.balance ? 'pMatching' : 'matching'
+				status: order.right.balance > 0 ? 'pMatching' : 'matching'
 			};
 			await orderPersistenceUtil.persistOrder(persistRequestRight);
 		} catch (err) {

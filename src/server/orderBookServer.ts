@@ -98,8 +98,7 @@ class OrderBookServer {
 							orderHash: rightLiveOrder.orderHash,
 							balance: rightLiveOrder.balance
 						},
-						pair: this.pair,
-						amount: matchedAmt
+						pair: this.pair
 					});
 
 					orderBookLevelUpdates.push({
@@ -266,7 +265,6 @@ class OrderBookServer {
 				const matchBalance = Math.min(bid.balance, ask.balance);
 				ordersToMatch.push({
 					pair: this.pair,
-					amount: matchBalance,
 					left: {
 						orderHash: bid.orderHash,
 						balance: bid.balance
