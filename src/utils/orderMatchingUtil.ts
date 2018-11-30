@@ -1,10 +1,10 @@
-import { assetDataUtils, OrderTransactionOpts, SignedOrder } from '0x.js';
-// import moment from 'moment';
+import { SignedOrder } from '0x.js';
 import * as CST from '../common/constants';
 import {
 	IMatchingCandidate,
-	IMatchingOrderInput,
+	IMatchState,
 	IRawOrder,
+	ISignedOrdersToMatch,
 	IStringSignedOrder
 } from '../common/types';
 import orderPersistenceUtil from './orderPersistenceUtil';
@@ -13,200 +13,95 @@ import util from './util';
 import Web3Util from './Web3Util';
 
 class OrderMatchingUtil {
-	public async matchOrders(
-		web3Util: Web3Util,
-		order: IMatchingCandidate,
-		// isLeftOrderBid: boolean,
-		txOption: OrderTransactionOpts
-	) {
-		// const price = leftLiveOrder.price;
-		// const pair = rightLiveOrder.pair;
-		// const isLeftOrderBid = leftLiveOrder.side === CST.DB_BID;
-		util.logInfo(`start matching order ${order.left.orderHash} with ${order.right.orderHash}`);
+	public async matchOrders(web3Util: Web3Util, ordersToMatch: IMatchingCandidate[]) {
+		const balanceAftMatch: IMatchState = {};
+		const signedOrdersToMatch: ISignedOrdersToMatch[] = [];
 
-		// const obj: IMatchingOrderResult = {
-		// 	left: {
-		// 		orderHash: leftLiveOrder.orderHash,
-		// 		method: CST.DB_UPDATE,
-		// 		newBalance: leftLiveOrder.balance
-		// 	},
-		// 	right: {
-		// 		orderHash: rightLiveOrder.orderHash,
-		// 		method: CST.DB_UPDATE,
-		// 		newBalance: rightLiveOrder.balance
-		// 	}
-		// };
+		for (const orderToMatch of ordersToMatch) {
+			if (!balanceAftMatch[orderToMatch.left.orderHash])
+				balanceAftMatch[orderToMatch.left.orderHash] = {
+					balance: orderToMatch.left.balance,
+					pair: orderToMatch.pair
+				};
+			else if (
+				balanceAftMatch[orderToMatch.left.orderHash].balance > orderToMatch.left.balance
+			)
+				balanceAftMatch[orderToMatch.left.orderHash].balance = orderToMatch.left.balance;
 
-		// let shouldReturn = false;
+			if (!balanceAftMatch[orderToMatch.right.orderHash])
+				balanceAftMatch[orderToMatch.right.orderHash] = {
+					balance: orderToMatch.right.balance,
+					pair: orderToMatch.pair
+				};
+			else if (
+				balanceAftMatch[orderToMatch.right.orderHash].balance > orderToMatch.right.balance
+			)
+				balanceAftMatch[orderToMatch.right.orderHash].balance = orderToMatch.right.balance;
 
-		// // check expiring
-		// const currentTime = moment().valueOf();
-		// if (rightLiveOrder.expiry - currentTime < 3 * 60 * 1000) {
-		// 	util.logDebug(
-		// 		`the order ${
-		// 			rightLiveOrder.orderHash
-		// 		} is expiring in 3 minutes, removing this order`
-		// 	);
-		// 	obj.right.newBalance = 0;
-		// 	obj.right.method = CST.DB_TERMINATE;
-		// 	shouldReturn = true;
-		// }
-		// if (leftLiveOrder.expiry - currentTime < 3 * 60 * 1000) {
-		// 	util.logDebug(
-		// 		`the order ${leftLiveOrder.orderHash} is expiring in 3 minutes, removing this order`
-		// 	);
-		// 	obj.left.newBalance = 0;
-		// 	obj.left.method = CST.DB_TERMINATE;
-		// 	shouldReturn = true;
-		// }
-		// if (shouldReturn) return obj;
-
-		//check order isExisting
-		const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
-			order.left.orderHash
-		);
-		const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
-			order.right.orderHash
-		);
-		if (!leftRawOrder)
-			util.logError(
-				`raw order of ${order.left.orderHash}	rightLiveOrder.orderHash
-					} does not exist`
+			const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
+				orderToMatch.left.orderHash
+			);
+			const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
+				orderToMatch.right.orderHash
 			);
 
-		if (!rightRawOrder)
-			util.logError(
-				`raw order of ${order.right.orderHash}	rightLiveOrder.orderHash
-					} does not exist`
-			);
+			if (!leftRawOrder) {
+				util.logError(
+					`raw order of ${orderToMatch.left.orderHash}	rightLiveOrder.orderHash
+						} does not exist`
+				);
+				balanceAftMatch[orderToMatch.left.orderHash].balance = 0;
+			}
+			if (!rightRawOrder) {
+				util.logError(
+					`raw order of ${orderToMatch.right.orderHash}	rightLiveOrder.orderHash
+						} does not exist`
+				);
+				balanceAftMatch[orderToMatch.right.orderHash].balance = 0;
+			}
 
-		// if (shouldReturn) return obj;
-
-		//check order balance
-		const leftOrder: SignedOrder = orderUtil.parseSignedOrder((leftRawOrder as IRawOrder)
-			.signedOrder as IStringSignedOrder);
-		const rightOrder: SignedOrder = orderUtil.parseSignedOrder((rightRawOrder as IRawOrder)
-			.signedOrder as IStringSignedOrder);
-		// const orderInput = {
-		// 	left: {
-		// 		liveOrder: leftLiveOrder,
-		// 		signedOrder: leftOrder
-		// 	},
-		// 	right: {
-		// 		liveOrder: rightLiveOrder,
-		// 		signedOrder: rightOrder
-		// 	}
-		// };
-		// let balances = await this.checkBalance(web3Util, orderInput, isLeftOrderBid);
-		// if (balances[0] === 0) {
-		// 	util.logDebug(`leftOrder ${leftLiveOrder.orderHash} balance is 0`);
-		// 	obj.left.newBalance = 0;
-		// 	shouldReturn = true;
-		// }
-
-		// if (balances[1] === 0) {
-		// 	util.logDebug(`leftOrder ${rightLiveOrder.orderHash} balance is 0`);
-		// 	obj.right.newBalance = 0;
-		// 	shouldReturn = true;
-		// }
-		// if (shouldReturn) return obj;
-
-		try {
-			await web3Util.matchOrders(leftOrder, rightOrder, txOption);
-
-			const persistRequestLeft = {
-				method: CST.DB_UPDATE,
-				pair: order.pair,
-				orderHash: order.left.orderHash,
-				balance: order.left.balance,
-				requestor: CST.DB_ORDER_MATCHER,
-				status: order.left.balance > 0 ? 'pMatching' : 'matching'
-			};
-			await orderPersistenceUtil.persistOrder(persistRequestLeft);
-
-			const persistRequestRight = {
-				method: CST.DB_UPDATE,
-				pair: order.pair,
-				orderHash: order.right.orderHash,
-				balance: order.right.balance,
-				requestor: CST.DB_ORDER_MATCHER,
-				status: order.right.balance > 0 ? 'pMatching' : 'matching'
-			};
-			await orderPersistenceUtil.persistOrder(persistRequestRight);
-		} catch (err) {
-			util.logError(JSON.stringify(err));
-			util.logDebug('error in matching transaction');
-			// TODO: removeLeftOrder
-			const persistRequestRight = {
-				method: CST.DB_TERMINATE,
-				pair: order.pair,
-				orderHash: order.left.orderHash,
-				balance: 0,
-				requestor: CST.DB_ORDER_MATCHER,
-				status: CST.DB_CONFIRMED
-			};
-			await orderPersistenceUtil.persistOrder(persistRequestRight);
+			if (leftRawOrder && rightRawOrder) {
+				const leftOrder: SignedOrder = orderUtil.parseSignedOrder(
+					(leftRawOrder as IRawOrder).signedOrder as IStringSignedOrder
+				);
+				const rightOrder: SignedOrder = orderUtil.parseSignedOrder(
+					(rightRawOrder as IRawOrder).signedOrder as IStringSignedOrder
+				);
+				signedOrdersToMatch.push({
+					left: leftOrder,
+					right: rightOrder
+				});
+			}
 		}
-	}
 
-	public async checkBalance(
-		web3Util: Web3Util,
-		orderInput: IMatchingOrderInput,
-		isLeftOrderBid: boolean
-	): Promise<number[]> {
-		const leftOrder = orderInput.left.signedOrder;
-		const leftLiveOrder = orderInput.left.liveOrder;
-		const rightOrder = orderInput.right.signedOrder;
-		const rightLiveOrder = orderInput.right.liveOrder;
-		const leftTokenAddr = (await assetDataUtils.decodeAssetDataOrThrow(
-			leftOrder.makerAssetData
-		)).tokenAddress;
-		const leftMakerBalance = Web3Util.fromWei(
-			await web3Util.contractWrappers.erc20Token.getBalanceAsync(
-				leftTokenAddr,
-				leftOrder.makerAddress
-			)
-		);
-		const leftMakerAllowance = Web3Util.fromWei(
-			await web3Util.contractWrappers.erc20Token.getProxyAllowanceAsync(
-				leftTokenAddr,
-				leftOrder.makerAddress
-			)
-		);
+		if (web3Util && signedOrdersToMatch.length > 0)
+			try {
+				let currentNonce = await web3Util.getTransactionCount();
+				signedOrdersToMatch.map(orders =>
+					web3Util.matchOrders(orders.left, orders.right, {
+						nonce: currentNonce++
+					})
+				);
 
-		leftLiveOrder.balance = isLeftOrderBid
-			? Math.min(
-					leftMakerBalance / leftLiveOrder.price,
-					leftMakerAllowance / leftLiveOrder.price,
-					leftLiveOrder.balance
-			)
-			: Math.min(leftMakerBalance, leftMakerAllowance, leftLiveOrder.balance);
-
-		const rightTokenAddr = (await assetDataUtils.decodeAssetDataOrThrow(
-			rightOrder.makerAssetData
-		)).tokenAddress;
-		const rightMakerBalance = Web3Util.fromWei(
-			await web3Util.contractWrappers.erc20Token.getBalanceAsync(
-				rightTokenAddr,
-				rightOrder.makerAddress
-			)
-		);
-		const rightMakerAllowance = Web3Util.fromWei(
-			await web3Util.contractWrappers.erc20Token.getProxyAllowanceAsync(
-				rightTokenAddr,
-				rightOrder.makerAddress
-			)
-		);
-
-		rightLiveOrder.balance = isLeftOrderBid
-			? Math.min(rightMakerBalance, rightMakerAllowance, rightLiveOrder.balance)
-			: Math.min(
-					rightMakerBalance / rightLiveOrder.price,
-					rightMakerAllowance / rightLiveOrder.price,
-					rightLiveOrder.balance
-			);
-
-		return [leftLiveOrder.balance, rightLiveOrder.balance];
+				for (const orderHash of Object.keys(balanceAftMatch)) {
+					const persistRequestLeft = {
+						method: CST.DB_UPDATE,
+						pair: balanceAftMatch[orderHash].pair,
+						orderHash: orderHash,
+						balance: balanceAftMatch[orderHash].balance,
+						requestor: CST.DB_ORDER_MATCHER,
+						status:
+							balanceAftMatch[orderHash].balance > 0
+								? CST.DB_PMATCHING
+								: CST.DB_MATCHING
+					};
+					await orderPersistenceUtil.persistOrder(persistRequestLeft);
+				}
+			} catch (err) {
+				util.logError(JSON.stringify(err));
+				util.logDebug('error in matching transaction');
+				// TODO: removeLeftO
+			}
 	}
 }
 

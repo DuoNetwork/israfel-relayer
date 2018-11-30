@@ -124,12 +124,7 @@ class OrderBookServer {
 
 				await this.updateOrderBookSnapshot(orderBookLevelUpdates);
 				if (this.web3Util && ordersToMatch.length > 0) {
-					let currentNonce = await this.web3Util.getTransactionCount();
-					ordersToMatch.map(order =>
-						orderMatchingUtil.matchOrders(this.web3Util as Web3Util, order, {
-							nonce: currentNonce++
-						})
-					);
+					orderMatchingUtil.matchOrders(this.web3Util as Web3Util, ordersToMatch);
 					return;
 				}
 			}
@@ -288,12 +283,8 @@ class OrderBookServer {
 				if (bidIdx >= bidsToMatch.length || askIdx >= asksToMatch.length) done = true;
 			}
 
-			let currentNonce = await this.web3Util.getTransactionCount();
-			ordersToMatch.map(order =>
-				orderMatchingUtil.matchOrders(this.web3Util as Web3Util, order, {
-					nonce: currentNonce++
-				})
-			);
+			if (this.web3Util && ordersToMatch.length > 0)
+				orderMatchingUtil.matchOrders(this.web3Util as Web3Util, ordersToMatch);
 		}
 	}
 

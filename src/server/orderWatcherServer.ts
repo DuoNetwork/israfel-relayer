@@ -261,3 +261,25 @@ class OrderWatcherServer {
 
 const orderWatcherServer = new OrderWatcherServer();
 export default orderWatcherServer;
+
+// // check expiring
+// const currentTime = moment().valueOf();
+// if (rightLiveOrder.expiry - currentTime < 3 * 60 * 1000) {
+// 	util.logDebug(
+// 		`the order ${
+// 			rightLiveOrder.orderHash
+// 		} is expiring in 3 minutes, removing this order`
+// 	);
+// 	obj.right.newBalance = 0;
+// 	obj.right.method = CST.DB_TERMINATE;
+// 	shouldReturn = true;
+// }
+// if (leftLiveOrder.expiry - currentTime < 3 * 60 * 1000) {
+// 	util.logDebug(
+// 		`the order ${leftLiveOrder.orderHash} is expiring in 3 minutes, removing this order`
+// 	);
+// 	obj.left.newBalance = 0;
+// 	obj.left.method = CST.DB_TERMINATE;
+// 	shouldReturn = true;
+// }
+// if (shouldReturn) return obj;

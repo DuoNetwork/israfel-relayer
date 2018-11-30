@@ -208,6 +208,18 @@ export interface IMatchingCandidate {
 	};
 }
 
+export interface ISignedOrdersToMatch {
+	left: SignedOrder;
+	right: SignedOrder;
+}
+
+export interface IMatchState {
+	[key: string]: {
+		balance: number;
+		pair: string;
+	};
+}
+
 export interface ISideMatchResult {
 	orderHash: string;
 	method: string;
