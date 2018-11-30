@@ -1,4 +1,4 @@
-import { SignedOrder } from '0x.js';
+import {BigNumber, SignedOrder } from '0x.js';
 import * as CST from '../common/constants';
 import {
 	IMatchingCandidate,
@@ -91,7 +91,7 @@ class OrderMatchingUtil {
 			const curretnGasPrice = await web3Util.getGasPrice();
 			const promiseList = signedOrdersToMatch.map(orders =>
 				web3Util.matchOrders(orders.left, orders.right, {
-					gasPrice: curretnGasPrice,
+					gasPrice: new BigNumber(curretnGasPrice),
 					gasLimit: 300000,
 					nonce: currentNonce++,
 					shouldValidate: true
