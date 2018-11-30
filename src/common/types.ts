@@ -107,7 +107,7 @@ export interface IOrderBookSnapshotLevel {
 
 export interface IOrderBookLevelUpdate {
 	price: number;
-	balance: number;
+	change: number;
 	count: number;
 	side: string;
 }
@@ -197,7 +197,6 @@ export interface IOrderUpdateInput {
 }
 
 export interface IMatchingCandidate {
-	pair: string;
 	left: {
 		orderHash: string;
 		balance: number;
@@ -205,18 +204,6 @@ export interface IMatchingCandidate {
 	right: {
 		orderHash: string;
 		balance: number;
-	};
-}
-
-export interface ISignedOrdersToMatch {
-	left: SignedOrder;
-	right: SignedOrder;
-}
-
-export interface IMatchState {
-	[key: string]: {
-		balance: number;
-		pair: string;
 	};
 }
 

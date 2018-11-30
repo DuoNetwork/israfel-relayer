@@ -64,7 +64,7 @@ Array [
       "prevVersion": 0,
       "updates": Array [
         Object {
-          "balance": 5,
+          "change": 5,
           "count": 1,
           "price": 100,
           "side": "bid",
@@ -128,7 +128,7 @@ Array [
       "prevVersion": 123456789,
       "updates": Array [
         Object {
-          "balance": -5,
+          "change": -5,
           "count": -1,
           "price": 100,
           "side": "bid",

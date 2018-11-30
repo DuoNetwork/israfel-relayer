@@ -71,7 +71,7 @@ class OrderBookUtil {
 		);
 		if (existingOrder) {
 			existingOrder.balance = newLevel.balance;
-			return 0;
+			return existingOrder.balance > 0 ? 0 : -1;
 		} else if (isBid) {
 			orderBook.bids.push(newLevel);
 			this.sortOrderBookLevels(orderBook.bids, true);
@@ -95,7 +95,7 @@ class OrderBookUtil {
 				l => l.price === update.price
 			);
 			if (existingLevel) {
-				existingLevel.balance += update.balance;
+				existingLevel.balance += update.change;
 				existingLevel.count += update.count;
 				if (!existingLevel.balance || !existingLevel.count)
 					if (isBid)
@@ -109,7 +109,7 @@ class OrderBookUtil {
 			} else if (update.count > 0) {
 				const newLevel: IOrderBookSnapshotLevel = {
 					price: update.price,
-					balance: update.balance,
+					balance: update.change,
 					count: update.count
 				};
 				if (isBid) {

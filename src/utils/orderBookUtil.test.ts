@@ -175,7 +175,7 @@ const orderBookSnapshotUpdateBid = {
 	updates: [
 		{
 			price: 110,
-			balance: 10,
+			change: 10,
 			count: 1,
 			side: 'bid'
 		}
@@ -190,14 +190,14 @@ test('updateOrderBookSnapshot, bid, existingLevel', () => {
 });
 
 test('updateOrderBookSnapshot, bid, existingLevel, updated to 0', () => {
-	orderBookSnapshotUpdateBid.updates[0].balance = -10;
+	orderBookSnapshotUpdateBid.updates[0].change = -10;
 	const orderBookSnapshotTest2 = util.clone(orderBookSnapshot);
 	orderBookUtil.updateOrderBookSnapshot(orderBookSnapshotTest2, orderBookSnapshotUpdateBid);
 	expect(orderBookSnapshotTest2).toMatchSnapshot();
 });
 
 test('updateOrderBookSnapshot, bid, not existingLevel, count > 0', () => {
-	orderBookSnapshotUpdateBid.updates[0].balance = 10;
+	orderBookSnapshotUpdateBid.updates[0].change = 10;
 	orderBookSnapshotUpdateBid.updates[0].price = 115;
 	const orderBookSnapshotTest3 = util.clone(orderBookSnapshot);
 	orderBookUtil.updateOrderBookSnapshot(orderBookSnapshotTest3, orderBookSnapshotUpdateBid);
@@ -205,7 +205,7 @@ test('updateOrderBookSnapshot, bid, not existingLevel, count > 0', () => {
 });
 
 test('updateOrderBookSnapshot, bid, not existingLevel, count = -1', () => {
-	orderBookSnapshotUpdateBid.updates[0].balance = 10;
+	orderBookSnapshotUpdateBid.updates[0].change = 10;
 	orderBookSnapshotUpdateBid.updates[0].price = 115;
 	orderBookSnapshotUpdateBid.updates[0].count = -1;
 	const orderBookSnapshotTest4 = util.clone(orderBookSnapshot);
@@ -218,7 +218,7 @@ const orderBookSnapshotUpdateAsk = {
 	updates: [
 		{
 			price: 140,
-			balance: 10,
+			change: 10,
 			count: 1,
 			side: 'ask'
 		}
@@ -234,14 +234,14 @@ test('updateOrderBookSnapshot, ask, existingLevel', () => {
 });
 
 test('updateOrderBookSnapshot, ask, existingLevel, updated to 0', () => {
-	orderBookSnapshotUpdateAsk.updates[0].balance = -10;
+	orderBookSnapshotUpdateAsk.updates[0].change = -10;
 	const orderBookSnapshotTest6 = util.clone(orderBookSnapshot);
 	orderBookUtil.updateOrderBookSnapshot(orderBookSnapshotTest6, orderBookSnapshotUpdateAsk);
 	expect(orderBookSnapshotTest6).toMatchSnapshot();
 });
 
 test('updateOrderBookSnapshot, ask, not existingLevel, count > 0', () => {
-	orderBookSnapshotUpdateAsk.updates[0].balance = 10;
+	orderBookSnapshotUpdateAsk.updates[0].change = 10;
 	orderBookSnapshotUpdateAsk.updates[0].price = 145;
 	const orderBookSnapshotTest7 = util.clone(orderBookSnapshot);
 	orderBookUtil.updateOrderBookSnapshot(orderBookSnapshotTest7, orderBookSnapshotUpdateAsk);
@@ -249,7 +249,7 @@ test('updateOrderBookSnapshot, ask, not existingLevel, count > 0', () => {
 });
 
 test('updateOrderBookSnapshot, ask, not existingLevel, count = -1', () => {
-	orderBookSnapshotUpdateAsk.updates[0].balance = 10;
+	orderBookSnapshotUpdateAsk.updates[0].change = 10;
 	orderBookSnapshotUpdateAsk.updates[0].price = 145;
 	orderBookSnapshotUpdateAsk.updates[0].count = -1;
 	const orderBookSnapshotTest8 = util.clone(orderBookSnapshot);
