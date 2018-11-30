@@ -223,7 +223,8 @@ class OrderWatcherServer {
 			option.live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN,
 			undefined,
 			{
-				cleanupJobIntervalMs: 30000
+				cleanupJobIntervalMs: 30000,
+				expirationMarginMs: 3 * CST.ONE_MINUTE_MS,
 			}
 		);
 		this.pair = option.token + '|' + CST.TOKEN_WETH;
