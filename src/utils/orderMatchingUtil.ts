@@ -74,34 +74,28 @@ class OrderMatchingUtil {
 			}
 		}
 
-		if (web3Util && signedOrdersToMatch.length > 0)
-			try {
-				let currentNonce = await web3Util.getTransactionCount();
-				signedOrdersToMatch.map(orders =>
-					web3Util.matchOrders(orders.left, orders.right, {
-						nonce: currentNonce++
-					})
-				);
+		for (const orderHash of Object.keys(balanceAftMatch)) {
+			const persistRequestLeft = {
+				method: CST.DB_UPDATE,
+				pair: balanceAftMatch[orderHash].pair,
+				orderHash: orderHash,
+				balance: balanceAftMatch[orderHash].balance,
+				requestor: CST.DB_ORDER_MATCHER,
+				status: balanceAftMatch[orderHash].balance > 0 ? CST.DB_PMATCHING : CST.DB_MATCHING
+			};
+			await orderPersistenceUtil.persistOrder(persistRequestLeft);
+		}
 
-				for (const orderHash of Object.keys(balanceAftMatch)) {
-					const persistRequestLeft = {
-						method: CST.DB_UPDATE,
-						pair: balanceAftMatch[orderHash].pair,
-						orderHash: orderHash,
-						balance: balanceAftMatch[orderHash].balance,
-						requestor: CST.DB_ORDER_MATCHER,
-						status:
-							balanceAftMatch[orderHash].balance > 0
-								? CST.DB_PMATCHING
-								: CST.DB_MATCHING
-					};
-					await orderPersistenceUtil.persistOrder(persistRequestLeft);
-				}
-			} catch (err) {
-				util.logError(JSON.stringify(err));
-				util.logDebug('error in matching transaction');
-				// TODO: removeLeftO
-			}
+		if (web3Util && signedOrdersToMatch.length > 0) {
+			let currentNonce = await web3Util.getTransactionCount();
+			const promiseList = signedOrdersToMatch.map(orders =>
+				web3Util.matchOrders(orders.left, orders.right, {
+					nonce: currentNonce++
+				})
+			);
+			const resMatches = await Promise.all(promiseList);
+			for (const res of resMatches) util.logDebug('matching result' + res);
+		}
 	}
 }
 
