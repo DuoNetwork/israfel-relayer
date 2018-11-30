@@ -99,13 +99,13 @@ export default class Web3Util {
 	public matchOrders(
 		leftOrder: SignedOrder,
 		rightOrder: SignedOrder,
-		txOption: OrderTransactionOpts
+		txOption?: OrderTransactionOpts
 	) {
 		return this.contractWrappers.exchange.matchOrdersAsync(
 			leftOrder,
 			rightOrder,
 			this.relayerAddress,
-			txOption
+			txOption || {}
 		);
 	}
 
