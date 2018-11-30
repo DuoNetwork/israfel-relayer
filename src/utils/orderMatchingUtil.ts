@@ -88,9 +88,13 @@ class OrderMatchingUtil {
 
 		if (web3Util && signedOrdersToMatch.length > 0) {
 			let currentNonce = await web3Util.getTransactionCount();
+			const curretnGasPrice = await web3Util.getGasPrice();
 			const promiseList = signedOrdersToMatch.map(orders =>
 				web3Util.matchOrders(orders.left, orders.right, {
-					nonce: currentNonce++
+					gasPrice: curretnGasPrice,
+					gasLimit: 300000,
+					nonce: currentNonce++,
+					shouldValidate: true
 				})
 			);
 			const resMatches = await Promise.all(promiseList);
