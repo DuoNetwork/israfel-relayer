@@ -71,7 +71,6 @@ class OrderBookServer {
 		if (this.web3Util && (method === CST.DB_ADD || method === CST.DB_UPDATE)) {
 			const isLeftOrderBid = leftLiveOrder.side === CST.DB_BID;
 
-			const ordersToMatch: IMatchingCandidate[] = [];
 			const rightLevels = isLeftOrderBid
 				? this.orderBook.asks.filter(a => a.price <= leftLiveOrder.price && a.balance > 0)
 				: this.orderBook.bids.filter(b => b.price >= leftLiveOrder.price && b.balance > 0);
@@ -82,22 +81,14 @@ class OrderBookServer {
 				let rightLevel = rightLevels[0];
 				let rightLiveOrder = rightLiveOrders[0];
 				let matchable = true;
+				const ordersToMatch: IMatchingCandidate[] = [];
+				const orderBookLevelUpdates: IOrderBookLevelUpdate[] = [];
 				while (matchable) {
 					const matchedAmt = Math.min(leftLiveOrder.balance, rightLevel.balance);
 					rightLevel.balance = rightLevel.balance - matchedAmt;
 					rightLiveOrder.balance = rightLiveOrder.balance - matchedAmt;
 					leftLiveOrder.balance = leftLiveOrder.balance - matchedAmt;
 
-					await this.updateOrderBookAndSnapshot([
-						{
-							liveOrder: leftLiveOrder,
-							method: CST.DB_UPDATE
-						},
-						{
-							liveOrder: rightLiveOrder as ILiveOrder,
-							method: CST.DB_UPDATE
-						}
-					]);
 					ordersToMatch.push({
 						left: {
 							orderHash: leftLiveOrder.orderHash,
@@ -111,6 +102,19 @@ class OrderBookServer {
 						amount: matchedAmt
 					});
 
+					orderBookLevelUpdates.push({
+						price: leftLiveOrder.price,
+						balance: leftLiveOrder.balance,
+						count: method === CST.DB_ADD ? 1 : 0,
+						side: leftLiveOrder.side
+					});
+					orderBookLevelUpdates.push({
+						price: rightLiveOrder.price,
+						balance: rightLiveOrder.balance,
+						count: 0,
+						side: rightLiveOrder.side
+					});
+
 					if (rightLevel.balance > 0) matchable = false;
 					else {
 						rightIdx++;
@@ -118,6 +122,8 @@ class OrderBookServer {
 						rightLiveOrder = rightLiveOrders[rightIdx];
 					}
 				}
+
+				await this.updateOrderBookSnapshot(orderBookLevelUpdates);
 				if (this.web3Util && ordersToMatch.length > 0) {
 					let currentNonce = await this.web3Util.getTransactionCount();
 					ordersToMatch.map(order =>
