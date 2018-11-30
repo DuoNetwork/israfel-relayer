@@ -70,46 +70,19 @@ class OrderBookServer {
 		if (this.web3Util && method === CST.DB_ADD) {
 			let matchable = true;
 			const isLeftOrderBid = leftLiveOrder.side === CST.DB_BID;
-			let rightLiveOrder;
-			let rightLevel;
+
 			const ordersToMatch: IMatchingCandidate[] = [];
+			const rightLevels = isLeftOrderBid
+				? this.orderBook.asks.filter(a => a.price <= leftLiveOrder.price && a.balance > 0)
+				: this.orderBook.bids.filter(b => b.price >= leftLiveOrder.price && b.balance > 0);
+			const rightLiveOrders = rightLevels.map(level => this.liveOrders[level.orderHash]);
+
+			if (!rightLevels.length) matchable = false;
+			let rightIdx = 0;
+			let rightLevel = rightLevels[0];
+			let rightLiveOrder = rightLiveOrders[0];
 			while (matchable) {
-				if (leftLiveOrder.balance <= 0) {
-					matchable = false;
-					break;
-				}
-				if (
-					(isLeftOrderBid && !this.orderBook.asks.length) ||
-					(!isLeftOrderBid && !this.orderBook.bids.length)
-				) {
-					matchable = false;
-					break;
-				}
-				if (isLeftOrderBid) {
-					rightLevel = this.orderBook.asks.find(level => level.balance > 0);
-					if (!rightLevel) {
-						matchable = false;
-						break;
-					}
-					rightLiveOrder = this.liveOrders[rightLevel.orderHash];
-				} else {
-					rightLevel = this.orderBook.bids.find(level => level.balance > 0);
-					if (!rightLevel) {
-						matchable = false;
-						break;
-					}
-					rightLiveOrder = this.liveOrders[rightLevel.orderHash];
-				}
-
-				if (
-					(isLeftOrderBid && leftLiveOrder.price < rightLiveOrder.price) ||
-					(!isLeftOrderBid && leftLiveOrder.price > rightLiveOrder.price)
-				) {
-					matchable = false;
-					break;
-				}
-
-				const matchedAmt = Math.min(leftLiveOrder.balance, rightLiveOrder.balance);
+				const matchedAmt = Math.min(leftLiveOrder.balance, rightLevel.balance);
 				rightLevel.balance = rightLevel.balance - matchedAmt;
 				rightLiveOrder.balance = rightLiveOrder.balance - matchedAmt;
 				leftLiveOrder.balance = leftLiveOrder.balance - matchedAmt;
@@ -136,9 +109,13 @@ class OrderBookServer {
 					pair: this.pair,
 					amount: matchedAmt
 				});
-				util.logDebug('matchinged amount ' + matchedAmt);
-				leftLiveOrder.balance = leftLiveOrder.balance - matchedAmt;
-				rightLiveOrder.balance = rightLiveOrder.balance - matchedAmt;
+
+				if (rightLevel.balance > 0) matchable = false;
+				else {
+					rightIdx++;
+					rightLevel = rightLevels[rightIdx];
+					rightLiveOrder = rightLiveOrders[rightIdx];
+				}
 			}
 			if (this.web3Util && ordersToMatch.length > 0) {
 				let currentNonce = await this.web3Util.getTransactionCount();
