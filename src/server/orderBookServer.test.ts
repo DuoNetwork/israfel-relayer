@@ -4,6 +4,7 @@ import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import util from '../utils/util';
 import orderBookServer from './orderBookServer';
+import orderMatchingUtil from '../utils/orderMatchingUtil';
 
 orderBookServer.pair = 'code1|code2';
 const channel = 'xxx|xxx|code1|code2';
@@ -122,6 +123,10 @@ test('loadLiveOrders', async () => {
 	orderPersistenceUtil.getAllLiveOrdersInPersistence = jest.fn(() => Promise.resolve(liveOrders));
 	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve(true));
 	orderBookServer.handleOrderUpdate = jest.fn(() => Promise.resolve());
+	orderMatchingUtil.findMatchingOrders = jest.fn(() => ({
+		ordersToMatch: [],
+		orderBookLevelUpdates: []
+	}))
 	expect(orderBookServer.loadingOrders).toBeTruthy();
 	await orderBookServer.loadLiveOrders();
 	expect(orderBookServer.orderBook).toMatchSnapshot();

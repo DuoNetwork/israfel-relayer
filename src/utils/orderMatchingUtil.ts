@@ -1,12 +1,106 @@
 import { BigNumber, SignedOrder } from '0x.js';
 import * as CST from '../common/constants';
-import { IMatchingCandidate, IStringSignedOrder } from '../common/types';
+import {
+	ILiveOrder,
+	IMatchingCandidate,
+	IOrderBook,
+	IOrderBookLevelUpdate,
+	IStringSignedOrder
+} from '../common/types';
 import orderPersistenceUtil from './orderPersistenceUtil';
 import orderUtil from './orderUtil';
 import util from './util';
 import Web3Util from './Web3Util';
 
 class OrderMatchingUtil {
+	public findMatchingOrders(
+		orderBook: IOrderBook,
+		liveOrders: { [orderHash: string]: ILiveOrder },
+		updatesRequired: boolean = false
+	): {
+		ordersToMatch: IMatchingCandidate[];
+		orderBookLevelUpdates: IOrderBookLevelUpdate[];
+	} {
+		const { bids, asks } = orderBook;
+		const ordersToMatch: IMatchingCandidate[] = [];
+		const orderBookLevelUpdates: IOrderBookLevelUpdate[] = [];
+		if (bids.length && asks.length) {
+			const bestBid = bids.find(level => level.balance > 0);
+			const bestAsk = asks.find(level => level.balance > 0);
+			if (!bestBid || !bestAsk || bestAsk.price > bestBid.price)
+				return {
+					ordersToMatch,
+					orderBookLevelUpdates
+				};
+
+			const bidsToMatch = bids.filter(b => b.price >= bestAsk.price && b.balance > 0);
+			const asksToMatch = asks.filter(a => a.price <= bestBid.price && a.balance > 0);
+
+			let done = false;
+			let bidIdx = 0;
+			let askIdx = 0;
+			while (!done) {
+				const bid = bidsToMatch[bidIdx];
+				const ask = asksToMatch[askIdx];
+				const bidLiveOrder = liveOrders[bid.orderHash];
+				if (!bidLiveOrder) {
+					util.logDebug('missing live order for ' + bid.orderHash);
+					bidIdx++;
+					continue;
+				}
+				const askLiveOrder = liveOrders[ask.orderHash];
+				if (!askLiveOrder) {
+					util.logDebug('missing live order for ' + ask.orderHash);
+					askIdx++;
+					continue;
+				}
+				const matchBalance = Math.min(bid.balance, ask.balance);
+				ordersToMatch.push({
+					left: {
+						orderHash: bid.orderHash,
+						balance: bid.balance
+					},
+					right: {
+						orderHash: ask.orderHash,
+						balance: ask.balance
+					}
+				});
+				if (bid.balance < ask.balance) bidIdx++;
+				else if (bid.balance > ask.balance) askIdx++;
+				else {
+					bidIdx++;
+					askIdx++;
+				}
+
+				bid.balance -= matchBalance;
+				ask.balance -= matchBalance;
+				bidLiveOrder.balance -= matchBalance;
+				askLiveOrder.balance -= matchBalance;
+				if (updatesRequired) {
+					orderBookLevelUpdates.push({
+						price: bid.price,
+						change: -matchBalance,
+						count: bid.balance > 0 ? 0 : -1,
+						side: bidLiveOrder.side
+					});
+					orderBookLevelUpdates.push({
+						price: ask.price,
+						change: -matchBalance,
+						count: ask.balance > 0 ? 0 : -1,
+						side: askLiveOrder.side
+					});
+				}
+
+				if (bidIdx >= bidsToMatch.length || askIdx >= asksToMatch.length) done = true;
+			}
+		}
+
+		return {
+			ordersToMatch,
+			orderBookLevelUpdates
+		};
+	}
+
 	public async matchOrders(
 		web3Util: Web3Util,
 		pair: string,

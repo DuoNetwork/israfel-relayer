@@ -73,61 +73,12 @@ class OrderBookServer {
 				method: method
 			})
 		];
-		const ordersToMatch: IMatchingCandidate[] = [];
+		let ordersToMatch: IMatchingCandidate[] = [];
 		const leftLiveOrder = orderQueueItem.liveOrder;
 		if (method !== CST.DB_TERMINATE && leftLiveOrder.balance > 0) {
-			// there can only be two cases
-			// 1) add new orrder
-			// 2) update, an existing order with balance 0 is updated to new balance
-			const isLeftOrderBid = leftLiveOrder.side === CST.DB_BID;
-			const leftOriginalBalance = leftLiveOrder.balance;
-
-			const rightLevels = isLeftOrderBid
-				? this.orderBook.asks.filter(a => a.price <= leftLiveOrder.price && a.balance > 0)
-				: this.orderBook.bids.filter(b => b.price >= leftLiveOrder.price && b.balance > 0);
-			const rightLiveOrders = rightLevels.map(level => this.liveOrders[level.orderHash]);
-
-			if (rightLevels.length) {
-				let rightIdx = 0;
-				let rightLevel = rightLevels[0];
-				let rightLiveOrder = rightLiveOrders[0];
-				while (true) {
-					const matchedAmt = Math.min(leftLiveOrder.balance, rightLevel.balance);
-					rightLevel.balance = rightLevel.balance - matchedAmt;
-					rightLiveOrder.balance = rightLiveOrder.balance - matchedAmt;
-					leftLiveOrder.balance = leftLiveOrder.balance - matchedAmt;
-
-					ordersToMatch.push({
-						left: {
-							orderHash: leftLiveOrder.orderHash,
-							balance: leftLiveOrder.balance
-						},
-						right: {
-							orderHash: rightLiveOrder.orderHash,
-							balance: rightLiveOrder.balance
-						}
-					});
-
-					orderBookLevelUpdates.push({
-						price: rightLiveOrder.price,
-						change: -matchedAmt,
-						count: 0,
-						side: rightLiveOrder.side
-					});
-
-					rightIdx++;
-					if (rightLevel.balance > 0 || rightIdx >= rightLevels.length) break;
-					rightLevel = rightLevels[rightIdx];
-					rightLiveOrder = rightLiveOrders[rightIdx];
-				}
-
-				orderBookLevelUpdates.push({
-					price: leftLiveOrder.price,
-					change: leftLiveOrder.balance - leftOriginalBalance,
-					count: leftLiveOrder.balance > 0 ? 0 : -1,
-					side: leftLiveOrder.side
-				});
-			}
+			const matchinResult = orderMatchingUtil.findMatchingOrders(this.orderBook, this.liveOrders);
+			ordersToMatch = matchinResult.ordersToMatch;
+			orderBookLevelUpdates.push(...matchinResult.orderBookLevelUpdates);
 		}
 
 		await this.updateOrderBookSnapshot(orderBookLevelUpdates);
@@ -164,7 +115,6 @@ class OrderBookServer {
 		else delete this.liveOrders[orderHash];
 
 		return orderBookLevelUpdates;
-		// await this.updateOrderBookSnapshot(orderBookLevelUpdates);
 	}
 
 	public async updateOrderBookSnapshot(orderBookLevelUpdates: IOrderBookLevelUpdate[]) {
@@ -210,7 +160,9 @@ class OrderBookServer {
 		this.updateOrderSequences();
 		this.orderBook = orderBookUtil.constructOrderBook(this.liveOrders);
 		util.logDebug('start matchig ordderBook');
-		await this.matchOrderBook();
+		const matchingResult = orderMatchingUtil.findMatchingOrders(this.orderBook, this.liveOrders);
+		if (matchingResult.ordersToMatch.length)
+			await orderMatchingUtil.matchOrders(this.web3Util as Web3Util, this.pair, matchingResult.ordersToMatch);
 		util.logInfo('completed matching orderBook as a whole in cold start');
 		this.orderBookSnapshot = orderBookUtil.renderOrderBookSnapshot(this.pair, this.orderBook);
 		await orderBookPersistenceUtil.publishOrderBookUpdate(this.pair, this.orderBookSnapshot);
@@ -218,68 +170,6 @@ class OrderBookServer {
 		for (const updateItem of this.pendingUpdates)
 			await this.handleOrderUpdate('pending', updateItem);
 		this.pendingUpdates = [];
-	}
-
-	public async matchOrderBook() {
-		const { bids, asks } = this.orderBook;
-		if (this.web3Util && bids.length && asks.length) {
-			const bestBid = bids.find(level => level.balance > 0);
-			const bestAsk = asks.find(level => level.balance > 0);
-			if (!bestBid || !bestAsk) return;
-
-			if (bestAsk.price > bestBid.price) return;
-
-			const bidsToMatch = bids.filter(b => b.price >= bestAsk.price && b.balance > 0);
-			const asksToMatch = asks.filter(a => a.price <= bestBid.price && a.balance > 0);
-
-			const ordersToMatch: IMatchingCandidate[] = [];
-			let done = false;
-			let bidIdx = 0;
-			let askIdx = 0;
-			while (!done) {
-				const bid = bidsToMatch[bidIdx];
-				const ask = asksToMatch[askIdx];
-				const bidLiveOrder = this.liveOrders[bid.orderHash];
-				if (!bidLiveOrder) {
-					util.logDebug('missing live order for ' + bid.orderHash);
-					bidIdx++;
-					continue;
-				}
-				const askLiveOrder = this.liveOrders[ask.orderHash];
-				if (!askLiveOrder) {
-					util.logDebug('missing live order for ' + ask.orderHash);
-					askIdx++;
-					continue;
-				}
-				const matchBalance = Math.min(bid.balance, ask.balance);
-				ordersToMatch.push({
-					left: {
-						orderHash: bid.orderHash,
-						balance: bid.balance
-					},
-					right: {
-						orderHash: ask.orderHash,
-						balance: ask.balance
-					}
-				});
-				if (bid.balance < ask.balance) bidIdx++;
-				else if (bid.balance > ask.balance) askIdx++;
-				else {
-					bidIdx++;
-					askIdx++;
-				}
-
-				bid.balance -= matchBalance;
-				ask.balance -= matchBalance;
-				bidLiveOrder.balance -= matchBalance;
-				askLiveOrder.balance -= matchBalance;
-
-				if (bidIdx >= bidsToMatch.length || askIdx >= asksToMatch.length) done = true;
-			}
-
-			if (ordersToMatch.length > 0)
-				orderMatchingUtil.matchOrders(this.web3Util, this.pair, ordersToMatch);
-		}
 	}
 
 	public async startServer(web3Util: Web3Util, option: IOption) {
