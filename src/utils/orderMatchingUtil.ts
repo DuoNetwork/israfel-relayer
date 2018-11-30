@@ -17,7 +17,7 @@ class OrderMatchingUtil {
 		web3Util: Web3Util,
 		order: IMatchingCandidate,
 		// isLeftOrderBid: boolean,
-		option: OrderTransactionOpts
+		txOption: OrderTransactionOpts
 	) {
 		// const price = leftLiveOrder.price;
 		// const pair = rightLiveOrder.pair;
@@ -62,8 +62,12 @@ class OrderMatchingUtil {
 		// if (shouldReturn) return obj;
 
 		//check order isExisting
-		const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(order.left.orderHash);
-		const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(order.right.orderHash);
+		const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
+			order.left.orderHash
+		);
+		const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
+			order.right.orderHash
+		);
 		if (!leftRawOrder)
 			util.logError(
 				`raw order of ${order.left.orderHash}	rightLiveOrder.orderHash
@@ -108,12 +112,7 @@ class OrderMatchingUtil {
 		// if (shouldReturn) return obj;
 
 		try {
-			await web3Util.contractWrappers.exchange.matchOrdersAsync(
-				leftOrder,
-				rightOrder,
-				web3Util.relayerAddress,
-				option
-			);
+			await web3Util.matchOrders(leftOrder, rightOrder, txOption);
 
 			const persistRequestLeft = {
 				method: CST.DB_UPDATE,
@@ -180,7 +179,7 @@ class OrderMatchingUtil {
 					leftMakerBalance / leftLiveOrder.price,
 					leftMakerAllowance / leftLiveOrder.price,
 					leftLiveOrder.balance
-		)
+			)
 			: Math.min(leftMakerBalance, leftMakerAllowance, leftLiveOrder.balance);
 
 		const rightTokenAddr = (await assetDataUtils.decodeAssetDataOrThrow(

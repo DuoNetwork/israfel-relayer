@@ -9,6 +9,7 @@ import {
 	generatePseudoRandomSalt,
 	Order,
 	orderHashUtils,
+	OrderTransactionOpts,
 	RPCSubprovider,
 	signatureUtils,
 	SignedOrder,
@@ -93,6 +94,19 @@ export default class Web3Util {
 
 	public getGasPrice() {
 		return this.web3Eth.getGasPrice();
+	}
+
+	public matchOrders(
+		leftOrder: SignedOrder,
+		rightOrder: SignedOrder,
+		txOption: OrderTransactionOpts
+	) {
+		return this.contractWrappers.exchange.matchOrdersAsync(
+			leftOrder,
+			rightOrder,
+			this.relayerAddress,
+			txOption
+		);
 	}
 
 	public web3PersonalSign(account: string, message: string): Promise<string> {
