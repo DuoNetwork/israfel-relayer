@@ -93,23 +93,23 @@ test('handleAddOrderRequest invalid order', async () => {
 	});
 	relayerServer.web3Util = {
 		tokens: [],
-		validateOrder: jest.fn(() => '0xOrderHash'),
-		validateOrderFillable: jest.fn(() => Promise.resolve(false))
+		validateOrder: jest.fn(() => '0xOrderHash')
+		// validateOrderFillable: jest.fn(() => Promise.resolve(false))
 	} as any;
-	await relayerServer.handleAddOrderRequest({} as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_ADD,
-		pair: 'code1|code2',
-		order: signedOrder,
-		orderHash: '0xOrderHash'
-	});
-	relayerServer.web3Util = {
-		tokens: [{
-			code: 'code1'
-		}],
-		validateOrder: jest.fn(() => '0xOrderHash'),
-		validateOrderFillable: jest.fn(() => Promise.resolve(false))
-	} as any;
+	// await relayerServer.handleAddOrderRequest({} as any, {
+	// 	channel: CST.DB_ORDERS,
+	// 	method: CST.DB_ADD,
+	// 	pair: 'code1|code2',
+	// 	order: signedOrder,
+	// 	orderHash: '0xOrderHash'
+	// });
+	// relayerServer.web3Util = {
+	// 	tokens: [{
+	// 		code: 'code1'
+	// 	}],
+	// 	validateOrder: jest.fn(() => '0xOrderHash')
+	// 	// validateOrderFillable: jest.fn(() => Promise.resolve(false))
+	// } as any;
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
@@ -121,16 +121,16 @@ test('handleAddOrderRequest invalid order', async () => {
 		tokens: [{
 			code: 'code1'
 		}],
-		validateOrder: jest.fn(() => '0xOrderHash'),
-		validateOrderFillable: jest.fn(() => Promise.resolve(false))
+		validateOrder: jest.fn(() => '0xOrderHash')
+		// validateOrderFillable: jest.fn(() => Promise.resolve(false))
 	} as any;
-	await relayerServer.handleAddOrderRequest({} as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_ADD,
-		pair: 'code1|code2',
-		order: signedOrder,
-		orderHash: '0xOrderHash'
-	});
+	// await relayerServer.handleAddOrderRequest({} as any, {
+	// 	channel: CST.DB_ORDERS,
+	// 	method: CST.DB_ADD,
+	// 	pair: 'code1|code2',
+	// 	order: signedOrder,
+	// 	orderHash: '0xOrderHash'
+	// });
 	expect(orderPersistenceUtil.persistOrder as jest.Mock).not.toBeCalled();
 	expect(relayerServer.sendUserOrderResponse as jest.Mock).not.toBeCalled();
 	expect((relayerServer.sendErrorOrderResponse as jest.Mock).mock.calls).toMatchSnapshot();

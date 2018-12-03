@@ -178,7 +178,7 @@ class OrderMatchingUtil {
 							shouldValidate: true
 						})
 						.then(res => util.logDebug('matching result' + res))
-						.catch(error => util.logDebug('matching error ' + error))
+						.catch(error => util.logDebug('matching error ' + JSON.stringify(error)))
 				)
 			);
 		}

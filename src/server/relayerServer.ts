@@ -82,8 +82,8 @@ class RelayerServer {
 			orderHash &&
 			orderHash === req.orderHash &&
 			token &&
-			this.web3Util &&
-			(await this.web3Util.validateOrderFillable(parsedSignedorder))
+			this.web3Util
+			// (await this.web3Util.validateOrderFillable(parsedSignedorder))
 		) {
 			util.logDebug('order valided, persisting');
 			try {
