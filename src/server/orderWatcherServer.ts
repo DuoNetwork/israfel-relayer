@@ -217,7 +217,7 @@ class OrderWatcherServer {
 
 	public async startServer(web3Util: Web3Util, option: IOption) {
 		this.web3Util = web3Util;
-		const provider = this.web3Util.zrxWeb3Wrapper.getProvider();
+		const provider = this.web3Util.web3Wrapper.getProvider();
 		this.orderWatcher = new OrderWatcher(
 			provider,
 			option.live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN,

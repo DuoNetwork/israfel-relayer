@@ -19,11 +19,14 @@ import { getContractAddressesForNetworkOrThrow } from '@0x/contract-addresses';
 import { schemas, SchemaValidator } from '@0x/json-schemas';
 import { MetamaskSubprovider, PrivateKeyWalletSubprovider } from '@0x/subproviders';
 import { addressUtils } from '@0x/utils';
-import { Web3Wrapper as ZrxWeb3Wrapper } from '@0x/web3-wrapper';
-import Web3 from 'web3';
+import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as CST from '../common/constants';
 import { IRawOrder, IStringSignedOrder, IToken } from '../common/types';
 import util from './util';
+
+const Web3Eth = require('web3-eth');
+const Web3Accounts = require('web3-eth-accounts');
+const Web3Personal = require('web3-eth-personal');
 
 export enum Wallet {
 	None,
@@ -34,13 +37,13 @@ export enum Wallet {
 
 export default class Web3Util {
 	public contractWrappers: ContractWrappers;
-	public zrxWeb3Wrapper: ZrxWeb3Wrapper;
-	public web3: Web3;
+	public web3Wrapper: Web3Wrapper;
 	public wallet: Wallet = Wallet.None;
 	public accountIndex: number = 0;
 	public networkId: number = CST.NETWORK_ID_KOVAN;
 	public tokens: IToken[] = [];
 	private rawMetamaskProvider: any = null;
+	private web3Eth: any = null;
 	private web3Accounts: any = null;
 	private web3Personal: any = null;
 	public contractAddresses: ContractAddresses;
@@ -50,34 +53,34 @@ export default class Web3Util {
 		this.networkId = live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN;
 		if (window && typeof window.web3 !== 'undefined') {
 			this.rawMetamaskProvider = window.web3.currentProvider;
-			this.web3 = new Web3(window.web3.currentProvider);
-			this.zrxWeb3Wrapper = new ZrxWeb3Wrapper(
+			this.web3Personal = new Web3Personal(this.rawMetamaskProvider);
+			this.web3Wrapper = new Web3Wrapper(
 				new MetamaskSubprovider(window.web3.currentProvider)
 			);
 			this.wallet = Wallet.MetaMask;
 		} else {
 			const pe = new Web3ProviderEngine();
-			if (local) {
-				pe.addProvider(new RPCSubprovider(CST.PROVIDER_LOCAL));
-				this.web3 = new Web3(CST.PROVIDER_LOCAL);
-			} else {
+			if (local) pe.addProvider(new RPCSubprovider(CST.PROVIDER_LOCAL));
+			else {
 				const infura = require('../keys/infura.json');
 				const infuraProvider =
 					(live ? CST.PROVIDER_INFURA_MAIN : CST.PROVIDER_INFURA_KOVAN) +
 					'/' +
 					infura.token;
-				if (!window && privateKey)
+				if (!window && privateKey) {
 					pe.addProvider(new PrivateKeyWalletSubprovider(privateKey));
+					this.web3Eth = new Web3Eth(infuraProvider);
+				}
 
 				pe.addProvider(new RPCSubprovider(infuraProvider));
-				this.web3 = new Web3(infuraProvider);
 			}
 			pe.start();
-			this.zrxWeb3Wrapper = new ZrxWeb3Wrapper(pe);
+			this.web3Wrapper = new Web3Wrapper(pe);
+			this.web3Accounts = new Web3Accounts(this.web3Wrapper.getProvider());
 			this.wallet = local || (!window && privateKey) ? Wallet.Local : Wallet.None;
 		}
 
-		this.contractWrappers = new ContractWrappers(this.zrxWeb3Wrapper.getProvider(), {
+		this.contractWrappers = new ContractWrappers(this.web3Wrapper.getProvider(), {
 			networkId: this.networkId
 		});
 
@@ -86,11 +89,11 @@ export default class Web3Util {
 	}
 
 	public getTransactionCount() {
-		return this.web3.eth.getTransactionCount(this.relayerAddress);
+		return this.web3Eth.getTransactionCount(this.relayerAddress);
 	}
 
 	public getGasPrice() {
-		return this.web3.eth.getGasPrice();
+		return this.web3Eth.getGasPrice();
 	}
 
 	public matchOrders(
@@ -139,12 +142,12 @@ export default class Web3Util {
 	}
 
 	public async getCurrentAddress(): Promise<string> {
-		const accounts = await this.zrxWeb3Wrapper.getAvailableAddressesAsync();
+		const accounts = await this.web3Wrapper.getAvailableAddressesAsync();
 		return accounts[this.accountIndex] || CST.DUMMY_ADDR;
 	}
 
 	public getCurrentNetwork(): Promise<number> {
-		return this.zrxWeb3Wrapper.getNetworkIdAsync();
+		return this.web3Wrapper.getNetworkIdAsync();
 	}
 
 	public static createRawOrderWithoutSalt(
@@ -163,8 +166,8 @@ export default class Web3Util {
 			takerAddress: relayerAddr.toLowerCase(),
 			makerFee: new BigNumber(0),
 			takerFee: new BigNumber(0),
-			makerAssetAmount: ZrxWeb3Wrapper.toBaseUnitAmount(new BigNumber(makerAmt), 18),
-			takerAssetAmount: ZrxWeb3Wrapper.toBaseUnitAmount(new BigNumber(takerAmt), 18),
+			makerAssetAmount: Web3Wrapper.toBaseUnitAmount(new BigNumber(makerAmt), 18),
+			takerAssetAmount: Web3Wrapper.toBaseUnitAmount(new BigNumber(takerAmt), 18),
 			makerAssetData: assetDataUtils.encodeERC20AssetData(makerAssetAddr),
 			takerAssetData: assetDataUtils.encodeERC20AssetData(takerAssetAddr),
 			salt: new BigNumber(0),
@@ -198,7 +201,7 @@ export default class Web3Util {
 
 		const orderHash = orderHashUtils.getOrderHashHex(order);
 		const signedOrder = await signatureUtils.ecSignOrderAsync(
-			this.zrxWeb3Wrapper.getProvider(),
+			this.web3Wrapper.getProvider(),
 			order,
 			order.makerAddress
 		);
@@ -213,11 +216,11 @@ export default class Web3Util {
 	};
 
 	public static fromWei = (value: BigNumber | string): number => {
-		return Number(ZrxWeb3Wrapper.toUnitAmount(new BigNumber(value), 18).valueOf());
+		return Number(Web3Wrapper.toUnitAmount(new BigNumber(value), 18).valueOf());
 	};
 
 	public static toWei = (value: BigNumber | string): number => {
-		return Number(ZrxWeb3Wrapper.toWei(new BigNumber(value)).valueOf());
+		return Number(Web3Wrapper.toWei(new BigNumber(value)).valueOf());
 	};
 
 	public static getSideFromSignedOrder(
@@ -241,7 +244,7 @@ export default class Web3Util {
 
 		const orderHash = orderHashUtils.getOrderHashHex(order);
 		const isValidSig = await signatureUtils.isValidSignatureAsync(
-			this.zrxWeb3Wrapper.getProvider(),
+			this.web3Wrapper.getProvider(),
 			orderHash,
 			signature,
 			order.makerAddress
@@ -290,13 +293,13 @@ export default class Web3Util {
 			return this.contractWrappers.erc20Token.setProxyAllowanceAsync(
 				tokenAddress,
 				await this.getCurrentAddress(),
-				new BigNumber(0)
+				Web3Wrapper.toWei(new BigNumber(0))
 			);
 		return Promise.reject();
 	}
 
 	public async getEthBalance(address: string) {
-		return Web3Util.fromWei(await this.zrxWeb3Wrapper.getBalanceInWeiAsync(address));
+		return Web3Util.fromWei(await this.web3Wrapper.getBalanceInWeiAsync(address));
 	}
 
 	public async getTokenBalance(code: string, address: string) {
@@ -311,7 +314,7 @@ export default class Web3Util {
 	public async wrapEther(amount: number) {
 		return this.contractWrappers.etherToken.depositAsync(
 			this.contractAddresses.etherToken,
-			ZrxWeb3Wrapper.toWei(new BigNumber(amount)),
+			Web3Wrapper.toWei(new BigNumber(amount)),
 			await this.getCurrentAddress()
 		);
 	}
@@ -319,7 +322,7 @@ export default class Web3Util {
 	public async unwrapEther(amount: number) {
 		return this.contractWrappers.etherToken.withdrawAsync(
 			this.contractAddresses.etherToken,
-			ZrxWeb3Wrapper.toWei(new BigNumber(amount)),
+			Web3Wrapper.toWei(new BigNumber(amount)),
 			await this.getCurrentAddress()
 		);
 	}
