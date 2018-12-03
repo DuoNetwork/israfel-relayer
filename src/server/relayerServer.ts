@@ -124,7 +124,7 @@ class RelayerServer {
 		util.logDebug(`terminate order ${req.orderHash}`);
 		const { pair, orderHash, signature } = req;
 		const account = this.web3Util
-			? this.web3Util.web3AccountsRecover(CST.TERMINATE_SIGN_MSG + orderHash, signature)
+			? this.web3Util.web3AccountsRecover(CST.TERMINATE_SIGN_MSG + orderHash, signature).toLowerCase()
 			: '';
 		const liveOrder = await orderPersistenceUtil.getLiveOrderInPersistence(pair, orderHash);
 		if (account && liveOrder && liveOrder.account === account)
