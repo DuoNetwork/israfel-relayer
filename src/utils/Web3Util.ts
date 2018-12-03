@@ -179,6 +179,7 @@ export default class Web3Util {
 	}
 
 	public async createRawOrder(
+		pair: string,
 		userAddr: string,
 		relayerAddr: string,
 		makerAssetAddr: string,
@@ -207,6 +208,7 @@ export default class Web3Util {
 			order.makerAddress
 		);
 		return {
+			pair: pair,
 			orderHash: orderHash,
 			signedOrder: signedOrder
 		};
@@ -366,7 +368,7 @@ export default class Web3Util {
 	}
 
 	public getTransactionReceipt(txHash: string) {
-		return this.web3Wrapper.getTransactionReceiptIfExistsAsync(txHash)
+		return this.web3Wrapper.getTransactionReceiptIfExistsAsync(txHash);
 	}
 
 	public static toChecksumAddress(address: string): string {

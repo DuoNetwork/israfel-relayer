@@ -32,6 +32,7 @@ test('constructNewLiveOrder bid', () => {
 		orderUtil.constructNewLiveOrder(
 			signedOrder,
 			{
+				custodian: 'custodian',
 				address: 'takerAddress',
 				code: 'takerCode',
 				denomination: 1,
@@ -58,6 +59,7 @@ test('constructNewLiveOrder ask', () => {
 		orderUtil.constructNewLiveOrder(
 			signedOrder,
 			{
+				custodian: 'custodian',
 				address: 'makerAddress',
 				code: 'makerCode',
 				denomination: 1,
@@ -200,6 +202,7 @@ test('getFillBeforeFee bid flat', () => {
 			signedOrder,
 			56,
 			{
+				custodian: 'custodian',
 				address: 'takerAddress',
 				code: 'takerTokenCode',
 				denomination: 1,
@@ -223,6 +226,7 @@ test('getFillBeforeFee bid ratio', () => {
 			signedOrder,
 			56,
 			{
+				custodian: 'custodian',
 				address: 'takerAddress',
 				code: 'takerTokenCode',
 				denomination: 1,
@@ -246,6 +250,7 @@ test('getFillBeforeFee ask flat', () => {
 			signedOrder,
 			56,
 			{
+				custodian: 'custodian',
 				address: 'makerAddress',
 				code: 'makerTokenCode',
 				denomination: 1,
@@ -269,6 +274,7 @@ test('getFillBeforeFee ask ratio', () => {
 			signedOrder,
 			56,
 			{
+				custodian: 'custodian',
 				address: 'makerAddress',
 				code: 'makerTokenCode',
 				denomination: 1,
@@ -292,6 +298,7 @@ test('getFillBeforeFee bid base flat', () => {
 			signedOrder,
 			56,
 			{
+				custodian: 'custodian',
 				address: 'takerAddress',
 				code: 'takerTokenCode',
 				denomination: 1,
@@ -316,6 +323,7 @@ test('getFillBeforeFee bid base ratio', () => {
 			signedOrder,
 			56,
 			{
+				custodian: 'custodian',
 				address: 'takerAddress',
 				code: 'takerTokenCode',
 				denomination: 1,
@@ -340,6 +348,7 @@ test('getFillBeforeFee ask base flat', () => {
 			signedOrder,
 			56,
 			{
+				custodian: 'custodian',
 				address: 'makerAddress',
 				code: 'makerTokenCode',
 				denomination: 1,
@@ -364,6 +373,7 @@ test('getFillBeforeFee ask base ratio', () => {
 			signedOrder,
 			56,
 			{
+				custodian: 'custodian',
 				address: 'makerAddress',
 				code: 'makerTokenCode',
 				denomination: 1,
