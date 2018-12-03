@@ -88,6 +88,7 @@ test('handleAddOrderRequest invalid order', async () => {
 	relayerServer.sendErrorOrderResponse = jest.fn();
 	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
+	// no web3Util
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
@@ -95,48 +96,45 @@ test('handleAddOrderRequest invalid order', async () => {
 		order: signedOrder,
 		orderHash: '0xOrderHash'
 	});
+
 	relayerServer.web3Util = {
-		tokens: [],
-		validateOrder: jest.fn(() => '0xOrderHash')
-		// validateOrderFillable: jest.fn(() => Promise.resolve(false))
+		tokens: []
 	} as any;
-	// await relayerServer.handleAddOrderRequest({} as any, {
-	// 	channel: CST.DB_ORDERS,
-	// 	method: CST.DB_ADD,
-	// 	pair: 'code1|code2',
-	// 	order: signedOrder,
-	// 	orderHash: '0xOrderHash'
-	// });
-	// relayerServer.web3Util = {
-	// 	tokens: [{
-	// 		code: 'code1'
-	// 	}],
-	// 	validateOrder: jest.fn(() => '0xOrderHash')
-	// 	// validateOrderFillable: jest.fn(() => Promise.resolve(false))
-	// } as any;
+	// no token
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_ADD,
 		pair: 'code1|code2',
 		order: signedOrder,
-		orderHash: '0xInvalidHash'
+		orderHash: '0xOrderHash'
 	});
+
 	relayerServer.web3Util = {
 		tokens: [
 			{
 				code: 'code1'
 			}
-		],
-		validateOrder: jest.fn(() => '0xOrderHash')
-		// validateOrderFillable: jest.fn(() => Promise.resolve(false))
+		]
 	} as any;
-	// await relayerServer.handleAddOrderRequest({} as any, {
-	// 	channel: CST.DB_ORDERS,
-	// 	method: CST.DB_ADD,
-	// 	pair: 'code1|code2',
-	// 	order: signedOrder,
-	// 	orderHash: '0xOrderHash'
-	// });
+	orderUtil.validateOrder = jest.fn(() => Promise.resolve(''));
+	// failed validation test
+	await relayerServer.handleAddOrderRequest({} as any, {
+		channel: CST.DB_ORDERS,
+		method: CST.DB_ADD,
+		pair: 'code1|code2',
+		order: signedOrder,
+		orderHash: '0xOrderHash'
+	});
+
+	orderUtil.validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
+	// invalid order hash
+	await relayerServer.handleAddOrderRequest({} as any, {
+		channel: CST.DB_ORDERS,
+		method: CST.DB_ADD,
+		pair: 'code1|code2',
+		order: signedOrder,
+		orderHash: '0xInvalidOrderHash'
+	});
 	expect(orderPersistenceUtil.persistOrder as jest.Mock).not.toBeCalled();
 	expect(relayerServer.sendUserOrderResponse as jest.Mock).not.toBeCalled();
 	expect((relayerServer.sendErrorOrderResponse as jest.Mock).mock.calls).toMatchSnapshot();
@@ -151,10 +149,9 @@ test('handleAddOrderRequest invalid persist', async () => {
 			{
 				code: 'code1'
 			}
-		],
-		validateOrder: jest.fn(() => '0xOrderHash'),
-		validateOrderFillable: jest.fn(() => Promise.resolve(true))
+		]
 	} as any;
+	orderUtil.validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
@@ -176,10 +173,9 @@ test('handleAddOrderRequest persist error', async () => {
 			{
 				code: 'code1'
 			}
-		],
-		validateOrder: jest.fn(() => '0xOrderHash'),
-		validateOrderFillable: jest.fn(() => Promise.resolve(true))
+		]
 	} as any;
+	orderUtil.validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.reject('handleAddOrderRequest'));
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
@@ -201,10 +197,9 @@ test('handleAddOrderRequest', async () => {
 			{
 				code: 'code1'
 			}
-		],
-		validateOrder: jest.fn(() => '0xOrderHash'),
-		validateOrderFillable: jest.fn(() => Promise.resolve(true))
+		]
 	} as any;
+	orderUtil.validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
 	orderPersistenceUtil.persistOrder = jest.fn(() =>
 		Promise.resolve({
 			userOrder: 'userOrder'

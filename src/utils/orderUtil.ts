@@ -74,8 +74,8 @@ class OrderUtil {
 
 		return {
 			takerAssetAmount: isBid ? tokenAmountAfterFee : baseAmountAfterFee,
-			makerAssetAmount: isBid ? baseAmountAfterFee : tokenAmountAfterFee,
-		}
+			makerAssetAmount: isBid ? baseAmountAfterFee : tokenAmountAfterFee
+		};
 	}
 
 	public getPriceBeforeFee(
@@ -191,6 +191,27 @@ class OrderUtil {
 			salt: Web3Util.stringToBN(salt),
 			expirationTimeSeconds: Web3Util.stringToBN(expirationTimeSeconds)
 		};
+	}
+
+	public async validateOrder(
+		web3Util: Web3Util,
+		pair: string,
+		token: IToken,
+		stringSignedOrder: IStringSignedOrder
+	) {
+		const code2 = pair.split('|')[1];
+		const deadline = util.getUTCNowTimestamp() + 180000;
+		if (token.maturity && token.maturity <= deadline) return '';
+		const signedOrder = orderUtil.parseSignedOrder(stringSignedOrder);
+		if (Number(signedOrder.expirationTimeSeconds) * 1000 <= deadline) return '';
+		const orderHash = await web3Util.validateOrder(signedOrder);
+		if (!orderHash) return '';
+
+		const liveOrder = this.constructNewLiveOrder(stringSignedOrder, token, pair, orderHash);
+		if (util.round(liveOrder.amount % token.denomination) > 0) return '';
+		if (util.round(liveOrder.price % token.precisions[code2]) > 0) return '';
+
+		return orderHash;
 	}
 }
 const orderUtil = new OrderUtil();

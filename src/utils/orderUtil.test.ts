@@ -506,3 +506,130 @@ test('getAmountAfterFee ask base ratio', () => {
 		)
 	).toMatchSnapshot();
 });
+
+test('validateOrder passed token maturity', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	expect(
+		await orderUtil.validateOrder(
+			{} as any,
+			'code1|code2',
+			{
+				maturity: 1234567890 + 180000
+			} as any,
+			{} as any
+		)
+	).toBe('');
+});
+
+test('validateOrder passed order expiry', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890000 - 180000);
+	expect(await orderUtil.validateOrder({} as any, 'code1|code2', {} as any, signedOrder)).toBe(
+		''
+	);
+});
+
+test('validateOrder invalid 0x order', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 123456789);
+	const validateOrder = jest.fn(() => Promise.resolve(''));
+	expect(
+		await orderUtil.validateOrder(
+			{
+				validateOrder: validateOrder
+			} as any,
+			'code1|code2',
+			{} as any,
+			signedOrder
+		)
+	).toBe('');
+	expect(validateOrder).toBeCalled();
+});
+
+test('validateOrder invalid 0x order', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 123456789);
+	const validateOrder = jest.fn(() => Promise.resolve(''));
+	expect(
+		await orderUtil.validateOrder(
+			{
+				validateOrder: validateOrder
+			} as any,
+			'code1|code2',
+			{} as any,
+			signedOrder
+		)
+	).toBe('');
+	expect(validateOrder).toBeCalled();
+});
+
+test('validateOrder invalid amount', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 123456789);
+	const validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
+	orderUtil.constructNewLiveOrder = jest.fn(() => ({
+		amount: 1.1
+	}));
+	expect(
+		await orderUtil.validateOrder(
+			{
+				validateOrder: validateOrder
+			} as any,
+			'code1|code2',
+			{
+				denomination: 1
+			} as any,
+			signedOrder
+		)
+	).toBe('');
+	expect(validateOrder).toBeCalled();
+	expect(orderUtil.constructNewLiveOrder as jest.Mock).toBeCalled();
+});
+
+test('validateOrder invalid price', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 123456789);
+	const validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
+	orderUtil.constructNewLiveOrder = jest.fn(() => ({
+		amount: 1,
+		price: 0.00055
+	}));
+	expect(
+		await orderUtil.validateOrder(
+			{
+				validateOrder: validateOrder
+			} as any,
+			'code1|code2',
+			{
+				denomination: 1,
+				precisions: {
+					code2: 0.0005
+				}
+			} as any,
+			signedOrder
+		)
+	).toBe('');
+	expect(validateOrder).toBeCalled();
+	expect(orderUtil.constructNewLiveOrder as jest.Mock).toBeCalled();
+});
+
+test('validateOrder', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 123456789);
+	const validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
+	orderUtil.constructNewLiveOrder = jest.fn(() => ({
+		amount: 10.000000004,
+		price: 0.005000004
+	}));
+	expect(
+		await orderUtil.validateOrder(
+			{
+				validateOrder: validateOrder
+			} as any,
+			'code1|code2',
+			{
+				denomination: 1,
+				precisions: {
+					code2: 0.0005
+				}
+			} as any,
+			signedOrder
+		)
+	).toBe('0xOrderHash');
+	expect(validateOrder).toBeCalled();
+	expect(orderUtil.constructNewLiveOrder as jest.Mock).toBeCalled();
+});

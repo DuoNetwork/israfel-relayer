@@ -75,13 +75,27 @@ class RelayerServer {
 
 	public async handleAddOrderRequest(ws: WebSocket, req: IWsAddOrderRequest) {
 		util.logDebug(`add new order ${req.orderHash}`);
+		if (!this.web3Util) {
+			util.logDebug('no web3Util, ignore');
+			this.sendErrorOrderResponse(ws, req, CST.WS_INVALID_ORDER);
+			return;
+		}
 		const stringSignedOrder = req.order as IStringSignedOrder;
-
-		const parsedSignedorder = orderUtil.parseSignedOrder(stringSignedOrder);
-		const orderHash = this.web3Util ? await this.web3Util.validateOrder(parsedSignedorder) : '';
 		const code = req.pair.split('|')[0];
-		const token = this.web3Util ? this.web3Util.tokens.find(t => t.code === code) : null;
-		if (orderHash && orderHash === req.orderHash && token) {
+		const token = this.web3Util.tokens.find(t => t.code === code);
+		if (!token) {
+			util.logDebug('invalid token, ignore');
+			this.sendErrorOrderResponse(ws, req, CST.WS_INVALID_ORDER);
+			return;
+		}
+
+		const orderHash = await orderUtil.validateOrder(
+			this.web3Util,
+			req.pair,
+			token,
+			stringSignedOrder
+		);
+		if (orderHash && orderHash === req.orderHash) {
 			util.logDebug('order valided, persisting');
 			try {
 				const userOrder = await orderPersistenceUtil.persistOrder({
