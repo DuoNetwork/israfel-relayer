@@ -119,8 +119,8 @@ exports[`getRawOrderInPersistence in terminate queue 1`] = `
 Array [
   Array [
     "orders|cache|code1|code2",
-    "terminate|0xOrderHash",
-    "add|0xOrderHash",
+    "code1|code2|terminate|0xOrderHash",
+    "code1|code2|add|0xOrderHash",
   ],
 ]
 `;

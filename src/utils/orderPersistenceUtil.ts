@@ -13,16 +13,32 @@ import redisUtil from './redisUtil';
 import util from './util';
 
 class OrderPersistenceUtil {
+	private getCacheMapField(pair: string, method: string, orderHash: string) {
+		return `${pair}|${method}|${orderHash}`;
+	}
+
+	private getOrderPubSubChannel(pair: string) {
+		return `${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${pair}`;
+	}
+
+	private getOrderCacheMapKey(pair: string) {
+		return `${CST.DB_ORDERS}|${CST.DB_CACHE}|${pair}`;
+	}
+
+	private getOrderQueueKey() {
+		return `${CST.DB_ORDERS}|${CST.DB_QUEUE}`;
+	}
+
 	public subscribeOrderUpdate(
 		pair: string,
 		handleOrderUpdate: (channel: string, orderQueueItem: IOrderQueueItem) => any
 	) {
 		redisUtil.onOrderUpdate(handleOrderUpdate);
-		redisUtil.subscribe(`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${pair}`);
+		redisUtil.subscribe(this.getOrderPubSubChannel(pair));
 	}
 
 	public unsubscribeOrderUpdate(pair: string) {
-		redisUtil.unsubscribe(`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${pair}`);
+		redisUtil.unsubscribe(this.getOrderPubSubChannel(pair));
 	}
 
 	public async addUserOrderToDB(
@@ -32,7 +48,13 @@ class OrderPersistenceUtil {
 		updatedBy: string,
 		processed: boolean
 	) {
-		const userOrder = orderUtil.constructUserOrder(liveOrder, type, status, updatedBy, processed);
+		const userOrder = orderUtil.constructUserOrder(
+			liveOrder,
+			type,
+			status,
+			updatedBy,
+			processed
+		);
 		try {
 			await dynamoUtil.addUserOrder(userOrder);
 			util.logDebug(`added user order ${liveOrder.orderHash}|${type}|${status}|${updatedBy}`);
@@ -44,21 +66,24 @@ class OrderPersistenceUtil {
 	}
 
 	public async getLiveOrderInPersistence(pair: string, orderHash: string) {
+		const terminateKey = this.getCacheMapField(pair, CST.DB_TERMINATE, orderHash);
+		const updateKey = this.getCacheMapField(pair, CST.DB_UPDATE, orderHash);
+		const addKey = this.getCacheMapField(pair, CST.DB_ADD, orderHash);
 		const queueStrings = await redisUtil.hashMultiGet(
-			`${CST.DB_ORDERS}|${CST.DB_CACHE}|${pair}`,
-			`${CST.DB_TERMINATE}|${orderHash}`,
-			`${CST.DB_UPDATE}|${orderHash}`,
-			`${CST.DB_ADD}|${orderHash}`
+			this.getOrderCacheMapKey(pair),
+			terminateKey,
+			updateKey,
+			addKey
 		);
-		if (queueStrings[`${CST.DB_TERMINATE}|${orderHash}`]) return null;
+		if (queueStrings[terminateKey]) return null;
 
-		const updateQueueString = queueStrings[`${CST.DB_UPDATE}|${orderHash}`];
+		const updateQueueString = queueStrings[updateKey];
 		if (updateQueueString) {
 			const orderQueueItem: IOrderQueueItem = JSON.parse(updateQueueString);
 			return orderQueueItem.liveOrder;
 		}
 
-		const addQueueString = queueStrings[`${CST.DB_ADD}|${orderHash}`];
+		const addQueueString = queueStrings[addKey];
 		if (addQueueString) {
 			const orderQueueItem: IOrderQueueItem = JSON.parse(addQueueString);
 			return orderQueueItem.liveOrder;
@@ -71,14 +96,16 @@ class OrderPersistenceUtil {
 	}
 
 	public async getAllLiveOrdersInPersistence(pair: string) {
-		const redisOrders = await redisUtil.hashGetAll(`${CST.DB_ORDERS}|${CST.DB_CACHE}|${pair}`);
+		const redisOrders = await redisUtil.hashGetAll(this.getOrderCacheMapKey(pair));
 		const dynamoOrders = await dynamoUtil.getLiveOrders(pair);
 
 		const addOrders: { [orderHash: string]: ILiveOrder } = {};
 		const updateOrders: { [orderHash: string]: ILiveOrder } = {};
 		const terminateOrders: { [orderHash: string]: ILiveOrder } = {};
 		for (const key in redisOrders) {
-			const [method, orderHash] = key.split('|');
+			const parts = key.split('|');
+			const method = parts[2];
+			const orderHash = parts[3];
 			const orderQueueItem: IOrderQueueItem = JSON.parse(redisOrders[key]);
 			if (method === CST.DB_TERMINATE) terminateOrders[orderHash] = orderQueueItem.liveOrder;
 			else if (method === CST.DB_ADD) addOrders[orderHash] = orderQueueItem.liveOrder;
@@ -96,14 +123,16 @@ class OrderPersistenceUtil {
 	}
 
 	public async getRawOrderInPersistence(pair: string, orderHash: string) {
+		const terminateKey = this.getCacheMapField(pair, CST.DB_TERMINATE, orderHash);
+		const addKey = this.getCacheMapField(pair, CST.DB_ADD, orderHash);
 		const queueStrings = await redisUtil.hashMultiGet(
-			`${CST.DB_ORDERS}|${CST.DB_CACHE}|${pair}`,
-			`${CST.DB_TERMINATE}|${orderHash}`,
-			`${CST.DB_ADD}|${orderHash}`
+			this.getOrderCacheMapKey(pair),
+			terminateKey,
+			addKey
 		);
-		if (queueStrings[`${CST.DB_TERMINATE}|${orderHash}`]) return null;
+		if (queueStrings[terminateKey]) return null;
 
-		const addQueueString = queueStrings[`${CST.DB_ADD}|${orderHash}`];
+		const addQueueString = queueStrings[addKey];
 		if (addQueueString) {
 			const orderQueueItem: IOrderQueueItem = JSON.parse(addQueueString);
 			return {
@@ -114,8 +143,7 @@ class OrderPersistenceUtil {
 		}
 
 		const dynamoRawOrder = await dynamoUtil.getRawOrder(orderHash);
-		if (!dynamoRawOrder || !dynamoRawOrder.signedOrder.signature)
-			return null;
+		if (!dynamoRawOrder || !dynamoRawOrder.signedOrder.signature) return null;
 
 		return dynamoRawOrder;
 	}
@@ -173,19 +201,16 @@ class OrderPersistenceUtil {
 
 		util.logDebug(`storing order queue item in redis ${orderHash}`);
 		await redisUtil.multi();
-		const key = `${pair}|${method}|${orderHash}`;
+		const key = this.getCacheMapField(pair, method, orderHash);
 		// store order in hash map
-		redisUtil.hashSet(`${CST.DB_ORDERS}|${CST.DB_CACHE}|${pair}`, key, JSON.stringify(orderQueueItem));
+		redisUtil.hashSet(this.getOrderCacheMapKey(pair), key, JSON.stringify(orderQueueItem));
 		// push orderhash into queue
-		redisUtil.push(`${CST.DB_ORDERS}|${CST.DB_QUEUE}`, key);
+		redisUtil.push(this.getOrderQueueKey(), key);
 		await redisUtil.exec();
 		util.logDebug(`done`);
 
 		try {
-			redisUtil.publish(
-				`${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${pair}`,
-				JSON.stringify(orderQueueItem)
-			);
+			redisUtil.publish(this.getOrderPubSubChannel(pair), JSON.stringify(orderQueueItem));
 		} catch (error) {
 			util.logError(error);
 		}
@@ -194,14 +219,11 @@ class OrderPersistenceUtil {
 	}
 
 	public async processOrderQueue() {
-		const queueKey = await redisUtil.pop(`${CST.DB_ORDERS}|${CST.DB_QUEUE}`);
+		const queueKey = await redisUtil.pop(this.getOrderQueueKey());
 		if (!queueKey) return false;
 		const [code1, code2, method, orderHash] = queueKey.split('|');
 		const pair = `${code1}|${code2}`;
-		const queueItemString = await redisUtil.hashGet(
-			`${CST.DB_ORDERS}|${CST.DB_CACHE}|${pair}`,
-			queueKey
-		);
+		const queueItemString = await redisUtil.hashGet(this.getOrderCacheMapKey(pair), queueKey);
 		util.logDebug(`processing order: ${queueKey}`);
 		if (!queueItemString) {
 			util.logDebug('empty queue item, ignore');
@@ -229,14 +251,14 @@ class OrderPersistenceUtil {
 				await dynamoUtil.updateLiveOrder(orderQueueItem.liveOrder);
 				util.logDebug(`added live order`);
 			}
-			redisUtil.hashDelete(`${CST.DB_ORDERS}|${CST.DB_CACHE}|${pair}`, queueKey);
+			redisUtil.hashDelete(this.getOrderCacheMapKey(pair), queueKey);
 			util.logDebug(`removed redis data`);
 		} catch (err) {
 			util.logError(`error in processing for ${queueKey}`);
 			util.logError(err);
 			await redisUtil.multi();
-			redisUtil.hashSet(`${CST.DB_ORDERS}|${CST.DB_CACHE}|${pair}`, queueKey, queueItemString);
-			redisUtil.putBack(`${CST.DB_ORDERS}|${CST.DB_QUEUE}`, queueKey);
+			redisUtil.hashSet(this.getOrderCacheMapKey(pair), queueKey, queueItemString);
+			redisUtil.putBack(this.getOrderQueueKey(), queueKey);
 			await redisUtil.exec();
 			return false;
 		}
@@ -256,14 +278,14 @@ class OrderPersistenceUtil {
 		if (option.server) {
 			dynamoUtil.updateStatus(
 				CST.DB_ORDERS,
-				await redisUtil.getQueueLength(`${CST.DB_ORDERS}|${CST.DB_QUEUE}`)
+				await redisUtil.getQueueLength(this.getOrderQueueKey())
 			);
 
 			setInterval(
 				async () =>
 					dynamoUtil.updateStatus(
 						CST.DB_ORDERS,
-						await redisUtil.getQueueLength(`${CST.DB_ORDERS}|${CST.DB_QUEUE}`)
+						await redisUtil.getQueueLength(this.getOrderQueueKey())
 					),
 				15000
 			);

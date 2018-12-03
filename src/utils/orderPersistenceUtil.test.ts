@@ -78,9 +78,9 @@ const addOrderQueueItem = {
 test('getLiveOrderInPersistence in terminate queue', async () => {
 	redisUtil.hashMultiGet = jest.fn(() =>
 		Promise.resolve({
-			['terminate|0xOrderHash']: 'terminate',
-			['update|0xOrderHash']: JSON.stringify({ liveOrder: 'liveOrder' }),
-			['add|0xOrderhash']: JSON.stringify({ liveOrder: 'liveOrder' })
+			['code1|code2|terminate|0xOrderHash']: 'terminate',
+			['code1|code2|update|0xOrderHash']: JSON.stringify({ liveOrder: 'liveOrder' }),
+			['code1|code2|add|0xOrderhash']: JSON.stringify({ liveOrder: 'liveOrder' })
 		})
 	);
 	expect(await orderPersistenceUtil.getLiveOrderInPersistence('code1|code2', '0xOrderHash')).toBeNull();
@@ -89,9 +89,9 @@ test('getLiveOrderInPersistence in terminate queue', async () => {
 test('getLiveOrderInPersistence in update queue', async () => {
 	redisUtil.hashMultiGet = jest.fn(() =>
 		Promise.resolve({
-			['terminate|0xOrderHash']: null,
-			['update|0xOrderHash']: JSON.stringify({ liveOrder: 'liveOrder' }),
-			['add|0xOrderhash']: JSON.stringify({ liveOrder: 'liveOrder' })
+			['code1|code2|terminate|0xOrderHash']: null,
+			['code1|code2|update|0xOrderHash']: JSON.stringify({ liveOrder: 'liveOrder' }),
+			['code1|code2|add|0xOrderhash']: JSON.stringify({ liveOrder: 'liveOrder' })
 		})
 	);
 	expect(
@@ -102,9 +102,9 @@ test('getLiveOrderInPersistence in update queue', async () => {
 test('getLiveOrderInPersistence in add queue', async () => {
 	redisUtil.hashMultiGet = jest.fn(() =>
 		Promise.resolve({
-			['terminate|0xOrderHash']: null,
-			['update|0xOrderHash']: null,
-			['add|0xOrderHash']: JSON.stringify({ liveOrder: 'liveOrder' })
+			['code1|code2|terminate|0xOrderHash']: null,
+			['code1|code2|update|0xOrderHash']: null,
+			['code1|code2|add|0xOrderHash']: JSON.stringify({ liveOrder: 'liveOrder' })
 		})
 	);
 	expect(
@@ -115,9 +115,9 @@ test('getLiveOrderInPersistence in add queue', async () => {
 test('getLiveOrderInPersistence not exist', async () => {
 	redisUtil.hashMultiGet = jest.fn(() =>
 		Promise.resolve({
-			['terminate|0xOrderHash']: null,
-			['update|0xOrderHash']: null,
-			['add|0xOrderHash']: null
+			['code1|code2|terminate|0xOrderHash']: null,
+			['code1|code2|update|0xOrderHash']: null,
+			['code1|code2|add|0xOrderHash']: null
 		})
 	);
 	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([]));
@@ -127,9 +127,9 @@ test('getLiveOrderInPersistence not exist', async () => {
 test('getLiveOrderInPersistence only in db', async () => {
 	redisUtil.hashMultiGet = jest.fn(() =>
 		Promise.resolve({
-			['terminate|0xOrderHash']: null,
-			['update|0xOrderHash']: null,
-			['add|0xOrderHash']: null
+			['code1|code2|terminate|0xOrderHash']: null,
+			['code1|code2|update|0xOrderHash']: null,
+			['code1|code2|add|0xOrderHash']: null
 		})
 	);
 	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([{ liveOrder: 'test' }]));
@@ -481,7 +481,7 @@ test('processOrderQueue failed', async () => {
 test('getAllLiveOrdersInPersistence only add in redis', async () => {
 	redisUtil.hashGetAll = jest.fn(() =>
 		Promise.resolve({
-			'add|0xOrderHash': JSON.stringify({ liveOrder: 'add' })
+			'code1|code2|add|0xOrderHash': JSON.stringify({ liveOrder: 'add' })
 		})
 	);
 	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([]));
@@ -492,8 +492,8 @@ test('getAllLiveOrdersInPersistence only add in redis', async () => {
 test('getAllLiveOrdersInPersistence add and update in redis', async () => {
 	redisUtil.hashGetAll = jest.fn(() =>
 		Promise.resolve({
-			'add|0xOrderHash': JSON.stringify({ liveOrder: 'add' }),
-			'update|0xOrderHash': JSON.stringify({ liveOrder: 'update' })
+			'code1|code2|add|0xOrderHash': JSON.stringify({ liveOrder: 'add' }),
+			'code1|code2|update|0xOrderHash': JSON.stringify({ liveOrder: 'update' })
 		})
 	);
 	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([]));
@@ -503,8 +503,8 @@ test('getAllLiveOrdersInPersistence add and update in redis', async () => {
 test('getAllLiveOrdersInPersistence add and terminate in redis', async () => {
 	redisUtil.hashGetAll = jest.fn(() =>
 		Promise.resolve({
-			'add|0xOrderHash': JSON.stringify({ liveOrder: 'add' }),
-			'terminate|0xOrderHash': JSON.stringify({ liveOrder: 'terminate' })
+			'code1|code2|add|0xOrderHash': JSON.stringify({ liveOrder: 'add' }),
+			'code1|code2|terminate|0xOrderHash': JSON.stringify({ liveOrder: 'terminate' })
 		})
 	);
 	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([]));
@@ -514,9 +514,9 @@ test('getAllLiveOrdersInPersistence add and terminate in redis', async () => {
 test('getAllLiveOrdersInPersistence add, update and terminate in redis', async () => {
 	redisUtil.hashGetAll = jest.fn(() =>
 		Promise.resolve({
-			'add|0xOrderHash': JSON.stringify({ liveOrder: 'add' }),
-			'update|0xOrderHash': JSON.stringify({ liveOrder: 'update' }),
-			'terminate|0xOrderHash': JSON.stringify({ liveOrder: 'terminate' })
+			'code1|code2|add|0xOrderHash': JSON.stringify({ liveOrder: 'add' }),
+			'code1|code2|update|0xOrderHash': JSON.stringify({ liveOrder: 'update' }),
+			'code1|code2|terminate|0xOrderHash': JSON.stringify({ liveOrder: 'terminate' })
 		})
 	);
 	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([]));
@@ -526,7 +526,7 @@ test('getAllLiveOrdersInPersistence add, update and terminate in redis', async (
 test('getAllLiveOrdersInPersistence update in redis and exist in db', async () => {
 	redisUtil.hashGetAll = jest.fn(() =>
 		Promise.resolve({
-			'update|0xOrderHash': JSON.stringify({ liveOrder: 'update' })
+			'code1|code2|update|0xOrderHash': JSON.stringify({ liveOrder: 'update' })
 		})
 	);
 	dynamoUtil.getLiveOrders = jest.fn(() =>
@@ -542,8 +542,8 @@ test('getAllLiveOrdersInPersistence update in redis and exist in db', async () =
 test('getAllLiveOrdersInPersistence update and temrinate in redis and exist in db', async () => {
 	redisUtil.hashGetAll = jest.fn(() =>
 		Promise.resolve({
-			'update|0xOrderHash': JSON.stringify({ liveOrder: 'update' }),
-			'terminate|0xOrderHash': JSON.stringify({ liveOrder: 'terminate' })
+			'code1|code2|update|0xOrderHash': JSON.stringify({ liveOrder: 'update' }),
+			'code1|code2|terminate|0xOrderHash': JSON.stringify({ liveOrder: 'terminate' })
 		})
 	);
 	dynamoUtil.getLiveOrders = jest.fn(() =>
@@ -559,7 +559,7 @@ test('getAllLiveOrdersInPersistence update and temrinate in redis and exist in d
 test('getAllLiveOrdersInPersistence temrinate in redis and exist in db', async () => {
 	redisUtil.hashGetAll = jest.fn(() =>
 		Promise.resolve({
-			'terminate|0xOrderHash': JSON.stringify({ liveOrder: 'terminate' })
+			'code1|code2|terminate|0xOrderHash': JSON.stringify({ liveOrder: 'terminate' })
 		})
 	);
 	dynamoUtil.getLiveOrders = jest.fn(() =>
@@ -575,8 +575,8 @@ test('getAllLiveOrdersInPersistence temrinate in redis and exist in db', async (
 test('getRawOrderInPersistence in terminate queue', async () => {
 	redisUtil.hashMultiGet = jest.fn(() =>
 		Promise.resolve({
-			['terminate|0xOrderHash']: 'terminate',
-			['add|0xOrderhash']: JSON.stringify({ liveOrder: 'liveOrder' })
+			['code1|code2|terminate|0xOrderHash']: 'terminate',
+			['code1|code2|add|0xOrderhash']: JSON.stringify({ liveOrder: 'liveOrder' })
 		})
 	);
 	expect(await orderPersistenceUtil.getRawOrderInPersistence('code1|code2', '0xOrderHash')).toBeNull();
@@ -586,8 +586,8 @@ test('getRawOrderInPersistence in terminate queue', async () => {
 test('getRawOrderInPersistence in add queue', async () => {
 	redisUtil.hashMultiGet = jest.fn(() =>
 		Promise.resolve({
-			['terminate|0xOrderHash']: null,
-			['add|0xOrderHash']: JSON.stringify({ signedOrder: 'signedOrder' })
+			['code1|code2|terminate|0xOrderHash']: null,
+			['code1|code2|add|0xOrderHash']: JSON.stringify({ signedOrder: 'signedOrder' })
 		})
 	);
 	expect(await orderPersistenceUtil.getRawOrderInPersistence('code1|code2', '0xOrderHash')).toMatchSnapshot();
@@ -596,8 +596,8 @@ test('getRawOrderInPersistence in add queue', async () => {
 test('getRawOrderInPersistence in dynamo but no signature', async () => {
 	redisUtil.hashMultiGet = jest.fn(() =>
 		Promise.resolve({
-			['terminate|0xOrderHash']: null,
-			['add|0xOrderHash']: null
+			['code1|code2|terminate|0xOrderHash']: null,
+			['code1|code2|add|0xOrderHash']: null
 		})
 	);
 	dynamoUtil.getRawOrder = jest.fn(() =>
@@ -615,8 +615,8 @@ test('getRawOrderInPersistence in dynamo but no signature', async () => {
 test('getRawOrderInPersistence in dynamo', async () => {
 	redisUtil.hashMultiGet = jest.fn(() =>
 		Promise.resolve({
-			['terminate|0xOrderHash']: null,
-			['add|0xOrderHash']: null
+			['code1|code2|terminate|0xOrderHash']: null,
+			['code1|code2|add|0xOrderHash']: null
 		})
 	);
 	dynamoUtil.getRawOrder = jest.fn(() =>
@@ -634,8 +634,8 @@ test('getRawOrderInPersistence in dynamo', async () => {
 test('getRawOrderInPersistence not in neither', async () => {
 	redisUtil.hashMultiGet = jest.fn(() =>
 		Promise.resolve({
-			['terminate|0xOrderHash']: null,
-			['add|0xOrderHash']: null
+			['code1|code2|terminate|0xOrderHash']: null,
+			['code1|code2|add|0xOrderHash']: null
 		})
 	);
 	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve(null));
