@@ -218,6 +218,14 @@ test('handleAddOrderRequest', async () => {
 });
 
 test('handleTerminateOrderRequest invalid request and liveOrder does not exist', async () => {
+	relayerServer.web3Util = null;
+	await relayerServer.handleTerminateOrderRequest({} as any, {
+		channel: CST.DB_ORDERS,
+		method: CST.DB_TERMINATE,
+		pair: 'pair',
+		orderHash: '0xOrderHash',
+		signature: 'signature'
+	});
 	relayerServer.sendErrorOrderResponse = jest.fn();
 	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve('userOrder'));
@@ -225,30 +233,20 @@ test('handleTerminateOrderRequest invalid request and liveOrder does not exist',
 	relayerServer.web3Util = {
 		web3AccountsRecover: jest.fn(() => '')
 	} as any;
-	await relayerServer.handleTerminateOrderRequest(
-		{} as any,
-		{
-			channel: CST.DB_ORDERS,
-			method: CST.DB_TERMINATE,
-			pair: 'pair',
-			orderHash: '0xOrderHash',
-			signature: 'signature'
-		} as any
-	);
 
 	await relayerServer.handleTerminateOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_TERMINATE,
 		pair: 'pair',
 		orderHash: '0xOrderHash',
-		signature: 'siganature'
+		signature: 'signature'
 	});
 	expect(relayerServer.sendUserOrderResponse as jest.Mock).not.toBeCalled();
 	expect(orderPersistenceUtil.persistOrder as jest.Mock).not.toBeCalled();
 	expect((relayerServer.sendErrorOrderResponse as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('handleTerminateOrderRequest siganature is wrong', async () => {
+test('handleTerminateOrderRequest signature is wrong', async () => {
 	relayerServer.sendErrorOrderResponse = jest.fn();
 	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve('userOrder'));
@@ -270,6 +268,30 @@ test('handleTerminateOrderRequest siganature is wrong', async () => {
 	expect(relayerServer.sendUserOrderResponse as jest.Mock).not.toBeCalled();
 	expect(orderPersistenceUtil.persistOrder as jest.Mock).not.toBeCalled();
 	expect((relayerServer.sendErrorOrderResponse as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleTerminateOrderRequest persist no return', async () => {
+	relayerServer.sendErrorOrderResponse = jest.fn();
+	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() =>
+		Promise.resolve({
+			account: 'account'
+		})
+	);
+	relayerServer.web3Util = {
+		web3AccountsRecover: jest.fn(() => 'account')
+	} as any;
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
+	await relayerServer.handleTerminateOrderRequest({} as any, {
+		channel: CST.DB_ORDERS,
+		method: CST.DB_TERMINATE,
+		pair: 'pair',
+		orderHash: '0xOrderHash',
+		signature: 'signature'
+	});
+	expect(relayerServer.sendUserOrderResponse as jest.Mock).not.toBeCalled();
+	expect((relayerServer.sendErrorOrderResponse as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleTerminateOrderRequest persist error', async () => {
@@ -994,4 +1016,41 @@ test('loadDuoAcceptedPrices', async () => {
 	await relayerServer.loadDuoAcceptedPrices();
 	expect(relayerServer.duoAcceptedPrices).toEqual({});
 	expect((duoDynamoUtil.queryAcceptPriceEvent as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+const ws1 = {
+	name: 'ws',
+	on: jest.fn()
+};
+test('handleWebSocketConnection', () => {
+	relayerServer.clients = [];
+	relayerServer.sendInfo = jest.fn();
+	relayerServer.handleWebSocketConnection(ws1 as any);
+	expect(relayerServer.clients).toMatchSnapshot();
+	expect((ws1.on as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleWebSocketConnection same connection', () => {
+	relayerServer.clients = [];
+	relayerServer.sendInfo = jest.fn();
+	relayerServer.handleWebSocketConnection(ws1 as any);
+	expect(relayerServer.clients).toMatchSnapshot();
+	expect((ws1.on as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleWebSocketClose', () => {
+	relayerServer.unsubscribeOrderBook = jest.fn();
+	relayerServer.unsubscribeOrderHistory = jest.fn();
+	relayerServer.orderBookPairs = {
+		pair: ['ws'] as any
+	};
+	relayerServer.pairClients = {
+		pair: {
+			account: ['ws'] as any
+		}
+	};
+	relayerServer.handleWebSocketClose(ws1 as any);
+	expect(relayerServer.clients).toEqual([]);
+	expect((relayerServer.unsubscribeOrderBook as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((relayerServer.unsubscribeOrderHistory as jest.Mock).mock.calls).toMatchSnapshot();
 });

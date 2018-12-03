@@ -72,7 +72,7 @@ Array [
       "orderHash": "0xOrderHash",
       "pair": "pair",
     },
-    "invalid order",
+    "invalid request",
   ],
   Array [
     Object {},
@@ -796,17 +796,6 @@ Array [
     },
     "invalid request",
   ],
-  Array [
-    Object {},
-    Object {
-      "channel": "orders",
-      "method": "terminate",
-      "orderHash": "0xOrderHash",
-      "pair": "pair",
-      "signature": "siganature",
-    },
-    "invalid request",
-  ],
 ]
 `;
 
@@ -841,7 +830,38 @@ Array [
 ]
 `;
 
-exports[`handleTerminateOrderRequest siganature is wrong 1`] = `
+exports[`handleTerminateOrderRequest persist no return 1`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "channel": "orders",
+      "method": "terminate",
+      "orderHash": "0xOrderHash",
+      "pair": "pair",
+      "signature": "signature",
+    },
+    "invalid order",
+  ],
+]
+`;
+
+exports[`handleTerminateOrderRequest persist no return 2`] = `
+Array [
+  Array [
+    Object {
+      "balance": -1,
+      "method": "terminate",
+      "orderHash": "0xOrderHash",
+      "pair": "pair",
+      "requestor": "relayer",
+      "status": "confirmed",
+    },
+  ],
+]
+`;
+
+exports[`handleTerminateOrderRequest signature is wrong 1`] = `
 Array [
   Array [
     Object {},
@@ -853,6 +873,215 @@ Array [
       "signature": "siganature",
     },
     "invalid request",
+  ],
+]
+`;
+
+exports[`handleWebSocketClose 1`] = `
+Array [
+  Array [
+    Object {
+      "name": "ws",
+      "on": [MockFunction] {
+        "calls": Array [
+          Array [
+            "message",
+            [Function],
+          ],
+          Array [
+            "close",
+            [Function],
+          ],
+          Array [
+            "message",
+            [Function],
+          ],
+          Array [
+            "close",
+            [Function],
+          ],
+        ],
+        "results": Array [
+          Object {
+            "isThrow": false,
+            "value": undefined,
+          },
+          Object {
+            "isThrow": false,
+            "value": undefined,
+          },
+          Object {
+            "isThrow": false,
+            "value": undefined,
+          },
+          Object {
+            "isThrow": false,
+            "value": undefined,
+          },
+        ],
+      },
+    },
+    "pair",
+  ],
+]
+`;
+
+exports[`handleWebSocketClose 2`] = `
+Array [
+  Array [
+    Object {
+      "name": "ws",
+      "on": [MockFunction] {
+        "calls": Array [
+          Array [
+            "message",
+            [Function],
+          ],
+          Array [
+            "close",
+            [Function],
+          ],
+          Array [
+            "message",
+            [Function],
+          ],
+          Array [
+            "close",
+            [Function],
+          ],
+        ],
+        "results": Array [
+          Object {
+            "isThrow": false,
+            "value": undefined,
+          },
+          Object {
+            "isThrow": false,
+            "value": undefined,
+          },
+          Object {
+            "isThrow": false,
+            "value": undefined,
+          },
+          Object {
+            "isThrow": false,
+            "value": undefined,
+          },
+        ],
+      },
+    },
+    "account",
+    "pair",
+  ],
+]
+`;
+
+exports[`handleWebSocketConnection 1`] = `
+Array [
+  Object {
+    "name": "ws",
+    "on": [MockFunction] {
+      "calls": Array [
+        Array [
+          "message",
+          [Function],
+        ],
+        Array [
+          "close",
+          [Function],
+        ],
+      ],
+      "results": Array [
+        Object {
+          "isThrow": false,
+          "value": undefined,
+        },
+        Object {
+          "isThrow": false,
+          "value": undefined,
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`handleWebSocketConnection 2`] = `
+Array [
+  Array [
+    "message",
+    [Function],
+  ],
+  Array [
+    "close",
+    [Function],
+  ],
+]
+`;
+
+exports[`handleWebSocketConnection same connection 1`] = `
+Array [
+  Object {
+    "name": "ws",
+    "on": [MockFunction] {
+      "calls": Array [
+        Array [
+          "message",
+          [Function],
+        ],
+        Array [
+          "close",
+          [Function],
+        ],
+        Array [
+          "message",
+          [Function],
+        ],
+        Array [
+          "close",
+          [Function],
+        ],
+      ],
+      "results": Array [
+        Object {
+          "isThrow": false,
+          "value": undefined,
+        },
+        Object {
+          "isThrow": false,
+          "value": undefined,
+        },
+        Object {
+          "isThrow": false,
+          "value": undefined,
+        },
+        Object {
+          "isThrow": false,
+          "value": undefined,
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`handleWebSocketConnection same connection 2`] = `
+Array [
+  Array [
+    "message",
+    [Function],
+  ],
+  Array [
+    "close",
+    [Function],
+  ],
+  Array [
+    "message",
+    [Function],
+  ],
+  Array [
+    "close",
+    [Function],
   ],
 ]
 `;

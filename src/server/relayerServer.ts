@@ -77,7 +77,7 @@ class RelayerServer {
 		util.logDebug(`add new order ${req.orderHash}`);
 		if (!this.web3Util) {
 			util.logDebug('no web3Util, ignore');
-			this.sendErrorOrderResponse(ws, req, CST.WS_INVALID_ORDER);
+			this.sendErrorOrderResponse(ws, req, CST.WS_INVALID_REQ);
 			return;
 		}
 		const stringSignedOrder = req.order as IStringSignedOrder;
@@ -122,10 +122,15 @@ class RelayerServer {
 
 	public async handleTerminateOrderRequest(ws: WebSocket, req: IWsTerminateOrderRequest) {
 		util.logDebug(`terminate order ${req.orderHash}`);
+		if (!this.web3Util) {
+			util.logDebug('no web3Util, ignore');
+			this.sendErrorOrderResponse(ws, req, CST.WS_INVALID_REQ);
+			return;
+		}
 		const { pair, orderHash, signature } = req;
 		const account = this.web3Util
-			? this.web3Util.web3AccountsRecover(CST.TERMINATE_SIGN_MSG + orderHash, signature).toLowerCase()
-			: '';
+			.web3AccountsRecover(CST.TERMINATE_SIGN_MSG + orderHash, signature)
+			.toLowerCase();
 		const liveOrder = await orderPersistenceUtil.getLiveOrderInPersistence(pair, orderHash);
 		if (account && liveOrder && liveOrder.account === account)
 			try {
@@ -174,7 +179,7 @@ class RelayerServer {
 		util.safeWsSend(ws, JSON.stringify(orderBookResponse));
 	}
 
-	private unsubscribeOrderHistory(ws: WebSocket, account: string, pair: string) {
+	public unsubscribeOrderHistory(ws: WebSocket, account: string, pair: string) {
 		if (
 			this.pairClients[pair] &&
 			this.pairClients[pair][account] &&
@@ -299,7 +304,7 @@ class RelayerServer {
 		util.safeWsSend(ws, JSON.stringify(orderBookResponse));
 	}
 
-	private unsubscribeOrderBook(ws: WebSocket, pair: string) {
+	public unsubscribeOrderBook(ws: WebSocket, pair: string) {
 		if (this.orderBookPairs[pair] && this.orderBookPairs[pair].includes(ws)) {
 			this.orderBookPairs[pair] = this.orderBookPairs[pair].filter(e => e !== ws);
 			if (!this.orderBookPairs[pair].length) {
