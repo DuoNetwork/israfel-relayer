@@ -684,29 +684,34 @@ exports[`updateOrderBookSnapshot, ask, existingLevel 1`] = `
 Object {
   "asks": Array [
     Object {
-      "amount": 20,
+      "balance": 20,
       "count": 4,
       "price": 130,
     },
     Object {
-      "amount": 30,
+      "balance": 20,
+      "count": 7,
+      "price": 140,
+    },
+    Object {
+      "balance": 30,
       "count": 5,
       "price": 150,
     },
   ],
   "bids": Array [
     Object {
-      "amount": 20,
+      "balance": 20,
       "count": 4,
       "price": 120,
     },
     Object {
-      "amount": 10,
+      "balance": 10,
       "count": 6,
       "price": 110,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "count": 5,
       "price": 100,
     },
@@ -720,29 +725,29 @@ exports[`updateOrderBookSnapshot, ask, existingLevel, updated to 0 1`] = `
 Object {
   "asks": Array [
     Object {
-      "amount": 20,
+      "balance": 20,
       "count": 4,
       "price": 130,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "count": 5,
       "price": 150,
     },
   ],
   "bids": Array [
     Object {
-      "amount": 20,
+      "balance": 20,
       "count": 4,
       "price": 120,
     },
     Object {
-      "amount": 10,
+      "balance": 10,
       "count": 6,
       "price": 110,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "count": 5,
       "price": 100,
     },
@@ -756,34 +761,34 @@ exports[`updateOrderBookSnapshot, ask, not existingLevel, count = -1 1`] = `
 Object {
   "asks": Array [
     Object {
-      "amount": 20,
+      "balance": 20,
       "count": 4,
       "price": 130,
     },
     Object {
-      "amount": 10,
+      "balance": 10,
       "count": 6,
       "price": 140,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "count": 5,
       "price": 150,
     },
   ],
   "bids": Array [
     Object {
-      "amount": 20,
+      "balance": 20,
       "count": 4,
       "price": 120,
     },
     Object {
-      "amount": 10,
+      "balance": 10,
       "count": 6,
       "price": 110,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "count": 5,
       "price": 100,
     },
@@ -797,12 +802,12 @@ exports[`updateOrderBookSnapshot, ask, not existingLevel, count > 0 1`] = `
 Object {
   "asks": Array [
     Object {
-      "amount": 20,
+      "balance": 20,
       "count": 4,
       "price": 130,
     },
     Object {
-      "amount": 10,
+      "balance": 10,
       "count": 6,
       "price": 140,
     },
@@ -812,24 +817,24 @@ Object {
       "price": 145,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "count": 5,
       "price": 150,
     },
   ],
   "bids": Array [
     Object {
-      "amount": 20,
+      "balance": 20,
       "count": 4,
       "price": 120,
     },
     Object {
-      "amount": 10,
+      "balance": 10,
       "count": 6,
       "price": 110,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "count": 5,
       "price": 100,
     },
@@ -843,29 +848,34 @@ exports[`updateOrderBookSnapshot, bid, existingLevel 1`] = `
 Object {
   "asks": Array [
     Object {
-      "amount": 20,
+      "balance": 20,
       "count": 4,
       "price": 130,
     },
     Object {
-      "amount": 10,
+      "balance": 10,
       "count": 6,
       "price": 140,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "count": 5,
       "price": 150,
     },
   ],
   "bids": Array [
     Object {
-      "amount": 20,
+      "balance": 20,
       "count": 4,
       "price": 120,
     },
     Object {
-      "amount": 30,
+      "balance": 20,
+      "count": 7,
+      "price": 110,
+    },
+    Object {
+      "balance": 30,
       "count": 5,
       "price": 100,
     },
@@ -879,29 +889,29 @@ exports[`updateOrderBookSnapshot, bid, existingLevel, updated to 0 1`] = `
 Object {
   "asks": Array [
     Object {
-      "amount": 20,
+      "balance": 20,
       "count": 4,
       "price": 130,
     },
     Object {
-      "amount": 10,
+      "balance": 10,
       "count": 6,
       "price": 140,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "count": 5,
       "price": 150,
     },
   ],
   "bids": Array [
     Object {
-      "amount": 20,
+      "balance": 20,
       "count": 4,
       "price": 120,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "count": 5,
       "price": 100,
     },
@@ -915,34 +925,34 @@ exports[`updateOrderBookSnapshot, bid, not existingLevel, count = -1 1`] = `
 Object {
   "asks": Array [
     Object {
-      "amount": 20,
+      "balance": 20,
       "count": 4,
       "price": 130,
     },
     Object {
-      "amount": 10,
+      "balance": 10,
       "count": 6,
       "price": 140,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "count": 5,
       "price": 150,
     },
   ],
   "bids": Array [
     Object {
-      "amount": 20,
+      "balance": 20,
       "count": 4,
       "price": 120,
     },
     Object {
-      "amount": 10,
+      "balance": 10,
       "count": 6,
       "price": 110,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "count": 5,
       "price": 100,
     },
@@ -956,24 +966,24 @@ exports[`updateOrderBookSnapshot, bid, not existingLevel, count > 0 1`] = `
 Object {
   "asks": Array [
     Object {
-      "amount": 20,
+      "balance": 20,
       "count": 4,
       "price": 130,
     },
     Object {
-      "amount": 10,
+      "balance": 10,
       "count": 6,
       "price": 140,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "count": 5,
       "price": 150,
     },
   ],
   "bids": Array [
     Object {
-      "amount": 20,
+      "balance": 20,
       "count": 4,
       "price": 120,
     },
@@ -983,12 +993,12 @@ Object {
       "price": 115,
     },
     Object {
-      "amount": 10,
+      "balance": 10,
       "count": 6,
       "price": 110,
     },
     Object {
-      "amount": 30,
+      "balance": 30,
       "count": 5,
       "price": 100,
     },

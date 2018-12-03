@@ -4,34 +4,34 @@
 	"bids": [
 		{
 			"price": 120,
-			"amount": 20,
+			"balance": 20,
 			"count": 4
 		},
 		{
 			"price": 110,
-			"amount": 10,
+			"balance": 10,
 			"count": 6
 		},
 		{
 			"price": 100,
-			"amount": 30,
+			"balance": 30,
 			"count": 5
 		}
 	],
 	"asks": [
 		{
 			"price": 130,
-			"amount": 20,
+			"balance": 20,
 			"count": 4
 		},
 		{
 			"price": 140,
-			"amount": 10,
+			"balance": 10,
 			"count": 6
 		},
 		{
 			"price": 150,
-			"amount": 30,
+			"balance": 30,
 			"count": 5
 		}
 	]

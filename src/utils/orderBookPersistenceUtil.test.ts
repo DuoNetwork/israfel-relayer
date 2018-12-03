@@ -18,10 +18,14 @@ test('unsubscribeOrderBookUpdate', () => {
 test('publishOrderBookUpdate, with update', async () => {
 	const orderBookSnapshotUpdate = {
 		pair: 'pair',
-		price: 1,
-		amount: 2,
-		count: 3,
-		side: 'ask',
+		updates: [
+			{
+				price: 1,
+				change: 2,
+				count: 3,
+				side: 'ask'
+			}
+		],
 		prevVersion: 1234567890000,
 		version: 1234567990000
 	};
