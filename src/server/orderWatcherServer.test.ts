@@ -181,41 +181,43 @@ const orderQueueItem = {
 	signedOrder: signedOrder
 };
 
-test('handle orderUpdate orderWatcher requestor', async () => {
+test('handle orderUpdate orderWatcher requestor', () => {
 	orderWatcherServer.orderWatcher = null;
 	orderWatcherServer.addIntoWatch = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
-	await orderWatcherServer.handleOrderUpdate('channel', orderQueueItem);
+	expect(orderWatcherServer.handleOrderUpdate('channel', orderQueueItem)).toBe(undefined);
 	expect(orderWatcherServer.addIntoWatch as jest.Mock).not.toBeCalled();
 	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
 });
 
-orderQueueItem.requestor = 'requestor';
-test('handle orderUpdate invalid method', async () => {
+test('handle orderUpdate invalid method', () => {
+	orderQueueItem.requestor = 'requestor';
 	orderWatcherServer.orderWatcher = null;
 	orderWatcherServer.addIntoWatch = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
-	await orderWatcherServer.handleOrderUpdate('channel', orderQueueItem);
+	orderWatcherServer.handleOrderUpdate('channel', orderQueueItem);
 	expect(orderWatcherServer.addIntoWatch as jest.Mock).not.toBeCalled();
 	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
 });
 
-test('handle orderUpdate add', async () => {
+test('handle orderUpdate add', () => {
+	orderQueueItem.requestor = 'requestor';
 	orderWatcherServer.orderWatcher = null;
 	orderWatcherServer.addIntoWatch = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
 	orderQueueItem.method = CST.DB_ADD;
-	await orderWatcherServer.handleOrderUpdate('channel', orderQueueItem);
+	orderWatcherServer.handleOrderUpdate('channel', orderQueueItem);
 	expect((orderWatcherServer.addIntoWatch as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
 });
 
-test('handle orderUpdate terminate', async () => {
+test('handle orderUpdate terminate', () => {
+	orderQueueItem.requestor = 'requestor';
 	orderWatcherServer.orderWatcher = null;
 	orderWatcherServer.addIntoWatch = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
 	orderQueueItem.method = CST.DB_TERMINATE;
-	await orderWatcherServer.handleOrderUpdate('channel', orderQueueItem);
+	orderWatcherServer.handleOrderUpdate('channel', orderQueueItem);
 	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(orderWatcherServer.addIntoWatch as jest.Mock).not.toBeCalled();
 });

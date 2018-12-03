@@ -179,7 +179,7 @@ class OrderWatcherServer {
 		}
 	}
 
-	public handleOrderUpdate = (channel: string, orderQueueItem: IOrderQueueItem) => {
+	public handleOrderUpdate(channel: string, orderQueueItem: IOrderQueueItem) {
 		util.logDebug('receive update from channel: ' + channel);
 		if (orderQueueItem.requestor === CST.DB_ORDER_WATCHER) {
 			util.logDebug('ignore order update requested by self');
@@ -198,7 +198,7 @@ class OrderWatcherServer {
 				util.logDebug('neither add nor terminate, ignore this update');
 				break;
 		}
-	};
+	}
 
 	public async loadOrders() {
 		const prevOrderHashes = Object.keys(this.watchingOrders);
@@ -224,7 +224,7 @@ class OrderWatcherServer {
 			undefined,
 			{
 				cleanupJobIntervalMs: 30000,
-				expirationMarginMs: 3 * CST.ONE_MINUTE_MS,
+				expirationMarginMs: 3 * CST.ONE_MINUTE_MS
 			}
 		);
 		this.pair = option.token + '|' + CST.TOKEN_WETH;
