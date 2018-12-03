@@ -868,6 +868,17 @@ Array [
 ]
 `;
 
+exports[`loadDuoAcceptedPrices 1`] = `
+Array [
+  Array [
+    "0xf474e7E554D98a580282726434d1281aA273E87F",
+    Array [
+      "YYYY-MM-DD",
+    ],
+  ],
+]
+`;
+
 exports[`sendErrorOrderResponse 1`] = `
 Array [
   Array [

@@ -27,3 +27,8 @@ test('createRawOrderWithoutSalt', async () => {
 		)
 	).toMatchSnapshot();
 });
+
+test('toChecksumAddress', () => {
+	const addr = '0xf474e7E554D98a580282726434d1281aA273E87F';
+	expect(Web3Util.toChecksumAddress(addr.toLowerCase())).toEqual(addr);
+});

@@ -1,4 +1,4 @@
-import moment from 'moment';
+import moment, { DurationInputArg2 } from 'moment';
 import WebSocket from 'ws';
 import * as CST from '../common/constants';
 import { IOption } from '../common/types';
@@ -115,6 +115,18 @@ class Util {
 
 	public clone(obj: object) {
 		return JSON.parse(JSON.stringify(obj));
+	}
+
+	public getDates(length: number, step: number, stepSize: DurationInputArg2, format: string) {
+		const dates: string[] = [];
+		const date = moment.utc();
+		for (let i = 0; i < length; i++) {
+			dates.push(date.format(format));
+			date.subtract(step, stepSize);
+		}
+		dates.sort((a, b) => a.localeCompare(b));
+
+		return dates;
 	}
 }
 

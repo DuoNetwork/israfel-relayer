@@ -1,5 +1,6 @@
 // fix for @ledgerhq/hw-transport-u2f 4.28.0
 import '@babel/polyfill';
+import duoDynamoUtil from '../../duo-admin/src/utils/dynamoUtil';
 import * as CST from './common/constants';
 import { IOption } from './common/types';
 import orderBookServer from './server/orderBookServer';
@@ -33,6 +34,14 @@ const start = async () => {
 	} else if (tool !== CST.DB_ORDERS)
 		web3Util = new Web3Util(null, option.live, '', tool === CST.DB_ORDER_WATCHER);
 	if (web3Util) web3Util.setTokens(await dynamoUtil.scanTokens());
+	if (tool === CST.DB_RELAYER)
+		duoDynamoUtil.init(config, option.live, tool, Web3Util.fromWei, async txHash => {
+			const txReceipt = web3Util ? await web3Util.getTransactionReceipt(txHash) : null;
+			if (!txReceipt) return null;
+			return {
+				status: txReceipt.status as string
+			};
+		});
 	switch (tool) {
 		case CST.DB_ORDER_WATCHER:
 			orderWatcherServer.startServer(web3Util as Web3Util, option);

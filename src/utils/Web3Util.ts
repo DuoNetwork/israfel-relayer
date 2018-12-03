@@ -27,6 +27,7 @@ import util from './util';
 const Web3Eth = require('web3-eth');
 const Web3Accounts = require('web3-eth-accounts');
 const Web3Personal = require('web3-eth-personal');
+const Web3Utils = require('web3-utils');
 
 export enum Wallet {
 	None,
@@ -215,7 +216,7 @@ export default class Web3Util {
 		return new BigNumber(value);
 	};
 
-	public static fromWei = (value: BigNumber | string): number => {
+	public static fromWei = (value: BigNumber | string | number): number => {
 		return Number(Web3Wrapper.toUnitAmount(new BigNumber(value), 18).valueOf());
 	};
 
@@ -362,5 +363,13 @@ export default class Web3Util {
 
 	public isValidAddress(address: string) {
 		return address !== CST.DUMMY_ADDR && addressUtils.isAddress(address);
+	}
+
+	public getTransactionReceipt(txHash: string) {
+		return this.web3Wrapper.getTransactionReceiptIfExistsAsync(txHash)
+	}
+
+	public static toChecksumAddress(address: string): string {
+		return Web3Utils.toChecksumAddress(address);
 	}
 }

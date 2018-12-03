@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import * as https from 'https';
 import WebSocket from 'ws';
+import { IAcceptedPrice } from '../../../duo-admin/src/common/types';
+import duoDynamoUtil from '../../../duo-admin/src/utils/dynamoUtil';
 import * as CST from '../common/constants';
 import {
 	IOption,
@@ -36,6 +38,7 @@ class RelayerServer {
 	public orderBookPairs: { [pair: string]: WebSocket[] } = {};
 	public clients: WebSocket[] = [];
 	public pairClients: { [pair: string]: { [account: string]: WebSocket[] } } = {};
+	public duoAcceptedPrices: { [custodian: string]: IAcceptedPrice[] } = {};
 
 	public sendResponse(ws: WebSocket, req: IWsRequest, status: string) {
 		const orderResponse: IWsResponse = {
@@ -78,13 +81,7 @@ class RelayerServer {
 		const orderHash = this.web3Util ? await this.web3Util.validateOrder(parsedSignedorder) : '';
 		const code = req.pair.split('|')[0];
 		const token = this.web3Util ? this.web3Util.tokens.find(t => t.code === code) : null;
-		if (
-			orderHash &&
-			orderHash === req.orderHash &&
-			token &&
-			this.web3Util
-			// (await this.web3Util.validateOrderFillable(parsedSignedorder))
-		) {
+		if (orderHash && orderHash === req.orderHash && token) {
 			util.logDebug('order valided, persisting');
 			try {
 				const userOrder = await orderPersistenceUtil.persistOrder({
@@ -368,11 +365,32 @@ class RelayerServer {
 				this.unsubscribeOrderHistory(ws, account, pair);
 	}
 
+	public async loadDuoAcceptedPrices() {
+		if (this.web3Util) {
+			const custodians: string[] = [];
+			for (const token of this.web3Util.tokens)
+				if (!custodians.includes(token.custodian)) custodians.push(token.custodian);
+			if (!custodians.length) {
+				util.logDebug('no custodian, skip loading duo accepted prices');
+				return;
+			}
+			const dates = util.getDates(2, 1, 'day', 'YYYY-MM-DD');
+			for (const custodian of custodians)
+				this.duoAcceptedPrices[custodian] = await duoDynamoUtil.queryAcceptPriceEvent(
+					Web3Util.toChecksumAddress(custodian),
+					dates
+				);
+			util.logDebug('loaded duo accepted prices');
+		}
+	}
+
 	public async startServer(web3Util: Web3Util, option: IOption) {
 		this.web3Util = web3Util;
 		setInterval(async () => {
 			if (this.web3Util) this.web3Util.setTokens(await dynamoUtil.scanTokens());
 		}, 3600000);
+		this.loadDuoAcceptedPrices();
+		setInterval(() => this.loadDuoAcceptedPrices(), 600000);
 		this.processStatus = await dynamoUtil.scanStatus();
 		const port = 8080;
 		const server = https
