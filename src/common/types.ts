@@ -230,6 +230,7 @@ export interface IMatchingOrderResult {
 }
 
 export interface IToken {
+	custodian: string;
 	address: string;
 	code: string;
 	denomination: number;

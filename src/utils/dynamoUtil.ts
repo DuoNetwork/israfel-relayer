@@ -75,6 +75,7 @@ class DynamoUtil {
 
 	public parseToken(data: AttributeMap): IToken {
 		const token: IToken = {
+			custodian: (data[CST.DB_CUSTODIAN].S || '').toLowerCase(),
 			address: (data[CST.DB_ADDRESS].S || '').toLowerCase(),
 			code: data[CST.DB_CODE].S || '',
 			denomination: Number(data[CST.DB_DENOMINATION].N),

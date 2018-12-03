@@ -492,6 +492,7 @@ Array [
   Object {
     "address": "addr1",
     "code": "code1",
+    "custodian": "custodian1",
     "denomination": 1,
     "feeSchedules": Object {
       "WETH": Object {
@@ -506,6 +507,7 @@ Array [
   Object {
     "address": "addr2",
     "code": "code2",
+    "custodian": "custodian2",
     "denomination": 10,
     "feeSchedules": Object {
       "WETH": Object {

@@ -12,6 +12,7 @@ test('scanTokens', async () => {
 	scanOutput = {
 		Items: [
 			{
+				[CST.DB_CUSTODIAN]: {S: 'custodian1'},
 				[CST.DB_ADDRESS]: { S: 'addr1' },
 				[CST.DB_CODE]: { S: 'code1' },
 				[CST.DB_DENOMINATION]: { N: '1' },
@@ -32,6 +33,7 @@ test('scanTokens', async () => {
 				}
 			},
 			{
+				[CST.DB_CUSTODIAN]: {S: 'custodian2'},
 				[CST.DB_ADDRESS]: { S: 'addr2' },
 				[CST.DB_CODE]: { S: 'code2' },
 				[CST.DB_DENOMINATION]: { N: '10' },
