@@ -1,0 +1,75 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`orderMatchingUtil, updatesRequired false, matching equally 1`] = `
+Object {
+  "orderBookLevelUpdates": Array [],
+  "ordersToMatch": Array [
+    Object {
+      "left": Object {
+        "balance": 20,
+        "orderHash": "orderHash1",
+      },
+      "right": Object {
+        "balance": 30,
+        "orderHash": "orderHash3",
+      },
+    },
+  ],
+}
+`;
+
+exports[`orderMatchingUtil, updatesRequired false, matching equally 2`] = `
+Object {
+  "orderBookLevelUpdates": Array [],
+  "ordersToMatch": Array [
+    Object {
+      "left": Object {
+        "balance": 20,
+        "orderHash": "orderHash1",
+      },
+      "right": Object {
+        "balance": 30,
+        "orderHash": "orderHash3",
+      },
+    },
+    Object {
+      "left": Object {
+        "balance": 30,
+        "orderHash": "orderHash2",
+      },
+      "right": Object {
+        "balance": 10,
+        "orderHash": "orderHash3",
+      },
+    },
+  ],
+}
+`;
+
+exports[`orderMatchingUtil, updatesRequired false, no ask live order 1`] = `
+Object {
+  "orderBookLevelUpdates": Array [],
+  "ordersToMatch": Array [],
+}
+`;
+
+exports[`orderMatchingUtil, updatesRequired false, no bid live order 1`] = `
+Object {
+  "orderBookLevelUpdates": Array [],
+  "ordersToMatch": Array [],
+}
+`;
+
+exports[`orderMatchingUtil, updatesRequired false, no bids 1`] = `
+Object {
+  "orderBookLevelUpdates": Array [],
+  "ordersToMatch": Array [],
+}
+`;
+
+exports[`orderMatchingUtil, updatesRequired false, no matching 1`] = `
+Object {
+  "orderBookLevelUpdates": Array [],
+  "ordersToMatch": Array [],
+}
+`;

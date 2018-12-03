@@ -27,6 +27,8 @@ class OrderMatchingUtil {
 		if (bids.length && asks.length) {
 			const bestBid = bids.find(level => level.balance > 0);
 			const bestAsk = asks.find(level => level.balance > 0);
+			// console.log(bestBid);
+			// console.log(bestAsk);
 			if (!bestBid || !bestAsk || bestAsk.price > bestBid.price)
 				return {
 					ordersToMatch,
@@ -36,12 +38,14 @@ class OrderMatchingUtil {
 			const bidsToMatch = bids.filter(b => b.price >= bestAsk.price && b.balance > 0);
 			const asksToMatch = asks.filter(a => a.price <= bestBid.price && a.balance > 0);
 
-			let done = false;
 			let bidIdx = 0;
 			let askIdx = 0;
-			while (!done) {
+			// console.log(done);
+			while (bidIdx < bidsToMatch.length && askIdx < asksToMatch.length) {
 				const bid = bidsToMatch[bidIdx];
 				const ask = asksToMatch[askIdx];
+
+				// console.log(liveOrders);
 				const bidLiveOrder = liveOrders[bid.orderHash];
 				if (!bidLiveOrder) {
 					util.logDebug('missing live order for ' + bid.orderHash);
@@ -49,6 +53,9 @@ class OrderMatchingUtil {
 					continue;
 				}
 				const askLiveOrder = liveOrders[ask.orderHash];
+
+				console.log(!askLiveOrder);
+
 				if (!askLiveOrder) {
 					util.logDebug('missing live order for ' + ask.orderHash);
 					askIdx++;
@@ -90,8 +97,6 @@ class OrderMatchingUtil {
 						side: askLiveOrder.side
 					});
 				}
-
-				if (bidIdx >= bidsToMatch.length || askIdx >= asksToMatch.length) done = true;
 			}
 		}
 
@@ -143,7 +148,6 @@ class OrderMatchingUtil {
 					rightRawOrder.signedOrder as IStringSignedOrder
 				);
 			}
-
 			balanceAftMatch[leftOrderHash] = Math.min(
 				balanceAftMatch[leftOrderHash] || orderToMatch.left.balance,
 				orderToMatch.left.balance
