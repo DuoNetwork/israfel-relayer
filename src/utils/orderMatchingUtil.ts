@@ -153,19 +153,17 @@ class OrderMatchingUtil {
 			orderHashesToMatch.push([leftOrderHash, rightOrderHash]);
 		}
 
-		await Promise.all(
-			Object.keys(balanceAftMatch).map(orderHash => {
-				const persistRequest = {
-					method: CST.DB_UPDATE,
-					pair: pair,
-					orderHash: orderHash,
-					balance: balanceAftMatch[orderHash],
-					requestor: CST.DB_ORDER_MATCHER,
-					status: CST.DB_MATCHING
-				};
-				return orderPersistenceUtil.persistOrder(persistRequest);
-			})
-		);
+		for (const orderHash in balanceAftMatch) {
+			const persistRequest = {
+				method: CST.DB_UPDATE,
+				pair: pair,
+				orderHash: orderHash,
+				balance: balanceAftMatch[orderHash],
+				requestor: CST.DB_ORDER_MATCHER,
+				status: CST.DB_MATCHING
+			};
+			await orderPersistenceUtil.persistOrder(persistRequest);
+		}
 
 		if (orderHashesToMatch.length > 0) {
 			let currentNonce = await web3Util.getTransactionCount();
