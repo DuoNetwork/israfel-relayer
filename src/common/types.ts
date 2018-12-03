@@ -1,4 +1,5 @@
 import { SignedOrder } from '0x.js';
+import { IAcceptedPrice } from '../../../duo-admin/src/common/types';
 
 export interface ILiveOrder {
 	account: string;
@@ -170,6 +171,7 @@ export interface IWsOrderHistoryResponse extends IWsResponse {
 }
 
 export interface IWsInfoResponse extends IWsResponse {
+	acceptedPrices: {[custodian: string]: IAcceptedPrice[]}
 	tokens: IToken[];
 	processStatus: IStatus[];
 }

@@ -17,6 +17,9 @@ test('sendInfo', () => {
 	relayerServer.web3Util = {
 		tokens: ['token1']
 	} as any;
+	relayerServer.duoAcceptedPrices = {
+		custodian: ['acceptedPrices'] as any
+	};
 	relayerServer.processStatus = ['status1'] as any;
 	relayerServer.sendInfo(ws as any);
 	expect((ws.send as jest.Mock).mock.calls).toMatchSnapshot();

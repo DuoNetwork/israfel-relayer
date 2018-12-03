@@ -342,6 +342,7 @@ class RelayerServer {
 			method: CST.WS_INFO,
 			status: CST.WS_OK,
 			pair: '',
+			acceptedPrices: this.duoAcceptedPrices,
 			tokens: this.web3Util ? this.web3Util.tokens : [],
 			processStatus: this.processStatus
 		};

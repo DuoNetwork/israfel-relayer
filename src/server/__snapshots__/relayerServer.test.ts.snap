@@ -890,7 +890,7 @@ Array [
 exports[`sendInfo 1`] = `
 Array [
   Array [
-    "{\\"channel\\":\\"info\\",\\"method\\":\\"info\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"tokens\\":[\\"token1\\"],\\"processStatus\\":[\\"status1\\"]}",
+    "{\\"channel\\":\\"info\\",\\"method\\":\\"info\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"acceptedPrices\\":{\\"custodian\\":[\\"acceptedPrices\\"]},\\"tokens\\":[\\"token1\\"],\\"processStatus\\":[\\"status1\\"]}",
   ],
 ]
 `;
