@@ -114,6 +114,7 @@ class OrderMatchingUtil {
 			const leftOrderHash = orderToMatch.left.orderHash;
 			if (!signedOrders[leftOrderHash]) {
 				const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
+					pair,
 					leftOrderHash
 				);
 				if (!leftRawOrder) {
@@ -128,6 +129,7 @@ class OrderMatchingUtil {
 			const rightOrderHash = orderToMatch.right.orderHash;
 			if (!signedOrders[rightOrderHash]) {
 				const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
+					pair,
 					rightOrderHash
 				);
 

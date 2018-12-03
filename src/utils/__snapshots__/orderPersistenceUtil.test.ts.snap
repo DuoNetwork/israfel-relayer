@@ -13,7 +13,7 @@ Object {
   "fill": 234,
   "initialSequence": 1,
   "orderHash": "0xOrderHash",
-  "pair": "pair",
+  "pair": "code1|code2",
   "price": 0.123456789,
   "processed": true,
   "side": "bid",
@@ -36,7 +36,7 @@ Object {
   "fill": 234,
   "initialSequence": 1,
   "orderHash": "0xOrderHash",
-  "pair": "pair",
+  "pair": "code1|code2",
   "price": 0.123456789,
   "processed": false,
   "side": "bid",
@@ -61,7 +61,7 @@ Object {
 exports[`getAllLiveOrdersInPersistence only add in redis 2`] = `
 Array [
   Array [
-    "orders|cache",
+    "orders|cache|code1|code2",
   ],
 ]
 `;
@@ -85,6 +85,7 @@ Object {
 exports[`getRawOrderInPersistence in add queue 1`] = `
 Object {
   "orderHash": "0xOrderHash",
+  "pair": "code1|code2",
   "signedOrder": "signedOrder",
 }
 `;
@@ -117,7 +118,7 @@ Array [
 exports[`getRawOrderInPersistence in terminate queue 1`] = `
 Array [
   Array [
-    "orders|cache",
+    "orders|cache|code1|code2",
     "terminate|0xOrderHash",
     "add|0xOrderHash",
   ],
@@ -135,8 +136,8 @@ Array [
 exports[`persistOrder add 1`] = `
 Array [
   Array [
-    "orders|cache",
-    "add|0xOrderHash",
+    "orders|cache|code1|code2",
+    "code1|code2|add|0xOrderHash",
     "{\\"method\\":\\"add\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"test\\":\\"liveOrder\\",\\"initialSequence\\":123,\\"currentSequence\\":123},\\"signedOrder\\":\\"may or may not exist\\"}",
   ],
 ]
@@ -146,7 +147,7 @@ exports[`persistOrder add 2`] = `
 Array [
   Array [
     "orders|queue",
-    "add|0xOrderHash",
+    "code1|code2|add|0xOrderHash",
   ],
 ]
 `;
@@ -154,7 +155,7 @@ Array [
 exports[`persistOrder add 3`] = `
 Array [
   Array [
-    "orders|pubsub|pair",
+    "orders|pubsub|code1|code2",
     "{\\"method\\":\\"add\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"test\\":\\"liveOrder\\",\\"initialSequence\\":123,\\"currentSequence\\":123},\\"signedOrder\\":\\"may or may not exist\\"}",
   ],
 ]
@@ -179,8 +180,8 @@ Array [
 exports[`persistOrder not add 1`] = `
 Array [
   Array [
-    "orders|cache",
-    "method|0xOrderHash",
+    "orders|cache|code1|code2",
+    "code1|code2|method|0xOrderHash",
     "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":1,\\"balance\\":80}}",
   ],
 ]
@@ -190,7 +191,7 @@ exports[`persistOrder not add 2`] = `
 Array [
   Array [
     "orders|queue",
-    "method|0xOrderHash",
+    "code1|code2|method|0xOrderHash",
   ],
 ]
 `;
@@ -198,7 +199,7 @@ Array [
 exports[`persistOrder not add 3`] = `
 Array [
   Array [
-    "orders|pubsub|pair",
+    "orders|pubsub|code1|code2",
     "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":1,\\"balance\\":80}}",
   ],
 ]
@@ -224,8 +225,8 @@ Array [
 exports[`persistOrder terminate fill 1`] = `
 Array [
   Array [
-    "orders|cache",
-    "terminate|0xOrderHash",
+    "orders|cache|code1|code2",
+    "code1|code2|terminate|0xOrderHash",
     "{\\"method\\":\\"terminate\\",\\"status\\":\\"fill\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":100,\\"balance\\":0}}",
   ],
 ]
@@ -235,7 +236,7 @@ exports[`persistOrder terminate fill 2`] = `
 Array [
   Array [
     "orders|queue",
-    "terminate|0xOrderHash",
+    "code1|code2|terminate|0xOrderHash",
   ],
 ]
 `;
@@ -243,7 +244,7 @@ Array [
 exports[`persistOrder terminate fill 3`] = `
 Array [
   Array [
-    "orders|pubsub|pair",
+    "orders|pubsub|code1|code2",
     "{\\"method\\":\\"terminate\\",\\"status\\":\\"fill\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":100,\\"balance\\":0}}",
   ],
 ]
@@ -271,6 +272,7 @@ Array [
   Array [
     Object {
       "orderHash": "0xOrderHash",
+      "pair": "code1|code2",
       "signedOrder": Object {
         "exchangeAddress": "exchangeAddress",
         "expirationTimeSeconds": "1234567890",
@@ -307,7 +309,7 @@ Array [
       "fill": 234,
       "initialSequence": 1,
       "orderHash": "0xOrderHash",
-      "pair": "pair",
+      "pair": "code1|code2",
       "price": 0.123456789,
       "side": "bid",
     },
@@ -330,7 +332,7 @@ Array [
       "fill": 234,
       "initialSequence": 1,
       "orderHash": "0xOrderHash",
-      "pair": "pair",
+      "pair": "code1|code2",
       "price": 0.123456789,
       "side": "bid",
     },
@@ -345,8 +347,17 @@ Array [
 exports[`processOrderQueue add 4`] = `
 Array [
   Array [
-    "orders|cache",
-    "add|0xOrderHash",
+    "orders|cache|code1|code2",
+    "code1|code2|add|0xOrderHash",
+  ],
+]
+`;
+
+exports[`processOrderQueue add 5`] = `
+Array [
+  Array [
+    "orders|cache|code1|code2",
+    "code1|code2|add|0xOrderHash",
   ],
 ]
 `;
@@ -359,11 +370,20 @@ Array [
 ]
 `;
 
+exports[`processOrderQueue failed 1`] = `
+Array [
+  Array [
+    "orders|cache|code1|code2",
+    "code1|code2|add|0xOrderHash",
+  ],
+]
+`;
+
 exports[`processOrderQueue in queue but no key value 1`] = `
 Array [
   Array [
-    "orders|cache",
-    "method|0xOrderHash",
+    "orders|cache|code1|code2",
+    "code1|code2|method|0xOrderHash",
   ],
 ]
 `;
@@ -391,7 +411,7 @@ Array [
       "fill": 234,
       "initialSequence": 1,
       "orderHash": "0xOrderHash",
-      "pair": "pair",
+      "pair": "code1|code2",
       "price": 0.123456789,
       "side": "bid",
     },
@@ -414,7 +434,7 @@ Array [
       "fill": 234,
       "initialSequence": 1,
       "orderHash": "0xOrderHash",
-      "pair": "pair",
+      "pair": "code1|code2",
       "price": 0.123456789,
       "side": "bid",
     },
@@ -429,8 +449,17 @@ Array [
 exports[`processOrderQueue terminate 4`] = `
 Array [
   Array [
-    "orders|cache",
-    "terminate|0xOrderHash",
+    "orders|cache|code1|code2",
+    "code1|code2|terminate|0xOrderHash",
+  ],
+]
+`;
+
+exports[`processOrderQueue terminate 5`] = `
+Array [
+  Array [
+    "orders|cache|code1|code2",
+    "code1|code2|terminate|0xOrderHash",
   ],
 ]
 `;
@@ -450,7 +479,7 @@ Array [
       "fill": 234,
       "initialSequence": 1,
       "orderHash": "0xOrderHash",
-      "pair": "pair",
+      "pair": "code1|code2",
       "price": 0.123456789,
       "side": "bid",
     },
@@ -473,7 +502,7 @@ Array [
       "fill": 234,
       "initialSequence": 1,
       "orderHash": "0xOrderHash",
-      "pair": "pair",
+      "pair": "code1|code2",
       "price": 0.123456789,
       "side": "bid",
     },
@@ -488,8 +517,17 @@ Array [
 exports[`processOrderQueue update 3`] = `
 Array [
   Array [
-    "orders|cache",
-    "update|0xOrderHash",
+    "orders|cache|code1|code2",
+    "code1|code2|update|0xOrderHash",
+  ],
+]
+`;
+
+exports[`processOrderQueue update 4`] = `
+Array [
+  Array [
+    "orders|cache|code1|code2",
+    "code1|code2|update|0xOrderHash",
   ],
 ]
 `;
@@ -497,7 +535,7 @@ Array [
 exports[`subscribeOrderUpdate 1`] = `
 Array [
   Array [
-    "orders|pubsub|pair",
+    "orders|pubsub|code1|code2",
   ],
 ]
 `;
@@ -505,7 +543,7 @@ Array [
 exports[`subscribeOrderUpdate 2`] = `
 Array [
   Array [
-    "orders|pubsub|pair",
+    "orders|pubsub|code1|code2",
   ],
 ]
 `;

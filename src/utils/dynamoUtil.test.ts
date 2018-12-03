@@ -12,7 +12,7 @@ test('scanTokens', async () => {
 	scanOutput = {
 		Items: [
 			{
-				[CST.DB_CUSTODIAN]: {S: 'custodian1'},
+				[CST.DB_CUSTODIAN]: { S: 'custodian1' },
 				[CST.DB_ADDRESS]: { S: 'addr1' },
 				[CST.DB_CODE]: { S: 'code1' },
 				[CST.DB_DENOMINATION]: { N: '1' },
@@ -33,7 +33,7 @@ test('scanTokens', async () => {
 				}
 			},
 			{
-				[CST.DB_CUSTODIAN]: {S: 'custodian2'},
+				[CST.DB_CUSTODIAN]: { S: 'custodian2' },
 				[CST.DB_ADDRESS]: { S: 'addr2' },
 				[CST.DB_CODE]: { S: 'code2' },
 				[CST.DB_DENOMINATION]: { N: '10' },
@@ -100,7 +100,7 @@ test('addLiveOrder', async () => {
 	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
 	await dynamoUtil.addLiveOrder({
 		account: '0xAccount',
-		pair: 'pair',
+		pair: 'code1|code2',
 		orderHash: '0xOrderHash',
 		price: 0.123456789,
 		amount: 456,
@@ -122,7 +122,7 @@ test('updateLiveOrder', async () => {
 	dynamoUtil.updateData = jest.fn(() => Promise.resolve({}));
 	await dynamoUtil.updateLiveOrder({
 		account: '0xAccount',
-		pair: 'pair',
+		pair: 'code1|code2',
 		orderHash: '0xOrderHash',
 		price: 0.123456789,
 		amount: 456,
@@ -144,7 +144,7 @@ test('deleteLiveOrder', async () => {
 	dynamoUtil.deleteData = jest.fn(() => Promise.resolve({}));
 	await dynamoUtil.deleteLiveOrder({
 		account: '0xAccount',
-		pair: 'pair',
+		pair: 'code1|code2',
 		orderHash: '0xOrderHash',
 		price: 123,
 		amount: 456,
@@ -167,14 +167,14 @@ test('getLiveOrders', async () => {
 		Items: []
 	};
 	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
-	expect(await dynamoUtil.getLiveOrders('pair')).toMatchSnapshot();
+	expect(await dynamoUtil.getLiveOrders('code1|code2')).toMatchSnapshot();
 	expect((dynamoUtil.queryData as jest.Mock).mock.calls).toMatchSnapshot();
 
 	queryOutput = {
 		Items: [
 			{
 				[CST.DB_ACCOUNT]: { S: '0xAccount' },
-				[CST.DB_PAIR]: { S: 'pair' },
+				[CST.DB_PAIR]: { S: 'code1|code2' },
 				[CST.DB_ORDER_HASH]: { S: '0xOrderHash' },
 				[CST.DB_PRICE]: {
 					N: '123'
@@ -194,7 +194,7 @@ test('getLiveOrders', async () => {
 		]
 	};
 	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
-	expect(await dynamoUtil.getLiveOrders('pair')).toMatchSnapshot();
+	expect(await dynamoUtil.getLiveOrders('code1|code2')).toMatchSnapshot();
 });
 
 test('getLiveOrders with orderHash', async () => {
@@ -202,14 +202,14 @@ test('getLiveOrders with orderHash', async () => {
 		Items: []
 	};
 	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
-	expect(await dynamoUtil.getLiveOrders('pair', 'orderHash')).toMatchSnapshot();
+	expect(await dynamoUtil.getLiveOrders('code1|code2', 'orderHash')).toMatchSnapshot();
 	expect((dynamoUtil.queryData as jest.Mock).mock.calls).toMatchSnapshot();
 
 	queryOutput = {
 		Items: [
 			{
 				[CST.DB_ACCOUNT]: { S: '0xAccount' },
-				[CST.DB_PAIR]: { S: 'pair' },
+				[CST.DB_PAIR]: { S: 'code1|code2' },
 				[CST.DB_ORDER_HASH]: { S: '0xOrderHash' },
 				[CST.DB_PRICE]: {
 					N: '123'
@@ -229,7 +229,7 @@ test('getLiveOrders with orderHash', async () => {
 		]
 	};
 	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
-	expect(await dynamoUtil.getLiveOrders('pair', 'orderHash')).toMatchSnapshot();
+	expect(await dynamoUtil.getLiveOrders('code1|code2', 'orderHash')).toMatchSnapshot();
 
 	queryOutput = {
 		Items: [{}, {}]
@@ -237,7 +237,7 @@ test('getLiveOrders with orderHash', async () => {
 	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
 
 	try {
-		await dynamoUtil.getLiveOrders('pair', 'orderHash');
+		await dynamoUtil.getLiveOrders('code1|code2', 'orderHash');
 	} catch (error) {
 		expect(error).toMatchSnapshot();
 	}
@@ -254,6 +254,7 @@ test('addRawOrder', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
 	await dynamoUtil.addRawOrder({
+		pair: 'code1|code2',
 		orderHash: '0xOrderHash',
 		signedOrder: {
 			senderAddress: 'senderAddress',
@@ -287,6 +288,7 @@ test('getRawOrder', async () => {
 		Items: [
 			{
 				[CST.DB_ORDER_HASH]: { S: '0xOrderHash' },
+				[CST.DB_PAIR]: { S: 'code1|code2' },
 				[CST.DB_0X_SENDER_ADDR]: { S: 'senderAddress' },
 				[CST.DB_0X_MAKER_ADDR]: { S: 'makerAddress' },
 				[CST.DB_0X_TAKER_ADDR]: { S: 'takerAddress' },
@@ -321,6 +323,7 @@ test('getRawOrder', async () => {
 		Items: [
 			{
 				[CST.DB_ORDER_HASH]: { S: '0xOrderHash' },
+				[CST.DB_PAIR]: { S: 'code1|code2' },
 				[CST.DB_0X_SENDER_ADDR]: { S: 'senderAddress' },
 				[CST.DB_0X_MAKER_ADDR]: { S: 'makerAddress' },
 				[CST.DB_0X_TAKER_ADDR]: { S: 'takerAddress' },
@@ -366,7 +369,7 @@ test('addUserOrder', async () => {
 	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
 	await dynamoUtil.addUserOrder({
 		account: '0xAccount',
-		pair: 'pair',
+		pair: 'code1|code2',
 		type: 'type',
 		status: 'status',
 		orderHash: '0xOrderHash',
@@ -422,7 +425,7 @@ test('getUserOrdersForMonth', async () => {
 	};
 	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
 	expect(
-		await dynamoUtil.getUserOrdersForMonth('0xAccount', '1234-56', 'pair')
+		await dynamoUtil.getUserOrdersForMonth('0xAccount', '1234-56', 'code1|code2')
 	).toMatchSnapshot();
 	expect((dynamoUtil.queryData as jest.Mock).mock.calls).toMatchSnapshot();
 });

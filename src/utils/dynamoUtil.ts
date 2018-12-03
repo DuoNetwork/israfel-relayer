@@ -297,6 +297,7 @@ class DynamoUtil {
 		const timestamp = util.getUTCNowTimestamp();
 		return {
 			[CST.DB_ORDER_HASH]: { S: rawOrder.orderHash },
+			[CST.DB_PAIR]: { S: rawOrder.pair },
 			[CST.DB_0X_SENDER_ADDR]: { S: rawOrder.signedOrder.senderAddress + '' },
 			[CST.DB_0X_MAKER_ADDR]: { S: rawOrder.signedOrder.makerAddress + '' },
 			[CST.DB_0X_TAKER_ADDR]: { S: rawOrder.signedOrder.takerAddress + '' },
@@ -333,6 +334,7 @@ class DynamoUtil {
 
 	public parseRawOrder(data: AttributeMap): IRawOrder {
 		return {
+			pair: data[CST.DB_PAIR].S || '',
 			orderHash: data[CST.DB_ORDER_HASH].S || '',
 			signedOrder: {
 				signature: data[CST.DB_0X_SIGNATURE] ? data[CST.DB_0X_SIGNATURE].S || '' : '',

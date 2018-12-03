@@ -31,6 +31,7 @@ export interface IUserOrder extends ILiveOrder {
 }
 
 export interface IRawOrder {
+	pair: string;
 	orderHash: string;
 	signedOrder: IStringSignedOrder | SignedOrder;
 	createdAt?: number;

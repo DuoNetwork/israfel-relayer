@@ -39,7 +39,7 @@ Array [
           "S": "0xOrderHash",
         },
         "pair": Object {
-          "S": "pair",
+          "S": "code1|code2",
         },
         "price": Object {
           "N": "0.12345678",
@@ -88,6 +88,9 @@ Array [
         },
         "orderHash": Object {
           "S": "0xOrderHash",
+        },
+        "pair": Object {
+          "S": "code1|code2",
         },
         "salt": Object {
           "S": "789",
@@ -153,7 +156,7 @@ Array [
           "N": "1",
         },
         "pairOrderHashSequenceStatus": Object {
-          "S": "pair|0xOrderHash|2|status",
+          "S": "code1|code2|0xOrderHash|2|status",
         },
         "price": Object {
           "N": "0.12345678",
@@ -189,7 +192,7 @@ Array [
           "S": "0xOrderHash",
         },
         "pair": Object {
-          "S": "pair",
+          "S": "code1|code2",
         },
       },
       "TableName": "israfel.liveOrders.dev",
@@ -227,7 +230,7 @@ Array [
     Object {
       "ExpressionAttributeValues": Object {
         ":pair": Object {
-          "S": "pair",
+          "S": "code1|code2",
         },
       },
       "KeyConditionExpression": "pair = :pair",
@@ -251,7 +254,7 @@ Array [
     "fill": 234,
     "initialSequence": 1,
     "orderHash": "0xOrderHash",
-    "pair": "pair",
+    "pair": "code1|code2",
     "price": 123,
     "side": "side",
     "updatedAt": 1234567890,
@@ -270,7 +273,7 @@ Array [
           "S": "orderHash",
         },
         ":pair": Object {
-          "S": "pair",
+          "S": "code1|code2",
         },
       },
       "KeyConditionExpression": "pair = :pair AND orderHash = :orderHash",
@@ -294,7 +297,7 @@ Array [
     "fill": 234,
     "initialSequence": 1,
     "orderHash": "0xOrderHash",
-    "pair": "pair",
+    "pair": "code1|code2",
     "price": 123,
     "side": "side",
     "updatedAt": 1234567890,
@@ -324,6 +327,7 @@ exports[`getRawOrder 2`] = `
 Object {
   "createdAt": 1234567890,
   "orderHash": "0xOrderHash",
+  "pair": "code1|code2",
   "signedOrder": Object {
     "exchangeAddress": "exchangeAddress",
     "expirationTimeSeconds": "1234567890",
@@ -348,6 +352,7 @@ exports[`getRawOrder 3`] = `
 Object {
   "createdAt": 1234567890,
   "orderHash": "0xOrderHash",
+  "pair": "code1|code2",
   "signedOrder": Object {
     "exchangeAddress": "exchangeAddress",
     "expirationTimeSeconds": "1234567890",
@@ -432,10 +437,10 @@ Array [
           "S": "0xAccount|1234-56",
         },
         ":end": Object {
-          "S": "pair|z",
+          "S": "code1|code2|z",
         },
         ":start": Object {
-          "S": "pair|",
+          "S": "code1|code2|",
         },
       },
       "KeyConditionExpression": "accountYearMonth = :accountYearMonth AND pairOrderHashSequenceStatus BETWEEN :start AND :end",
@@ -547,7 +552,7 @@ Array [
           "S": "0xOrderHash",
         },
         "pair": Object {
-          "S": "pair",
+          "S": "code1|code2",
         },
       },
       "TableName": "israfel.liveOrders.dev",
