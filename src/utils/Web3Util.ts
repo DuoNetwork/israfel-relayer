@@ -52,12 +52,12 @@ export default class Web3Util {
 
 	constructor(window: any, live: boolean, privateKey: string, local: boolean) {
 		this.networkId = live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN;
-		if (window && typeof window.web3 !== 'undefined') {
-			this.rawMetamaskProvider = window.web3.currentProvider;
+		if (window && (window.web3 || window.ethereum)) {
+			if (window.ethereum) this.rawMetamaskProvider = window.ethereum;
+			else this.rawMetamaskProvider = window.web3.currentProvider;
+
+			this.web3Wrapper = new Web3Wrapper(new MetamaskSubprovider(this.rawMetamaskProvider));
 			this.web3Personal = new Web3Personal(this.rawMetamaskProvider);
-			this.web3Wrapper = new Web3Wrapper(
-				new MetamaskSubprovider(window.web3.currentProvider)
-			);
 			this.wallet = Wallet.MetaMask;
 		} else {
 			const pe = new Web3ProviderEngine();
