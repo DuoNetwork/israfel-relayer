@@ -1,12 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`orderMatchingUtil, updatesRequired false, matching equally 1`] = `
+exports[`findMatchingOrders, updatesRequired false, matching all and no partial fill 1`] = `
 Object {
   "orderBookLevelUpdates": Array [],
   "ordersToMatch": Array [
     Object {
       "left": Object {
-        "balance": 20,
+        "balance": 30,
         "orderHash": "orderHash1",
       },
       "right": Object {
@@ -18,7 +18,7 @@ Object {
 }
 `;
 
-exports[`orderMatchingUtil, updatesRequired false, matching equally 2`] = `
+exports[`findMatchingOrders, updatesRequired false, matching all, all partial filled 1`] = `
 Object {
   "orderBookLevelUpdates": Array [],
   "ordersToMatch": Array [
@@ -46,30 +46,140 @@ Object {
 }
 `;
 
-exports[`orderMatchingUtil, updatesRequired false, no ask live order 1`] = `
+exports[`findMatchingOrders, updatesRequired false, matching first bid and ask 1`] = `
+Object {
+  "orderBookLevelUpdates": Array [],
+  "ordersToMatch": Array [
+    Object {
+      "left": Object {
+        "balance": 20,
+        "orderHash": "orderHash1",
+      },
+      "right": Object {
+        "balance": 30,
+        "orderHash": "orderHash3",
+      },
+    },
+  ],
+}
+`;
+
+exports[`findMatchingOrders, updatesRequired false, no ask live order 1`] = `
 Object {
   "orderBookLevelUpdates": Array [],
   "ordersToMatch": Array [],
 }
 `;
 
-exports[`orderMatchingUtil, updatesRequired false, no bid live order 1`] = `
+exports[`findMatchingOrders, updatesRequired false, no bid live order 1`] = `
 Object {
   "orderBookLevelUpdates": Array [],
   "ordersToMatch": Array [],
 }
 `;
 
-exports[`orderMatchingUtil, updatesRequired false, no bids 1`] = `
+exports[`findMatchingOrders, updatesRequired false, no bids 1`] = `
 Object {
   "orderBookLevelUpdates": Array [],
   "ordersToMatch": Array [],
 }
 `;
 
-exports[`orderMatchingUtil, updatesRequired false, no matching 1`] = `
+exports[`findMatchingOrders, updatesRequired false, no matching 1`] = `
 Object {
   "orderBookLevelUpdates": Array [],
   "ordersToMatch": Array [],
 }
+`;
+
+exports[`findMatchingOrders, updatesRequired true, matching first bid and ask 1`] = `
+Object {
+  "orderBookLevelUpdates": Array [
+    Object {
+      "change": -20,
+      "count": -1,
+      "price": 0.04,
+      "side": "bid",
+    },
+    Object {
+      "change": -20,
+      "count": 0,
+      "price": 0.04,
+      "side": "bid",
+    },
+  ],
+  "ordersToMatch": Array [
+    Object {
+      "left": Object {
+        "balance": 20,
+        "orderHash": "orderHash1",
+      },
+      "right": Object {
+        "balance": 30,
+        "orderHash": "orderHash3",
+      },
+    },
+  ],
+}
+`;
+
+exports[`matchorders 1`] = `Array []`;
+
+exports[`matchorders 2`] = `Array []`;
+
+exports[`matchorders 3`] = `
+Array [
+  Array [
+    "code1|code2",
+    "orderHash1",
+  ],
+]
+`;
+
+exports[`matchorders, no left raworder 1`] = `Array []`;
+
+exports[`matchorders, no left raworder 2`] = `Array []`;
+
+exports[`matchorders, no left raworder 3`] = `
+Array [
+  Object {
+    "isThrow": false,
+    "value": Promise {},
+  },
+]
+`;
+
+exports[`matchorders, no left raworder 4`] = `
+Array [
+  Array [
+    "code1|code2",
+    "orderHash1",
+  ],
+]
+`;
+
+exports[`matchorders, no left raworder 5`] = `Array []`;
+
+exports[`matchorders, no left raworder 6`] = `Array []`;
+
+exports[`matchorders, no left raworder 7`] = `
+Array [
+  Array [
+    "code1|code2",
+    "orderHash1",
+  ],
+]
+`;
+
+exports[`matchorders, no right raworder 1`] = `Array []`;
+
+exports[`matchorders, no right raworder 2`] = `Array []`;
+
+exports[`matchorders, no right raworder 3`] = `
+Array [
+  Array [
+    "code1|code2",
+    "orderHash1",
+  ],
+]
 `;

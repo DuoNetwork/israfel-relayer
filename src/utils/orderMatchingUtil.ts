@@ -54,8 +54,6 @@ class OrderMatchingUtil {
 				}
 				const askLiveOrder = liveOrders[ask.orderHash];
 
-				console.log(!askLiveOrder);
-
 				if (!askLiveOrder) {
 					util.logDebug('missing live order for ' + ask.orderHash);
 					askIdx++;
