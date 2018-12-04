@@ -28,55 +28,57 @@ test('parseSignedOrder', () => expect(orderUtil.parseSignedOrder(signedOrder)).t
 test('constructNewLiveOrder bid', () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
-	expect(
-		orderUtil.constructNewLiveOrder(
-			signedOrder,
-			{
-				custodian: 'custodian',
-				address: 'takerAddress',
-				code: 'takerCode',
-				denomination: 1,
-				precisions: {
-					makerCode: 0.000005
-				},
-				feeSchedules: {
-					makerCode: {
-						rate: 0,
-						minimum: 1
-					}
-				}
+	const liveOrder = orderUtil.constructNewLiveOrder(
+		signedOrder,
+		{
+			custodian: 'custodian',
+			address: 'takerAddress',
+			code: 'takerCode',
+			denomination: 1,
+			precisions: {
+				makerCode: 0.000005
 			},
-			'takerCode|makerCode',
-			'0xOrderHash'
-		)
-	).toMatchSnapshot();
+			feeSchedules: {
+				makerCode: {
+					rate: 0,
+					minimum: 1
+				}
+			}
+		},
+		'takerCode|makerCode',
+		'0xOrderHash'
+	);
+	const userOrder = orderUtil.constructUserOrder(liveOrder, 'type', 'status', 'updatedBy', true);
+	expect(liveOrder).toMatchSnapshot();
+	expect(userOrder).toMatchSnapshot();
 });
 
 test('constructNewLiveOrder ask', () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
-	expect(
-		orderUtil.constructNewLiveOrder(
-			signedOrder,
-			{
-				custodian: 'custodian',
-				address: 'makerAddress',
-				code: 'makerCode',
-				denomination: 1,
-				precisions: {
-					takerCode: 0.000005
-				},
-				feeSchedules: {
-					takerCode: {
-						rate: 0,
-						minimum: 1
-					}
-				}
+	const liveOrder = orderUtil.constructNewLiveOrder(
+		signedOrder,
+		{
+			custodian: 'custodian',
+			address: 'makerAddress',
+			code: 'makerCode',
+			denomination: 1,
+			precisions: {
+				takerCode: 0.000005
 			},
-			'makerCode|takerCode',
-			'0xOrderHash'
-		)
-	).toMatchSnapshot();
+			feeSchedules: {
+				takerCode: {
+					rate: 0,
+					minimum: 1
+				}
+			}
+		},
+		'makerCode|takerCode',
+		'0xOrderHash'
+	);
+	const userOrder = orderUtil.constructUserOrder(liveOrder, 'type', 'status', 'updatedBy', true);
+	expect(liveOrder).toMatchSnapshot();
+	expect(userOrder).toMatchSnapshot();
 });
 
 test('getPriceBeforeFee bid flat', () => {

@@ -19,6 +19,29 @@ Object {
 }
 `;
 
+exports[`constructNewLiveOrder ask 2`] = `
+Object {
+  "account": "makerAddress",
+  "amount": 122,
+  "balance": 122,
+  "createdAt": 1234567890,
+  "currentSequence": 0,
+  "expiry": 1234567890000,
+  "fee": 1,
+  "feeAsset": "makerCode",
+  "fill": 0,
+  "initialSequence": 0,
+  "orderHash": "0xOrderHash",
+  "pair": "makerCode|takerCode",
+  "price": 3.737704918032787,
+  "processed": true,
+  "side": "ask",
+  "status": "status",
+  "type": "type",
+  "updatedBy": "updatedBy",
+}
+`;
+
 exports[`constructNewLiveOrder bid 1`] = `
 Object {
   "account": "makerAddress",
@@ -35,6 +58,29 @@ Object {
   "pair": "takerCode|makerCode",
   "price": 0.26914660831509846,
   "side": "bid",
+}
+`;
+
+exports[`constructNewLiveOrder bid 2`] = `
+Object {
+  "account": "makerAddress",
+  "amount": 457,
+  "balance": 457,
+  "createdAt": 1234567890,
+  "currentSequence": 0,
+  "expiry": 1234567890000,
+  "fee": 1,
+  "feeAsset": "takerCode",
+  "fill": 0,
+  "initialSequence": 0,
+  "orderHash": "0xOrderHash",
+  "pair": "takerCode|makerCode",
+  "price": 0.26914660831509846,
+  "processed": true,
+  "side": "bid",
+  "status": "status",
+  "type": "type",
+  "updatedBy": "updatedBy",
 }
 `;
 
