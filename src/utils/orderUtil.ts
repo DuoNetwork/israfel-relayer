@@ -21,26 +21,6 @@ class OrderUtil {
 		};
 	}
 
-	public getFillBeforeFee(
-		signedOrder: IStringSignedOrder,
-		filledTakerAmount: number,
-		token: IToken,
-		pair: string
-	) {
-		const isBid = Web3Util.getSideFromSignedOrder(signedOrder, token) === CST.DB_BID;
-		const tokenAfterFee = Web3Util.fromWei(
-			isBid ? signedOrder.takerAssetAmount : signedOrder.makerAssetAmount
-		);
-		const baseAfterFee = Web3Util.fromWei(
-			isBid ? signedOrder.makerAssetAmount : signedOrder.takerAssetAmount
-		);
-		const tokenFillAfterFee = isBid
-			? filledTakerAmount
-			: (filledTakerAmount / baseAfterFee) * tokenAfterFee;
-		const originalLiveOrder = this.constructNewLiveOrder(signedOrder, token, pair, '');
-		return (tokenFillAfterFee / tokenAfterFee) * originalLiveOrder.amount;
-	}
-
 	public getAmountAfterFee(
 		tokenAmountBeforeFee: number,
 		priceBeforeFee: number,

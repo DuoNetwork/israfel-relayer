@@ -60,11 +60,10 @@ export interface IOrderPersistRequest {
 	method: string;
 	pair: string;
 	orderHash: string;
-	balance: number;
-	requestor: string;
 	status: string;
+	requestor: string;
 	token?: IToken;
-	fill?: number;
+	balance?: number;
 	signedOrder?: IStringSignedOrder;
 }
 
@@ -171,7 +170,7 @@ export interface IWsOrderHistoryResponse extends IWsResponse {
 }
 
 export interface IWsInfoResponse extends IWsResponse {
-	acceptedPrices: {[custodian: string]: IAcceptedPrice[]}
+	acceptedPrices: { [custodian: string]: IAcceptedPrice[] };
 	tokens: IToken[];
 	processStatus: IStatus[];
 }

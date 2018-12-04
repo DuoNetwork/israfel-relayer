@@ -149,16 +149,7 @@ class OrderPersistenceUtil {
 	}
 
 	public async persistOrder(orderPersistRequest: IOrderPersistRequest) {
-		const {
-			pair,
-			orderHash,
-			method,
-			balance,
-			token,
-			fill,
-			status,
-			requestor
-		} = orderPersistRequest;
+		const { pair, orderHash, method, balance, token, status, requestor } = orderPersistRequest;
 		if (method === CST.DB_ADD && !token) {
 			util.logDebug(`invalid add request ${orderHash}, missing token`);
 			return null;
@@ -194,9 +185,9 @@ class OrderPersistenceUtil {
 		else if (orderPersistRequest.status === CST.DB_FILL) {
 			orderQueueItem.liveOrder.fill = orderQueueItem.liveOrder.amount;
 			orderQueueItem.liveOrder.balance = 0;
-		} else {
-			if (fill) orderQueueItem.liveOrder.fill = fill;
-			if (balance !== -1) orderQueueItem.liveOrder.balance = balance;
+		} else if (balance) {
+			orderQueueItem.liveOrder.fill = orderQueueItem.liveOrder.amount - balance;
+			orderQueueItem.liveOrder.balance = balance;
 		}
 
 		util.logDebug(`storing order queue item in redis ${orderHash}`);

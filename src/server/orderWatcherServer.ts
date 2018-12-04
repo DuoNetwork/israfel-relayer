@@ -46,85 +46,78 @@ class OrderWatcherServer {
 	}
 
 	public handleOrderWatcherUpdate(orderState: OrderState) {
-		if (!this.web3Util || !this.watchingOrders[orderState.orderHash]) {
-			util.logDebug(orderState.orderHash + ' not in cache, ignored');
+		const orderHash = orderState.orderHash;
+		if (!this.watchingOrders[orderHash]) {
+			util.logDebug(orderHash + ' not in cache, ignored');
 			return;
 		}
 		const stringSignedOrder: IStringSignedOrder = JSON.parse(
-			JSON.stringify(this.watchingOrders[orderState.orderHash])
+			JSON.stringify(this.watchingOrders[orderHash])
 		);
 		const orderPersistRequest: IOrderPersistRequest = {
 			method: CST.DB_UPDATE,
 			status: CST.DB_UPDATE,
 			requestor: CST.DB_ORDER_WATCHER,
 			pair: this.pair,
-			orderHash: orderState.orderHash,
-			balance: -1
+			orderHash: orderHash
 		};
 		util.logDebug(JSON.stringify(orderState));
 		if (orderState.isValid) {
-			const token = this.token as IToken;
-			const isBid = Web3Util.getSideFromSignedOrder(stringSignedOrder, token) === CST.DB_BID;
 			const {
 				remainingFillableTakerAssetAmount,
 				remainingFillableMakerAssetAmount,
 				filledTakerAssetAmount
 			} = (orderState as OrderStateValid).orderRelevantState;
-			const remainingTokenAfterFee = Web3Util.fromWei(
-				isBid ? remainingFillableTakerAssetAmount : remainingFillableMakerAssetAmount
-			);
-			const remainingBaseAfterFee = Web3Util.fromWei(
-				isBid ? remainingFillableMakerAssetAmount : remainingFillableTakerAssetAmount
-			);
-
-			const feeSchedule = token.feeSchedules[CST.TOKEN_WETH];
-			const remainingPriceBeforeFee = orderUtil.getPriceBeforeFee(
-				remainingTokenAfterFee,
-				remainingBaseAfterFee,
-				feeSchedule,
-				isBid
-			);
-			orderPersistRequest.balance = remainingPriceBeforeFee.amount;
-			const fill = Web3Util.fromWei(filledTakerAssetAmount);
-			if (fill) {
-				orderPersistRequest.fill = orderUtil.getFillBeforeFee(
-					stringSignedOrder,
-					fill,
-					token,
-					this.pair
+			if (
+				remainingFillableTakerAssetAmount
+					.add(filledTakerAssetAmount)
+					.lessThan(Web3Util.stringToBN(stringSignedOrder.takerAssetAmount))
+			) {
+				orderPersistRequest.method = CST.DB_TERMINATE;
+				orderPersistRequest.status = CST.DB_BALANCE;
+			} else if (Web3Util.fromWei(filledTakerAssetAmount)) {
+				const token = this.token as IToken;
+				const isBid =
+					Web3Util.getSideFromSignedOrder(stringSignedOrder, token) === CST.DB_BID;
+				const remainingTokenAfterFee = Web3Util.fromWei(
+					isBid ? remainingFillableTakerAssetAmount : remainingFillableMakerAssetAmount
 				);
-
+				const remainingBaseAfterFee = Web3Util.fromWei(
+					isBid ? remainingFillableMakerAssetAmount : remainingFillableTakerAssetAmount
+				);
+				const feeSchedule = token.feeSchedules[CST.TOKEN_WETH];
+				const remainingPriceBeforeFee = orderUtil.getPriceBeforeFee(
+					remainingTokenAfterFee,
+					remainingBaseAfterFee,
+					feeSchedule,
+					isBid
+				);
+				orderPersistRequest.balance = remainingPriceBeforeFee.amount;
 				orderPersistRequest.status = CST.DB_PFILL;
-			}
+			} else return;
 		} else {
+			orderPersistRequest.method = CST.DB_TERMINATE;
 			const error = (orderState as OrderStateInvalid).error;
 			switch (error) {
-				case ExchangeContractErrs.OrderFillExpired:
-				case ExchangeContractErrs.OrderCancelled:
-					orderPersistRequest.method = CST.DB_TERMINATE;
-					orderPersistRequest.status = CST.DB_TERMINATE;
-					break;
 				case ExchangeContractErrs.OrderFillRoundingError:
 				case ExchangeContractErrs.OrderRemainingFillAmountZero:
-					orderPersistRequest.balance = 0;
-					orderPersistRequest.method = CST.DB_TERMINATE;
 					orderPersistRequest.status = CST.DB_FILL;
 					break;
-				case ExchangeContractErrs.InsufficientTakerBalance:
-				case ExchangeContractErrs.InsufficientTakerAllowance:
-				case ExchangeContractErrs.InsufficientTakerFeeBalance:
-				case ExchangeContractErrs.InsufficientTakerFeeAllowance:
-				case ExchangeContractErrs.InsufficientMakerFeeBalance:
-				case ExchangeContractErrs.InsufficientMakerFeeAllowance:
-					return;
 				case ExchangeContractErrs.InsufficientMakerBalance:
 				case ExchangeContractErrs.InsufficientMakerAllowance:
-					orderPersistRequest.balance = 0;
+					orderPersistRequest.status = CST.DB_BALANCE;
+					break;
+				case ExchangeContractErrs.OrderFillExpired:
+				case ExchangeContractErrs.OrderCancelled:
+					orderPersistRequest.status = CST.DB_TERMINATE;
 					break;
 				default:
 					return;
 			}
 		}
+
+		if (orderPersistRequest.method === CST.DB_TERMINATE)
+			this.removeFromWatch(orderHash)
 
 		return this.updateOrder(orderPersistRequest);
 	}
@@ -261,25 +254,3 @@ class OrderWatcherServer {
 
 const orderWatcherServer = new OrderWatcherServer();
 export default orderWatcherServer;
-
-// // check expiring
-// const currentTime = moment().valueOf();
-// if (rightLiveOrder.expiry - currentTime < 3 * 60 * 1000) {
-// 	util.logDebug(
-// 		`the order ${
-// 			rightLiveOrder.orderHash
-// 		} is expiring in 3 minutes, removing this order`
-// 	);
-// 	obj.right.newBalance = 0;
-// 	obj.right.method = CST.DB_TERMINATE;
-// 	shouldReturn = true;
-// }
-// if (leftLiveOrder.expiry - currentTime < 3 * 60 * 1000) {
-// 	util.logDebug(
-// 		`the order ${leftLiveOrder.orderHash} is expiring in 3 minutes, removing this order`
-// 	);
-// 	obj.left.newBalance = 0;
-// 	obj.left.method = CST.DB_TERMINATE;
-// 	shouldReturn = true;
-// }
-// if (shouldReturn) return obj;

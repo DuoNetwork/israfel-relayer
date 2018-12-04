@@ -182,7 +182,7 @@ Array [
   Array [
     "orders|cache|code1|code2",
     "code1|code2|method|0xOrderHash",
-    "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":1,\\"balance\\":80}}",
+    "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":20,\\"balance\\":80}}",
   ],
 ]
 `;
@@ -200,7 +200,7 @@ exports[`persistOrder not add 3`] = `
 Array [
   Array [
     "orders|pubsub|code1|code2",
-    "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":1,\\"balance\\":80}}",
+    "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":20,\\"balance\\":80}}",
   ],
 ]
 `;
@@ -212,7 +212,7 @@ Array [
       "amount": 100,
       "balance": 80,
       "currentSequence": 123,
-      "fill": 1,
+      "fill": 20,
     },
     "method",
     "status",

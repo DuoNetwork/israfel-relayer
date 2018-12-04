@@ -156,8 +156,6 @@ test('persistOrder add missing token', async () => {
 			requestor: 'requestor',
 			pair: 'code1|code2',
 			orderHash: '0xOrderHash',
-			balance: -1,
-			fill: 123456789,
 			signedOrder: 'may or may not exist' as any
 		})
 	).toBeNull();
@@ -187,8 +185,7 @@ test('persistOrder add', async () => {
 			pair: 'code1|code2',
 			token: 'token' as any,
 			orderHash: '0xOrderHash',
-			balance: -1,
-			fill: 123456789,
+			balance: 123456789,
 			signedOrder: 'may or may not exist' as any
 		})
 	).not.toBeNull();
@@ -220,8 +217,7 @@ test('persistOrder not add', async () => {
 			pair: 'code1|code2',
 			token: 'token' as any,
 			orderHash: '0xOrderHash',
-			balance: 80,
-			fill: 1
+			balance: 80
 		})
 	).not.toBeNull();
 	expect((redisUtil.hashSet as jest.Mock).mock.calls).toMatchSnapshot();
@@ -247,7 +243,6 @@ test('persistOrder add existing', async () => {
 			pair: 'code1|code2',
 			token: 'token' as any,
 			orderHash: '0xOrderHash',
-			balance: -1,
 			signedOrder: 'signedOrder' as any
 		})
 	).toBeNull();
@@ -273,8 +268,7 @@ test('persistOrder not add not existing', async () => {
 			requestor: 'requestor',
 			pair: 'code1|code2',
 			token: 'token' as any,
-			orderHash: '0xOrderHash',
-			balance: -1
+			orderHash: '0xOrderHash'
 		})
 	).toBeNull();
 	expect(redisUtil.hashSet as jest.Mock).not.toBeCalled();
@@ -304,8 +298,7 @@ test('persistOrder terminate fill', async () => {
 			requestor: 'requestor',
 			pair: 'code1|code2',
 			token: 'token' as any,
-			orderHash: '0xOrderHash',
-			balance: -1
+			orderHash: '0xOrderHash'
 		})
 	).not.toBeNull();
 	expect((redisUtil.hashSet as jest.Mock).mock.calls).toMatchSnapshot();
