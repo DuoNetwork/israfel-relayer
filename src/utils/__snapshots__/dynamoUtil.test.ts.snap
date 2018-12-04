@@ -183,6 +183,19 @@ Array [
 ]
 `;
 
+exports[`deleteData 1`] = `
+Array [
+  Array [
+    Object {},
+    [Function],
+  ],
+]
+`;
+
+exports[`deleteData error 1`] = `Object {}`;
+
+exports[`deleteData no ddb 1`] = `"dynamo db connection is not initialized"`;
+
 exports[`deleteLiveOrder 1`] = `
 Array [
   Array [
@@ -450,6 +463,45 @@ Array [
 ]
 `;
 
+exports[`putData 1`] = `
+Array [
+  Array [
+    Object {},
+    [Function],
+  ],
+]
+`;
+
+exports[`putData error 1`] = `Object {}`;
+
+exports[`putData no ddb 1`] = `"dynamo db connection is not initialized"`;
+
+exports[`queryData 1`] = `
+Array [
+  Array [
+    Object {},
+    [Function],
+  ],
+]
+`;
+
+exports[`queryData error 1`] = `Object {}`;
+
+exports[`queryData no ddb 1`] = `"dynamo db connection is not initialized"`;
+
+exports[`scanData 1`] = `
+Array [
+  Array [
+    Object {},
+    [Function],
+  ],
+]
+`;
+
+exports[`scanData error 1`] = `Object {}`;
+
+exports[`scanData no ddb 1`] = `"dynamo db connection is not initialized"`;
+
 exports[`scanStatus 1`] = `Array []`;
 
 exports[`scanStatus 2`] = `
@@ -528,6 +580,19 @@ Array [
   },
 ]
 `;
+
+exports[`updateData 1`] = `
+Array [
+  Array [
+    Object {},
+    [Function],
+  ],
+]
+`;
+
+exports[`updateData error 1`] = `Object {}`;
+
+exports[`updateData no ddb 1`] = `"dynamo db connection is not initialized"`;
 
 exports[`updateLiveOrder 1`] = `
 Array [

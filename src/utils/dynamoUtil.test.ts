@@ -2,6 +2,151 @@ import * as CST from '../common/constants';
 import dynamoUtil from './dynamoUtil';
 import util from './util';
 
+test('putData no ddb', async () => {
+	try {
+		await dynamoUtil.putData({} as any);
+	} catch (error) {
+		expect(error).toMatchSnapshot();
+	}
+});
+
+test('updateData no ddb', async () => {
+	try {
+		await dynamoUtil.updateData({} as any);
+	} catch (error) {
+		expect(error).toMatchSnapshot();
+	}
+});
+
+test('queryData no ddb', async () => {
+	try {
+		await dynamoUtil.queryData({} as any);
+	} catch (error) {
+		expect(error).toMatchSnapshot();
+	}
+});
+
+test('scanData no ddb', async () => {
+	try {
+		await dynamoUtil.scanData({} as any);
+	} catch (error) {
+		expect(error).toMatchSnapshot();
+	}
+});
+
+test('deleteData no ddb', async () => {
+	try {
+		await dynamoUtil.deleteData({} as any);
+	} catch (error) {
+		expect(error).toMatchSnapshot();
+	}
+});
+
+test('putData error', async () => {
+	const mock = jest.fn((params: any, cb: any) => cb(params));
+	dynamoUtil.ddb = {
+		putItem: mock
+	} as any;
+	try {
+		await dynamoUtil.putData({} as any);
+	} catch (error) {
+		expect(error).toMatchSnapshot();
+	}
+});
+
+test('updateData error', async () => {
+	const mock = jest.fn((params: any, cb: any) => cb(params));
+	dynamoUtil.ddb = {
+		updateItem: mock
+	} as any;
+	try {
+		await dynamoUtil.updateData({} as any);
+	} catch (error) {
+		expect(error).toMatchSnapshot();
+	}
+});
+
+test('queryData error', async () => {
+	const mock = jest.fn((params: any, cb: any) => cb(params));
+	dynamoUtil.ddb = {
+		query: mock
+	} as any;
+	try {
+		await dynamoUtil.queryData({} as any);
+	} catch (error) {
+		expect(error).toMatchSnapshot();
+	}
+});
+
+test('scanData error', async () => {
+	const mock = jest.fn((params: any, cb: any) => cb(params));
+	dynamoUtil.ddb = {
+		scan: mock
+	} as any;
+	try {
+		await dynamoUtil.scanData({} as any);
+	} catch (error) {
+		expect(error).toMatchSnapshot();
+	}
+});
+
+test('deleteData error', async () => {
+	const mock = jest.fn((params: any, cb: any) => cb(params));
+	dynamoUtil.ddb = {
+		deleteItem: mock
+	} as any;
+	try {
+		await dynamoUtil.deleteData({} as any);
+	} catch (error) {
+		expect(error).toMatchSnapshot();
+	}
+});
+
+test('putData', async () => {
+	const mock = jest.fn((params: any, cb: any) => params && cb());
+	dynamoUtil.ddb = {
+		putItem: mock
+	} as any;
+	await dynamoUtil.putData({} as any);
+	expect(mock.mock.calls).toMatchSnapshot();
+});
+
+test('updateData', async () => {
+	const mock = jest.fn((params: any, cb: any) => params && cb());
+	dynamoUtil.ddb = {
+		updateItem: mock
+	} as any;
+	await dynamoUtil.updateData({} as any);
+	expect(mock.mock.calls).toMatchSnapshot();
+});
+
+test('queryData', async () => {
+	const mock = jest.fn((params: any, cb: any) => params && cb());
+	dynamoUtil.ddb = {
+		query: mock
+	} as any;
+	await dynamoUtil.queryData({} as any);
+	expect(mock.mock.calls).toMatchSnapshot();
+});
+
+test('scanData', async () => {
+	const mock = jest.fn((params: any, cb: any) => params && cb());
+	dynamoUtil.ddb = {
+		scan: mock
+	} as any;
+	await dynamoUtil.scanData({} as any);
+	expect(mock.mock.calls).toMatchSnapshot();
+});
+
+test('deleteData', async () => {
+	const mock = jest.fn((params: any, cb: any) => params && cb());
+	dynamoUtil.ddb = {
+		deleteItem: mock
+	} as any;
+	await dynamoUtil.deleteData({} as any);
+	expect(mock.mock.calls).toMatchSnapshot();
+});
+
 test('scanTokens', async () => {
 	let scanOutput: { [key: string]: any } = {
 		Items: []

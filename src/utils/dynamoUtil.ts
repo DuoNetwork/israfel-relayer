@@ -15,7 +15,7 @@ import { IFeeSchedule, ILiveOrder, IRawOrder, IStatus, IToken, IUserOrder } from
 import util from './util';
 
 class DynamoUtil {
-	private ddb: undefined | DynamoDB = undefined;
+	public ddb: undefined | DynamoDB = undefined;
 	private live: boolean = false;
 	private hostname: string = 'hostname';
 	private tool: string = 'tool';
