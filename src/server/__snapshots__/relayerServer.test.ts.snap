@@ -226,6 +226,15 @@ Array [
     },
     "invalid request",
   ],
+  Array [
+    "ws",
+    Object {
+      "channel": "channel",
+      "method": "subscribe",
+      "pair": "pair",
+    },
+    "invalid request",
+  ],
 ]
 `;
 
@@ -449,110 +458,80 @@ Array [
 ]
 `;
 
-exports[`handleOrderHistorySubscribeRequest existing account existing pair new ws 1`] = `
+exports[`handleOrderHistorySubscribeRequest existing account new ws 1`] = `
 Object {
-  "pair": Object {
-    "account": Array [
-      "ws",
-      "ws1",
-    ],
-  },
+  "account": Array [
+    "ws",
+    "ws1",
+  ],
 }
 `;
 
-exports[`handleOrderHistorySubscribeRequest existing account existing pair new ws 2`] = `
+exports[`handleOrderHistorySubscribeRequest existing account new ws 2`] = `
 Array [
   Array [
     "ws1",
-    "{\\"method\\":\\"history\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"orderHistory\\":[\\"userOrders\\"]}",
+    "{\\"method\\":\\"history\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"orderHistory\\":[\\"userOrders\\"]}",
   ],
 ]
 `;
 
-exports[`handleOrderHistorySubscribeRequest existing pair existing account same ws 1`] = `
+exports[`handleOrderHistorySubscribeRequest existing account same ws 1`] = `
 Object {
-  "pair": Object {
-    "account": Array [
-      "ws",
-    ],
-  },
+  "account": Array [
+    "ws",
+  ],
 }
 `;
 
-exports[`handleOrderHistorySubscribeRequest existing pair existing account same ws 2`] = `
+exports[`handleOrderHistorySubscribeRequest existing account same ws 2`] = `
 Array [
   Array [
     "ws",
-    "{\\"method\\":\\"history\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"orderHistory\\":[\\"userOrders\\"]}",
+    "{\\"method\\":\\"history\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"orderHistory\\":[\\"userOrders\\"]}",
   ],
 ]
 `;
 
-exports[`handleOrderHistorySubscribeRequest new pair 1`] = `
+exports[`handleOrderHistorySubscribeRequest new account  1`] = `
 Object {
-  "pair": Object {
-    "account": Array [
-      "ws",
-      "ws1",
-    ],
-  },
-  "pair1": Object {
-    "account": Array [
-      "ws",
-    ],
-  },
+  "account": Array [
+    "ws",
+  ],
 }
 `;
 
-exports[`handleOrderHistorySubscribeRequest new pair 2`] = `
+exports[`handleOrderHistorySubscribeRequest new account  2`] = `
 Array [
   Array [
     "ws",
-    "{\\"method\\":\\"history\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair1\\",\\"orderHistory\\":[\\"userOrders\\"]}",
+    "{\\"method\\":\\"history\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"orderHistory\\":[\\"userOrders\\"]}",
   ],
 ]
 `;
 
-exports[`handleOrderHistorySubscribeRequest new pair 3`] = `
+exports[`handleOrderHistorySubscribeRequest new account  3`] = `
 Array [
   Array [
-    "pair1",
+    "code1|base1",
+    [Function],
+  ],
+  Array [
+    "code1|base2",
+    [Function],
+  ],
+  Array [
+    "code2|base1",
+    [Function],
+  ],
+  Array [
+    "code2|base2",
     [Function],
   ],
 ]
 `;
 
-exports[`handleOrderHistorySubscribeRequest new pair new account  1`] = `
-Object {
-  "pair": Object {
-    "account": Array [
-      "ws",
-    ],
-  },
-}
-`;
-
-exports[`handleOrderHistorySubscribeRequest new pair new account  2`] = `
-Array [
-  Array [
-    "ws",
-    "{\\"method\\":\\"history\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"orderHistory\\":[\\"userOrders\\"]}",
-  ],
-]
-`;
-
-exports[`handleOrderHistorySubscribeRequest new pair new account  3`] = `
-Array [
-  Array [
-    "pair",
-    [Function],
-  ],
-]
-`;
-
-exports[`handleOrderHistoryUnsubscribeRequest existing account clear up 1`] = `Object {}`;
-
-exports[`handleOrderHistoryUnsubscribeRequest existing account clear up 2`] = `
+exports[`handleOrderHistoryUnsubscribeRequest existing account clean up 1`] = `
 Array [
   Array [
     "ws",
@@ -560,32 +539,39 @@ Array [
       "account": "account",
       "channel": "channel",
       "method": "method",
-      "pair": "pair",
+      "pair": "",
     },
     "ok",
   ],
 ]
 `;
 
-exports[`handleOrderHistoryUnsubscribeRequest existing account clear up 3`] = `
+exports[`handleOrderHistoryUnsubscribeRequest existing account clean up 2`] = `
 Array [
   Array [
-    "pair",
+    "code1|base1",
+  ],
+  Array [
+    "code1|base2",
+  ],
+  Array [
+    "code2|base1",
+  ],
+  Array [
+    "code2|base2",
   ],
 ]
 `;
 
-exports[`handleOrderHistoryUnsubscribeRequest existing account existing pair more than one 1`] = `
+exports[`handleOrderHistoryUnsubscribeRequest existing account more than one 1`] = `
 Object {
-  "pair": Object {
-    "account": Array [
-      "ws",
-    ],
-  },
+  "account": Array [
+    "ws",
+  ],
 }
 `;
 
-exports[`handleOrderHistoryUnsubscribeRequest existing account existing pair more than one 2`] = `
+exports[`handleOrderHistoryUnsubscribeRequest existing account more than one 2`] = `
 Array [
   Array [
     "ws1",
@@ -593,25 +579,14 @@ Array [
       "account": "account",
       "channel": "channel",
       "method": "method",
-      "pair": "pair",
+      "pair": "",
     },
     "ok",
   ],
 ]
 `;
 
-exports[`handleOrderHistoryUnsubscribeRequest existing pair existing account 1`] = `
-Object {
-  "pair": Object {
-    "account": Array [
-      "ws",
-      "ws1",
-    ],
-  },
-}
-`;
-
-exports[`handleOrderHistoryUnsubscribeRequest existing pair existing account 2`] = `
+exports[`handleOrderHistoryUnsubscribeRequest new account 1`] = `
 Array [
   Array [
     "ws",
@@ -619,32 +594,7 @@ Array [
       "account": "account",
       "channel": "channel",
       "method": "method",
-      "pair": "pair1",
-    },
-    "ok",
-  ],
-]
-`;
-
-exports[`handleOrderHistoryUnsubscribeRequest existing pair existing account 3`] = `
-Array [
-  Array [
-    "pair1",
-  ],
-]
-`;
-
-exports[`handleOrderHistoryUnsubscribeRequest new account 1`] = `Object {}`;
-
-exports[`handleOrderHistoryUnsubscribeRequest new account 2`] = `
-Array [
-  Array [
-    "ws",
-    Object {
-      "account": "account",
-      "channel": "channel",
-      "method": "method",
-      "pair": "pair",
+      "pair": "",
     },
     "ok",
   ],
@@ -673,16 +623,6 @@ Array [
       "account": "",
       "channel": "orders",
       "method": "subscribe",
-      "pair": "pair",
-    },
-    "invalid request",
-  ],
-  Array [
-    "ws",
-    Object {
-      "account": "",
-      "channel": "orders",
-      "method": "unsubscribe",
       "pair": "pair",
     },
     "invalid request",
@@ -969,7 +909,6 @@ Array [
       },
     },
     "account",
-    "pair",
   ],
 ]
 `;
@@ -1106,15 +1045,6 @@ Array [
       "channel": "orders",
       "method": "",
       "pair": "pair",
-    },
-    "invalid request",
-  ],
-  Array [
-    "ws",
-    Object {
-      "channel": "orders",
-      "method": "method",
-      "pair": "test",
     },
     "invalid request",
   ],

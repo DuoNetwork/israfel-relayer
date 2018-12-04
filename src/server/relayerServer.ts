@@ -37,7 +37,7 @@ class RelayerServer {
 	public wsServer: WebSocket.Server | null = null;
 	public orderBookPairs: { [pair: string]: WebSocket[] } = {};
 	public clients: WebSocket[] = [];
-	public pairClients: { [pair: string]: { [account: string]: WebSocket[] } } = {};
+	public accountClients: { [account: string]: WebSocket[] } = {};
 	public duoAcceptedPrices: { [custodian: string]: IAcceptedPrice[] } = {};
 
 	public sendResponse(ws: WebSocket, req: IWsRequest, status: string) {
@@ -154,48 +154,52 @@ class RelayerServer {
 	}
 
 	public async handleOrderHistorySubscribeRequest(ws: WebSocket, req: IWsOrderHistoryRequest) {
-		const { account, pair } = req;
-		if (!this.pairClients[pair]) {
-			this.pairClients[pair] = {};
-			orderPersistenceUtil.subscribeOrderUpdate(pair, (channel, orderQueueItem) =>
-				this.handleOrderUpdate(channel, orderQueueItem)
-			);
+		const { account } = req;
+		if (util.isEmptyObject(this.accountClients)) {
+			const deadline = util.getUTCNowTimestamp();
+			const tokens = this.web3Util ? this.web3Util.tokens : [];
+			for (const token of tokens)
+				if (!token.maturity || token.maturity > deadline)
+					for (const code in token.feeSchedules)
+						orderPersistenceUtil.subscribeOrderUpdate(
+							`${token.code}|${code}`,
+							(channel, orderQueueItem) =>
+								this.handleOrderUpdate(channel, orderQueueItem)
+						);
 		}
-		if (!this.pairClients[pair][account]) this.pairClients[pair][account] = [];
 
-		if (!this.pairClients[pair][account].includes(ws)) this.pairClients[pair][account].push(ws);
+		if (!this.accountClients[account]) this.accountClients[account] = [];
+		if (!this.accountClients[account].includes(ws)) this.accountClients[account].push(ws);
 
 		const now = util.getUTCNowTimestamp();
-		const userOrders = await dynamoUtil.getUserOrders(account, now - 30 * 86400000, now, pair);
+		const userOrders = await dynamoUtil.getUserOrders(account, now - 30 * 86400000, now);
 
 		const orderBookResponse: IWsOrderHistoryResponse = {
 			method: CST.WS_HISTORY,
 			channel: CST.DB_ORDERS,
 			status: CST.WS_OK,
-			pair: req.pair,
+			pair: '',
 			orderHistory: userOrders
 		};
 		util.safeWsSend(ws, JSON.stringify(orderBookResponse));
 	}
 
-	public unsubscribeOrderHistory(ws: WebSocket, account: string, pair: string) {
-		if (
-			this.pairClients[pair] &&
-			this.pairClients[pair][account] &&
-			this.pairClients[pair][account].includes(ws)
-		) {
-			this.pairClients[pair][account] = this.pairClients[pair][account].filter(e => e !== ws);
-			if (!this.pairClients[pair][account].length) delete this.pairClients[pair][account];
+	public unsubscribeOrderHistory(ws: WebSocket, account: string) {
+		if (this.accountClients[account] && this.accountClients[account].includes(ws)) {
+			this.accountClients[account] = this.accountClients[account].filter(e => e !== ws);
+			if (!this.accountClients[account].length) delete this.accountClients[account];
 
-			if (!Object.keys(this.pairClients[pair]).length) {
-				delete this.pairClients[pair];
-				orderPersistenceUtil.unsubscribeOrderUpdate(pair);
+			if (util.isEmptyObject(this.accountClients)) {
+				const tokens = this.web3Util ? this.web3Util.tokens : [];
+				for (const token of tokens)
+					for (const code in token.feeSchedules)
+						orderPersistenceUtil.unsubscribeOrderUpdate(`${token.code}|${code}`);
 			}
 		}
 	}
 
 	public handleOrderHistoryUnsubscribeRequest(ws: WebSocket, req: IWsOrderHistoryRequest) {
-		this.unsubscribeOrderHistory(ws, req.account, req.pair);
+		this.unsubscribeOrderHistory(ws, req.account);
 		this.sendResponse(ws, req, CST.WS_OK);
 	}
 
@@ -210,7 +214,9 @@ class RelayerServer {
 
 		if (
 			[CST.DB_ADD, CST.DB_TERMINATE].includes(req.method) &&
-			!(req as IWsOrderRequest).orderHash
+			(!this.web3Util ||
+				!this.web3Util.isValidPair(req.pair) ||
+				!(req as IWsOrderRequest).orderHash)
 		) {
 			this.sendErrorOrderResponse(ws, req as IWsOrderRequest, CST.WS_INVALID_REQ);
 			return Promise.resolve();
@@ -239,12 +245,8 @@ class RelayerServer {
 			return;
 		}
 
-		const { account, pair } = orderQueueItem.liveOrder;
-		if (
-			this.pairClients[pair] &&
-			this.pairClients[pair][account] &&
-			this.pairClients[pair][account].length
-		) {
+		const { account } = orderQueueItem.liveOrder;
+		if (this.accountClients[account] && this.accountClients[account].length) {
 			const userOrder = orderUtil.constructUserOrder(
 				orderQueueItem.liveOrder,
 				orderQueueItem.method,
@@ -252,7 +254,7 @@ class RelayerServer {
 				orderQueueItem.requestor,
 				true
 			);
-			this.pairClients[pair][account].forEach(ws =>
+			this.accountClients[account].forEach(ws =>
 				this.sendUserOrderResponse(ws, userOrder, orderQueueItem.method)
 			);
 		}
@@ -319,7 +321,11 @@ class RelayerServer {
 	}
 
 	public handleOrderBookRequest(ws: WebSocket, req: IWsRequest) {
-		if (![CST.WS_SUB, CST.WS_UNSUB].includes(req.method)) {
+		if (
+			![CST.WS_SUB, CST.WS_UNSUB].includes(req.method) ||
+			!this.web3Util ||
+			!this.web3Util.isValidPair(req.pair)
+		) {
 			this.sendResponse(ws, req, CST.WS_INVALID_REQ);
 			return Promise.resolve();
 		}
@@ -334,12 +340,7 @@ class RelayerServer {
 	public handleWebSocketMessage(ws: WebSocket, m: string) {
 		util.logDebug('received: ' + m);
 		const req: IWsRequest = JSON.parse(m);
-		if (
-			![CST.DB_ORDERS, CST.DB_ORDER_BOOKS].includes(req.channel) ||
-			!req.method ||
-			!this.web3Util ||
-			!this.web3Util.isValidPair(req.pair)
-		) {
+		if (![CST.DB_ORDERS, CST.DB_ORDER_BOOKS].includes(req.channel) || !req.method) {
 			this.sendResponse(ws, req, CST.WS_INVALID_REQ);
 			return Promise.resolve();
 		}
@@ -379,9 +380,7 @@ class RelayerServer {
 		util.logInfo('connection close');
 		this.clients = this.clients.filter(w => w !== ws);
 		for (const pair in this.orderBookPairs) this.unsubscribeOrderBook(ws, pair);
-		for (const pair in this.pairClients)
-			for (const account in this.pairClients[pair])
-				this.unsubscribeOrderHistory(ws, account, pair);
+		for (const account in this.accountClients) this.unsubscribeOrderHistory(ws, account);
 	}
 
 	public async loadDuoAcceptedPrices() {
