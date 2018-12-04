@@ -73,3 +73,8 @@ test('safeWsSend', () => {
 	});
 	expect(util.safeWsSend(ws as any, 'message')).toBeFalsy();
 });
+
+test('getDates', () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	expect(util.getDates(4, 1, 'days', 'YYYY-MM-DD')).toMatchSnapshot();
+});

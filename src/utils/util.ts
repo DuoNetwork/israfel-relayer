@@ -36,21 +36,6 @@ class Util {
 		return true;
 	}
 
-	public async retry(fn: any, delay: number, times: number): Promise<boolean> {
-		let done = false;
-		while (times > 0 && !done)
-			try {
-				times--;
-				util.logDebug('retrying : ' + times);
-				await fn();
-				done = true;
-			} catch (err) {
-				util.sleep(delay);
-			}
-		if (!done) return true;
-		else return false;
-	}
-
 	public defaultOption: IOption = {
 		live: false,
 		token: 'B-PPT-I0',

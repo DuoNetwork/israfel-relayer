@@ -37,8 +37,8 @@ export enum Wallet {
 }
 
 export default class Web3Util {
-	public contractWrappers: ContractWrappers;
-	public web3Wrapper: Web3Wrapper;
+	private contractWrappers: ContractWrappers;
+	private web3Wrapper: Web3Wrapper;
 	public wallet: Wallet = Wallet.None;
 	public accountIndex: number = 0;
 	public networkId: number = CST.NETWORK_ID_KOVAN;
@@ -85,6 +85,14 @@ export default class Web3Util {
 
 		this.contractAddresses = getContractAddressesForNetworkOrThrow(this.networkId);
 		this.relayerAddress = live ? CST.RELAYER_ADDR_MAIN : CST.RELAYER_ADDR_KOVAN;
+	}
+
+	public getTokenByCode(code: string) {
+		return this.tokens.find(t => t.code === code);
+	}
+
+	public getProvider() {
+		return this.web3Wrapper.getProvider();
 	}
 
 	public getTransactionCount() {

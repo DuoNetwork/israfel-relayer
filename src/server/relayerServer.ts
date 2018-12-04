@@ -81,8 +81,7 @@ class RelayerServer {
 			return;
 		}
 		const stringSignedOrder = req.order as IStringSignedOrder;
-		const code = req.pair.split('|')[0];
-		const token = this.web3Util.tokens.find(t => t.code === code);
+		const token = this.web3Util.getTokenByCode(req.pair.split('|')[0]);
 		if (!token) {
 			util.logDebug('invalid token, ignore');
 			this.sendErrorOrderResponse(ws, req, CST.WS_INVALID_ORDER);

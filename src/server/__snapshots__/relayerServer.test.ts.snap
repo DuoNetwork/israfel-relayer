@@ -26,9 +26,7 @@ Array [
         "takerFee": "0",
       },
       "status": "confirmed",
-      "token": Object {
-        "code": "code1",
-      },
+      "token": "code1",
     },
   ],
 ]

@@ -98,7 +98,7 @@ test('handleAddOrderRequest invalid order', async () => {
 	});
 
 	relayerServer.web3Util = {
-		tokens: []
+		getTokenByCode: jest.fn(() => null)
 	} as any;
 	// no token
 	await relayerServer.handleAddOrderRequest({} as any, {
@@ -110,11 +110,7 @@ test('handleAddOrderRequest invalid order', async () => {
 	});
 
 	relayerServer.web3Util = {
-		tokens: [
-			{
-				code: 'code1'
-			}
-		]
+		getTokenByCode: jest.fn((code: string) => code)
 	} as any;
 	orderUtil.validateOrder = jest.fn(() => Promise.resolve(''));
 	// failed validation test
@@ -145,11 +141,7 @@ test('handleAddOrderRequest invalid persist', async () => {
 	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
 	Web3Util.getSideFromSignedOrder = jest.fn(() => 'side');
 	relayerServer.web3Util = {
-		tokens: [
-			{
-				code: 'code1'
-			}
-		]
+		getTokenByCode: jest.fn((code: string) => code)
 	} as any;
 	orderUtil.validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
@@ -169,11 +161,7 @@ test('handleAddOrderRequest persist error', async () => {
 	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
 	Web3Util.getSideFromSignedOrder = jest.fn(() => 'side');
 	relayerServer.web3Util = {
-		tokens: [
-			{
-				code: 'code1'
-			}
-		]
+		getTokenByCode: jest.fn((code: string) => code)
 	} as any;
 	orderUtil.validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.reject('handleAddOrderRequest'));
@@ -193,11 +181,7 @@ test('handleAddOrderRequest', async () => {
 	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
 	Web3Util.getSideFromSignedOrder = jest.fn(() => 'side');
 	relayerServer.web3Util = {
-		tokens: [
-			{
-				code: 'code1'
-			}
-		]
+		getTokenByCode: jest.fn((code: string) => code)
 	} as any;
 	orderUtil.validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
 	orderPersistenceUtil.persistOrder = jest.fn(() =>

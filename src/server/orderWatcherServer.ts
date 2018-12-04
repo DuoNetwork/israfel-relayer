@@ -217,9 +217,8 @@ class OrderWatcherServer {
 
 	public async startServer(web3Util: Web3Util, option: IOption) {
 		this.web3Util = web3Util;
-		const provider = this.web3Util.web3Wrapper.getProvider();
 		this.orderWatcher = new OrderWatcher(
-			provider,
+			this.web3Util.getProvider(),
 			option.live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN,
 			undefined,
 			{
@@ -228,7 +227,7 @@ class OrderWatcherServer {
 			}
 		);
 		this.pair = option.token + '|' + CST.TOKEN_WETH;
-		this.token = this.web3Util.tokens.find(t => t.code === option.token);
+		this.token = this.web3Util.getTokenByCode(option.token);
 
 		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderQueueItem) =>
 			this.handleOrderUpdate(channel, orderQueueItem)
