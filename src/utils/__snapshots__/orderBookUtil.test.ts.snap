@@ -57,6 +57,57 @@ Object {
 }
 `;
 
+exports[`constructOrderBook, with zero balance liveOrder 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "balance": 5,
+      "initialSequence": 9,
+      "orderHash": "orderHash5",
+      "price": 110,
+    },
+    Object {
+      "balance": 5,
+      "initialSequence": 11,
+      "orderHash": "orderHash7",
+      "price": 110,
+    },
+    Object {
+      "balance": 5,
+      "initialSequence": 12,
+      "orderHash": "orderHash8",
+      "price": 110,
+    },
+    Object {
+      "balance": 5,
+      "initialSequence": 10,
+      "orderHash": "orderHash6",
+      "price": 120,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "balance": 5,
+      "initialSequence": 2,
+      "orderHash": "orderHash2",
+      "price": 110,
+    },
+    Object {
+      "balance": 5,
+      "initialSequence": 3,
+      "orderHash": "orderHash3",
+      "price": 100,
+    },
+    Object {
+      "balance": 5,
+      "initialSequence": 4,
+      "orderHash": "orderHash4",
+      "price": 100,
+    },
+  ],
+}
+`;
+
 exports[`renderOrderBookSnapshot 1`] = `
 Object {
   "asks": Array [
@@ -118,12 +169,47 @@ Array [
 ]
 `;
 
+exports[`renderOrderBookSnapshotSide, with zero level balance 1`] = `
+Array [
+  Object {
+    "balance": 0,
+    "count": 0,
+    "price": 0,
+  },
+  Object {
+    "balance": 70,
+    "count": 3,
+    "price": 100,
+  },
+]
+`;
+
+exports[`renderOrderBookSnapshotSide, with zero level balance 2`] = `
+Array [
+  Object {
+    "balance": 0,
+    "count": 0,
+    "price": 0,
+  },
+  Object {
+    "balance": 40,
+    "count": 2,
+    "price": 120,
+  },
+  Object {
+    "balance": 20,
+    "count": 1,
+    "price": 140,
+  },
+]
+`;
+
 exports[`sortOrderBookLevels | ask 1`] = `
 Array [
   Object {
     "balance": 30,
     "initialSequence": 12,
-    "orderHash": "orderHash3",
+    "orderHash": "orderHash2",
     "price": 120,
   },
   Object {
@@ -135,13 +221,13 @@ Array [
   Object {
     "balance": 20,
     "initialSequence": 13,
-    "orderHash": "orderHash4",
+    "orderHash": "orderHash3",
     "price": 120,
   },
   Object {
     "balance": 20,
     "initialSequence": 11,
-    "orderHash": "orderHash2",
+    "orderHash": "orderHash4",
     "price": 140,
   },
 ]
@@ -152,7 +238,7 @@ Array [
   Object {
     "balance": 20,
     "initialSequence": 11,
-    "orderHash": "orderHash2",
+    "orderHash": "orderHash1",
     "price": 120,
   },
   Object {
@@ -164,7 +250,7 @@ Array [
   Object {
     "balance": 20,
     "initialSequence": 10,
-    "orderHash": "orderHash1",
+    "orderHash": "orderHash2",
     "price": 100,
   },
   Object {
@@ -182,7 +268,7 @@ Object {
     Object {
       "balance": 30,
       "initialSequence": 12,
-      "orderHash": "orderHash3",
+      "orderHash": "orderHash2",
       "price": 120,
     },
     Object {
@@ -194,7 +280,7 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 13,
-      "orderHash": "orderHash4",
+      "orderHash": "orderHash3",
       "price": 120,
     },
     Object {
@@ -206,7 +292,7 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 11,
-      "orderHash": "orderHash2",
+      "orderHash": "orderHash4",
       "price": 140,
     },
   ],
@@ -220,7 +306,7 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 11,
-      "orderHash": "orderHash2",
+      "orderHash": "orderHash1",
       "price": 120,
     },
     Object {
@@ -232,7 +318,7 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 10,
-      "orderHash": "orderHash1",
+      "orderHash": "orderHash2",
       "price": 100,
     },
     Object {
@@ -251,7 +337,7 @@ Object {
     Object {
       "balance": 30,
       "initialSequence": 12,
-      "orderHash": "orderHash3",
+      "orderHash": "orderHash2",
       "price": 120,
     },
     Object {
@@ -263,7 +349,7 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 13,
-      "orderHash": "orderHash4",
+      "orderHash": "orderHash3",
       "price": 120,
     },
     Object {
@@ -275,7 +361,7 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 11,
-      "orderHash": "orderHash2",
+      "orderHash": "orderHash4",
       "price": 140,
     },
   ],
@@ -289,7 +375,7 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 11,
-      "orderHash": "orderHash2",
+      "orderHash": "orderHash1",
       "price": 120,
     },
     Object {
@@ -301,7 +387,7 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 10,
-      "orderHash": "orderHash1",
+      "orderHash": "orderHash2",
       "price": 100,
     },
     Object {
@@ -320,7 +406,7 @@ Object {
     Object {
       "balance": 30,
       "initialSequence": 12,
-      "orderHash": "orderHash3",
+      "orderHash": "orderHash2",
       "price": 120,
     },
     Object {
@@ -332,13 +418,13 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 13,
-      "orderHash": "orderHash4",
+      "orderHash": "orderHash3",
       "price": 120,
     },
     Object {
       "balance": 20,
       "initialSequence": 11,
-      "orderHash": "orderHash2",
+      "orderHash": "orderHash4",
       "price": 140,
     },
   ],
@@ -352,7 +438,7 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 11,
-      "orderHash": "orderHash2",
+      "orderHash": "orderHash1",
       "price": 120,
     },
     Object {
@@ -364,7 +450,7 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 10,
-      "orderHash": "orderHash1",
+      "orderHash": "orderHash2",
       "price": 100,
     },
     Object {
@@ -383,7 +469,7 @@ Object {
     Object {
       "balance": 30,
       "initialSequence": 12,
-      "orderHash": "orderHash3",
+      "orderHash": "orderHash2",
       "price": 120,
     },
     Object {
@@ -395,13 +481,13 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 13,
-      "orderHash": "orderHash4",
+      "orderHash": "orderHash3",
       "price": 120,
     },
     Object {
       "balance": 20,
       "initialSequence": 11,
-      "orderHash": "orderHash2",
+      "orderHash": "orderHash4",
       "price": 140,
     },
   ],
@@ -415,7 +501,7 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 11,
-      "orderHash": "orderHash2",
+      "orderHash": "orderHash1",
       "price": 120,
     },
     Object {
@@ -427,7 +513,7 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 10,
-      "orderHash": "orderHash1",
+      "orderHash": "orderHash2",
       "price": 100,
     },
     Object {
@@ -446,7 +532,7 @@ Object {
     Object {
       "balance": 30,
       "initialSequence": 12,
-      "orderHash": "orderHash3",
+      "orderHash": "orderHash2",
       "price": 120,
     },
     Object {
@@ -458,13 +544,13 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 13,
-      "orderHash": "orderHash4",
+      "orderHash": "orderHash3",
       "price": 120,
     },
     Object {
       "balance": 20,
       "initialSequence": 11,
-      "orderHash": "orderHash2",
+      "orderHash": "orderHash4",
       "price": 140,
     },
   ],
@@ -478,7 +564,7 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 11,
-      "orderHash": "orderHash2",
+      "orderHash": "orderHash1",
       "price": 120,
     },
     Object {
@@ -490,7 +576,7 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 10,
-      "orderHash": "orderHash1",
+      "orderHash": "orderHash2",
       "price": 100,
     },
     Object {
@@ -509,7 +595,7 @@ Object {
     Object {
       "balance": 30,
       "initialSequence": 12,
-      "orderHash": "orderHash3",
+      "orderHash": "orderHash2",
       "price": 120,
     },
     Object {
@@ -521,13 +607,13 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 13,
-      "orderHash": "orderHash4",
+      "orderHash": "orderHash3",
       "price": 120,
     },
     Object {
       "balance": 20,
       "initialSequence": 11,
-      "orderHash": "orderHash2",
+      "orderHash": "orderHash4",
       "price": 140,
     },
   ],
@@ -541,7 +627,7 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 11,
-      "orderHash": "orderHash2",
+      "orderHash": "orderHash1",
       "price": 120,
     },
     Object {
@@ -553,7 +639,7 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 10,
-      "orderHash": "orderHash1",
+      "orderHash": "orderHash2",
       "price": 100,
     },
     Object {
@@ -572,7 +658,7 @@ Object {
     Object {
       "balance": 30,
       "initialSequence": 12,
-      "orderHash": "orderHash3",
+      "orderHash": "orderHash2",
       "price": 120,
     },
     Object {
@@ -584,13 +670,13 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 13,
-      "orderHash": "orderHash4",
+      "orderHash": "orderHash3",
       "price": 120,
     },
     Object {
       "balance": 20,
       "initialSequence": 11,
-      "orderHash": "orderHash2",
+      "orderHash": "orderHash4",
       "price": 140,
     },
   ],
@@ -598,7 +684,7 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 11,
-      "orderHash": "orderHash2",
+      "orderHash": "orderHash1",
       "price": 120,
     },
     Object {
@@ -610,7 +696,7 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 10,
-      "orderHash": "orderHash1",
+      "orderHash": "orderHash2",
       "price": 100,
     },
     Object {
@@ -629,7 +715,7 @@ Object {
     Object {
       "balance": 30,
       "initialSequence": 12,
-      "orderHash": "orderHash3",
+      "orderHash": "orderHash2",
       "price": 120,
     },
     Object {
@@ -641,13 +727,13 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 13,
-      "orderHash": "orderHash4",
+      "orderHash": "orderHash3",
       "price": 120,
     },
     Object {
       "balance": 20,
       "initialSequence": 11,
-      "orderHash": "orderHash2",
+      "orderHash": "orderHash4",
       "price": 140,
     },
   ],
@@ -655,7 +741,7 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 11,
-      "orderHash": "orderHash2",
+      "orderHash": "orderHash1",
       "price": 120,
     },
     Object {
@@ -667,7 +753,7 @@ Object {
     Object {
       "balance": 20,
       "initialSequence": 10,
-      "orderHash": "orderHash1",
+      "orderHash": "orderHash2",
       "price": 100,
     },
     Object {

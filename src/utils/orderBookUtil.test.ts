@@ -5,17 +5,18 @@ import orderBookUtil from './orderBookUtil';
 import util from './util';
 
 const orderLevelsBids: IOrderBookLevel[] = [
+
 	{
 		orderHash: 'orderHash1',
-		price: 100,
-		balance: 20,
-		initialSequence: 10
-	},
-	{
-		orderHash: 'orderHash2',
 		price: 120,
 		balance: 20,
 		initialSequence: 11
+	},
+	{
+		orderHash: 'orderHash2',
+		price: 100,
+		balance: 20,
+		initialSequence: 10
 	},
 
 	{
@@ -53,24 +54,24 @@ const orderLevelsAsks: IOrderBookLevel[] = [
 	},
 	{
 		orderHash: 'orderHash2',
-		price: 140,
-		balance: 20,
-		initialSequence: 11
-	},
-
-	{
-		orderHash: 'orderHash3',
 		price: 120,
 		balance: 30,
 		initialSequence: 12
 	},
 
 	{
-		orderHash: 'orderHash4',
+		orderHash: 'orderHash3',
 		price: 120,
 		balance: 20,
 		initialSequence: 13
-	}
+	},
+	{
+		orderHash: 'orderHash4',
+		price: 140,
+		balance: 20,
+		initialSequence: 11
+	},
+
 ];
 
 test('sortOrderBookLevels | empty ask', () => {
@@ -87,6 +88,12 @@ test('sortOrderBookLevels | ask', () => {
 test('constructOrderBook', () => {
 	const liveOrders1 = util.clone(liveOrders);
 	expect(orderBookUtil.constructOrderBook(liveOrders1)).toMatchSnapshot();
+});
+
+test('constructOrderBook, with zero balance liveOrder', () => {
+	const liveOrders2 = util.clone(liveOrders);
+	liveOrders2.orderHash1.balance = 0;
+	expect(orderBookUtil.constructOrderBook(liveOrders2)).toMatchSnapshot();
 });
 
 const orderBook: IOrderBook = {
@@ -164,6 +171,24 @@ test('renderOrderBookSnapshotSide', () => {
 	expect(orderBookUtil.renderOrderBookSnapshotSide(orderLevelsBids)).toMatchSnapshot();
 	expect(orderBookUtil.renderOrderBookSnapshotSide(orderLevelsAsks)).toMatchSnapshot();
 });
+
+test('renderOrderBookSnapshotSide, with zero level balance', () => {
+	const orderLevelsBids1 = util.clone(orderLevelsBids);
+	orderLevelsBids1[0].balance = 0;
+	const orderLevelsAsks1 = util.clone(orderLevelsAsks);
+	orderLevelsAsks1[0].balance = 0;
+	expect(orderBookUtil.renderOrderBookSnapshotSide(orderLevelsBids1)).toMatchSnapshot();
+	expect(orderBookUtil.renderOrderBookSnapshotSide(orderLevelsAsks1)).toMatchSnapshot();
+});
+
+// test('renderOrderBookSnapshotSide, with zero level count', () => {
+// 	const orderLevelsBids1 = util.clone(orderLevelsBids);
+// 	orderLevelsBids1[0].balance = 0;
+// 	const orderLevelsAsks1 = util.clone(orderLevelsAsks);
+// 	orderLevelsAsks1[0].balance = 0;
+// 	expect(orderBookUtil.renderOrderBookSnapshotSide(orderLevelsBids1)).toMatchSnapshot();
+// 	expect(orderBookUtil.renderOrderBookSnapshotSide(orderLevelsAsks1)).toMatchSnapshot();
+// });
 
 test('renderOrderBookSnapshot', () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890000);
