@@ -102,28 +102,21 @@ const newLevel = {
 	balance: 20,
 	initialSequence: 11
 };
-test('updateOrderBook, isBid true, isTerminate true', () => {
-	expect(orderBookUtil.updateOrderBook(orderBook, newLevel, true, true)).toBe(-1);
-	expect(orderBook).toMatchSnapshot();
-});
-
-test('updateOrderBook, isBid true, isTerminate true, newLevel does not exist', () => {
-	newLevel.orderHash = 'xxx';
-	orderBookUtil.updateOrderBook(orderBook, newLevel, true, true);
-	expect(orderBook).toMatchSnapshot();
-});
 
 test('updateOrderBook, isBid true, isTerminate false, existing order', () => {
-	newLevel.orderHash = 'orderHash2';
 	newLevel.balance = 30;
-	orderBookUtil.updateOrderBook(orderBook, newLevel, true, false);
+	expect(orderBookUtil.updateOrderBook(orderBook, newLevel, true, false)).toBe(0);
 	expect(orderBook).toMatchSnapshot();
 });
 
 test('updateOrderBook, isBid true, isTerminate false, existing order, balance 0', () => {
-	newLevel.orderHash = 'orderHash2';
 	newLevel.balance = 0;
-	orderBookUtil.updateOrderBook(orderBook, newLevel, true, false);
+	expect(orderBookUtil.updateOrderBook(orderBook, newLevel, true, false)).toBe(-1);
+	expect(orderBook).toMatchSnapshot();
+});
+
+test('updateOrderBook, isBid true, isTerminate true existing balance 0', () => {
+	expect(orderBookUtil.updateOrderBook(orderBook, newLevel, true, true)).toBe(0);
 	expect(orderBook).toMatchSnapshot();
 });
 
@@ -132,7 +125,18 @@ test('updateOrderBook, isBid true, isTerminate false, not existing order', () =>
 	newLevel.balance = 30;
 	newLevel.price = 120;
 	newLevel.initialSequence = 15;
-	orderBookUtil.updateOrderBook(orderBook, newLevel, true, false);
+	expect(orderBookUtil.updateOrderBook(orderBook, newLevel, true, false)).toBe(1);
+	expect(orderBook).toMatchSnapshot();
+});
+
+test('updateOrderBook, isBid true, isTerminate true existing balance not 0', () => {
+	expect(orderBookUtil.updateOrderBook(orderBook, newLevel, true, true)).toBe(-1);
+	expect(orderBook).toMatchSnapshot();
+});
+
+test('updateOrderBook, isBid true, isTerminate true, newLevel does not exist', () => {
+	newLevel.orderHash = 'xxx';
+	expect(orderBookUtil.updateOrderBook(orderBook, newLevel, true, true)).toBe(0);
 	expect(orderBook).toMatchSnapshot();
 });
 
@@ -142,21 +146,21 @@ const newLevelAsk = {
 	balance: 20,
 	initialSequence: 11
 };
-test('updateOrderBook, isBid false, isTerminate true', () => {
-	orderBookUtil.updateOrderBook(orderBook, newLevelAsk, false, true);
-	expect(orderBook).toMatchSnapshot();
-});
-
-test('updateOrderBook, isBid false, isTerminate true, newLevel does not exist', () => {
-	newLevelAsk.orderHash = 'xxx';
-	orderBookUtil.updateOrderBook(orderBook, newLevelAsk, false, true);
-	expect(orderBook).toMatchSnapshot();
-});
-
 test('updateOrderBook, isBid false, isTerminate false, existing order', () => {
 	newLevelAsk.orderHash = 'orderHash2';
 	newLevelAsk.balance = 30;
-	orderBookUtil.updateOrderBook(orderBook, newLevelAsk, false, false);
+	expect(orderBookUtil.updateOrderBook(orderBook, newLevelAsk, false, false)).toBe(0);
+	expect(orderBook).toMatchSnapshot();
+});
+
+test('updateOrderBook, isBid false, isTerminate false, existing order, balance 0', () => {
+	newLevelAsk.balance = 0;
+	expect(orderBookUtil.updateOrderBook(orderBook, newLevelAsk, false, false)).toBe(-1);
+	expect(orderBook).toMatchSnapshot();
+});
+
+test('updateOrderBook, isBid false, isTerminate true', () => {
+	expect(orderBookUtil.updateOrderBook(orderBook, newLevelAsk, false, true)).toBe(0);
 	expect(orderBook).toMatchSnapshot();
 });
 
@@ -165,31 +169,29 @@ test('updateOrderBook, isBid false, isTerminate false, not existing order', () =
 	newLevelAsk.balance = 30;
 	newLevelAsk.price = 140;
 	newLevelAsk.initialSequence = 15;
-	orderBookUtil.updateOrderBook(orderBook, newLevelAsk, false, false);
+	expect(orderBookUtil.updateOrderBook(orderBook, newLevelAsk, false, false)).toBe(1);
+	expect(orderBook).toMatchSnapshot();
+});
+
+test('updateOrderBook, isBid false, isTerminate true', () => {
+	expect(orderBookUtil.updateOrderBook(orderBook, newLevelAsk, false, true)).toBe(-1);
 	expect(orderBook).toMatchSnapshot();
 });
 
 test('renderOrderBookSnapshotSide', () => {
 	expect(orderBookUtil.renderOrderBookSnapshotSide(orderLevelsBids)).toMatchSnapshot();
-	expect(orderBookUtil.renderOrderBookSnapshotSide(orderLevelsAsks)).toMatchSnapshot();
 });
 
 test('renderOrderBookSnapshotSide, with zero level balance', () => {
 	const orderLevelsBids1 = util.clone(orderLevelsBids);
 	orderLevelsBids1[0].balance = 0;
-	const orderLevelsAsks1 = util.clone(orderLevelsAsks);
-	orderLevelsAsks1[0].balance = 0;
 	expect(orderBookUtil.renderOrderBookSnapshotSide(orderLevelsBids1)).toMatchSnapshot();
-	expect(orderBookUtil.renderOrderBookSnapshotSide(orderLevelsAsks1)).toMatchSnapshot();
 });
 
 test('renderOrderBookSnapshotSide, with zero level count', () => {
 	const orderLevelsBids1: IOrderBookLevel[] = util.clone(orderLevelsBids);
 	orderLevelsBids1.forEach(bid => bid.balance = 0);
-	const orderLevelsAsks1: IOrderBookLevel[]  = util.clone(orderLevelsAsks);
-	orderLevelsAsks1.forEach(ask => ask.balance = 0);
 	expect(orderBookUtil.renderOrderBookSnapshotSide(orderLevelsBids1)).toMatchSnapshot();
-	expect(orderBookUtil.renderOrderBookSnapshotSide(orderLevelsAsks1)).toMatchSnapshot();
 });
 
 test('renderOrderBookSnapshot', () => {

@@ -56,18 +56,21 @@ class OrderBookUtil {
 		isBid: boolean,
 		isTerminate: boolean
 	): number {
-		if (isTerminate) {
-			if (isBid)
-				orderBook.bids = orderBook.bids.filter(l => l.orderHash !== newLevel.orderHash);
-			else orderBook.asks = orderBook.asks.filter(l => l.orderHash !== newLevel.orderHash);
-			return -1;
-		}
-
 		const existingOrder = (isBid ? orderBook.bids : orderBook.asks).find(
 			l => l.orderHash === newLevel.orderHash
 		);
-		if (existingOrder) {
+		if (isTerminate) {
+			if (!existingOrder) return 0;
+
+			if (isBid)
+				orderBook.bids = orderBook.bids.filter(l => l.orderHash !== newLevel.orderHash);
+			else orderBook.asks = orderBook.asks.filter(l => l.orderHash !== newLevel.orderHash);
+
+			return existingOrder.balance > 0 ? -1 : 0;
+		} else if (existingOrder) {
 			existingOrder.balance = newLevel.balance;
+			if (isBid) this.sortOrderBookLevels(orderBook.bids, true);
+			else this.sortOrderBookLevels(orderBook.asks, false);
 			return existingOrder.balance > 0 ? 0 : -1;
 		} else if (isBid) {
 			orderBook.bids.push(newLevel);
@@ -143,7 +146,7 @@ class OrderBookUtil {
 			const level = orderBookLevels[i];
 			if (level.balance > 0)
 				if (level.price !== currLevel.price) {
-					if (i) side.push(currLevel);
+					if (i && currLevel.count) side.push(currLevel);
 					currLevel = {
 						price: level.price,
 						balance: level.balance,

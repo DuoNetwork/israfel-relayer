@@ -123,15 +123,15 @@ Object {
       "price": 120,
     },
     Object {
-      "balance": 50,
-      "count": 2,
+      "balance": 20,
+      "count": 1,
       "price": 140,
     },
   ],
   "bids": Array [
     Object {
-      "balance": 50,
-      "count": 2,
+      "balance": 20,
+      "count": 1,
       "price": 120,
     },
     Object {
@@ -153,24 +153,9 @@ Array [
     "price": 120,
   },
   Object {
-    "balance": 70,
-    "count": 3,
+    "balance": 50,
+    "count": 2,
     "price": 100,
-  },
-]
-`;
-
-exports[`renderOrderBookSnapshotSide 2`] = `
-Array [
-  Object {
-    "balance": 70,
-    "count": 3,
-    "price": 120,
-  },
-  Object {
-    "balance": 20,
-    "count": 1,
-    "price": 140,
   },
 ]
 `;
@@ -178,41 +163,14 @@ Array [
 exports[`renderOrderBookSnapshotSide, with zero level balance 1`] = `
 Array [
   Object {
-    "balance": 0,
-    "count": 0,
-    "price": 0,
-  },
-  Object {
-    "balance": 70,
-    "count": 3,
+    "balance": 50,
+    "count": 2,
     "price": 100,
   },
 ]
 `;
 
-exports[`renderOrderBookSnapshotSide, with zero level balance 2`] = `
-Array [
-  Object {
-    "balance": 0,
-    "count": 0,
-    "price": 0,
-  },
-  Object {
-    "balance": 40,
-    "count": 2,
-    "price": 120,
-  },
-  Object {
-    "balance": 20,
-    "count": 1,
-    "price": 140,
-  },
-]
-`;
-
 exports[`renderOrderBookSnapshotSide, with zero level count 1`] = `Array []`;
-
-exports[`renderOrderBookSnapshotSide, with zero level count 2`] = `Array []`;
 
 exports[`sortOrderBookLevels | ask 1`] = `
 Array [
@@ -276,6 +234,12 @@ exports[`updateOrderBook, isBid false, isTerminate false, existing order 1`] = `
 Object {
   "asks": Array [
     Object {
+      "balance": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash2",
+      "price": 120,
+    },
+    Object {
       "balance": 20,
       "initialSequence": 10,
       "orderHash": "orderHash1",
@@ -288,10 +252,55 @@ Object {
       "price": 120,
     },
     Object {
-      "balance": 30,
+      "balance": 20,
       "initialSequence": 11,
-      "orderHash": "orderHash2",
+      "orderHash": "orderHash4",
       "price": 140,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "balance": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash1",
+      "price": 120,
+    },
+    Object {
+      "balance": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash3",
+      "price": 100,
+    },
+    Object {
+      "balance": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash4",
+      "price": 100,
+    },
+  ],
+}
+`;
+
+exports[`updateOrderBook, isBid false, isTerminate false, existing order, balance 0 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "balance": 20,
+      "initialSequence": 10,
+      "orderHash": "orderHash1",
+      "price": 120,
+    },
+    Object {
+      "balance": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash3",
+      "price": 120,
+    },
+    Object {
+      "balance": 0,
+      "initialSequence": 12,
+      "orderHash": "orderHash2",
+      "price": 120,
     },
     Object {
       "balance": 20,
@@ -301,12 +310,6 @@ Object {
     },
   ],
   "bids": Array [
-    Object {
-      "balance": 30,
-      "initialSequence": 15,
-      "orderHash": "orderHash5",
-      "price": 120,
-    },
     Object {
       "balance": 20,
       "initialSequence": 11,
@@ -359,12 +362,6 @@ Object {
   ],
   "bids": Array [
     Object {
-      "balance": 30,
-      "initialSequence": 15,
-      "orderHash": "orderHash5",
-      "price": 120,
-    },
-    Object {
       "balance": 20,
       "initialSequence": 11,
       "orderHash": "orderHash1",
@@ -410,12 +407,6 @@ Object {
   ],
   "bids": Array [
     Object {
-      "balance": 30,
-      "initialSequence": 15,
-      "orderHash": "orderHash5",
-      "price": 120,
-    },
-    Object {
       "balance": 20,
       "initialSequence": 11,
       "orderHash": "orderHash1",
@@ -437,7 +428,7 @@ Object {
 }
 `;
 
-exports[`updateOrderBook, isBid false, isTerminate true, newLevel does not exist 1`] = `
+exports[`updateOrderBook, isBid false, isTerminate true 2`] = `
 Object {
   "asks": Array [
     Object {
@@ -460,12 +451,6 @@ Object {
     },
   ],
   "bids": Array [
-    Object {
-      "balance": 30,
-      "initialSequence": 15,
-      "orderHash": "orderHash5",
-      "price": 120,
-    },
     Object {
       "balance": 20,
       "initialSequence": 11,
@@ -518,16 +503,16 @@ Object {
   ],
   "bids": Array [
     Object {
-      "balance": 30,
-      "initialSequence": 11,
-      "orderHash": "orderHash2",
-      "price": 120,
-    },
-    Object {
       "balance": 20,
       "initialSequence": 11,
       "orderHash": "orderHash1",
       "price": 120,
+    },
+    Object {
+      "balance": 30,
+      "initialSequence": 10,
+      "orderHash": "orderHash2",
+      "price": 100,
     },
     Object {
       "balance": 30,
@@ -575,12 +560,6 @@ Object {
   ],
   "bids": Array [
     Object {
-      "balance": 0,
-      "initialSequence": 11,
-      "orderHash": "orderHash2",
-      "price": 120,
-    },
-    Object {
       "balance": 20,
       "initialSequence": 11,
       "orderHash": "orderHash1",
@@ -596,6 +575,12 @@ Object {
       "balance": 20,
       "initialSequence": 13,
       "orderHash": "orderHash4",
+      "price": 100,
+    },
+    Object {
+      "balance": 0,
+      "initialSequence": 10,
+      "orderHash": "orderHash2",
       "price": 100,
     },
   ],
@@ -659,7 +644,58 @@ Object {
 }
 `;
 
-exports[`updateOrderBook, isBid true, isTerminate true 1`] = `
+exports[`updateOrderBook, isBid true, isTerminate true existing balance 0 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "balance": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash2",
+      "price": 120,
+    },
+    Object {
+      "balance": 20,
+      "initialSequence": 10,
+      "orderHash": "orderHash1",
+      "price": 120,
+    },
+    Object {
+      "balance": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash3",
+      "price": 120,
+    },
+    Object {
+      "balance": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash4",
+      "price": 140,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "balance": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash1",
+      "price": 120,
+    },
+    Object {
+      "balance": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash3",
+      "price": 100,
+    },
+    Object {
+      "balance": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash4",
+      "price": 100,
+    },
+  ],
+}
+`;
+
+exports[`updateOrderBook, isBid true, isTerminate true existing balance not 0 1`] = `
 Object {
   "asks": Array [
     Object {
