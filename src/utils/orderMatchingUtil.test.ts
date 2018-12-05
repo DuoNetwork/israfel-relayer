@@ -82,15 +82,13 @@ const liveOrders = {
 };
 
 test('findMatchingOrders, updatesRequired false, no matching', () => {
-	const res = orderMatchingUtil.findMatchingOrders(orderBook, liveOrders, false);
-	expect(res).toMatchSnapshot();
+	expect(orderMatchingUtil.findMatchingOrders(orderBook, liveOrders, false)).toMatchSnapshot();
 });
 
 test('findMatchingOrders, updatesRequired false, no bids', () => {
 	const orderBook1 = util.clone(orderBook);
 	orderBook1.bids = [];
-	const res = orderMatchingUtil.findMatchingOrders(orderBook1, liveOrders, false);
-	expect(res).toMatchSnapshot();
+	expect(orderMatchingUtil.findMatchingOrders(orderBook1, liveOrders, false)).toMatchSnapshot();
 });
 
 test('findMatchingOrders, updatesRequired false, no ask live order', () => {
@@ -99,8 +97,7 @@ test('findMatchingOrders, updatesRequired false, no ask live order', () => {
 	liveOrders3.orderHash1.price = 0.04;
 	orderBook3.bids[0].price = 0.04;
 	delete liveOrders3.orderHash3;
-	const res = orderMatchingUtil.findMatchingOrders(orderBook3, liveOrders3, false);
-	expect(res).toMatchSnapshot();
+	expect(orderMatchingUtil.findMatchingOrders(orderBook3, liveOrders3, false)).toMatchSnapshot();
 });
 
 test('findMatchingOrders, updatesRequired false, no bid live order', () => {
@@ -109,8 +106,7 @@ test('findMatchingOrders, updatesRequired false, no bid live order', () => {
 	liveOrders4.orderHash3.price = 0.02;
 	orderBook4.asks[0].price = 0.02;
 	delete liveOrders4.orderHash1;
-	const res = orderMatchingUtil.findMatchingOrders(orderBook4, liveOrders4, false);
-	expect(res).toMatchSnapshot();
+	expect(orderMatchingUtil.findMatchingOrders(orderBook4, liveOrders4, false)).toMatchSnapshot();
 });
 
 test('findMatchingOrders, updatesRequired false, matching first bid and ask', () => {
@@ -118,32 +114,35 @@ test('findMatchingOrders, updatesRequired false, matching first bid and ask', ()
 	const liveOrders2 = util.clone(liveOrders);
 	liveOrders2.orderHash1.price = 0.04;
 	orderBook2.bids[0].price = 0.04;
-	const res = orderMatchingUtil.findMatchingOrders(orderBook2, liveOrders2, false);
-	expect(res).toMatchSnapshot();
+	expect(orderMatchingUtil.findMatchingOrders(orderBook2, liveOrders2, false)).toMatchSnapshot();
+	expect(orderBook2).toMatchSnapshot();
+	expect(liveOrders2).toMatchSnapshot();
 });
 
 test('findMatchingOrders, updatesRequired false, matching all, all partial filled', () => {
 	const orderBook5 = util.clone(orderBook);
 	const liveOrders5 = util.clone(liveOrders);
-	liveOrders5.orderHash1.price = 0.04;
-	orderBook5.bids[0].price = 0.04;
-	liveOrders5.orderHash2.price = 0.05;
-	orderBook5.bids[1].price = 0.05;
-	const res = orderMatchingUtil.findMatchingOrders(orderBook5, liveOrders5, false);
-	expect(res).toMatchSnapshot();
+	liveOrders5.orderHash1.price = 0.05;
+	orderBook5.bids[0].price = 0.05;
+	liveOrders5.orderHash2.price = 0.04;
+	orderBook5.bids[1].price = 0.04;
+	expect(orderMatchingUtil.findMatchingOrders(orderBook5, liveOrders5, false)).toMatchSnapshot();
+	expect(orderBook5).toMatchSnapshot();
+	expect(liveOrders5).toMatchSnapshot();
 });
 
 test('findMatchingOrders, updatesRequired false, matching all and no partial fill', () => {
 	const orderBook6 = util.clone(orderBook);
 	const liveOrders6 = util.clone(liveOrders);
-	liveOrders6.orderHash1.price = 0.04;
-	orderBook6.bids[0].price = 0.04;
-	liveOrders6.orderHash1.balance = 30;
-	orderBook6.bids[0].balance = 30;
-	liveOrders6.orderHash2.price = 0.05;
-	orderBook6.bids[1].price = 0.05;
-	const res = orderMatchingUtil.findMatchingOrders(orderBook6, liveOrders6, false);
-	expect(res).toMatchSnapshot();
+	liveOrders6.orderHash1.price = 0.05;
+	orderBook6.bids[0].price = 0.05;
+	liveOrders6.orderHash1.balance = 20;
+	liveOrders6.orderHash2.price = 0.04;
+	orderBook6.bids[1].price = 0.04;
+	orderBook6.bids[1].balance = 30;
+	expect(orderMatchingUtil.findMatchingOrders(orderBook6, liveOrders6, false)).toMatchSnapshot();
+	expect(orderBook6).toMatchSnapshot();
+	expect(liveOrders6).toMatchSnapshot();
 });
 
 test('findMatchingOrders, updatesRequired true, matching first bid and ask', () => {
@@ -151,8 +150,9 @@ test('findMatchingOrders, updatesRequired true, matching first bid and ask', () 
 	const liveOrders7 = util.clone(liveOrders);
 	liveOrders7.orderHash1.price = 0.04;
 	orderBook7.bids[0].price = 0.04;
-	const res = orderMatchingUtil.findMatchingOrders(orderBook7, liveOrders7, true);
-	expect(res).toMatchSnapshot();
+	expect(orderMatchingUtil.findMatchingOrders(orderBook7, liveOrders7, true)).toMatchSnapshot();
+	expect(orderBook7).toMatchSnapshot();
+	expect(liveOrders7).toMatchSnapshot();
 });
 
 const ordersToMatch = [
@@ -181,15 +181,15 @@ const ordersToMatch = [
 const stringSignedOrders: { [key: string]: IStringSignedOrder } = {
 	orderHash1: {
 		senderAddress: 'senderAddress',
-		makerAddress: 'makerAddress',
+		makerAddress: 'makerAddress1',
 		takerAddress: 'takerAddress',
 		makerFee: '0',
 		takerFee: '0',
-		makerAssetAmount: '123',
-		takerAssetAmount: '456',
+		makerAssetAmount: '40000000000000000000',
+		takerAssetAmount: '100000000000000000000',
 		makerAssetData: 'makerAssetData',
 		takerAssetData: 'takerAssetData',
-		salt: '789',
+		salt: '123456781',
 		exchangeAddress: 'exchangeAddress',
 		feeRecipientAddress: 'feeRecipientAddress',
 		expirationTimeSeconds: '1234567890',
@@ -197,15 +197,15 @@ const stringSignedOrders: { [key: string]: IStringSignedOrder } = {
 	},
 	orderHash2: {
 		senderAddress: 'senderAddress',
-		makerAddress: 'makerAddress',
+		makerAddress: 'makerAddress2',
 		takerAddress: 'takerAddress',
 		makerFee: '0',
 		takerFee: '0',
-		makerAssetAmount: '123',
-		takerAssetAmount: '456',
-		makerAssetData: 'makerAssetData',
-		takerAssetData: 'takerAssetData',
-		salt: '789',
+		makerAssetAmount: '20000000000000000000',
+		takerAssetAmount: '50000000000000000000',
+		makerAssetData: 'takerAssetData',
+		takerAssetData: 'makerAssetData',
+		salt: '123456782',
 		exchangeAddress: 'exchangeAddress',
 		feeRecipientAddress: 'feeRecipientAddress',
 		expirationTimeSeconds: '1234567890',
@@ -213,15 +213,15 @@ const stringSignedOrders: { [key: string]: IStringSignedOrder } = {
 	},
 	orderHash3: {
 		senderAddress: 'senderAddress',
-		makerAddress: 'makerAddress',
+		makerAddress: 'makerAddress3',
 		takerAddress: 'takerAddress',
 		makerFee: '0',
 		takerFee: '0',
-		makerAssetAmount: '123',
-		takerAssetAmount: '456',
+		makerAssetAmount: '20000000000000000000',
+		takerAssetAmount: '50000000000000000000',
 		makerAssetData: 'makerAssetData',
 		takerAssetData: 'takerAssetData',
-		salt: '789',
+		salt: '123456783',
 		exchangeAddress: 'exchangeAddress',
 		feeRecipientAddress: 'feeRecipientAddress',
 		expirationTimeSeconds: '1234567890',
@@ -229,15 +229,15 @@ const stringSignedOrders: { [key: string]: IStringSignedOrder } = {
 	},
 	orderHash4: {
 		senderAddress: 'senderAddress',
-		makerAddress: 'makerAddress',
+		makerAddress: 'makerAddress4',
 		takerAddress: 'takerAddress',
 		makerFee: '0',
 		takerFee: '0',
-		makerAssetAmount: '123',
-		takerAssetAmount: '456',
-		makerAssetData: 'makerAssetData',
-		takerAssetData: 'takerAssetData',
-		salt: '789',
+		makerAssetAmount: '40000000000000000000',
+		takerAssetAmount: '100000000000000000000',
+		makerAssetData: 'takerAssetData',
+		takerAssetData: 'makerAssetData',
+		salt: '123456784',
 		exchangeAddress: 'exchangeAddress',
 		feeRecipientAddress: 'feeRecipientAddress',
 		expirationTimeSeconds: '1234567890',
@@ -245,7 +245,7 @@ const stringSignedOrders: { [key: string]: IStringSignedOrder } = {
 	}
 };
 
-test('matchorders', () => {
+test('matchorders', async () => {
 	const stringSignedOrder1 = util.clone(stringSignedOrders);
 	const web3Util = {
 		getTransactionCount: jest.fn(() => Promise.resolve(100)),
@@ -259,8 +259,9 @@ test('matchorders', () => {
 			signedOrder: stringSignedOrder1[orderHash]
 		})
 	);
+	util.getUTCNowTimestamp = jest.fn(() => 1234567898);
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
-	orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch);
+	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch);
 	expect((web3Util.matchOrders as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
@@ -268,35 +269,7 @@ test('matchorders', () => {
 	).toMatchSnapshot();
 });
 
-test('matchorders, no left raworder', () => {
-	const stringSignedOrder2 = util.clone(stringSignedOrders);
-	delete stringSignedOrder2['orderHash1'];
-	const web3Util = {
-		getTransactionCount: jest.fn(() => Promise.resolve(100)),
-		getGasPrice: jest.fn(() => Promise.resolve(2000000000)),
-		matchOrders: jest.fn(() => Promise.resolve())
-	} as any;
-	orderPersistenceUtil.getRawOrderInPersistence = jest.fn((pair, orderHash) =>
-		Promise.resolve({
-			pair: pair,
-			orderHash: orderHash,
-			signedOrder: stringSignedOrder2[orderHash]
-		})
-	);
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
-	orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch);
-	expect((web3Util.matchOrders as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(
-		(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).mock.results
-	).toMatchSnapshot();
-
-	expect(
-		(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).mock.calls
-	).toMatchSnapshot();
-});
-
-test('matchorders, no left raworder', () => {
+test('matchorders, no left raworder', async () => {
 	const stringSignedOrder2 = util.clone(stringSignedOrders);
 	delete stringSignedOrder2['orderHash1'];
 	// console.log(stringSignedOrder2);
@@ -316,8 +289,9 @@ test('matchorders, no left raworder', () => {
 				: null
 		)
 	);
+	util.getUTCNowTimestamp = jest.fn(() => 1234567898);
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
-	orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch);
+	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch);
 	expect((web3Util.matchOrders as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
@@ -325,7 +299,7 @@ test('matchorders, no left raworder', () => {
 	).toMatchSnapshot();
 });
 
-test('matchorders, no right raworder', () => {
+test('matchorders, no right raworder', async () => {
 	const stringSignedOrder3 = util.clone(stringSignedOrders);
 	delete stringSignedOrder3['orderHash2'];
 	// console.log(stringSignedOrder2);
@@ -345,8 +319,9 @@ test('matchorders, no right raworder', () => {
 				: null
 		)
 	);
+	util.getUTCNowTimestamp = jest.fn(() => 1234567898);
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
-	orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch);
+	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch);
 	expect((web3Util.matchOrders as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
