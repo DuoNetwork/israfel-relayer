@@ -34,20 +34,25 @@ Array [
 exports[`addIntoWatch no signed order fillable 3`] = `
 Object {
   "orderHash": Object {
-    "exchangeAddress": "exchangeAddress",
-    "expirationTimeSeconds": "1234567890",
-    "feeRecipientAddress": "feeRecipientAddress",
-    "makerAddress": "makerAddress",
-    "makerAssetAmount": "123",
-    "makerAssetData": "makerAssetData",
-    "makerFee": "0",
-    "salt": "789",
-    "senderAddress": "senderAddress",
-    "signature": "signature",
-    "takerAddress": "takerAddress",
-    "takerAssetAmount": "456",
-    "takerAssetData": "takerAssetData",
-    "takerFee": "0",
+    "liveOrder": Object {
+      "orderHash": "orderHash",
+    },
+    "signedOrder": Object {
+      "exchangeAddress": "exchangeAddress",
+      "expirationTimeSeconds": "1234567890",
+      "feeRecipientAddress": "feeRecipientAddress",
+      "makerAddress": "makerAddress",
+      "makerAssetAmount": "123",
+      "makerAssetData": "makerAssetData",
+      "makerFee": "0",
+      "salt": "789",
+      "senderAddress": "senderAddress",
+      "signature": "signature",
+      "takerAddress": "takerAddress",
+      "takerAssetAmount": "456",
+      "takerAssetData": "takerAssetData",
+      "takerFee": "0",
+    },
   },
 }
 `;
@@ -78,20 +83,25 @@ Array [
 exports[`addIntoWatch with signed order fillable 2`] = `
 Object {
   "orderHash": Object {
-    "exchangeAddress": "exchangeAddress",
-    "expirationTimeSeconds": "1234567890",
-    "feeRecipientAddress": "feeRecipientAddress",
-    "makerAddress": "makerAddress",
-    "makerAssetAmount": "123",
-    "makerAssetData": "makerAssetData",
-    "makerFee": "0",
-    "salt": "789",
-    "senderAddress": "senderAddress",
-    "signature": "signature",
-    "takerAddress": "takerAddress",
-    "takerAssetAmount": "456",
-    "takerAssetData": "takerAssetData",
-    "takerFee": "0",
+    "liveOrder": Object {
+      "orderHash": "orderHash",
+    },
+    "signedOrder": Object {
+      "exchangeAddress": "exchangeAddress",
+      "expirationTimeSeconds": "1234567890",
+      "feeRecipientAddress": "feeRecipientAddress",
+      "makerAddress": "makerAddress",
+      "makerAssetAmount": "123",
+      "makerAssetData": "makerAssetData",
+      "makerFee": "0",
+      "salt": "789",
+      "senderAddress": "senderAddress",
+      "signature": "signature",
+      "takerAddress": "takerAddress",
+      "takerAssetAmount": "456",
+      "takerAssetData": "takerAssetData",
+      "takerFee": "0",
+    },
   },
 }
 `;
@@ -137,20 +147,25 @@ Array [
 exports[`addIntoWatch with signed order non fillable 3`] = `
 Object {
   "orderHash": Object {
-    "exchangeAddress": "exchangeAddress",
-    "expirationTimeSeconds": "1234567890",
-    "feeRecipientAddress": "feeRecipientAddress",
-    "makerAddress": "makerAddress",
-    "makerAssetAmount": "123",
-    "makerAssetData": "makerAssetData",
-    "makerFee": "0",
-    "salt": "789",
-    "senderAddress": "senderAddress",
-    "signature": "signature",
-    "takerAddress": "takerAddress",
-    "takerAssetAmount": "456",
-    "takerAssetData": "takerAssetData",
-    "takerFee": "0",
+    "liveOrder": Object {
+      "orderHash": "orderHash",
+    },
+    "signedOrder": Object {
+      "exchangeAddress": "exchangeAddress",
+      "expirationTimeSeconds": "1234567890",
+      "feeRecipientAddress": "feeRecipientAddress",
+      "makerAddress": "makerAddress",
+      "makerAssetAmount": "123",
+      "makerAssetData": "makerAssetData",
+      "makerFee": "0",
+      "salt": "789",
+      "senderAddress": "senderAddress",
+      "signature": "signature",
+      "takerAddress": "takerAddress",
+      "takerAssetAmount": "456",
+      "takerAssetData": "takerAssetData",
+      "takerFee": "0",
+    },
   },
 }
 `;
@@ -158,7 +173,9 @@ Object {
 exports[`handle orderUpdate add 1`] = `
 Array [
   Array [
-    "0xOrderHash",
+    Object {
+      "orderHash": "0xOrderHash",
+    },
     Object {
       "exchangeAddress": "exchangeAddress",
       "expirationTimeSeconds": "1234567890",
@@ -319,32 +336,6 @@ Array [
 ]
 `;
 
-exports[`handleOrderWatcherUpdate isValid ask fill 1`] = `
-Array [
-  Array [
-    1.23e-16,
-    4.55e-16,
-    undefined,
-    false,
-  ],
-]
-`;
-
-exports[`handleOrderWatcherUpdate isValid ask fill 2`] = `
-Array [
-  Array [
-    Object {
-      "balance": 111,
-      "method": "update",
-      "orderHash": "orderHash",
-      "pair": "pair",
-      "requestor": "orderWatcher",
-      "status": "pFill",
-    },
-  ],
-]
-`;
-
 exports[`handleOrderWatcherUpdate isValid balance plus fill less than orignial amount 1`] = `
 Array [
   Array [
@@ -367,22 +358,11 @@ Array [
 ]
 `;
 
-exports[`handleOrderWatcherUpdate isValid bid fill 1`] = `
-Array [
-  Array [
-    4.55e-16,
-    1.23e-16,
-    undefined,
-    true,
-  ],
-]
-`;
-
-exports[`handleOrderWatcherUpdate isValid bid fill 2`] = `
+exports[`handleOrderWatcherUpdate isValid partial fill 1`] = `
 Array [
   Array [
     Object {
-      "balance": 111,
+      "balance": 455,
       "method": "update",
       "orderHash": "orderHash",
       "pair": "pair",
@@ -396,10 +376,10 @@ Array [
 exports[`loadOrders 1`] = `
 Array [
   Array [
-    "orderHash1",
+    Object {},
   ],
   Array [
-    "orderHash2",
+    Object {},
   ],
 ]
 `;

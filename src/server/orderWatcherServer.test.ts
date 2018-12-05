@@ -5,7 +5,6 @@ import { BigNumber, ExchangeContractErrs, OrderState } from '0x.js';
 import * as CST from '../common/constants';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
-import orderUtil from '../utils/orderUtil';
 import Web3Util from '../utils/Web3Util';
 import orderWatcherServer from './orderWatcherServer';
 
@@ -105,7 +104,7 @@ test('addIntoWatch with signed order fillable', async () => {
 		validateOrderFillable: jest.fn(() => Promise.resolve(true))
 	} as any;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
-	await orderWatcherServer.addIntoWatch('orderHash', signedOrder);
+	await orderWatcherServer.addIntoWatch({ orderHash: 'orderHash' } as any, signedOrder);
 	expect(dynamoUtil.getRawOrder as jest.Mock).not.toBeCalled();
 	expect(orderWatcherServer.updateOrder as jest.Mock).not.toBeCalled();
 	expect(addOrderAsync.mock.calls).toMatchSnapshot();
@@ -124,7 +123,7 @@ test('addIntoWatch with signed order non fillable', async () => {
 		validateOrderFillable: jest.fn(() => Promise.resolve(false))
 	} as any;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
-	await orderWatcherServer.addIntoWatch('orderHash', signedOrder);
+	await orderWatcherServer.addIntoWatch({ orderHash: 'orderHash' } as any, signedOrder);
 	expect(dynamoUtil.getRawOrder as jest.Mock).not.toBeCalled();
 	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(addOrderAsync.mock.calls).toMatchSnapshot();
@@ -147,7 +146,7 @@ test('addIntoWatch no signed order fillable', async () => {
 		})
 	);
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
-	await orderWatcherServer.addIntoWatch('orderHash');
+	await orderWatcherServer.addIntoWatch({ orderHash: 'orderHash' } as any);
 	expect(addOrderAsync.mock.calls).toMatchSnapshot();
 	expect((dynamoUtil.getRawOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(orderWatcherServer.updateOrder as jest.Mock).not.toBeCalled();
@@ -165,7 +164,7 @@ test('addIntoWatch no signed order and no rawOrder', async () => {
 	} as any;
 
 	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve());
-	await orderWatcherServer.addIntoWatch('orderHash');
+	await orderWatcherServer.addIntoWatch({ orderHash: 'orderHash' } as any);
 	expect(addOrderAsync).not.toBeCalled();
 	expect((orderWatcherServer.web3Util as any).validateOrderFillable).not.toBeCalled();
 	expect(orderWatcherServer.watchingOrders).toEqual({});
@@ -246,7 +245,12 @@ test('handleOrderWatcherUpdate isValid no fill', async () => {
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
 	orderWatcherServer.watchingOrders = {
 		orderHash: {
-			takerAssetAmount: '456'
+			liveOrder: {
+				amount: 456
+			},
+			signedOrder: {
+				takerAssetAmount: new BigNumber(456)
+			}
 		} as any
 	};
 	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
@@ -261,7 +265,12 @@ test('handleOrderWatcherUpdate isValid balance plus fill less than orignial amou
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
 	orderWatcherServer.watchingOrders = {
 		orderHash: {
-			takerAssetAmount: '456'
+			liveOrder: {
+				amount: 456
+			},
+			signedOrder: {
+				takerAssetAmount: new BigNumber(456)
+			}
 		} as any
 	};
 	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
@@ -269,49 +278,22 @@ test('handleOrderWatcherUpdate isValid balance plus fill less than orignial amou
 	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('handleOrderWatcherUpdate isValid bid fill', async () => {
+test('handleOrderWatcherUpdate isValid partial fill', async () => {
 	orderStateValid.orderRelevantState.filledTakerAssetAmount = new BigNumber(1);
 	orderStateValid.orderRelevantState.remainingFillableTakerAssetAmount = new BigNumber(455);
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
 	orderWatcherServer.watchingOrders = {
 		orderHash: {
-			takerAssetAmount: '456'
+			liveOrder: {
+				amount: 456
+			},
+			signedOrder: {
+				takerAssetAmount: new BigNumber(456)
+			}
 		} as any
 	};
-	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
-	orderUtil.getPriceBeforeFee = jest.fn(() => ({
-		amount: 111
-	}));
-	orderWatcherServer.token = {
-		feeSchedules: {}
-	} as any;
 	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
-	expect((orderUtil.getPriceBeforeFee as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
-});
-
-test('handleOrderWatcherUpdate isValid ask fill', async () => {
-	orderStateValid.orderRelevantState.filledTakerAssetAmount = new BigNumber(1);
-	orderStateValid.orderRelevantState.remainingFillableTakerAssetAmount = new BigNumber(455);
-	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
-	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
-	orderWatcherServer.watchingOrders = {
-		orderHash: {
-			takerAssetAmount: '456'
-		} as any
-	};
-	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_ASK);
-	orderWatcherServer.web3Util = {} as any;
-	orderUtil.getPriceBeforeFee = jest.fn(() => ({
-		amount: 111
-	}));
-	orderWatcherServer.token = {
-		feeSchedules: {}
-	} as any;
-	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
-	expect((orderUtil.getPriceBeforeFee as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
 });

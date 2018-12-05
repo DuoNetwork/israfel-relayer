@@ -8,12 +8,12 @@ import {
 } from '0x.js';
 import * as CST from '../common/constants';
 import {
+	ILiveOrder,
 	IOption,
 	IOrderPersistRequest,
 	IOrderQueueItem,
 	IRawOrder,
-	IStringSignedOrder,
-	IToken
+	IStringSignedOrder
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
@@ -22,11 +22,15 @@ import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
 class OrderWatcherServer {
-	public token: IToken | undefined = undefined;
 	public pair: string = 'pair';
 	public orderWatcher: OrderWatcher | null = null;
 	public web3Util: Web3Util | null = null;
-	public watchingOrders: { [orderHash: string]: SignedOrder } = {};
+	public watchingOrders: {
+		[orderHash: string]: {
+			liveOrder: ILiveOrder;
+			signedOrder: SignedOrder;
+		};
+	} = {};
 
 	public async updateOrder(orderPersistRequest: IOrderPersistRequest) {
 		let userOrder = null;
@@ -51,12 +55,11 @@ class OrderWatcherServer {
 			util.logDebug(orderHash + ' not in cache, ignored');
 			return;
 		}
-		const stringSignedOrder: IStringSignedOrder = JSON.parse(
-			JSON.stringify(this.watchingOrders[orderHash])
-		);
+		const liveOrder = this.watchingOrders[orderHash].liveOrder;
+		const signedOrder = this.watchingOrders[orderHash].signedOrder;
 		const orderPersistRequest: IOrderPersistRequest = {
-			method: CST.DB_UPDATE,
-			status: CST.DB_UPDATE,
+			method: CST.DB_TERMINATE,
+			status: CST.DB_TERMINATE,
 			requestor: CST.DB_ORDER_WATCHER,
 			pair: this.pair,
 			orderHash: orderHash
@@ -65,38 +68,26 @@ class OrderWatcherServer {
 		if (orderState.isValid) {
 			const {
 				remainingFillableTakerAssetAmount,
-				remainingFillableMakerAssetAmount,
 				filledTakerAssetAmount
 			} = (orderState as OrderStateValid).orderRelevantState;
 			if (
 				remainingFillableTakerAssetAmount
 					.add(filledTakerAssetAmount)
-					.lessThan(Web3Util.stringToBN(stringSignedOrder.takerAssetAmount))
-			) {
-				orderPersistRequest.method = CST.DB_TERMINATE;
+					.lessThan(signedOrder.takerAssetAmount)
+			)
 				orderPersistRequest.status = CST.DB_BALANCE;
-			} else if (Web3Util.fromWei(filledTakerAssetAmount)) {
-				const token = this.token as IToken;
-				const isBid =
-					Web3Util.getSideFromSignedOrder(stringSignedOrder, token) === CST.DB_BID;
-				const remainingTokenAfterFee = Web3Util.fromWei(
-					isBid ? remainingFillableTakerAssetAmount : remainingFillableMakerAssetAmount
-				);
-				const remainingBaseAfterFee = Web3Util.fromWei(
-					isBid ? remainingFillableMakerAssetAmount : remainingFillableTakerAssetAmount
-				);
-				const feeSchedule = token.feeSchedules[CST.TOKEN_WETH];
-				const remainingPriceBeforeFee = orderUtil.getPriceBeforeFee(
-					remainingTokenAfterFee,
-					remainingBaseAfterFee,
-					feeSchedule,
-					isBid
-				);
-				orderPersistRequest.balance = remainingPriceBeforeFee.amount;
+			else if (Web3Util.fromWei(filledTakerAssetAmount)) {
+				orderPersistRequest.balance =
+					liveOrder.amount *
+					Number(
+						remainingFillableTakerAssetAmount
+							.div(signedOrder.takerAssetAmount)
+							.valueOf()
+					);
+				orderPersistRequest.method = CST.DB_UPDATE;
 				orderPersistRequest.status = CST.DB_PFILL;
 			} else return;
 		} else {
-			orderPersistRequest.method = CST.DB_TERMINATE;
 			const error = (orderState as OrderStateInvalid).error;
 			switch (error) {
 				case ExchangeContractErrs.OrderFillRoundingError:
@@ -109,20 +100,20 @@ class OrderWatcherServer {
 					break;
 				case ExchangeContractErrs.OrderFillExpired:
 				case ExchangeContractErrs.OrderCancelled:
-					orderPersistRequest.status = CST.DB_TERMINATE;
+					// orderPersistRequest.status = CST.DB_TERMINATE;
 					break;
 				default:
 					return;
 			}
 		}
 
-		if (orderPersistRequest.method === CST.DB_TERMINATE)
-			this.removeFromWatch(orderHash)
+		if (orderPersistRequest.method === CST.DB_TERMINATE) this.removeFromWatch(orderHash);
 
 		return this.updateOrder(orderPersistRequest);
 	}
 
-	public async addIntoWatch(orderHash: string, signedOrder?: IStringSignedOrder) {
+	public async addIntoWatch(liveOrder: ILiveOrder, signedOrder?: IStringSignedOrder) {
+		const orderHash = liveOrder.orderHash;
 		try {
 			if (this.orderWatcher && this.web3Util && !this.watchingOrders[orderHash]) {
 				if (!signedOrder) {
@@ -148,7 +139,10 @@ class OrderWatcherServer {
 				}
 
 				await this.orderWatcher.addOrderAsync(rawSignedOrder);
-				this.watchingOrders[orderHash] = rawSignedOrder;
+				this.watchingOrders[orderHash] = {
+					liveOrder: liveOrder,
+					signedOrder: rawSignedOrder
+				};
 				util.logDebug('successfully added ' + orderHash);
 			}
 		} catch (e) {
@@ -182,7 +176,7 @@ class OrderWatcherServer {
 		const method = orderQueueItem.method;
 		switch (method) {
 			case CST.DB_ADD:
-				this.addIntoWatch(orderQueueItem.liveOrder.orderHash, orderQueueItem.signedOrder);
+				this.addIntoWatch(orderQueueItem.liveOrder, orderQueueItem.signedOrder);
 				break;
 			case CST.DB_TERMINATE:
 				this.removeFromWatch(orderQueueItem.liveOrder.orderHash);
@@ -196,15 +190,17 @@ class OrderWatcherServer {
 	public async loadOrders() {
 		const prevOrderHashes = Object.keys(this.watchingOrders);
 
-		const currentOrdersOrderHash = Object.keys(
-			await orderPersistenceUtil.getAllLiveOrdersInPersistence(this.pair)
+		const currentLiveOrders = await orderPersistenceUtil.getAllLiveOrdersInPersistence(
+			this.pair
 		);
+		const currentOrdersOrderHash = Object.keys(currentLiveOrders);
 		util.logInfo('loaded live orders : ' + Object.keys(currentOrdersOrderHash).length);
 		const ordersToRemove = prevOrderHashes.filter(
 			orderHash => !currentOrdersOrderHash.includes(orderHash)
 		);
 		for (const orderHash of ordersToRemove) await this.removeFromWatch(orderHash);
-		for (const orderHash of currentOrdersOrderHash) await this.addIntoWatch(orderHash);
+		for (const orderHash of currentOrdersOrderHash)
+			await this.addIntoWatch(currentLiveOrders[orderHash]);
 		util.logInfo('added live orders into watch');
 	}
 
@@ -220,7 +216,6 @@ class OrderWatcherServer {
 			}
 		);
 		this.pair = option.token + '|' + CST.TOKEN_WETH;
-		this.token = this.web3Util.getTokenByCode(option.token);
 
 		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderQueueItem) =>
 			this.handleOrderUpdate(channel, orderQueueItem)
