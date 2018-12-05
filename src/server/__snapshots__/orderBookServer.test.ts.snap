@@ -1,162 +1,92 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`handleOrderUpdate, current sequence too small 1`] = `Object {}`;
-
-exports[`handleOrderUpdate, method wrong, not loadingPairs 1`] = `Object {}`;
-
-exports[`handleOrderUpdate, order processed already 1`] = `
-Object {
-  "orderHash1": 200,
-}
-`;
-
-exports[`handleOrderUpdate, terminate a non existing liveOrder 1`] = `
-Object {
-  "orderHash1": 5,
-}
-`;
-
-exports[`handleOrderUpdate, update orderBooks , add 1`] = `
-Object {
-  "orderHash1": 5,
-}
-`;
-
-exports[`handleOrderUpdate, update orderBooks , add 2`] = `
-Object {
-  "orderHash1": Object {
-    "account": "account1",
-    "amount": 10,
-    "balance": 5,
-    "createdAt": 1234567890,
-    "currentSequence": 5,
-    "expiry": 1234567890000,
-    "fee": 1,
-    "feeAsset": "feeAsset",
-    "fill": 1,
-    "initialSequence": 1,
-    "orderHash": "orderHash1",
-    "pair": "pair",
-    "price": 100,
-    "side": "bid",
-  },
-}
-`;
-
-exports[`handleOrderUpdate, update orderBooks , add 3`] = `
+exports[`handleOrderUpdate add 1`] = `
 Array [
   Array [
-    "code1|code2",
     Object {
-      "asks": Array [],
-      "bids": Array [
-        Object {
-          "balance": 5,
-          "count": 1,
-          "price": 100,
-        },
-      ],
-      "pair": "pair",
-      "version": 123456789,
-    },
-    Object {
-      "pair": "code1|code2",
-      "prevVersion": 0,
-      "updates": Array [
-        Object {
-          "change": 5,
-          "count": 1,
-          "price": 100,
-          "side": "bid",
-        },
-      ],
-      "version": 123456789,
+      "liveOrder": Object {
+        "account": "account1",
+        "amount": 10,
+        "balance": 5,
+        "createdAt": 1234567890,
+        "currentSequence": 5,
+        "expiry": 1234567890000,
+        "fee": 1,
+        "feeAsset": "feeAsset",
+        "fill": 1,
+        "initialSequence": 1,
+        "orderHash": "orderHash1",
+        "pair": "pair",
+        "price": 100,
+        "side": "bid",
+      },
+      "method": "add",
     },
   ],
 ]
 `;
 
-exports[`handleOrderUpdate, update orderBooks , add 4`] = `
-Object {
-  "asks": Array [],
-  "bids": Array [
-    Object {
-      "balance": 5,
-      "initialSequence": 1,
-      "orderHash": "orderHash1",
-      "price": 100,
-    },
-  ],
-}
-`;
-
-exports[`handleOrderUpdate, update orderBooks , add 5`] = `
-Object {
-  "asks": Array [],
-  "bids": Array [
-    Object {
-      "balance": 5,
-      "count": 1,
-      "price": 100,
-    },
-  ],
-  "pair": "pair",
-  "version": 123456789,
-}
-`;
-
-exports[`handleOrderUpdate, update orderBooks , terminate 1`] = `
-Object {
-  "orderHash1": 5,
-}
-`;
-
-exports[`handleOrderUpdate, update orderBooks , terminate 2`] = `Object {}`;
-
-exports[`handleOrderUpdate, update orderBooks , terminate 3`] = `
+exports[`handleOrderUpdate add 2`] = `
 Array [
   Array [
+    Array [
+      "orderBookLevelUpdate",
+    ],
+  ],
+]
+`;
+
+exports[`handleOrderUpdate add match 1`] = `
+Array [
+  Array [
+    null,
     "code1|code2",
+    Array [
+      "ordersToMatch",
+    ],
+  ],
+]
+`;
+
+exports[`handleOrderUpdate add match 2`] = `
+Array [
+  Array [
     Object {
-      "asks": Array [],
-      "bids": Array [],
-      "pair": "pair",
-      "version": 123456789,
-    },
-    Object {
-      "pair": "code1|code2",
-      "prevVersion": 123456789,
-      "updates": Array [
-        Object {
-          "change": -5,
-          "count": -1,
-          "price": 100,
-          "side": "bid",
-        },
-      ],
-      "version": 123456789,
+      "liveOrder": Object {
+        "account": "account1",
+        "amount": 10,
+        "balance": 5,
+        "createdAt": 1234567890,
+        "currentSequence": 5,
+        "expiry": 1234567890000,
+        "fee": 1,
+        "feeAsset": "feeAsset",
+        "fill": 1,
+        "initialSequence": 1,
+        "orderHash": "orderHash1",
+        "pair": "pair",
+        "price": 100,
+        "side": "bid",
+      },
+      "method": "add",
     },
   ],
 ]
 `;
 
-exports[`handleOrderUpdate, update orderBooks , terminate 4`] = `
-Object {
-  "asks": Array [],
-  "bids": Array [],
-}
+exports[`handleOrderUpdate add match 3`] = `
+Array [
+  Array [
+    Array [
+      "orderBookLevelUpdate",
+      "orderBookLevelUpdates1",
+      "orderBookLevelUpdates2",
+    ],
+  ],
+]
 `;
 
-exports[`handleOrderUpdate, update orderBooks , terminate 5`] = `
-Object {
-  "asks": Array [],
-  "bids": Array [],
-  "pair": "pair",
-  "version": 123456789,
-}
-`;
-
-exports[`handleOrderUpdate,loading Pairs 1`] = `
+exports[`handleOrderUpdate loadingOrders 1`] = `
 Array [
   Object {
     "liveOrder": Object {
@@ -182,7 +112,43 @@ Array [
 ]
 `;
 
-exports[`handleOrderUpdate,loading Pairs 2`] = `
+exports[`handleOrderUpdate terminate 1`] = `
+Array [
+  Array [
+    Object {
+      "liveOrder": Object {
+        "account": "account1",
+        "amount": 10,
+        "balance": 5,
+        "createdAt": 1234567890,
+        "currentSequence": 5,
+        "expiry": 1234567890000,
+        "fee": 1,
+        "feeAsset": "feeAsset",
+        "fill": 1,
+        "initialSequence": 1,
+        "orderHash": "orderHash1",
+        "pair": "pair",
+        "price": 100,
+        "side": "bid",
+      },
+      "method": "terminate",
+    },
+  ],
+]
+`;
+
+exports[`handleOrderUpdate terminate 2`] = `
+Array [
+  Array [
+    Array [
+      "orderBookLevelUpdate",
+    ],
+  ],
+]
+`;
+
+exports[`handleOrderUpdate terminate a non existing liveOrder 1`] = `
 Object {
   "orderHash1": 5,
 }
@@ -303,6 +269,179 @@ Array [
   Array [
     "code1|code2",
     "orderBookSnapshot",
+  ],
+]
+`;
+
+exports[`updateOrderBook add 1`] = `
+Object {
+  "change": 456,
+  "count": 1,
+  "price": 123,
+  "side": "bid",
+}
+`;
+
+exports[`updateOrderBook add 2`] = `
+Array [
+  Array [
+    Object {
+      "asks": Array [],
+      "bids": Array [],
+    },
+    Object {
+      "balance": 456,
+      "initialSequence": 111,
+      "orderHash": "orderHash",
+      "price": 123,
+    },
+    true,
+    false,
+  ],
+]
+`;
+
+exports[`updateOrderBook add 3`] = `
+Object {
+  "orderHash": Object {
+    "balance": 456,
+    "initialSequence": 111,
+    "orderHash": "orderHash",
+    "price": 123,
+    "side": "bid",
+  },
+}
+`;
+
+exports[`updateOrderBook terminate 1`] = `
+Object {
+  "change": -400,
+  "count": 1,
+  "price": 123,
+  "side": "bid",
+}
+`;
+
+exports[`updateOrderBook terminate 2`] = `
+Array [
+  Array [
+    Object {
+      "asks": Array [],
+      "bids": Array [],
+    },
+    Object {
+      "balance": 400,
+      "initialSequence": 111,
+      "orderHash": "orderHash",
+      "price": 123,
+    },
+    true,
+    true,
+  ],
+]
+`;
+
+exports[`updateOrderBook update 1`] = `
+Object {
+  "change": -56,
+  "count": 0,
+  "price": 123,
+  "side": "bid",
+}
+`;
+
+exports[`updateOrderBook update 2`] = `
+Array [
+  Array [
+    Object {
+      "asks": Array [],
+      "bids": Array [],
+    },
+    Object {
+      "balance": 400,
+      "initialSequence": 111,
+      "orderHash": "orderHash",
+      "price": 123,
+    },
+    true,
+    false,
+  ],
+]
+`;
+
+exports[`updateOrderBook update 3`] = `
+Object {
+  "orderHash": Object {
+    "balance": 400,
+    "initialSequence": 111,
+    "orderHash": "orderHash",
+    "price": 123,
+    "side": "bid",
+  },
+}
+`;
+
+exports[`updateOrderBookSnapshot 1`] = `
+Array [
+  Array [
+    Object {
+      "asks": Array [],
+      "bids": Array [],
+      "pair": "pair",
+      "version": 0,
+    },
+    Object {
+      "pair": "code1|code2",
+      "prevVersion": 0,
+      "updates": Array [
+        Object {
+          "change": 1,
+          "count": 0,
+          "price": 1,
+          "side": "bid",
+        },
+        Object {
+          "change": 2,
+          "count": 1,
+          "price": 2,
+          "side": "bid",
+        },
+      ],
+      "version": 1234567890,
+    },
+  ],
+]
+`;
+
+exports[`updateOrderBookSnapshot 2`] = `
+Array [
+  Array [
+    "code1|code2",
+    Object {
+      "asks": Array [],
+      "bids": Array [],
+      "pair": "pair",
+      "version": 0,
+    },
+    Object {
+      "pair": "code1|code2",
+      "prevVersion": 0,
+      "updates": Array [
+        Object {
+          "change": 1,
+          "count": 0,
+          "price": 1,
+          "side": "bid",
+        },
+        Object {
+          "change": 2,
+          "count": 1,
+          "price": 2,
+          "side": "bid",
+        },
+      ],
+      "version": 1234567890,
+    },
   ],
 ]
 `;
