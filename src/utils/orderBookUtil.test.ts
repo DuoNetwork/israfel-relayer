@@ -5,7 +5,6 @@ import orderBookUtil from './orderBookUtil';
 import util from './util';
 
 const orderLevelsBids: IOrderBookLevel[] = [
-
 	{
 		orderHash: 'orderHash1',
 		price: 120,
@@ -18,14 +17,12 @@ const orderLevelsBids: IOrderBookLevel[] = [
 		balance: 20,
 		initialSequence: 10
 	},
-
 	{
 		orderHash: 'orderHash3',
 		price: 100,
 		balance: 30,
 		initialSequence: 12
 	},
-
 	{
 		orderHash: 'orderHash4',
 		price: 100,
@@ -58,7 +55,6 @@ const orderLevelsAsks: IOrderBookLevel[] = [
 		balance: 30,
 		initialSequence: 12
 	},
-
 	{
 		orderHash: 'orderHash3',
 		price: 120,
@@ -70,8 +66,7 @@ const orderLevelsAsks: IOrderBookLevel[] = [
 		price: 140,
 		balance: 20,
 		initialSequence: 11
-	},
-
+	}
 ];
 
 test('sortOrderBookLevels | empty ask', () => {
