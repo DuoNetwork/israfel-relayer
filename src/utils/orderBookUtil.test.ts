@@ -120,6 +120,13 @@ test('updateOrderBook, isBid true, isTerminate false, existing order', () => {
 	expect(orderBook).toMatchSnapshot();
 });
 
+test('updateOrderBook, isBid true, isTerminate false, existing order, balance 0', () => {
+	newLevel.orderHash = 'orderHash2';
+	newLevel.balance = 0;
+	orderBookUtil.updateOrderBook(orderBook, newLevel, true, false);
+	expect(orderBook).toMatchSnapshot();
+});
+
 test('updateOrderBook, isBid true, isTerminate false, not existing order', () => {
 	newLevel.orderHash = 'orderHash5';
 	newLevel.balance = 30;
@@ -176,14 +183,14 @@ test('renderOrderBookSnapshotSide, with zero level balance', () => {
 	expect(orderBookUtil.renderOrderBookSnapshotSide(orderLevelsAsks1)).toMatchSnapshot();
 });
 
-// test('renderOrderBookSnapshotSide, with zero level count', () => {
-// 	const orderLevelsBids1 = util.clone(orderLevelsBids);
-// 	orderLevelsBids1[0].balance = 0;
-// 	const orderLevelsAsks1 = util.clone(orderLevelsAsks);
-// 	orderLevelsAsks1[0].balance = 0;
-// 	expect(orderBookUtil.renderOrderBookSnapshotSide(orderLevelsBids1)).toMatchSnapshot();
-// 	expect(orderBookUtil.renderOrderBookSnapshotSide(orderLevelsAsks1)).toMatchSnapshot();
-// });
+test('renderOrderBookSnapshotSide, with zero level count', () => {
+	const orderLevelsBids1: IOrderBookLevel[] = util.clone(orderLevelsBids);
+	orderLevelsBids1.forEach(bid => bid.balance = 0);
+	const orderLevelsAsks1: IOrderBookLevel[]  = util.clone(orderLevelsAsks);
+	orderLevelsAsks1.forEach(ask => ask.balance = 0);
+	expect(orderBookUtil.renderOrderBookSnapshotSide(orderLevelsBids1)).toMatchSnapshot();
+	expect(orderBookUtil.renderOrderBookSnapshotSide(orderLevelsAsks1)).toMatchSnapshot();
+});
 
 test('renderOrderBookSnapshot', () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890000);

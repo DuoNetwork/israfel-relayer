@@ -210,6 +210,10 @@ Array [
 ]
 `;
 
+exports[`renderOrderBookSnapshotSide, with zero level count 1`] = `Array []`;
+
+exports[`renderOrderBookSnapshotSide, with zero level count 2`] = `Array []`;
+
 exports[`sortOrderBookLevels | ask 1`] = `
 Array [
   Object {
@@ -515,6 +519,63 @@ Object {
   "bids": Array [
     Object {
       "balance": 30,
+      "initialSequence": 11,
+      "orderHash": "orderHash2",
+      "price": 120,
+    },
+    Object {
+      "balance": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash1",
+      "price": 120,
+    },
+    Object {
+      "balance": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash3",
+      "price": 100,
+    },
+    Object {
+      "balance": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash4",
+      "price": 100,
+    },
+  ],
+}
+`;
+
+exports[`updateOrderBook, isBid true, isTerminate false, existing order, balance 0 1`] = `
+Object {
+  "asks": Array [
+    Object {
+      "balance": 30,
+      "initialSequence": 12,
+      "orderHash": "orderHash2",
+      "price": 120,
+    },
+    Object {
+      "balance": 20,
+      "initialSequence": 10,
+      "orderHash": "orderHash1",
+      "price": 120,
+    },
+    Object {
+      "balance": 20,
+      "initialSequence": 13,
+      "orderHash": "orderHash3",
+      "price": 120,
+    },
+    Object {
+      "balance": 20,
+      "initialSequence": 11,
+      "orderHash": "orderHash4",
+      "price": 140,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "balance": 0,
       "initialSequence": 11,
       "orderHash": "orderHash2",
       "price": 120,
