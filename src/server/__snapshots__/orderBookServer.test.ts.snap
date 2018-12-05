@@ -269,3 +269,16 @@ Array [
 `;
 
 exports[`updateOrderSequences 1`] = `16`;
+
+exports[`updateOrderSequences 2`] = `
+Object {
+  "orderHash1": 5,
+  "orderHash2": 6,
+  "orderHash3": 7,
+  "orderHash4": 8,
+  "orderHash5": 13,
+  "orderHash6": 14,
+  "orderHash7": 15,
+  "orderHash8": 16,
+}
+`;

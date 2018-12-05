@@ -116,6 +116,7 @@ test('updateOrderSequences', async () => {
 	orderBookServer.liveOrders = liveOrders;
 	orderBookServer.updateOrderSequences();
 	expect(orderBookServer.orderSnapshotSequence).toMatchSnapshot();
+	expect(orderBookServer.processedUpdates).toMatchSnapshot();
 });
 
 test('loadLiveOrders', async () => {
