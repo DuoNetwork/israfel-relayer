@@ -92,67 +92,99 @@ test('findMatchingOrders, updatesRequired false, no bids', () => {
 });
 
 test('findMatchingOrders, updatesRequired false, no ask live order', () => {
-	const orderBook3 = util.clone(orderBook);
-	const liveOrders3 = util.clone(liveOrders);
-	liveOrders3.orderHash1.price = 0.04;
-	orderBook3.bids[0].price = 0.04;
-	delete liveOrders3.orderHash3;
-	expect(orderMatchingUtil.findMatchingOrders(orderBook3, liveOrders3, false)).toMatchSnapshot();
-});
-
-test('findMatchingOrders, updatesRequired false, no bid live order', () => {
-	const orderBook4 = util.clone(orderBook);
-	const liveOrders4 = util.clone(liveOrders);
-	liveOrders4.orderHash3.price = 0.02;
-	orderBook4.asks[0].price = 0.02;
-	delete liveOrders4.orderHash1;
-	expect(orderMatchingUtil.findMatchingOrders(orderBook4, liveOrders4, false)).toMatchSnapshot();
-});
-
-test('findMatchingOrders, updatesRequired false, matching first bid and ask', () => {
 	const orderBook2 = util.clone(orderBook);
 	const liveOrders2 = util.clone(liveOrders);
 	liveOrders2.orderHash1.price = 0.04;
 	orderBook2.bids[0].price = 0.04;
+	delete liveOrders2.orderHash3;
 	expect(orderMatchingUtil.findMatchingOrders(orderBook2, liveOrders2, false)).toMatchSnapshot();
-	expect(orderBook2).toMatchSnapshot();
-	expect(liveOrders2).toMatchSnapshot();
 });
 
-test('findMatchingOrders, updatesRequired false, matching all, all partial filled', () => {
+test('findMatchingOrders, updatesRequired false, no bid live order', () => {
+	const orderBook3 = util.clone(orderBook);
+	const liveOrders3 = util.clone(liveOrders);
+	liveOrders3.orderHash3.price = 0.02;
+	orderBook3.asks[0].price = 0.02;
+	delete liveOrders3.orderHash1;
+	expect(orderMatchingUtil.findMatchingOrders(orderBook3, liveOrders3, false)).toMatchSnapshot();
+});
+
+test('findMatchingOrders, updatesRequired false, bid balance 0', () => {
+	const orderBook4 = util.clone(orderBook);
+	const liveOrders4 = util.clone(liveOrders);
+	liveOrders4.orderHash1.price = 0.04;
+	liveOrders4.orderHash1.balance = 0;
+	orderBook4.bids[0].price = 0.04;
+	orderBook4.bids[0].balance = 0;
+	expect(orderMatchingUtil.findMatchingOrders(orderBook4, liveOrders4, false)).toMatchSnapshot();
+});
+
+test('findMatchingOrders, updatesRequired false, ask balance 0', () => {
 	const orderBook5 = util.clone(orderBook);
 	const liveOrders5 = util.clone(liveOrders);
-	liveOrders5.orderHash1.price = 0.05;
-	orderBook5.bids[0].price = 0.05;
-	liveOrders5.orderHash2.price = 0.04;
-	orderBook5.bids[1].price = 0.04;
+	liveOrders5.orderHash3.price = 0.02;
+	liveOrders5.orderHash3.balance = 0;
+	orderBook5.asks[0].price = 0.02;
+	orderBook5.asks[0].balance = 0;
 	expect(orderMatchingUtil.findMatchingOrders(orderBook5, liveOrders5, false)).toMatchSnapshot();
-	expect(orderBook5).toMatchSnapshot();
-	expect(liveOrders5).toMatchSnapshot();
 });
 
-test('findMatchingOrders, updatesRequired false, matching all and no partial fill', () => {
+test('findMatchingOrders, updatesRequired false, matching first bid and ask', () => {
 	const orderBook6 = util.clone(orderBook);
 	const liveOrders6 = util.clone(liveOrders);
-	liveOrders6.orderHash1.price = 0.05;
-	orderBook6.bids[0].price = 0.05;
-	liveOrders6.orderHash1.balance = 20;
-	liveOrders6.orderHash2.price = 0.04;
-	orderBook6.bids[1].price = 0.04;
-	orderBook6.bids[1].balance = 30;
+	liveOrders6.orderHash1.price = 0.04;
+	orderBook6.bids[0].price = 0.04;
 	expect(orderMatchingUtil.findMatchingOrders(orderBook6, liveOrders6, false)).toMatchSnapshot();
 	expect(orderBook6).toMatchSnapshot();
 	expect(liveOrders6).toMatchSnapshot();
 });
 
-test('findMatchingOrders, updatesRequired true, matching first bid and ask', () => {
+test('findMatchingOrders, updatesRequired false, matching all, all partial filled', () => {
 	const orderBook7 = util.clone(orderBook);
 	const liveOrders7 = util.clone(liveOrders);
-	liveOrders7.orderHash1.price = 0.04;
-	orderBook7.bids[0].price = 0.04;
-	expect(orderMatchingUtil.findMatchingOrders(orderBook7, liveOrders7, true)).toMatchSnapshot();
+	liveOrders7.orderHash1.price = 0.05;
+	orderBook7.bids[0].price = 0.05;
+	liveOrders7.orderHash2.price = 0.04;
+	orderBook7.bids[1].price = 0.04;
+	expect(orderMatchingUtil.findMatchingOrders(orderBook7, liveOrders7, false)).toMatchSnapshot();
 	expect(orderBook7).toMatchSnapshot();
 	expect(liveOrders7).toMatchSnapshot();
+});
+
+test('findMatchingOrders, updatesRequired false, matching all and no partial fill', () => {
+	const orderBook8 = util.clone(orderBook);
+	const liveOrders8 = util.clone(liveOrders);
+	liveOrders8.orderHash1.price = 0.05;
+	orderBook8.bids[0].price = 0.05;
+	liveOrders8.orderHash1.balance = 20;
+	liveOrders8.orderHash2.price = 0.04;
+	orderBook8.bids[1].price = 0.04;
+	orderBook8.bids[1].balance = 30;
+	expect(orderMatchingUtil.findMatchingOrders(orderBook8, liveOrders8, false)).toMatchSnapshot();
+	expect(orderBook8).toMatchSnapshot();
+	expect(liveOrders8).toMatchSnapshot();
+});
+
+test('findMatchingOrders, updatesRequired true, matching first bid and ask', () => {
+	const orderBook9 = util.clone(orderBook);
+	const liveOrders9 = util.clone(liveOrders);
+	liveOrders9.orderHash1.price = 0.04;
+	orderBook9.bids[0].price = 0.04;
+	expect(orderMatchingUtil.findMatchingOrders(orderBook9, liveOrders9, true)).toMatchSnapshot();
+	expect(orderBook9).toMatchSnapshot();
+	expect(liveOrders9).toMatchSnapshot();
+});
+
+test('findMatchingOrders, updatesRequired true, bid balance after matching > 0', () => {
+	const orderBook10 = util.clone(orderBook);
+	const liveOrders10 = util.clone(liveOrders);
+	liveOrders10.orderHash1.price = 0.04;
+	orderBook10.bids[0].price = 0.04;
+	liveOrders10.orderHash1.balance = 40;
+	orderBook10.bids[0].balance = 40;
+	expect(orderMatchingUtil.findMatchingOrders(orderBook10, liveOrders10, true)).toMatchSnapshot();
+	expect(orderBook10).toMatchSnapshot();
+	expect(liveOrders10).toMatchSnapshot();
 });
 
 const ordersToMatch = [
