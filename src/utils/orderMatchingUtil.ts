@@ -4,6 +4,7 @@ import {
 	ILiveOrder,
 	IMatchingCandidate,
 	IOrderBook,
+	IOrderBookLevel,
 	IOrderBookLevelUpdate,
 	IStringSignedOrder
 } from '../common/types';
@@ -27,25 +28,28 @@ class OrderMatchingUtil {
 		if (bids.length && asks.length) {
 			const bestBid = bids.find(level => level.balance > 0);
 			const bestAsk = asks.find(level => level.balance > 0);
-			// console.log(bestBid);
-			// console.log(bestAsk);
 			if (!bestBid || !bestAsk || bestAsk.price > bestBid.price)
 				return {
 					ordersToMatch,
 					orderBookLevelUpdates
 				};
-
-			const bidsToMatch = bids.filter(b => b.price >= bestAsk.price && b.balance > 0);
-			const asksToMatch = asks.filter(a => a.price <= bestBid.price && a.balance > 0);
+			const bidsToMatch: IOrderBookLevel[] = [];
+			const asksToMatch: IOrderBookLevel[] = [];
+			// bids and asks are sorted so we can safely break
+			for (const bid of bids) {
+				if (bid.price < bestAsk.price) break;
+				if (bid.balance > 0) bidsToMatch.push(bid);
+			}
+			for (const ask of asks) {
+				if (ask.price > bestBid.price) break;
+				if (ask.balance > 0) asksToMatch.push(ask);
+			}
 
 			let bidIdx = 0;
 			let askIdx = 0;
-			// console.log(done);
 			while (bidIdx < bidsToMatch.length && askIdx < asksToMatch.length) {
 				const bid = bidsToMatch[bidIdx];
 				const ask = asksToMatch[askIdx];
-
-				// console.log(liveOrders);
 				const bidLiveOrder = liveOrders[bid.orderHash];
 				if (!bidLiveOrder) {
 					util.logDebug('missing live order for ' + bid.orderHash);

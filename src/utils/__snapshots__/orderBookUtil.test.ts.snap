@@ -104,6 +104,12 @@ Object {
       "orderHash": "orderHash4",
       "price": 100,
     },
+    Object {
+      "balance": 0,
+      "initialSequence": 1,
+      "orderHash": "orderHash1",
+      "price": 100,
+    },
   ],
 }
 `;

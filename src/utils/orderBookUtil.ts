@@ -5,7 +5,7 @@ import {
 	IOrderBookLevel,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotLevel,
-	IOrderBookSnapshotUpdate,
+	IOrderBookSnapshotUpdate
 } from '../common/types';
 import util from './util';
 
@@ -32,16 +32,14 @@ class OrderBookUtil {
 		const asks: IOrderBookLevel[] = [];
 		for (const orderHash in liveOrders) {
 			const liveOrder = liveOrders[orderHash];
-			if (liveOrder.balance > 0) {
-				const level: IOrderBookLevel = {
-					orderHash: orderHash,
-					price: liveOrder.price,
-					balance: liveOrder.balance,
-					initialSequence: liveOrder.initialSequence
-				};
-				if (liveOrder.side === CST.DB_BID) bids.push(level);
-				else asks.push(level);
-			}
+			const level: IOrderBookLevel = {
+				orderHash: orderHash,
+				price: liveOrder.price,
+				balance: liveOrder.balance,
+				initialSequence: liveOrder.initialSequence
+			};
+			if (liveOrder.side === CST.DB_BID) bids.push(level);
+			else asks.push(level);
 		}
 
 		this.sortOrderBookLevels(bids, true);
