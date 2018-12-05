@@ -188,131 +188,58 @@ Object {
 }
 `;
 
-exports[`loadLiveOrders 1`] = `
-Object {
-  "asks": Array [
-    Object {
-      "balance": 5,
-      "initialSequence": 9,
-      "orderHash": "orderHash5",
-      "price": 110,
-    },
-    Object {
-      "balance": 5,
-      "initialSequence": 11,
-      "orderHash": "orderHash7",
-      "price": 110,
-    },
-    Object {
-      "balance": 5,
-      "initialSequence": 12,
-      "orderHash": "orderHash8",
-      "price": 110,
-    },
-    Object {
-      "balance": 5,
-      "initialSequence": 10,
-      "orderHash": "orderHash6",
-      "price": 120,
-    },
-  ],
-  "bids": Array [
-    Object {
-      "balance": 5,
-      "initialSequence": 2,
-      "orderHash": "orderHash2",
-      "price": 110,
-    },
-    Object {
-      "balance": 5,
-      "initialSequence": 1,
-      "orderHash": "orderHash1",
-      "price": 100,
-    },
-    Object {
-      "balance": 5,
-      "initialSequence": 3,
-      "orderHash": "orderHash3",
-      "price": 100,
-    },
-    Object {
-      "balance": 5,
-      "initialSequence": 4,
-      "orderHash": "orderHash4",
-      "price": 100,
-    },
-  ],
-}
-`;
+exports[`loadLiveOrders 1`] = `"orderBook"`;
 
-exports[`loadLiveOrders 2`] = `
-Object {
-  "asks": Array [
-    Object {
-      "balance": 15,
-      "count": 3,
-      "price": 110,
-    },
-    Object {
-      "balance": 5,
-      "count": 1,
-      "price": 120,
-    },
-  ],
-  "bids": Array [
-    Object {
-      "balance": 5,
-      "count": 1,
-      "price": 110,
-    },
-    Object {
-      "balance": 15,
-      "count": 3,
-      "price": 100,
-    },
-  ],
-  "pair": "code1|code2",
-  "version": 123456789,
-}
-`;
+exports[`loadLiveOrders 2`] = `"orderBookSnapshot"`;
 
 exports[`loadLiveOrders 3`] = `
 Array [
   Array [
-    "code1|code2",
-    Object {
-      "asks": Array [
-        Object {
-          "balance": 15,
-          "count": 3,
-          "price": 110,
-        },
-        Object {
-          "balance": 5,
-          "count": 1,
-          "price": 120,
-        },
-      ],
-      "bids": Array [
-        Object {
-          "balance": 5,
-          "count": 1,
-          "price": 110,
-        },
-        Object {
-          "balance": 15,
-          "count": 3,
-          "price": 100,
-        },
-      ],
-      "pair": "code1|code2",
-      "version": 123456789,
-    },
+    "liveOrders",
   ],
 ]
 `;
 
 exports[`loadLiveOrders 4`] = `
+Array [
+  Array [
+    "code1|code2",
+    "orderBook",
+  ],
+]
+`;
+
+exports[`loadLiveOrders 5`] = `
+Array [
+  Array [
+    "orderBook",
+    "liveOrders",
+  ],
+]
+`;
+
+exports[`loadLiveOrders 6`] = `
+Array [
+  Array [
+    null,
+    "code1|code2",
+    Array [
+      "ordersToMatch",
+    ],
+  ],
+]
+`;
+
+exports[`loadLiveOrders 7`] = `
+Array [
+  Array [
+    "code1|code2",
+    "orderBookSnapshot",
+  ],
+]
+`;
+
+exports[`loadLiveOrders 8`] = `
 Array [
   Array [
     "pending",
@@ -340,7 +267,5 @@ Array [
   ],
 ]
 `;
-
-exports[`loadLiveOrders 5`] = `Array []`;
 
 exports[`updateOrderSequences 1`] = `16`;
