@@ -120,7 +120,9 @@ test('updateOrderSequences', async () => {
 });
 
 test('loadLiveOrders', async () => {
-	orderPersistenceUtil.getAllLiveOrdersInPersistence = jest.fn(() => Promise.resolve('liveOrders'));
+	orderPersistenceUtil.getAllLiveOrdersInPersistence = jest.fn(() =>
+		Promise.resolve('liveOrders')
+	);
 	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve(true));
 	orderBookUtil.constructOrderBook = jest.fn(() => 'orderBook');
 	orderBookUtil.renderOrderBookSnapshot = jest.fn(() => 'orderBookSnapshot');
@@ -135,22 +137,44 @@ test('loadLiveOrders', async () => {
 	expect(orderBookServer.updateOrderSequences as jest.Mock).toBeCalled();
 	expect(orderBookServer.orderBook).toMatchSnapshot();
 	expect(orderBookServer.orderBookSnapshot).toMatchSnapshot();
-	expect(
-		(orderBookUtil.constructOrderBook as jest.Mock).mock.calls
-	).toMatchSnapshot();
-	expect(
-		(orderBookUtil.renderOrderBookSnapshot as jest.Mock).mock.calls
-	).toMatchSnapshot();
-	expect(
-		(orderMatchingUtil.findMatchingOrders as jest.Mock).mock.calls
-	).toMatchSnapshot();
-	expect(
-		(orderMatchingUtil.matchOrders as jest.Mock).mock.calls
-	).toMatchSnapshot();
+	expect((orderBookUtil.constructOrderBook as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderBookUtil.renderOrderBookSnapshot as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderMatchingUtil.findMatchingOrders as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderMatchingUtil.matchOrders as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
 		(orderBookPersistenceUtil.publishOrderBookUpdate as jest.Mock).mock.calls
 	).toMatchSnapshot();
 	expect((orderBookServer.handleOrderUpdate as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(orderBookServer.pendingUpdates).toEqual([]);
+	expect(orderBookServer.loadingOrders).toBeFalsy();
+});
+
+test('loadLiveOrders no match', async () => {
+	orderPersistenceUtil.getAllLiveOrdersInPersistence = jest.fn(() =>
+		Promise.resolve('liveOrders')
+	);
+	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve(true));
+	orderBookUtil.constructOrderBook = jest.fn(() => 'orderBook');
+	orderBookUtil.renderOrderBookSnapshot = jest.fn(() => 'orderBookSnapshot');
+	orderMatchingUtil.matchOrders = jest.fn(() => Promise.resolve());
+	orderMatchingUtil.findMatchingOrders = jest.fn(() => ({
+		ordersToMatch: [],
+		orderBookLevelUpdates: []
+	}));
+	orderBookServer.updateOrderSequences = jest.fn();
+	orderBookServer.handleOrderUpdate = jest.fn(() => Promise.resolve());
+	await orderBookServer.loadLiveOrders();
+	expect(orderBookServer.updateOrderSequences as jest.Mock).toBeCalled();
+	expect(orderBookServer.orderBook).toMatchSnapshot();
+	expect(orderBookServer.orderBookSnapshot).toMatchSnapshot();
+	expect((orderBookUtil.constructOrderBook as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderBookUtil.renderOrderBookSnapshot as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderMatchingUtil.findMatchingOrders as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(orderMatchingUtil.matchOrders as jest.Mock).not.toBeCalled();
+	expect(
+		(orderBookPersistenceUtil.publishOrderBookUpdate as jest.Mock).mock.calls
+	).toMatchSnapshot();
+	expect(orderBookServer.handleOrderUpdate as jest.Mock).not.toBeCalled();
 	expect(orderBookServer.pendingUpdates).toEqual([]);
 	expect(orderBookServer.loadingOrders).toBeFalsy();
 });

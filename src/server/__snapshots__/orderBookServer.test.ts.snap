@@ -268,6 +268,45 @@ Array [
 ]
 `;
 
+exports[`loadLiveOrders no match 1`] = `"orderBook"`;
+
+exports[`loadLiveOrders no match 2`] = `"orderBookSnapshot"`;
+
+exports[`loadLiveOrders no match 3`] = `
+Array [
+  Array [
+    "liveOrders",
+  ],
+]
+`;
+
+exports[`loadLiveOrders no match 4`] = `
+Array [
+  Array [
+    "code1|code2",
+    "orderBook",
+  ],
+]
+`;
+
+exports[`loadLiveOrders no match 5`] = `
+Array [
+  Array [
+    "orderBook",
+    "liveOrders",
+  ],
+]
+`;
+
+exports[`loadLiveOrders no match 6`] = `
+Array [
+  Array [
+    "code1|code2",
+    "orderBookSnapshot",
+  ],
+]
+`;
+
 exports[`updateOrderSequences 1`] = `16`;
 
 exports[`updateOrderSequences 2`] = `
