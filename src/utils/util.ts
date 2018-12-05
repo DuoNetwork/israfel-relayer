@@ -104,7 +104,7 @@ class Util {
 
 	public getDates(length: number, step: number, stepSize: DurationInputArg2, format: string) {
 		const dates: string[] = [];
-		const date = moment.utc();
+		const date = moment.utc(this.getUTCNowTimestamp());
 		for (let i = 0; i < length; i++) {
 			dates.push(date.format(format));
 			date.subtract(step, stepSize);
