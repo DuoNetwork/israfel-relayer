@@ -103,28 +103,28 @@ const newLevel = {
 	initialSequence: 11
 };
 test('updateOrderBook, isBid true, isTerminate true', () => {
-	orderBookUtil.updateOrderBook(orderBook, newLevel, true, true);
+	expect(orderBookUtil.updateOrderBook(orderBook, newLevel, true, true)).toBe(-1);
 	expect(orderBook).toMatchSnapshot();
 });
 
-newLevel.orderHash = 'xxx';
 test('updateOrderBook, isBid true, isTerminate true, newLevel does not exist', () => {
+	newLevel.orderHash = 'xxx';
 	orderBookUtil.updateOrderBook(orderBook, newLevel, true, true);
 	expect(orderBook).toMatchSnapshot();
 });
 
-newLevel.orderHash = 'orderHash2';
-newLevel.balance = 30;
 test('updateOrderBook, isBid true, isTerminate false, existing order', () => {
+	newLevel.orderHash = 'orderHash2';
+	newLevel.balance = 30;
 	orderBookUtil.updateOrderBook(orderBook, newLevel, true, false);
 	expect(orderBook).toMatchSnapshot();
 });
 
-newLevel.orderHash = 'orderHash5';
-newLevel.balance = 30;
-newLevel.price = 120;
-newLevel.initialSequence = 15;
 test('updateOrderBook, isBid true, isTerminate false, not existing order', () => {
+	newLevel.orderHash = 'orderHash5';
+	newLevel.balance = 30;
+	newLevel.price = 120;
+	newLevel.initialSequence = 15;
 	orderBookUtil.updateOrderBook(orderBook, newLevel, true, false);
 	expect(orderBook).toMatchSnapshot();
 });
@@ -140,24 +140,24 @@ test('updateOrderBook, isBid false, isTerminate true', () => {
 	expect(orderBook).toMatchSnapshot();
 });
 
-newLevelAsk.orderHash = 'xxx';
 test('updateOrderBook, isBid false, isTerminate true, newLevel does not exist', () => {
+	newLevelAsk.orderHash = 'xxx';
 	orderBookUtil.updateOrderBook(orderBook, newLevelAsk, false, true);
 	expect(orderBook).toMatchSnapshot();
 });
 
-newLevelAsk.orderHash = 'orderHash2';
-newLevelAsk.balance = 30;
 test('updateOrderBook, isBid false, isTerminate false, existing order', () => {
+	newLevelAsk.orderHash = 'orderHash2';
+	newLevelAsk.balance = 30;
 	orderBookUtil.updateOrderBook(orderBook, newLevelAsk, false, false);
 	expect(orderBook).toMatchSnapshot();
 });
 
-newLevelAsk.orderHash = 'orderHash5';
-newLevelAsk.balance = 30;
-newLevelAsk.price = 140;
-newLevelAsk.initialSequence = 15;
 test('updateOrderBook, isBid false, isTerminate false, not existing order', () => {
+	newLevelAsk.orderHash = 'orderHash5';
+	newLevelAsk.balance = 30;
+	newLevelAsk.price = 140;
+	newLevelAsk.initialSequence = 15;
 	orderBookUtil.updateOrderBook(orderBook, newLevelAsk, false, false);
 	expect(orderBook).toMatchSnapshot();
 });
