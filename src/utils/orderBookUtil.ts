@@ -6,7 +6,6 @@ import {
 	IOrderBookSnapshot,
 	IOrderBookSnapshotLevel,
 	IOrderBookSnapshotUpdate,
-	// IOrderUpdateInput
 } from '../common/types';
 import util from './util';
 

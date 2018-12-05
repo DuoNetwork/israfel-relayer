@@ -19,11 +19,6 @@ export interface ILiveOrder {
 	feeAsset: string;
 }
 
-export interface IMatchingOrders {
-	orderHash: string;
-	fillAmt: number;
-}
-
 export interface IUserOrder extends ILiveOrder {
 	type: string;
 	status: string;
@@ -75,12 +70,6 @@ export interface IOrderQueueItem {
 	signedOrder?: IStringSignedOrder;
 }
 
-export interface IOrderBookSnapshotWs extends IOrderBookSnapshot {
-	type: string;
-	sequence: number;
-	channel: string;
-}
-
 export interface IOrderBook {
 	bids: IOrderBookLevel[];
 	asks: IOrderBookLevel[];
@@ -104,6 +93,11 @@ export interface IOrderBookSnapshotLevel {
 	price: number;
 	balance: number;
 	count: number;
+}
+
+export interface IOrderUpdate {
+	liveOrder: ILiveOrder;
+	method: string;
 }
 
 export interface IOrderBookLevelUpdate {
@@ -193,11 +187,6 @@ export interface IStatus {
 	count?: number;
 }
 
-export interface IOrderUpdateInput {
-	liveOrder: ILiveOrder;
-	method: string;
-}
-
 export interface IMatchingCandidate {
 	left: {
 		orderHash: string;
@@ -207,28 +196,6 @@ export interface IMatchingCandidate {
 		orderHash: string;
 		balance: number;
 	};
-}
-
-export interface ISideMatchResult {
-	orderHash: string;
-	method: string;
-	newBalance: number;
-}
-
-export interface IMatchingOrderInput {
-	left: {
-		liveOrder: ILiveOrder;
-		signedOrder: SignedOrder;
-	};
-	right: {
-		liveOrder: ILiveOrder;
-		signedOrder: SignedOrder;
-	};
-}
-
-export interface IMatchingOrderResult {
-	left: ISideMatchResult;
-	right: ISideMatchResult;
 }
 
 export interface IToken {

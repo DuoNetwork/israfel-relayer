@@ -8,7 +8,7 @@ import {
 	IOrderBookSnapshot,
 	IOrderBookSnapshotUpdate,
 	IOrderQueueItem,
-	IOrderUpdateInput
+	IOrderUpdate
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
@@ -86,7 +86,7 @@ class OrderBookServer {
 			await orderMatchingUtil.matchOrders(this.web3Util as Web3Util, this.pair, ordersToMatch);
 	}
 
-	public updateOrderBook(orderUpdate: IOrderUpdateInput) {
+	public updateOrderBook(orderUpdate: IOrderUpdate) {
 		const liveOrder = orderUpdate.liveOrder;
 		const method = orderUpdate.method;
 		const orderHash = liveOrder.orderHash;
