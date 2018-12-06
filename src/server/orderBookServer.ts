@@ -76,7 +76,7 @@ class OrderBookServer {
 		let ordersToMatch: IMatchingCandidate[] = [];
 		const leftLiveOrder = orderQueueItem.liveOrder;
 		if (method !== CST.DB_TERMINATE && leftLiveOrder.balance > 0) {
-			const matchinResult = orderMatchingUtil.findMatchingOrders(this.orderBook, this.liveOrders);
+			const matchinResult = orderMatchingUtil.findMatchingOrders(this.orderBook, this.liveOrders, true);
 			ordersToMatch = matchinResult.ordersToMatch;
 			orderBookLevelUpdates.push(...matchinResult.orderBookLevelUpdates);
 		}
@@ -160,7 +160,7 @@ class OrderBookServer {
 		this.updateOrderSequences();
 		this.orderBook = orderBookUtil.constructOrderBook(this.liveOrders);
 		util.logDebug('start matchig ordderBook');
-		const matchingResult = orderMatchingUtil.findMatchingOrders(this.orderBook, this.liveOrders);
+		const matchingResult = orderMatchingUtil.findMatchingOrders(this.orderBook, this.liveOrders, false);
 		if (matchingResult.ordersToMatch.length)
 			await orderMatchingUtil.matchOrders(this.web3Util as Web3Util, this.pair, matchingResult.ordersToMatch);
 		util.logInfo('completed matching orderBook as a whole in cold start');

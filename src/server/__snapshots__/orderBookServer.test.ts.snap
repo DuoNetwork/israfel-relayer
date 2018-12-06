@@ -180,6 +180,7 @@ Array [
   Array [
     "orderBook",
     "liveOrders",
+    false,
   ],
 ]
 `;
@@ -260,6 +261,7 @@ Array [
   Array [
     "orderBook",
     "liveOrders",
+    false,
   ],
 ]
 `;

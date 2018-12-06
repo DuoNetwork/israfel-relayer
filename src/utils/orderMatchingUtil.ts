@@ -17,7 +17,7 @@ class OrderMatchingUtil {
 	public findMatchingOrders(
 		orderBook: IOrderBook,
 		liveOrders: { [orderHash: string]: ILiveOrder },
-		updatesRequired: boolean = false
+		updatesRequired: boolean
 	): {
 		ordersToMatch: IMatchingCandidate[];
 		orderBookLevelUpdates: IOrderBookLevelUpdate[];
