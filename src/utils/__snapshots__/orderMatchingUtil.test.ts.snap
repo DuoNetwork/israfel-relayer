@@ -622,6 +622,156 @@ Array [
 ]
 `;
 
+exports[`matchorders failed 1`] = `
+Array [
+  "orderHash1",
+  "orderHash5",
+]
+`;
+
+exports[`matchorders failed 2`] = `
+Array [
+  Array [
+    "code1|code2orderHash1signedOrder",
+    "code1|code2orderHash2signedOrder",
+    Object {
+      "gasLimit": 300000,
+      "gasPrice": "2000000000",
+      "nonce": 100,
+      "shouldValidate": true,
+    },
+  ],
+  Array [
+    "code1|code2orderHash1signedOrder",
+    "code1|code2orderHash5signedOrder",
+    Object {
+      "gasLimit": 300000,
+      "gasPrice": "2000000000",
+      "nonce": 101,
+      "shouldValidate": true,
+    },
+  ],
+  Array [
+    "code1|code2orderHash3signedOrder",
+    "code1|code2orderHash2signedOrder",
+    Object {
+      "gasLimit": 300000,
+      "gasPrice": "2000000000",
+      "nonce": 102,
+      "shouldValidate": true,
+    },
+  ],
+  Array [
+    "code1|code2orderHash3signedOrder",
+    "code1|code2orderHash4signedOrder",
+    Object {
+      "gasLimit": 300000,
+      "gasPrice": "2000000000",
+      "nonce": 103,
+      "shouldValidate": true,
+    },
+  ],
+]
+`;
+
+exports[`matchorders failed 3`] = `
+Array [
+  Array [
+    Object {
+      "matching": 3,
+      "method": "update",
+      "orderHash": "orderHash1",
+      "pair": "code1|code2",
+      "requestor": "orderMatcher",
+      "status": "matching",
+    },
+  ],
+  Array [
+    Object {
+      "matching": 4,
+      "method": "update",
+      "orderHash": "orderHash2",
+      "pair": "code1|code2",
+      "requestor": "orderMatcher",
+      "status": "matching",
+    },
+  ],
+  Array [
+    Object {
+      "matching": 2,
+      "method": "update",
+      "orderHash": "orderHash5",
+      "pair": "code1|code2",
+      "requestor": "orderMatcher",
+      "status": "matching",
+    },
+  ],
+  Array [
+    Object {
+      "matching": 7,
+      "method": "update",
+      "orderHash": "orderHash3",
+      "pair": "code1|code2",
+      "requestor": "orderMatcher",
+      "status": "matching",
+    },
+  ],
+  Array [
+    Object {
+      "matching": 4,
+      "method": "update",
+      "orderHash": "orderHash4",
+      "pair": "code1|code2",
+      "requestor": "orderMatcher",
+      "status": "matching",
+    },
+  ],
+  Array [
+    Object {
+      "method": "terminate",
+      "orderHash": "orderHash1",
+      "pair": "code1|code2",
+      "requestor": "orderMatcher",
+      "status": "matching",
+    },
+  ],
+  Array [
+    Object {
+      "method": "terminate",
+      "orderHash": "orderHash5",
+      "pair": "code1|code2",
+      "requestor": "orderMatcher",
+      "status": "matching",
+    },
+  ],
+]
+`;
+
+exports[`matchorders failed 4`] = `
+Array [
+  Array [
+    "code1|code2",
+    "orderHash1",
+  ],
+  Array [
+    "code1|code2",
+    "orderHash2",
+  ],
+  Array [
+    "code1|code2",
+    "orderHash5",
+  ],
+  Array [
+    "code1|code2",
+    "orderHash3",
+  ],
+  Array [
+    "code1|code2",
+    "orderHash4",
+  ],
+]
+`;
+
 exports[`matchorders, no left raworder 1`] = `
 Array [
   Array [

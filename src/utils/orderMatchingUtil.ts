@@ -108,11 +108,12 @@ class OrderMatchingUtil {
 		web3Util: Web3Util,
 		pair: string,
 		ordersToMatch: IMatchingCandidate[]
-	) {
+	): Promise<string[]> {
 		const totalMatchingAmount: { [orderHash: string]: number } = {};
 		const orderHashesToMatch: string[][] = [];
 		const signedOrders: { [orderHash: string]: SignedOrder } = {};
 		const missingSignedOrders: { [orderHash: string]: boolean } = {};
+		const matchingStatus: { [orderHash: string]: boolean } = {};
 
 		for (const orderToMatch of ordersToMatch) {
 			const { leftOrderHash, rightOrderHash, matchingAmount } = orderToMatch;
@@ -157,18 +158,17 @@ class OrderMatchingUtil {
 			orderHashesToMatch.push([leftOrderHash, rightOrderHash]);
 		}
 
-		for (const orderHash in totalMatchingAmount) {
-			const persistRequest = {
+		for (const orderHash in totalMatchingAmount)
+			await orderPersistenceUtil.persistOrder({
 				method: CST.DB_UPDATE,
 				pair: pair,
 				orderHash: orderHash,
 				matching: totalMatchingAmount[orderHash],
 				requestor: CST.DB_ORDER_MATCHER,
 				status: CST.DB_MATCHING
-			};
-			await orderPersistenceUtil.persistOrder(persistRequest);
-		}
+			});
 
+		const ordersToTerminate: string[] = [];
 		if (orderHashesToMatch.length > 0) {
 			let currentNonce = await web3Util.getTransactionCount();
 			const curretnGasPrice = await web3Util.getGasPrice();
@@ -181,11 +181,38 @@ class OrderMatchingUtil {
 							nonce: currentNonce++,
 							shouldValidate: true
 						})
-						.then(res => util.logDebug('matching result' + res))
-						.catch(error => util.logDebug('matching error ' + JSON.stringify(error)))
+						.then(res => {
+							util.logDebug('matching result' + res);
+							matchingStatus[orders[0]] = true;
+							matchingStatus[orders[1]] = true;
+						})
+						.catch(error => {
+							util.logDebug(
+								'matching error ' +
+									JSON.stringify(error) +
+									' for ' +
+									JSON.stringify(orders)
+							);
+							matchingStatus[orders[0]] = false || !!matchingStatus[orders[0]];
+							matchingStatus[orders[1]] = false || !!matchingStatus[orders[1]];
+						})
 				)
 			);
 		}
+
+		for (const orderHash in matchingStatus)
+			if (!matchingStatus[orderHash]) {
+				await orderPersistenceUtil.persistOrder({
+					method: CST.DB_TERMINATE,
+					pair: pair,
+					orderHash: orderHash,
+					requestor: CST.DB_ORDER_MATCHER,
+					status: CST.DB_MATCHING
+				});
+				ordersToTerminate.push(orderHash);
+			}
+
+		return ordersToTerminate;
 	}
 }
 
