@@ -151,20 +151,6 @@ test('findMatchingOrders, updatesRequired false, matching all, all partial fille
 	expect(liveOrders7).toMatchSnapshot();
 });
 
-test('findMatchingOrders, updatesRequired false, matching all and no partial fill', () => {
-	const orderBook8 = util.clone(orderBook);
-	const liveOrders8 = util.clone(liveOrders);
-	liveOrders8.orderHash1.price = 0.05;
-	orderBook8.bids[0].price = 0.05;
-	liveOrders8.orderHash1.balance = 20;
-	liveOrders8.orderHash2.price = 0.04;
-	orderBook8.bids[1].price = 0.04;
-	orderBook8.bids[1].balance = 30;
-	expect(orderMatchingUtil.findMatchingOrders(orderBook8, liveOrders8, false)).toMatchSnapshot();
-	expect(orderBook8).toMatchSnapshot();
-	expect(liveOrders8).toMatchSnapshot();
-});
-
 test('findMatchingOrders, updatesRequired true, matching first bid and ask', () => {
 	const orderBook9 = util.clone(orderBook);
 	const liveOrders9 = util.clone(liveOrders);
