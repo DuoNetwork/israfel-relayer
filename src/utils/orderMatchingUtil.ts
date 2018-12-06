@@ -77,8 +77,8 @@ class OrderMatchingUtil {
 				askLiveOrder.balance -= matchingAmount;
 				askLiveOrder.matching += matchingAmount;
 				ordersToMatch.push({
-					leftOrderHash: bid.orderHash,
-					rightOrderHash: ask.orderHash,
+					leftOrder: bidLiveOrder,
+					rightOrder: askLiveOrder,
 					matchingAmount: matchingAmount
 				});
 				if (updatesRequired) {
@@ -110,52 +110,55 @@ class OrderMatchingUtil {
 		ordersToMatch: IMatchingCandidate[]
 	) {
 		const totalMatchingAmount: { [orderHash: string]: number } = {};
-		const orderHashesToMatch: string[][] = [];
+		const validOrdersToMatch: ILiveOrder[][] = [];
 		const signedOrders: { [orderHash: string]: SignedOrder } = {};
 		const missingSignedOrders: { [orderHash: string]: boolean } = {};
 		const matchingStatus: { [orderHash: string]: boolean } = {};
 
 		for (const orderToMatch of ordersToMatch) {
-			const { leftOrderHash, rightOrderHash, matchingAmount } = orderToMatch;
-			if (missingSignedOrders[leftOrderHash] || missingSignedOrders[rightOrderHash]) {
+			const { leftOrder, rightOrder, matchingAmount } = orderToMatch;
+			if (
+				missingSignedOrders[leftOrder.orderHash] ||
+				missingSignedOrders[rightOrder.orderHash]
+			) {
 				util.logDebug('ignore match with missing signed order');
 				continue;
 			}
-			if (!signedOrders[leftOrderHash]) {
+			if (!signedOrders[leftOrder.orderHash]) {
 				const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
 					pair,
-					leftOrderHash
+					leftOrder.orderHash
 				);
 				if (!leftRawOrder) {
-					util.logError(`raw order of ${leftOrderHash} does not exist`);
-					missingSignedOrders[leftOrderHash] = true;
+					util.logError(`raw order of ${leftOrder.orderHash} does not exist`);
+					missingSignedOrders[leftOrder.orderHash] = true;
 					continue;
 				}
-				signedOrders[leftOrderHash] = orderUtil.parseSignedOrder(
+				signedOrders[leftOrder.orderHash] = orderUtil.parseSignedOrder(
 					leftRawOrder.signedOrder as IStringSignedOrder
 				);
 			}
-			if (!signedOrders[rightOrderHash]) {
+			if (!signedOrders[rightOrder.orderHash]) {
 				const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
 					pair,
-					rightOrderHash
+					rightOrder.orderHash
 				);
 
 				if (!rightRawOrder) {
-					util.logError(`raw order of ${rightOrderHash} does not exist`);
-					missingSignedOrders[rightOrderHash] = true;
+					util.logError(`raw order of ${rightOrder.orderHash} does not exist`);
+					missingSignedOrders[rightOrder.orderHash] = true;
 					continue;
 				}
 
-				signedOrders[rightOrderHash] = orderUtil.parseSignedOrder(
+				signedOrders[rightOrder.orderHash] = orderUtil.parseSignedOrder(
 					rightRawOrder.signedOrder as IStringSignedOrder
 				);
 			}
-			totalMatchingAmount[leftOrderHash] =
-				(totalMatchingAmount[leftOrderHash] || 0) + matchingAmount;
-			totalMatchingAmount[rightOrderHash] =
-				(totalMatchingAmount[rightOrderHash] || 0) + matchingAmount;
-			orderHashesToMatch.push([leftOrderHash, rightOrderHash]);
+			totalMatchingAmount[leftOrder.orderHash] =
+				(totalMatchingAmount[leftOrder.orderHash] || 0) + matchingAmount;
+			totalMatchingAmount[rightOrder.orderHash] =
+				(totalMatchingAmount[rightOrder.orderHash] || 0) + matchingAmount;
+			validOrdersToMatch.push([leftOrder, rightOrder]);
 		}
 
 		for (const orderHash in totalMatchingAmount)
@@ -168,13 +171,15 @@ class OrderMatchingUtil {
 				status: CST.DB_MATCHING
 			});
 
-		if (orderHashesToMatch.length > 0) {
+		if (validOrdersToMatch.length > 0) {
 			let currentNonce = await web3Util.getTransactionCount();
 			const curretnGasPrice = await web3Util.getGasPrice();
 			await Promise.all(
-				orderHashesToMatch.map(orders =>
-					web3Util
-						.matchOrders(signedOrders[orders[0]], signedOrders[orders[1]], {
+				validOrdersToMatch.map(orders => {
+					const leftOrderHash = orders[0].orderHash;
+					const rightOrderHash = orders[1].orderHash;
+					return web3Util
+						.matchOrders(signedOrders[leftOrderHash], signedOrders[rightOrderHash], {
 							gasPrice: new BigNumber(curretnGasPrice),
 							gasLimit: 300000,
 							nonce: currentNonce++,
@@ -182,8 +187,8 @@ class OrderMatchingUtil {
 						})
 						.then(res => {
 							util.logDebug('matching result' + res);
-							matchingStatus[orders[0]] = true;
-							matchingStatus[orders[1]] = true;
+							matchingStatus[leftOrderHash] = true;
+							matchingStatus[rightOrderHash] = true;
 						})
 						.catch(error => {
 							util.logDebug(
@@ -192,10 +197,12 @@ class OrderMatchingUtil {
 									' for ' +
 									JSON.stringify(orders)
 							);
-							matchingStatus[orders[0]] = false || !!matchingStatus[orders[0]];
-							matchingStatus[orders[1]] = false || !!matchingStatus[orders[1]];
-						})
-				)
+							matchingStatus[leftOrderHash] =
+								false || !!orders[0].fill || !!matchingStatus[leftOrderHash];
+							matchingStatus[rightOrderHash] =
+								false || !!orders[1].fill || !!matchingStatus[rightOrderHash];
+						});
+				})
 			);
 		}
 

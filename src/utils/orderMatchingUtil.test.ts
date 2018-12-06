@@ -173,23 +173,39 @@ test('findMatchingOrders, updatesRequired true, bid balance after matching > 0',
 
 const ordersToMatch = [
 	{
-		leftOrderHash: 'orderHash1',
-		rightOrderHash: 'orderHash2',
+		leftOrder: {
+			orderHash: 'orderHash1'
+		} as any,
+		rightOrder: {
+			orderHash: 'orderHash2'
+		} as any,
 		matchingAmount: 1
 	},
 	{
-		leftOrderHash: 'orderHash1',
-		rightOrderHash: 'orderHash5',
+		leftOrder: {
+			orderHash: 'orderHash1'
+		} as any,
+		rightOrder: {
+			orderHash: 'orderHash5'
+		} as any,
 		matchingAmount: 2
 	},
 	{
-		leftOrderHash: 'orderHash3',
-		rightOrderHash: 'orderHash2',
+		leftOrder: {
+			orderHash: 'orderHash3'
+		} as any,
+		rightOrder: {
+			orderHash: 'orderHash2'
+		} as any,
 		matchingAmount: 3
 	},
 	{
-		leftOrderHash: 'orderHash3',
-		rightOrderHash: 'orderHash4',
+		leftOrder: {
+			orderHash: 'orderHash3'
+		} as any,
+		rightOrder: {
+			orderHash: 'orderHash4'
+		} as any,
 		matchingAmount: 4
 	}
 ];
@@ -215,6 +231,29 @@ test('matchorders', async () => {
 
 test('matchorders failed', async () => {
 	orderUtil.parseSignedOrder = jest.fn((input: string) => input + 'signedOrder');
+	const web3Util = {
+		getTransactionCount: jest.fn(() => Promise.resolve(100)),
+		getGasPrice: jest.fn(() => Promise.resolve(2000000000)),
+		matchOrders: jest.fn((input: string) =>
+			input.includes('orderHash1') ? Promise.reject() : Promise.resolve()
+		)
+	} as any;
+	orderPersistenceUtil.getRawOrderInPersistence = jest.fn((pair, orderHash) =>
+		Promise.resolve({ signedOrder: pair + orderHash })
+	);
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch);
+	expect((web3Util.matchOrders as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(
+		(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).mock.calls
+	).toMatchSnapshot();
+});
+
+test('matchorders failed but has fill', async () => {
+	orderUtil.parseSignedOrder = jest.fn((input: string) => input + 'signedOrder');
+	ordersToMatch[0].leftOrder.fill = 1;
+	ordersToMatch[1].leftOrder.fill = 1;
 	const web3Util = {
 		getTransactionCount: jest.fn(() => Promise.resolve(100)),
 		getGasPrice: jest.fn(() => Promise.resolve(2000000000)),

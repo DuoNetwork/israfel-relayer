@@ -190,8 +190,8 @@ export interface IStatus {
 }
 
 export interface IMatchingCandidate {
-	leftOrderHash: string;
-	rightOrderHash: string;
+	leftOrder: ILiveOrder;
+	rightOrder: ILiveOrder;
 	matchingAmount: number;
 }
 
