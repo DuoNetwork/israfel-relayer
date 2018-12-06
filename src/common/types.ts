@@ -8,6 +8,7 @@ export interface ILiveOrder {
 	price: number;
 	amount: number;
 	balance: number;
+	matching: number;
 	fill: number;
 	side: string;
 	expiry: number;
@@ -58,7 +59,8 @@ export interface IOrderPersistRequest {
 	status: string;
 	requestor: string;
 	token?: IToken;
-	balance?: number;
+	fill?: number;
+	matching?: number;
 	signedOrder?: IStringSignedOrder;
 }
 

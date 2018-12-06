@@ -40,7 +40,7 @@ test('updateOrder isValid no userOrder', async () => {
 		requestor: CST.DB_ORDER_WATCHER,
 		pair: 'pair',
 		orderHash: 'orderHash',
-		balance: -1
+		fill: 123
 	});
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
@@ -70,7 +70,7 @@ test('updateOrder isValid userOrder', async () => {
 		status: 'status',
 		requestor: CST.DB_ORDER_WATCHER,
 		orderHash: '0xOrderHash',
-		balance: -1
+		fill: 123
 	});
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
@@ -126,8 +126,8 @@ test('addIntoWatch with signed order non fillable', async () => {
 	await orderWatcherServer.addIntoWatch({ orderHash: 'orderHash' } as any, signedOrder);
 	expect(dynamoUtil.getRawOrder as jest.Mock).not.toBeCalled();
 	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(addOrderAsync.mock.calls).toMatchSnapshot();
-	expect(orderWatcherServer.watchingOrders).toMatchSnapshot();
+	expect(addOrderAsync).not.toBeCalled();
+	expect(orderWatcherServer.watchingOrders).toEqual({});
 });
 
 test('addIntoWatch no signed order fillable', async () => {

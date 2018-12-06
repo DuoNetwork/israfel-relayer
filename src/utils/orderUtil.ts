@@ -141,6 +141,7 @@ class OrderUtil {
 			price: priceBeforeFee.price,
 			amount: priceBeforeFee.amount,
 			balance: priceBeforeFee.amount,
+			matching: 0,
 			fill: 0,
 			side: side,
 			expiry: Number(signedOrder.expirationTimeSeconds) * 1000,

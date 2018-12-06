@@ -4,7 +4,6 @@ exports[`handleAddOrderRequest 1`] = `
 Array [
   Array [
     Object {
-      "balance": -1,
       "method": "add",
       "orderHash": "0xOrderHash",
       "pair": "code1|code2",
@@ -700,7 +699,6 @@ exports[`handleTerminateOrderRequest 1`] = `
 Array [
   Array [
     Object {
-      "balance": -1,
       "method": "terminate",
       "orderHash": "0xOrderHash",
       "pair": "pair",
@@ -757,7 +755,6 @@ exports[`handleTerminateOrderRequest persist error 2`] = `
 Array [
   Array [
     Object {
-      "balance": -1,
       "method": "terminate",
       "orderHash": "0xOrderHash",
       "pair": "pair",
@@ -788,7 +785,6 @@ exports[`handleTerminateOrderRequest persist no return 2`] = `
 Array [
   Array [
     Object {
-      "balance": -1,
       "method": "terminate",
       "orderHash": "0xOrderHash",
       "pair": "pair",

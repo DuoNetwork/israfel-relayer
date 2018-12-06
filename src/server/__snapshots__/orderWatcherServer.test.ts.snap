@@ -110,64 +110,14 @@ exports[`addIntoWatch with signed order non fillable 1`] = `
 Array [
   Array [
     Object {
-      "balance": 0,
-      "method": "update",
+      "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
       "requestor": "orderWatcher",
-      "status": "update",
+      "status": "balance",
     },
   ],
 ]
-`;
-
-exports[`addIntoWatch with signed order non fillable 2`] = `
-Array [
-  Array [
-    Object {
-      "exchangeAddress": "exchangeAddress",
-      "expirationTimeSeconds": "1234567890",
-      "feeRecipientAddress": "feeRecipientAddress",
-      "makerAddress": "makerAddress",
-      "makerAssetAmount": "123",
-      "makerAssetData": "makerAssetData",
-      "makerFee": "0",
-      "salt": "789",
-      "senderAddress": "senderAddress",
-      "signature": "signature",
-      "takerAddress": "takerAddress",
-      "takerAssetAmount": "456",
-      "takerAssetData": "takerAssetData",
-      "takerFee": "0",
-    },
-  ],
-]
-`;
-
-exports[`addIntoWatch with signed order non fillable 3`] = `
-Object {
-  "orderHash": Object {
-    "liveOrder": Object {
-      "orderHash": "orderHash",
-    },
-    "signedOrder": Object {
-      "exchangeAddress": "exchangeAddress",
-      "expirationTimeSeconds": "1234567890",
-      "feeRecipientAddress": "feeRecipientAddress",
-      "makerAddress": "makerAddress",
-      "makerAssetAmount": "123",
-      "makerAssetData": "makerAssetData",
-      "makerFee": "0",
-      "salt": "789",
-      "senderAddress": "senderAddress",
-      "signature": "signature",
-      "takerAddress": "takerAddress",
-      "takerAssetAmount": "456",
-      "takerAssetData": "takerAssetData",
-      "takerFee": "0",
-    },
-  },
-}
 `;
 
 exports[`handle orderUpdate add 1`] = `
@@ -362,7 +312,7 @@ exports[`handleOrderWatcherUpdate isValid partial fill 1`] = `
 Array [
   Array [
     Object {
-      "balance": 455,
+      "fill": 1,
       "method": "update",
       "orderHash": "orderHash",
       "pair": "pair",
@@ -404,7 +354,7 @@ exports[`updateOrder isValid no userOrder 1`] = `
 Array [
   Array [
     Object {
-      "balance": -1,
+      "fill": 123,
       "method": "method",
       "orderHash": "orderHash",
       "pair": "pair",
@@ -427,7 +377,7 @@ exports[`updateOrder isValid userOrder 1`] = `
 Array [
   Array [
     Object {
-      "balance": -1,
+      "fill": 123,
       "method": "method",
       "orderHash": "0xOrderHash",
       "pair": "pair",

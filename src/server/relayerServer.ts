@@ -103,7 +103,6 @@ class RelayerServer {
 					requestor: CST.DB_RELAYER,
 					pair: req.pair,
 					orderHash: orderHash,
-					balance: -1,
 					token: token,
 					signedOrder: stringSignedOrder
 				});
@@ -138,8 +137,7 @@ class RelayerServer {
 					status: CST.DB_CONFIRMED,
 					requestor: CST.DB_RELAYER,
 					pair: req.pair,
-					orderHash: req.orderHash,
-					balance: -1
+					orderHash: req.orderHash
 				});
 				if (userOrder) this.sendUserOrderResponse(ws, userOrder, req.method);
 				else this.sendErrorOrderResponse(ws, req, CST.WS_INVALID_ORDER);

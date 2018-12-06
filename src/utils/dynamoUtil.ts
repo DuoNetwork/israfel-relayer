@@ -160,6 +160,7 @@ class DynamoUtil {
 			},
 			[CST.DB_AMOUNT]: { N: liveOrder.amount + '' },
 			[CST.DB_BALANCE]: { N: liveOrder.balance + '' },
+			[CST.DB_MATCHING]: { N: liveOrder.matching + '' },
 			[CST.DB_FILL]: { N: liveOrder.fill + '' },
 			[CST.DB_SIDE]: { S: liveOrder.side },
 			[CST.DB_EXP]: { N: liveOrder.expiry + '' },
@@ -198,6 +199,9 @@ class DynamoUtil {
 				[':' + CST.DB_BALANCE]: {
 					N: liveOrder.balance + ''
 				},
+				[':' + CST.DB_MATCHING]: {
+					N: liveOrder.matching + ''
+				},
 				[':' + CST.DB_FILL]: {
 					N: liveOrder.fill + ''
 				},
@@ -205,10 +209,10 @@ class DynamoUtil {
 				[':' + CST.DB_CURRENT_SEQ]: { N: liveOrder.currentSequence + '' }
 			},
 			UpdateExpression: `SET ${CST.DB_BALANCE} = ${':' + CST.DB_BALANCE}, ${
-				CST.DB_FILL
-			} = ${':' + CST.DB_FILL}, ${CST.DB_UPDATED_AT} = ${':' + CST.DB_UPDATED_AT}, ${
-				CST.DB_CURRENT_SEQ
-			} = ${':' + CST.DB_CURRENT_SEQ} `
+				CST.DB_MATCHING
+			} = ${':' + CST.DB_MATCHING}, ${CST.DB_FILL} = ${':' + CST.DB_FILL}, ${
+				CST.DB_UPDATED_AT
+			} = ${':' + CST.DB_UPDATED_AT}, ${CST.DB_CURRENT_SEQ} = ${':' + CST.DB_CURRENT_SEQ} `
 		});
 	}
 
@@ -237,6 +241,7 @@ class DynamoUtil {
 			side: data[CST.DB_SIDE].S || '',
 			amount: Number(data[CST.DB_AMOUNT].N),
 			balance: Number(data[CST.DB_BALANCE].N),
+			matching: Number(data[CST.DB_MATCHING].N),
 			fill: Number(data[CST.DB_FILL].N),
 			expiry: Number(data[CST.DB_EXP].N),
 			fee: Number(data[CST.DB_FEE].N),
@@ -391,6 +396,7 @@ class DynamoUtil {
 			},
 			[CST.DB_BALANCE]: { N: userOrder.balance + '' },
 			[CST.DB_AMOUNT]: { N: userOrder.amount + '' },
+			[CST.DB_MATCHING]: { N: userOrder.matching + '' },
 			[CST.DB_FILL]: { N: userOrder.fill + '' },
 			[CST.DB_SIDE]: { S: userOrder.side },
 			[CST.DB_EXP]: { N: userOrder.expiry + '' },
@@ -427,6 +433,7 @@ class DynamoUtil {
 			side: data[CST.DB_SIDE].S || '',
 			amount: Number(data[CST.DB_AMOUNT].N),
 			balance: Number(data[CST.DB_BALANCE].N),
+			matching: Number(data[CST.DB_MATCHING].N),
 			fill: Number(data[CST.DB_FILL].N),
 			expiry: Number(data[CST.DB_EXP].N),
 			fee: Number(data[CST.DB_FEE].N),

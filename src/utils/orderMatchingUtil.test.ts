@@ -22,7 +22,8 @@ const liveOrders = {
 		price: 0.02,
 		amount: 20,
 		balance: 20,
-		fill: 1,
+		matching: 0,
+		fill: 0,
 		side: 'bid',
 		createdAt: 1234567890,
 		expiry: 1234567890000,
@@ -38,7 +39,8 @@ const liveOrders = {
 		price: 0.01,
 		amount: 30,
 		balance: 30,
-		fill: 1,
+		matching: 0,
+		fill: 0,
 		side: 'bid',
 		createdAt: 1234567890,
 		expiry: 1234567890000,
@@ -54,7 +56,8 @@ const liveOrders = {
 		price: 0.04,
 		amount: 30,
 		balance: 30,
-		fill: 1,
+		matching: 0,
+		fill: 0,
 		side: 'ask',
 		createdAt: 1234567890,
 		expiry: 1234567890000,
@@ -70,7 +73,8 @@ const liveOrders = {
 		price: 0.05,
 		amount: 20,
 		balance: 20,
-		fill: 1,
+		matching: 0,
+		fill: 0,
 		side: 'ask',
 		createdAt: 1234567890,
 		expiry: 1234567890000,
@@ -297,7 +301,7 @@ test('matchorders, no left raworder', async () => {
 						pair: pair,
 						orderHash: orderHash,
 						signedOrder: stringSignedOrder2[orderHash]
-				  }
+				}
 				: null
 		)
 	);
@@ -327,7 +331,7 @@ test('matchorders, no right raworder', async () => {
 						pair: pair,
 						orderHash: orderHash,
 						signedOrder: stringSignedOrder3[orderHash]
-				  }
+				}
 				: null
 		)
 	);

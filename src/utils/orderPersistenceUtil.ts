@@ -149,7 +149,16 @@ class OrderPersistenceUtil {
 	}
 
 	public async persistOrder(orderPersistRequest: IOrderPersistRequest) {
-		const { pair, orderHash, method, balance, token, status, requestor } = orderPersistRequest;
+		const {
+			pair,
+			orderHash,
+			method,
+			fill,
+			matching,
+			token,
+			status,
+			requestor
+		} = orderPersistRequest;
 		if (method === CST.DB_ADD && !token) {
 			util.logDebug(`invalid add request ${orderHash}, missing token`);
 			return null;
@@ -184,10 +193,29 @@ class OrderPersistenceUtil {
 		if (method === CST.DB_ADD) orderQueueItem.signedOrder = orderPersistRequest.signedOrder;
 		else if (orderPersistRequest.status === CST.DB_FILL) {
 			orderQueueItem.liveOrder.fill = orderQueueItem.liveOrder.amount;
+			orderQueueItem.liveOrder.matching = 0;
 			orderQueueItem.liveOrder.balance = 0;
-		} else if (balance) {
-			orderQueueItem.liveOrder.fill = orderQueueItem.liveOrder.amount - balance;
-			orderQueueItem.liveOrder.balance = balance;
+		} else if (fill) {
+			// only from orderWatcher
+			orderQueueItem.liveOrder.matching = Math.max(
+				orderQueueItem.liveOrder.matching - fill + orderQueueItem.liveOrder.fill,
+				0
+			);
+			orderQueueItem.liveOrder.fill = fill;
+			orderQueueItem.liveOrder.balance = Math.max(
+				orderQueueItem.liveOrder.amount - fill - orderQueueItem.liveOrder.matching,
+				0
+			);
+		} else if (matching) {
+			// only from orderBook
+			orderQueueItem.liveOrder.balance = Math.max(
+				orderQueueItem.liveOrder.balance - matching,
+				0
+			);
+			orderQueueItem.liveOrder.matching = Math.min(
+				orderQueueItem.liveOrder.amount - orderQueueItem.liveOrder.fill,
+				orderQueueItem.liveOrder.matching + matching
+			);
 		}
 
 		util.logDebug(`storing order queue item in redis ${orderHash}`);

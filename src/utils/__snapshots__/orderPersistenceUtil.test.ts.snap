@@ -12,6 +12,7 @@ Object {
   "feeAsset": "feeAsset",
   "fill": 234,
   "initialSequence": 1,
+  "matching": 99,
   "orderHash": "0xOrderHash",
   "pair": "code1|code2",
   "price": 0.123456789,
@@ -35,6 +36,7 @@ Object {
   "feeAsset": "feeAsset",
   "fill": 234,
   "initialSequence": 1,
+  "matching": 99,
   "orderHash": "0xOrderHash",
   "pair": "code1|code2",
   "price": 0.123456789,
@@ -177,17 +179,17 @@ Array [
 ]
 `;
 
-exports[`persistOrder not add 1`] = `
+exports[`persistOrder not add fill 1`] = `
 Array [
   Array [
     "orders|cache|code1|code2",
     "code1|code2|method|0xOrderHash",
-    "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":20,\\"balance\\":80}}",
+    "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"matching\\":20,\\"balance\\":40,\\"fill\\":40,\\"currentSequence\\":123}}",
   ],
 ]
 `;
 
-exports[`persistOrder not add 2`] = `
+exports[`persistOrder not add fill 2`] = `
 Array [
   Array [
     "orders|queue",
@@ -196,23 +198,70 @@ Array [
 ]
 `;
 
-exports[`persistOrder not add 3`] = `
+exports[`persistOrder not add fill 3`] = `
 Array [
   Array [
     "orders|pubsub|code1|code2",
-    "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":20,\\"balance\\":80}}",
+    "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"matching\\":20,\\"balance\\":40,\\"fill\\":40,\\"currentSequence\\":123}}",
   ],
 ]
 `;
 
-exports[`persistOrder not add 4`] = `
+exports[`persistOrder not add fill 4`] = `
 Array [
   Array [
     Object {
       "amount": 100,
-      "balance": 80,
+      "balance": 40,
       "currentSequence": 123,
-      "fill": 20,
+      "fill": 40,
+      "matching": 20,
+    },
+    "method",
+    "status",
+    "requestor",
+    false,
+  ],
+]
+`;
+
+exports[`persistOrder not add match 1`] = `
+Array [
+  Array [
+    "orders|cache|code1|code2",
+    "code1|code2|method|0xOrderHash",
+    "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"matching\\":70,\\"balance\\":20,\\"fill\\":10,\\"currentSequence\\":123}}",
+  ],
+]
+`;
+
+exports[`persistOrder not add match 2`] = `
+Array [
+  Array [
+    "orders|queue",
+    "code1|code2|method|0xOrderHash",
+  ],
+]
+`;
+
+exports[`persistOrder not add match 3`] = `
+Array [
+  Array [
+    "orders|pubsub|code1|code2",
+    "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"matching\\":70,\\"balance\\":20,\\"fill\\":10,\\"currentSequence\\":123}}",
+  ],
+]
+`;
+
+exports[`persistOrder not add match 4`] = `
+Array [
+  Array [
+    Object {
+      "amount": 100,
+      "balance": 20,
+      "currentSequence": 123,
+      "fill": 10,
+      "matching": 70,
     },
     "method",
     "status",
@@ -227,7 +276,7 @@ Array [
   Array [
     "orders|cache|code1|code2",
     "code1|code2|terminate|0xOrderHash",
-    "{\\"method\\":\\"terminate\\",\\"status\\":\\"fill\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":100,\\"balance\\":0}}",
+    "{\\"method\\":\\"terminate\\",\\"status\\":\\"fill\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":100,\\"matching\\":0,\\"balance\\":0}}",
   ],
 ]
 `;
@@ -245,7 +294,7 @@ exports[`persistOrder terminate fill 3`] = `
 Array [
   Array [
     "orders|pubsub|code1|code2",
-    "{\\"method\\":\\"terminate\\",\\"status\\":\\"fill\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":100,\\"balance\\":0}}",
+    "{\\"method\\":\\"terminate\\",\\"status\\":\\"fill\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":100,\\"matching\\":0,\\"balance\\":0}}",
   ],
 ]
 `;
@@ -258,6 +307,7 @@ Array [
       "balance": 0,
       "currentSequence": 123,
       "fill": 100,
+      "matching": 0,
     },
     "terminate",
     "fill",
@@ -308,6 +358,7 @@ Array [
       "feeAsset": "feeAsset",
       "fill": 234,
       "initialSequence": 1,
+      "matching": 99,
       "orderHash": "0xOrderHash",
       "pair": "code1|code2",
       "price": 0.123456789,
@@ -331,6 +382,7 @@ Array [
       "feeAsset": "feeAsset",
       "fill": 234,
       "initialSequence": 1,
+      "matching": 99,
       "orderHash": "0xOrderHash",
       "pair": "code1|code2",
       "price": 0.123456789,
@@ -410,6 +462,7 @@ Array [
       "feeAsset": "feeAsset",
       "fill": 234,
       "initialSequence": 1,
+      "matching": 99,
       "orderHash": "0xOrderHash",
       "pair": "code1|code2",
       "price": 0.123456789,
@@ -433,6 +486,7 @@ Array [
       "feeAsset": "feeAsset",
       "fill": 234,
       "initialSequence": 1,
+      "matching": 99,
       "orderHash": "0xOrderHash",
       "pair": "code1|code2",
       "price": 0.123456789,
@@ -478,6 +532,7 @@ Array [
       "feeAsset": "feeAsset",
       "fill": 234,
       "initialSequence": 1,
+      "matching": 99,
       "orderHash": "0xOrderHash",
       "pair": "code1|code2",
       "price": 0.123456789,
@@ -501,6 +556,7 @@ Array [
       "feeAsset": "feeAsset",
       "fill": 234,
       "initialSequence": 1,
+      "matching": 99,
       "orderHash": "0xOrderHash",
       "pair": "code1|code2",
       "price": 0.123456789,

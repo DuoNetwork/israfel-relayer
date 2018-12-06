@@ -77,13 +77,14 @@ class OrderWatcherServer {
 			)
 				orderPersistRequest.status = CST.DB_BALANCE;
 			else if (Web3Util.fromWei(filledTakerAssetAmount)) {
-				orderPersistRequest.balance =
+				orderPersistRequest.fill =
+					liveOrder.amount -
 					liveOrder.amount *
-					Number(
-						remainingFillableTakerAssetAmount
-							.div(signedOrder.takerAssetAmount)
-							.valueOf()
-					);
+						Number(
+							remainingFillableTakerAssetAmount
+								.div(signedOrder.takerAssetAmount)
+								.valueOf()
+						);
 				orderPersistRequest.method = CST.DB_UPDATE;
 				orderPersistRequest.status = CST.DB_PFILL;
 			} else return;
@@ -129,13 +130,13 @@ class OrderWatcherServer {
 				if (!(await this.web3Util.validateOrderFillable(rawSignedOrder))) {
 					util.logDebug(orderHash + ' not fillable, send update');
 					await this.updateOrder({
-						method: CST.DB_UPDATE,
-						status: CST.DB_UPDATE,
+						method: CST.DB_TERMINATE,
+						status: CST.DB_BALANCE,
 						requestor: CST.DB_ORDER_WATCHER,
 						pair: this.pair,
-						orderHash: orderHash,
-						balance: 0
+						orderHash: orderHash
 					});
+					return;
 				}
 
 				await this.orderWatcher.addOrderAsync(rawSignedOrder);

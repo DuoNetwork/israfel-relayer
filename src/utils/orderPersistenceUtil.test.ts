@@ -28,6 +28,7 @@ const liveOrder = {
 	price: 0.123456789,
 	amount: 456,
 	balance: 123,
+	matching: 99,
 	fill: 234,
 	side: CST.DB_BID,
 	fee: 1,
@@ -185,7 +186,6 @@ test('persistOrder add', async () => {
 			pair: 'code1|code2',
 			token: 'token' as any,
 			orderHash: '0xOrderHash',
-			balance: 123456789,
 			signedOrder: 'may or may not exist' as any
 		})
 	).not.toBeNull();
@@ -195,10 +195,13 @@ test('persistOrder add', async () => {
 	expect((orderPersistenceUtil.addUserOrderToDB as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('persistOrder not add', async () => {
+test('persistOrder not add fill', async () => {
 	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() =>
 		Promise.resolve({
-			amount: 100
+			amount: 100,
+			matching: 50,
+			balance: 40,
+			fill: 10
 		})
 	);
 	redisUtil.increment = jest.fn(() => Promise.resolve(123));
@@ -217,7 +220,41 @@ test('persistOrder not add', async () => {
 			pair: 'code1|code2',
 			token: 'token' as any,
 			orderHash: '0xOrderHash',
-			balance: 80
+			fill: 40
+		})
+	).not.toBeNull();
+	expect((redisUtil.hashSet as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((redisUtil.push as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((redisUtil.publish as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderPersistenceUtil.addUserOrderToDB as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('persistOrder not add match', async () => {
+	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() =>
+		Promise.resolve({
+			amount: 100,
+			matching: 50,
+			balance: 40,
+			fill: 10
+		})
+	);
+	redisUtil.increment = jest.fn(() => Promise.resolve(123));
+	redisUtil.multi = jest.fn(() => Promise.resolve());
+	redisUtil.exec = jest.fn(() => Promise.resolve());
+	redisUtil.hashSet = jest.fn(() => Promise.resolve());
+	redisUtil.push = jest.fn();
+	redisUtil.publish = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
+
+	expect(
+		await orderPersistenceUtil.persistOrder({
+			method: 'method',
+			status: 'status',
+			requestor: 'requestor',
+			pair: 'code1|code2',
+			token: 'token' as any,
+			orderHash: '0xOrderHash',
+			matching: 20
 		})
 	).not.toBeNull();
 	expect((redisUtil.hashSet as jest.Mock).mock.calls).toMatchSnapshot();

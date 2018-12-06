@@ -35,6 +35,9 @@ Array [
         "initialSequence": Object {
           "N": "1",
         },
+        "matching": Object {
+          "N": "111",
+        },
         "orderHash": Object {
           "S": "0xOrderHash",
         },
@@ -155,6 +158,9 @@ Array [
         "initialSequence": Object {
           "N": "1",
         },
+        "matching": Object {
+          "N": "111",
+        },
         "pairOrderHashSequenceStatus": Object {
           "S": "code1|code2|0xOrderHash|2|status",
         },
@@ -266,6 +272,7 @@ Array [
     "feeAsset": "feeAsset",
     "fill": 234,
     "initialSequence": 1,
+    "matching": 111,
     "orderHash": "0xOrderHash",
     "pair": "code1|code2",
     "price": 123,
@@ -309,6 +316,7 @@ Array [
     "feeAsset": "feeAsset",
     "fill": 234,
     "initialSequence": 1,
+    "matching": 111,
     "orderHash": "0xOrderHash",
     "pair": "code1|code2",
     "price": 123,
@@ -428,6 +436,7 @@ Array [
     "feeAsset": "feeAsset",
     "fill": 234,
     "initialSequence": 1,
+    "matching": 111,
     "orderHash": "0xOrderHash",
     "pair": "code1|code2",
     "price": 123,
@@ -608,6 +617,9 @@ Array [
         ":fill": Object {
           "N": "234",
         },
+        ":matching": Object {
+          "N": "111",
+        },
         ":updatedAt": Object {
           "N": "1234567890",
         },
@@ -621,7 +633,7 @@ Array [
         },
       },
       "TableName": "israfel.liveOrders.dev",
-      "UpdateExpression": "SET balance = :balance, fill = :fill, updatedAt = :updatedAt, currentSequence = :currentSequence ",
+      "UpdateExpression": "SET balance = :balance, matching = :matching, fill = :fill, updatedAt = :updatedAt, currentSequence = :currentSequence ",
     },
   ],
 ]
