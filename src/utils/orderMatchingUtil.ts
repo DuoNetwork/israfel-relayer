@@ -64,6 +64,16 @@ class OrderMatchingUtil {
 					continue;
 				}
 				const matchBalance = Math.min(bid.balance, ask.balance);
+				if (bid.balance < ask.balance) bidIdx++;
+				else if (bid.balance > ask.balance) askIdx++;
+				else {
+					bidIdx++;
+					askIdx++;
+				}
+				bid.balance -= matchBalance;
+				ask.balance -= matchBalance;
+				bidLiveOrder.balance -= matchBalance;
+				askLiveOrder.balance -= matchBalance;
 				ordersToMatch.push({
 					left: {
 						orderHash: bid.orderHash,
@@ -74,17 +84,6 @@ class OrderMatchingUtil {
 						balance: ask.balance
 					}
 				});
-				if (bid.balance < ask.balance) bidIdx++;
-				else if (bid.balance > ask.balance) askIdx++;
-				else {
-					bidIdx++;
-					askIdx++;
-				}
-
-				bid.balance -= matchBalance;
-				ask.balance -= matchBalance;
-				bidLiveOrder.balance -= matchBalance;
-				askLiveOrder.balance -= matchBalance;
 				if (updatesRequired) {
 					orderBookLevelUpdates.push({
 						price: bid.price,
