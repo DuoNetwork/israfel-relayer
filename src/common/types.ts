@@ -190,14 +190,9 @@ export interface IStatus {
 }
 
 export interface IMatchingCandidate {
-	left: {
-		orderHash: string;
-		balance: number;
-	};
-	right: {
-		orderHash: string;
-		balance: number;
-	};
+	leftOrderHash: string;
+	rightOrderHash: string;
+	matchingAmount: number;
 }
 
 export interface IToken {

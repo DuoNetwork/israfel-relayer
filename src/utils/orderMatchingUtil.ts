@@ -63,37 +63,34 @@ class OrderMatchingUtil {
 					askIdx++;
 					continue;
 				}
-				const matchBalance = Math.min(bid.balance, ask.balance);
+				const matchingAmount = Math.min(bid.balance, ask.balance);
 				if (bid.balance < ask.balance) bidIdx++;
 				else if (bid.balance > ask.balance) askIdx++;
 				else {
 					bidIdx++;
 					askIdx++;
 				}
-				bid.balance -= matchBalance;
-				ask.balance -= matchBalance;
-				bidLiveOrder.balance -= matchBalance;
-				askLiveOrder.balance -= matchBalance;
+				bid.balance -= matchingAmount;
+				ask.balance -= matchingAmount;
+				bidLiveOrder.balance -= matchingAmount;
+				bidLiveOrder.matching += matchingAmount;
+				askLiveOrder.balance -= matchingAmount;
+				askLiveOrder.matching += matchingAmount;
 				ordersToMatch.push({
-					left: {
-						orderHash: bid.orderHash,
-						balance: bid.balance
-					},
-					right: {
-						orderHash: ask.orderHash,
-						balance: ask.balance
-					}
+					leftOrderHash: bid.orderHash,
+					rightOrderHash: ask.orderHash,
+					matchingAmount: matchingAmount
 				});
 				if (updatesRequired) {
 					orderBookLevelUpdates.push({
 						price: bid.price,
-						change: -matchBalance,
+						change: -matchingAmount,
 						count: bid.balance > 0 ? 0 : -1,
 						side: bidLiveOrder.side
 					});
 					orderBookLevelUpdates.push({
 						price: ask.price,
-						change: -matchBalance,
+						change: -matchingAmount,
 						count: ask.balance > 0 ? 0 : -1,
 						side: askLiveOrder.side
 					});
@@ -112,12 +109,17 @@ class OrderMatchingUtil {
 		pair: string,
 		ordersToMatch: IMatchingCandidate[]
 	) {
-		const balanceAftMatch: { [orderHash: string]: number } = {};
+		const totalMatchingAmount: { [orderHash: string]: number } = {};
 		const orderHashesToMatch: string[][] = [];
 		const signedOrders: { [orderHash: string]: SignedOrder } = {};
+		const missingSignedOrders: { [orderHash: string]: boolean } = {};
 
 		for (const orderToMatch of ordersToMatch) {
-			const leftOrderHash = orderToMatch.left.orderHash;
+			const { leftOrderHash, rightOrderHash, matchingAmount } = orderToMatch;
+			if (missingSignedOrders[leftOrderHash] || missingSignedOrders[rightOrderHash]) {
+				util.logDebug('ignore match with missing signed order');
+				continue;
+			}
 			if (!signedOrders[leftOrderHash]) {
 				const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
 					pair,
@@ -125,14 +127,13 @@ class OrderMatchingUtil {
 				);
 				if (!leftRawOrder) {
 					util.logError(`raw order of ${leftOrderHash} does not exist`);
-					balanceAftMatch[leftOrderHash] = 0;
+					missingSignedOrders[leftOrderHash] = true;
 					continue;
 				}
 				signedOrders[leftOrderHash] = orderUtil.parseSignedOrder(
 					leftRawOrder.signedOrder as IStringSignedOrder
 				);
 			}
-			const rightOrderHash = orderToMatch.right.orderHash;
 			if (!signedOrders[rightOrderHash]) {
 				const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
 					pair,
@@ -141,7 +142,7 @@ class OrderMatchingUtil {
 
 				if (!rightRawOrder) {
 					util.logError(`raw order of ${rightOrderHash} does not exist`);
-					balanceAftMatch[rightOrderHash] = 0;
+					missingSignedOrders[rightOrderHash] = true;
 					continue;
 				}
 
@@ -149,23 +150,19 @@ class OrderMatchingUtil {
 					rightRawOrder.signedOrder as IStringSignedOrder
 				);
 			}
-			balanceAftMatch[leftOrderHash] = Math.min(
-				balanceAftMatch[leftOrderHash] || orderToMatch.left.balance,
-				orderToMatch.left.balance
-			);
-			balanceAftMatch[rightOrderHash] = Math.min(
-				balanceAftMatch[rightOrderHash] || orderToMatch.right.balance,
-				orderToMatch.right.balance
-			);
+			totalMatchingAmount[leftOrderHash] =
+				(totalMatchingAmount[leftOrderHash] || 0) + matchingAmount;
+			totalMatchingAmount[rightOrderHash] =
+				(totalMatchingAmount[rightOrderHash] || 0) + matchingAmount;
 			orderHashesToMatch.push([leftOrderHash, rightOrderHash]);
 		}
 
-		for (const orderHash in balanceAftMatch) {
+		for (const orderHash in totalMatchingAmount) {
 			const persistRequest = {
 				method: CST.DB_UPDATE,
 				pair: pair,
 				orderHash: orderHash,
-				balance: balanceAftMatch[orderHash],
+				matching: totalMatchingAmount[orderHash],
 				requestor: CST.DB_ORDER_MATCHER,
 				status: CST.DB_MATCHING
 			};
