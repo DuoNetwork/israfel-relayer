@@ -40,6 +40,14 @@ class OrderBookServer {
 	public async handleOrderUpdate(channel: string, orderQueueItem: IOrderQueueItem) {
 		util.logDebug('receive update from channel: ' + channel);
 
+		if (
+			orderQueueItem.requestor === CST.DB_ORDER_MATCHER &&
+			orderQueueItem.method !== CST.DB_TERMINATE
+		) {
+			util.logDebug('ignore order update requested by self');
+			return;
+		}
+
 		if (this.loadingOrders) {
 			this.pendingUpdates.push(orderQueueItem);
 			util.logDebug('loading orders, queue update');
@@ -76,14 +84,22 @@ class OrderBookServer {
 		let ordersToMatch: IMatchingCandidate[] = [];
 		const leftLiveOrder = orderQueueItem.liveOrder;
 		if (method !== CST.DB_TERMINATE && leftLiveOrder.balance > 0) {
-			const matchinResult = orderMatchingUtil.findMatchingOrders(this.orderBook, this.liveOrders, true);
+			const matchinResult = orderMatchingUtil.findMatchingOrders(
+				this.orderBook,
+				this.liveOrders,
+				true
+			);
 			ordersToMatch = matchinResult.ordersToMatch;
 			orderBookLevelUpdates.push(...matchinResult.orderBookLevelUpdates);
 		}
 
 		await this.updateOrderBookSnapshot(orderBookLevelUpdates);
 		if (ordersToMatch.length > 0)
-			await orderMatchingUtil.matchOrders(this.web3Util as Web3Util, this.pair, ordersToMatch);
+			await orderMatchingUtil.matchOrders(
+				this.web3Util as Web3Util,
+				this.pair,
+				ordersToMatch
+			);
 	}
 
 	public updateOrderBook(orderUpdate: IOrderUpdate) {
@@ -160,9 +176,17 @@ class OrderBookServer {
 		this.updateOrderSequences();
 		this.orderBook = orderBookUtil.constructOrderBook(this.liveOrders);
 		util.logDebug('start matchig ordderBook');
-		const matchingResult = orderMatchingUtil.findMatchingOrders(this.orderBook, this.liveOrders, false);
+		const matchingResult = orderMatchingUtil.findMatchingOrders(
+			this.orderBook,
+			this.liveOrders,
+			false
+		);
 		if (matchingResult.ordersToMatch.length)
-			await orderMatchingUtil.matchOrders(this.web3Util as Web3Util, this.pair, matchingResult.ordersToMatch);
+			await orderMatchingUtil.matchOrders(
+				this.web3Util as Web3Util,
+				this.pair,
+				matchingResult.ordersToMatch
+			);
 		util.logInfo('completed matching orderBook as a whole in cold start');
 		this.orderBookSnapshot = orderBookUtil.renderOrderBookSnapshot(this.pair, this.orderBook);
 		await orderBookPersistenceUtil.publishOrderBookUpdate(this.pair, this.orderBookSnapshot);

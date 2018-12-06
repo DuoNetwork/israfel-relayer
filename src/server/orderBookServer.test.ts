@@ -87,7 +87,15 @@ const orderQueueItem = {
 	liveOrder: liveOrders['orderHash1']
 };
 
+test('handleOrderUpdate ignore update by self', async () => {
+	orderQueueItem.requestor = CST.DB_ORDER_MATCHER;
+	await orderBookServer.handleOrderUpdate(channel, orderQueueItem);
+	expect(orderBookServer.pendingUpdates.length).toBe(0);
+	expect(orderBookServer.processedUpdates).toEqual({});
+})
+
 test('handleOrderUpdate invalid method', async () => {
+	orderQueueItem.requestor = 'requestor';
 	orderQueueItem.method = 'xxx';
 	await orderBookServer.handleOrderUpdate(channel, orderQueueItem);
 	expect(orderBookServer.pendingUpdates.length).toBe(0);
@@ -156,6 +164,7 @@ test('handleOrderUpdate add match', async () => {
 });
 
 test('handleOrderUpdate terminate', async () => {
+	orderQueueItem.requestor = CST.DB_ORDER_MATCHER;
 	orderBookServer.liveOrders[orderQueueItem.liveOrder.orderHash] = {} as any;
 	orderBookServer.orderSnapshotSequence = 1;
 	orderBookServer.processedUpdates[orderQueueItem.liveOrder.orderHash] = 1;
@@ -175,6 +184,7 @@ test('handleOrderUpdate terminate', async () => {
 });
 
 test('handleOrderUpdate loadingOrders', async () => {
+	orderQueueItem.requestor = 'requestor';
 	orderBookServer.loadingOrders = true;
 	orderQueueItem.method = CST.DB_ADD;
 	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve());

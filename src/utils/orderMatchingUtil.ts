@@ -108,7 +108,7 @@ class OrderMatchingUtil {
 		web3Util: Web3Util,
 		pair: string,
 		ordersToMatch: IMatchingCandidate[]
-	): Promise<string[]> {
+	) {
 		const totalMatchingAmount: { [orderHash: string]: number } = {};
 		const orderHashesToMatch: string[][] = [];
 		const signedOrders: { [orderHash: string]: SignedOrder } = {};
@@ -168,7 +168,6 @@ class OrderMatchingUtil {
 				status: CST.DB_MATCHING
 			});
 
-		const ordersToTerminate: string[] = [];
 		if (orderHashesToMatch.length > 0) {
 			let currentNonce = await web3Util.getTransactionCount();
 			const curretnGasPrice = await web3Util.getGasPrice();
@@ -201,7 +200,7 @@ class OrderMatchingUtil {
 		}
 
 		for (const orderHash in matchingStatus)
-			if (!matchingStatus[orderHash]) {
+			if (!matchingStatus[orderHash])
 				await orderPersistenceUtil.persistOrder({
 					method: CST.DB_TERMINATE,
 					pair: pair,
@@ -209,10 +208,6 @@ class OrderMatchingUtil {
 					requestor: CST.DB_ORDER_MATCHER,
 					status: CST.DB_MATCHING
 				});
-				ordersToTerminate.push(orderHash);
-			}
-
-		return ordersToTerminate;
 	}
 }
 

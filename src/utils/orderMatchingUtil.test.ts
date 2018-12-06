@@ -205,7 +205,7 @@ test('matchorders', async () => {
 		Promise.resolve({ signedOrder: pair + orderHash })
 	);
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
-	expect(await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch)).toEqual([]);
+	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch);
 	expect((web3Util.matchOrders as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
@@ -226,7 +226,7 @@ test('matchorders failed', async () => {
 		Promise.resolve({ signedOrder: pair + orderHash })
 	);
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
-	expect(await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch)).toMatchSnapshot();
+	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch);
 	expect((web3Util.matchOrders as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
@@ -245,7 +245,7 @@ test('matchorders, no left raworder', async () => {
 		Promise.resolve(orderHash === 'orderHash1' ? null : { signedOrder: pair + orderHash })
 	);
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
-	expect(await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch)).toEqual([]);
+	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch);
 	expect((web3Util.matchOrders as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
@@ -264,7 +264,7 @@ test('matchorders, no right raworder', async () => {
 		Promise.resolve(orderHash === 'orderHash2' ? null : { signedOrder: pair + orderHash })
 	);
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
-	expect(await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch)).toEqual([]);
+	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch);
 	expect((web3Util.matchOrders as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
@@ -281,7 +281,7 @@ test('matchorders, no valid match', async () => {
 	} as any;
 	orderPersistenceUtil.getRawOrderInPersistence = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
-	expect(await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch)).toEqual([]);
+	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch);
 	expect(web3Util.matchOrders as jest.Mock).not.toBeCalled();
 	expect(orderPersistenceUtil.persistOrder as jest.Mock).not.toBeCalled();
 	expect(

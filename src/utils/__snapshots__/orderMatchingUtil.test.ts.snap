@@ -624,13 +624,6 @@ Array [
 
 exports[`matchorders failed 1`] = `
 Array [
-  "orderHash1",
-  "orderHash5",
-]
-`;
-
-exports[`matchorders failed 2`] = `
-Array [
   Array [
     "code1|code2orderHash1signedOrder",
     "code1|code2orderHash2signedOrder",
@@ -674,7 +667,7 @@ Array [
 ]
 `;
 
-exports[`matchorders failed 3`] = `
+exports[`matchorders failed 2`] = `
 Array [
   Array [
     Object {
@@ -747,7 +740,7 @@ Array [
 ]
 `;
 
-exports[`matchorders failed 4`] = `
+exports[`matchorders failed 3`] = `
 Array [
   Array [
     "code1|code2",
