@@ -1,6 +1,13 @@
 import { SignedOrder } from '0x.js';
 import { IAcceptedPrice } from '../../../duo-admin/src/common/types';
 
+export enum Wallet {
+	None,
+	Local,
+	MetaMask,
+	Ledger
+}
+
 export interface ILiveOrder {
 	account: string;
 	pair: string;

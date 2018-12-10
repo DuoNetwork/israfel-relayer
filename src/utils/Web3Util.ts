@@ -1,6 +1,3 @@
-// fix for @ledgerhq/hw-transport-u2f 4.28.0
-import '@babel/polyfill';
-
 import {
 	assetDataUtils,
 	BigNumber,
@@ -21,20 +18,13 @@ import { MetamaskSubprovider, PrivateKeyWalletSubprovider } from '@0x/subprovide
 import { addressUtils } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as CST from '../common/constants';
-import { IRawOrder, IStringSignedOrder, IToken } from '../common/types';
+import { IRawOrder, IStringSignedOrder, IToken, Wallet } from '../common/types';
 import util from './util';
 
 const Web3Eth = require('web3-eth');
 const Web3Accounts = require('web3-eth-accounts');
 const Web3Personal = require('web3-eth-personal');
 const Web3Utils = require('web3-utils');
-
-export enum Wallet {
-	None,
-	Local,
-	MetaMask,
-	Ledger
-}
 
 export default class Web3Util {
 	private contractWrappers: ContractWrappers;
