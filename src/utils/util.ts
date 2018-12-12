@@ -38,7 +38,7 @@ class Util {
 
 	public defaultOption: IOption = {
 		live: false,
-		token: 'aETH',
+		token: '',
 		amount: 1,
 		maker: 0,
 		spender: 1,

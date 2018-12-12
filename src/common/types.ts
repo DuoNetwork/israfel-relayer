@@ -1,4 +1,5 @@
 import { SignedOrder } from '0x.js';
+import { ChildProcess } from 'child_process';
 export { IAcceptedPrice, IPrice } from '../../../duo-admin/src/common/types';
 import { IAcceptedPrice, IPrice } from '../../../duo-admin/src/common/types';
 
@@ -222,4 +223,11 @@ export interface IFeeSchedule {
 	asset?: string;
 	rate: number;
 	minimum: number;
+}
+
+export interface ISubProcess {
+	token: string;
+	instance: ChildProcess;
+	lastFailTimestamp: number;
+	failCount: number;
 }

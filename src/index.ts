@@ -6,6 +6,7 @@ import { IOption } from './common/types';
 import orderBookServer from './server/orderBookServer';
 import orderWatcherServer from './server/orderWatcherServer';
 import relayerServer from './server/relayerServer';
+import serverMasterUtil from './server/serverMasterUtil';
 import dynamoUtil from './utils/dynamoUtil';
 import orderPersistenceUtil from './utils/orderPersistenceUtil';
 import osUtil from './utils/osUtil';
@@ -44,7 +45,9 @@ const start = async () => {
 		});
 	switch (tool) {
 		case CST.DB_ORDER_WATCHER:
-			orderWatcherServer.startServer(web3Util as Web3Util, option);
+			serverMasterUtil.startLaunching(web3Util as Web3Util, tool, option, () =>
+				orderWatcherServer.startServer(web3Util as Web3Util, option)
+			);
 			break;
 		case CST.DB_RELAYER:
 			relayerServer.startServer(web3Util as Web3Util, option);
@@ -53,7 +56,9 @@ const start = async () => {
 			orderPersistenceUtil.startProcessing(option);
 			break;
 		case CST.DB_ORDER_BOOKS:
-			orderBookServer.startServer(web3Util as Web3Util, option);
+			serverMasterUtil.startLaunching(web3Util as Web3Util, tool, option, () =>
+				orderBookServer.startServer(web3Util as Web3Util, option)
+			);
 			break;
 		default:
 			break;
