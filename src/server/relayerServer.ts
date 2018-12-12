@@ -423,7 +423,11 @@ class RelayerServer {
 			if (this.web3Util) this.web3Util.setTokens(await dynamoUtil.scanTokens());
 		}, 3600000);
 		this.loadDuoAcceptedPrices();
-		setInterval(() => this.loadDuoAcceptedPrices(), 600000);
+		this.loadDuoExchangePrices();
+		setInterval(() => {
+			this.loadDuoAcceptedPrices();
+			this.loadDuoExchangePrices();
+		}, 600000);
 		this.processStatus = await dynamoUtil.scanStatus();
 		const port = 8080;
 		const server = https
