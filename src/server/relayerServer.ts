@@ -1,13 +1,15 @@
 import * as fs from 'fs';
 import * as https from 'https';
 import WebSocket from 'ws';
-import { IAcceptedPrice } from '../../../duo-admin/src/common/types';
+import { API_GDAX, API_GEMINI, API_KRAKEN } from '../../../duo-admin/src/common/constants';
 import duoDynamoUtil from '../../../duo-admin/src/utils/dynamoUtil';
 import * as CST from '../common/constants';
 import {
+	IAcceptedPrice,
 	IOption,
 	IOrderBookSnapshotUpdate,
 	IOrderQueueItem,
+	IPrice,
 	IStatus,
 	IStringSignedOrder,
 	IUserOrder,
@@ -39,6 +41,7 @@ class RelayerServer {
 	public clients: WebSocket[] = [];
 	public accountClients: { [account: string]: WebSocket[] } = {};
 	public duoAcceptedPrices: { [custodian: string]: IAcceptedPrice[] } = {};
+	public duoExchangePrices: { [source: string]: IPrice[] } = {};
 
 	public sendResponse(ws: WebSocket, req: IWsRequest, status: string) {
 		const orderResponse: IWsResponse = {
@@ -360,6 +363,7 @@ class RelayerServer {
 			status: CST.WS_OK,
 			pair: '',
 			acceptedPrices: this.duoAcceptedPrices,
+			exchangePrices: this.duoExchangePrices,
 			tokens: this.web3Util ? this.web3Util.tokens : [],
 			processStatus: this.processStatus
 		};
@@ -398,6 +402,19 @@ class RelayerServer {
 				);
 			util.logDebug('loaded duo accepted prices');
 		}
+	}
+
+	public async loadDuoExchangePrices() {
+		const start = util.getUTCNowTimestamp() - 48 * 3600000;
+		for (const source of [API_GDAX, API_GEMINI, API_KRAKEN])
+			this.duoExchangePrices[source] = await duoDynamoUtil.getPrices(
+				source,
+				60,
+				start,
+				0,
+				'ETH|USD'
+			);
+		util.logDebug('loaded duo exchange prices');
 	}
 
 	public async startServer(web3Util: Web3Util, option: IOption) {

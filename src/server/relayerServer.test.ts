@@ -334,21 +334,23 @@ test('handleOrderHistorySubscribeRequest new account ', async () => {
 	util.safeWsSend = jest.fn();
 	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
 	relayerServer.web3Util = {
-		tokens: [{
-			code: 'code1',
-			feeSchedules: {
-				base1: {},
-				base2: {},
+		tokens: [
+			{
+				code: 'code1',
+				feeSchedules: {
+					base1: {},
+					base2: {}
+				}
+			},
+			{
+				code: 'code2',
+				feeSchedules: {
+					base1: {},
+					base2: {}
+				}
 			}
-		},
-		{
-			code: 'code2',
-			feeSchedules: {
-				base1: {},
-				base2: {},
-			}
-		}]
-	} as any
+		]
+	} as any;
 	await relayerServer.handleOrderHistorySubscribeRequest('ws' as any, {
 		channel: 'channel',
 		method: 'method',
@@ -456,21 +458,23 @@ test('handleOrderHistoryUnsubscribeRequest existing account clean up', async () 
 	relayerServer.sendResponse = jest.fn();
 	orderPersistenceUtil.unsubscribeOrderUpdate = jest.fn();
 	relayerServer.web3Util = {
-		tokens: [{
-			code: 'code1',
-			feeSchedules: {
-				base1: {},
-				base2: {},
+		tokens: [
+			{
+				code: 'code1',
+				feeSchedules: {
+					base1: {},
+					base2: {}
+				}
+			},
+			{
+				code: 'code2',
+				feeSchedules: {
+					base1: {},
+					base2: {}
+				}
 			}
-		},
-		{
-			code: 'code2',
-			feeSchedules: {
-				base1: {},
-				base2: {},
-			}
-		}]
-	} as any
+		]
+	} as any;
 	await relayerServer.handleOrderHistoryUnsubscribeRequest('ws' as any, {
 		channel: 'channel',
 		method: 'method',
@@ -1004,6 +1008,14 @@ test('loadDuoAcceptedPrices', async () => {
 	await relayerServer.loadDuoAcceptedPrices();
 	expect(relayerServer.duoAcceptedPrices).toEqual({});
 	expect((duoDynamoUtil.queryAcceptPriceEvent as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('loadDuoExchangePrices', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	duoDynamoUtil.getPrices = jest.fn(() => Promise.resolve());
+	await relayerServer.loadDuoExchangePrices();
+	expect(relayerServer.duoExchangePrices).toEqual({});
+	expect((duoDynamoUtil.getPrices as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 const ws1 = {

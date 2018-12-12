@@ -1,5 +1,6 @@
 import { SignedOrder } from '0x.js';
-import { IAcceptedPrice } from '../../../duo-admin/src/common/types';
+export { IAcceptedPrice, IPrice } from '../../../duo-admin/src/common/types';
+import { IAcceptedPrice, IPrice } from '../../../duo-admin/src/common/types';
 
 export enum Wallet {
 	None,
@@ -174,6 +175,7 @@ export interface IWsOrderHistoryResponse extends IWsResponse {
 
 export interface IWsInfoResponse extends IWsResponse {
 	acceptedPrices: { [custodian: string]: IAcceptedPrice[] };
+	exchangePrices: { [source: string]: IPrice[] };
 	tokens: IToken[];
 	processStatus: IStatus[];
 }

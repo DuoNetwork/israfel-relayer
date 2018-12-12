@@ -1084,6 +1084,32 @@ Array [
 ]
 `;
 
+exports[`loadDuoExchangePrices 1`] = `
+Array [
+  Array [
+    "gdax",
+    60,
+    1061767890,
+    0,
+    "ETH|USD",
+  ],
+  Array [
+    "gemini",
+    60,
+    1061767890,
+    0,
+    "ETH|USD",
+  ],
+  Array [
+    "kraken",
+    60,
+    1061767890,
+    0,
+    "ETH|USD",
+  ],
+]
+`;
+
 exports[`sendErrorOrderResponse 1`] = `
 Array [
   Array [
@@ -1095,7 +1121,7 @@ Array [
 exports[`sendInfo 1`] = `
 Array [
   Array [
-    "{\\"channel\\":\\"info\\",\\"method\\":\\"info\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"acceptedPrices\\":{\\"custodian\\":[\\"acceptedPrices\\"]},\\"tokens\\":[\\"token1\\"],\\"processStatus\\":[\\"status1\\"]}",
+    "{\\"channel\\":\\"info\\",\\"method\\":\\"info\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"acceptedPrices\\":{\\"custodian\\":[\\"acceptedPrices\\"]},\\"exchangePrices\\":{},\\"tokens\\":[\\"token1\\"],\\"processStatus\\":[\\"status1\\"]}",
   ],
 ]
 `;
