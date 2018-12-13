@@ -337,6 +337,7 @@ test('validateOrder passed order expiry', async () => {
 test('validateOrder invalid 0x order', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 123456789);
 	const validateOrder = jest.fn(() => Promise.resolve(''));
+	// getExpiryTimestamp
 	expect(
 		await orderUtil.validateOrder(
 			{
@@ -398,9 +399,37 @@ test('validateOrder invalid price', async () => {
 	expect(orderUtil.constructNewLiveOrder as jest.Mock).toBeCalled();
 });
 
+test('validateOrder invalid expiry', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 123456789);
+	const validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
+	orderUtil.constructNewLiveOrder = jest.fn(() => ({
+		amount: 10,
+		price:  0.00500000
+	}));
+	expect(
+		await orderUtil.validateOrder(
+			{
+				validateOrder: validateOrder
+			} as any,
+			'code1|code2',
+			{
+				denomination: 1,
+				precisions: {
+					code2: 0.0005
+				}
+			} as any,
+			signedOrder
+		)
+	).toBe(CST.WS_INVALID_EXP);
+	expect(validateOrder).toBeCalled();
+	expect(orderUtil.constructNewLiveOrder as jest.Mock).toBeCalled();
+});
+
 test('validateOrder', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 123456789);
 	const validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
+	util.getExpiryTimestamp = jest.fn(() => 133456789);
+	signedOrder.expirationTimeSeconds = Math.ceil(133456789 / 1000) + '';
 	orderUtil.constructNewLiveOrder = jest.fn(() => ({
 		amount: 10.00000000,
 		price: 0.00500000

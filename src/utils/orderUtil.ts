@@ -205,6 +205,13 @@ class OrderUtil {
 		)
 			return CST.WS_INVALID_PX;
 
+		const monthExpTime = Math.ceil(util.getExpiryTimestamp(true) / 1000);
+		const dayExpTime = Math.ceil(util.getExpiryTimestamp(false) / 1000);
+		if (
+			Number(stringSignedOrder.expirationTimeSeconds) !== monthExpTime &&
+			Number(stringSignedOrder.expirationTimeSeconds) !== dayExpTime
+		)
+			return CST.WS_INVALID_EXP;
 		return orderHash;
 	}
 }

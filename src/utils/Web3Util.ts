@@ -184,7 +184,8 @@ export default class Web3Util {
 		takerAmt: number,
 		expInSeconds: number
 	): Promise<IRawOrder> {
-		if (this.wallet !== Wallet.MetaMask) Promise.reject('cannot sign');
+		if (this.wallet !== Wallet.MetaMask && this.wallet !== Wallet.Local)
+			throw new Error('cannot sign');
 		const order = Web3Util.createRawOrderWithoutSalt(
 			userAddr,
 			relayerAddr,
