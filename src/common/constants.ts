@@ -109,6 +109,10 @@ export const WS_INVALID_ORDER = 'invalid order';
 export const WS_ERROR = 'error';
 export const WS_OK = 'ok';
 export const WS_SERVICE_NA = 'service not available';
+export const WS_MATURED_TOKEN = 'matured token';
+export const WS_INVALID_EXP = 'invalid expiry';
+export const WS_INVALID_AMT = 'invalid amount';
+export const WS_INVALID_PX = 'invalid price';
 
 export const WS_CHANNEL_ORDERBOOK = 'orderbook';
 export const WS_TYPE_ORDERBOOK = 'subscribe';

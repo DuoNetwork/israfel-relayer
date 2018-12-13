@@ -1,4 +1,4 @@
-import { SignedOrder } from '0x.js';
+import { BigNumber, SignedOrder } from '0x.js';
 import * as CST from '../common/constants';
 import { IFeeSchedule, ILiveOrder, IStringSignedOrder, IToken, IUserOrder } from '../common/types';
 import util from './util';
@@ -182,15 +182,22 @@ class OrderUtil {
 	) {
 		const code2 = pair.split('|')[1];
 		const deadline = util.getUTCNowTimestamp() + 180000;
-		if (token.maturity && token.maturity <= deadline) return '';
+		if (token.maturity && token.maturity <= deadline) return CST.WS_MATURED_TOKEN;
 		const signedOrder = orderUtil.parseSignedOrder(stringSignedOrder);
-		if (Number(signedOrder.expirationTimeSeconds) * 1000 <= deadline) return '';
+		if (Number(signedOrder.expirationTimeSeconds) * 1000 <= deadline) return CST.WS_INVALID_EXP;
 		const orderHash = await web3Util.validateOrder(signedOrder);
-		if (!orderHash) return '';
-
+		if (!orderHash) return CST.WS_INVALID_ORDER;
 		const liveOrder = this.constructNewLiveOrder(stringSignedOrder, token, pair, orderHash);
-		if (util.round(liveOrder.amount % token.denomination) > 0) return '';
-		if (util.round(liveOrder.price % token.precisions[code2]) > 0) return '';
+		if (
+			Number(new BigNumber(liveOrder.amount).mod(new BigNumber(token.denomination)).valueOf())
+		)
+			return CST.WS_INVALID_AMT;
+		if (
+			Number(
+				new BigNumber(liveOrder.price).mod(new BigNumber(token.precisions[code2])).valueOf()
+			)
+		)
+			return CST.WS_INVALID_PX;
 
 		return orderHash;
 	}

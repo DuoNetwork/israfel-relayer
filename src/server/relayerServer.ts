@@ -97,7 +97,7 @@ class RelayerServer {
 			token,
 			stringSignedOrder
 		);
-		if (orderHash && orderHash === req.orderHash) {
+		if (orderHash === req.orderHash) {
 			util.logDebug('order valided, persisting');
 			try {
 				const userOrder = await orderPersistenceUtil.persistOrder({
@@ -117,7 +117,7 @@ class RelayerServer {
 			}
 		} else {
 			util.logDebug('invalid orderHash, ignore');
-			this.sendErrorOrderResponse(ws, req, CST.WS_INVALID_ORDER);
+			this.sendErrorOrderResponse(ws, req, orderHash);
 		}
 	}
 

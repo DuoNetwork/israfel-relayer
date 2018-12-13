@@ -324,13 +324,13 @@ test('validateOrder passed token maturity', async () => {
 			} as any,
 			{} as any
 		)
-	).toBe('');
+	).toBe(CST.WS_MATURED_TOKEN);
 });
 
 test('validateOrder passed order expiry', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890000 - 180000);
 	expect(await orderUtil.validateOrder({} as any, 'code1|code2', {} as any, signedOrder)).toBe(
-		''
+		CST.WS_INVALID_EXP
 	);
 });
 
@@ -346,23 +346,7 @@ test('validateOrder invalid 0x order', async () => {
 			{} as any,
 			signedOrder
 		)
-	).toBe('');
-	expect(validateOrder).toBeCalled();
-});
-
-test('validateOrder invalid 0x order', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 123456789);
-	const validateOrder = jest.fn(() => Promise.resolve(''));
-	expect(
-		await orderUtil.validateOrder(
-			{
-				validateOrder: validateOrder
-			} as any,
-			'code1|code2',
-			{} as any,
-			signedOrder
-		)
-	).toBe('');
+	).toBe(CST.WS_INVALID_ORDER);
 	expect(validateOrder).toBeCalled();
 });
 
@@ -383,7 +367,7 @@ test('validateOrder invalid amount', async () => {
 			} as any,
 			signedOrder
 		)
-	).toBe('');
+	).toBe(CST.WS_INVALID_AMT);
 	expect(validateOrder).toBeCalled();
 	expect(orderUtil.constructNewLiveOrder as jest.Mock).toBeCalled();
 });
@@ -409,7 +393,7 @@ test('validateOrder invalid price', async () => {
 			} as any,
 			signedOrder
 		)
-	).toBe('');
+	).toBe(CST.WS_INVALID_PX);
 	expect(validateOrder).toBeCalled();
 	expect(orderUtil.constructNewLiveOrder as jest.Mock).toBeCalled();
 });
@@ -418,8 +402,8 @@ test('validateOrder', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 123456789);
 	const validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
 	orderUtil.constructNewLiveOrder = jest.fn(() => ({
-		amount: 10.000000004,
-		price: 0.005000004
+		amount: 10.00000000,
+		price: 0.00500000
 	}));
 	expect(
 		await orderUtil.validateOrder(
