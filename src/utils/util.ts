@@ -117,6 +117,46 @@ class Util {
 
 		return dates;
 	}
+
+	public getMonthEndExpiry(timestamp: number) {
+		const dateObj = moment
+			.utc(timestamp)
+			.endOf('month')
+			.startOf('day');
+		const day = dateObj.day();
+		if (day === 6) dateObj.subtract(1, 'day');
+		else if (day < 5) dateObj.subtract(day + 2, 'day');
+
+		dateObj.add(8, 'hour');
+
+		return dateObj.valueOf();
+	}
+
+	public getDayExpiry(timestamp: number) {
+		const dateObj = moment.utc(timestamp).startOf('day');
+		dateObj.add(8, 'hour');
+
+		return dateObj.valueOf();
+	}
+
+	public getExpiryTimestamp(isMonth: boolean) {
+		const now = this.getUTCNowTimestamp();
+		if (isMonth) {
+			const thisMonthEndExpiry = this.getMonthEndExpiry(now);
+			if (now > thisMonthEndExpiry - 4 * 3600000)
+				return this.getMonthEndExpiry(
+					moment
+						.utc(thisMonthEndExpiry)
+						.add(1, 'week')
+						.valueOf()
+				);
+			return thisMonthEndExpiry;
+		} else {
+			const todayExpiry = this.getDayExpiry(now);
+			if (now > todayExpiry - 4 * 3600000) return todayExpiry + 24 * 3600000;
+			return todayExpiry;
+		}
+	}
 }
 
 const util = new Util();

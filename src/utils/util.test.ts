@@ -78,3 +78,19 @@ test('getDates', () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	expect(util.getDates(4, 1, 'days', 'YYYY-MM-DD')).toMatchSnapshot();
 });
+
+test('getExpiryTimeStamp', () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1544519089000);
+	expect(util.getExpiryTimestamp(false)).toBe(1544601600000);
+	expect(util.getExpiryTimestamp(true)).toBe(1545984000000);
+	util.getUTCNowTimestamp = jest.fn(() => 1544493600000);
+	expect(util.getExpiryTimestamp(false)).toBe(1544515200000);
+	util.getUTCNowTimestamp = jest.fn(() => 1556668800000);
+	expect(util.getExpiryTimestamp(true)).toBe(1559289600000);
+	util.getUTCNowTimestamp = jest.fn(() => 1564617600000);
+	expect(util.getExpiryTimestamp(true)).toBe(1567152000000);
+	util.getUTCNowTimestamp = jest.fn(() => 1546041600000);
+	expect(util.getExpiryTimestamp(true)).toBe(1548403200000);
+	util.getUTCNowTimestamp = jest.fn(() => 1546214400000);
+	expect(util.getExpiryTimestamp(true)).toBe(1548403200000);
+});
