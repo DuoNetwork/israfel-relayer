@@ -189,12 +189,18 @@ class OrderUtil {
 		if (!orderHash) return CST.WS_INVALID_ORDER;
 		const liveOrder = this.constructNewLiveOrder(stringSignedOrder, token, pair, orderHash);
 		if (
-			Number(new BigNumber(liveOrder.amount).mod(new BigNumber(token.denomination)).valueOf())
+			Number(
+				new BigNumber(util.round(liveOrder.amount))
+					.mod(new BigNumber(token.denomination))
+					.valueOf()
+			)
 		)
 			return CST.WS_INVALID_AMT;
 		if (
 			Number(
-				new BigNumber(liveOrder.price).mod(new BigNumber(token.precisions[code2])).valueOf()
+				new BigNumber(util.round(liveOrder.price))
+					.mod(new BigNumber(token.precisions[code2]))
+					.valueOf()
 			)
 		)
 			return CST.WS_INVALID_PX;
