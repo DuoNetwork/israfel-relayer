@@ -91,15 +91,16 @@ class RelayerServer {
 			return;
 		}
 
-		const orderHash = await orderUtil.validateOrder(
-			this.web3Util,
-			req.pair,
-			token,
-			stringSignedOrder
-		);
-		if (orderHash === req.orderHash) {
-			util.logDebug('order valided, persisting');
-			try {
+		try {
+			const orderHash = await orderUtil.validateOrder(
+				this.web3Util,
+				req.pair,
+				token,
+				stringSignedOrder
+			);
+			if (orderHash === req.orderHash) {
+				util.logDebug('order valided, persisting');
+
 				const userOrder = await orderPersistenceUtil.persistOrder({
 					method: req.method,
 					status: CST.DB_CONFIRMED,
@@ -111,13 +112,13 @@ class RelayerServer {
 				});
 				if (userOrder) this.sendUserOrderResponse(ws, userOrder, req.method);
 				else this.sendErrorOrderResponse(ws, req, CST.WS_INVALID_ORDER);
-			} catch (error) {
-				util.logError(error);
-				this.sendErrorOrderResponse(ws, req, CST.WS_ERROR);
+			} else {
+				util.logDebug('invalid orderHash, ignore');
+				this.sendErrorOrderResponse(ws, req, orderHash);
 			}
-		} else {
-			util.logDebug('invalid orderHash, ignore');
-			this.sendErrorOrderResponse(ws, req, orderHash);
+		} catch (error) {
+			util.logError(error);
+			this.sendErrorOrderResponse(ws, req, CST.WS_ERROR);
 		}
 	}
 
