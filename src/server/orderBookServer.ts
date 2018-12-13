@@ -196,8 +196,12 @@ class OrderBookServer {
 		this.pendingUpdates = [];
 	}
 
-	public async startServer(web3Util: Web3Util, option: IOption) {
-		this.web3Util = web3Util;
+	public async startServer(option: IOption) {
+		const privateKeyFile = require(`./keys/privateKey.${
+			option.live ? CST.DB_LIVE : CST.DB_DEV
+		}.json`);
+		this.web3Util = new Web3Util(null, option.live, privateKeyFile.key, false);
+		this.web3Util.setTokens(await dynamoUtil.scanTokens());
 		this.pair = option.token + '|' + CST.TOKEN_WETH;
 		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderQueueItem) =>
 			this.handleOrderUpdate(channel, orderQueueItem)

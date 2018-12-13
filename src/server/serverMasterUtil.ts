@@ -2,16 +2,14 @@ import child_process from 'child_process';
 import { IOption, ISubProcess, IToken } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import util from '../utils/util';
-import Web3Util from '../utils/Web3Util';
 
 class ServerMasterUtil {
 	public subProcesses: { [key: string]: ISubProcess } = {};
 
 	public async startLaunching(
-		web3Util: Web3Util,
 		tool: string,
 		option: IOption,
-		startServer: (web3Util: Web3Util, option: IOption) => any
+		startServer: (option: IOption) => any
 	): Promise<void> {
 		const tokens: IToken[] = await dynamoUtil.scanTokens();
 
@@ -19,13 +17,12 @@ class ServerMasterUtil {
 			const rawToken = tokens.find(t => t.code === option.token);
 			if (!rawToken) throw new Error('invalid token specified');
 
-			util.logInfo(
-				`[${option.token}]:` + 'start launching orderBookServer for pair ' + option.token
-			);
-			startServer(web3Util, option);
+			util.logInfo(`[${option.token}]: start launching ${tool}`);
+			startServer(option);
 		} else if (!option.tokens.length) {
 			util.logInfo('launching all pairs ' + tokens.map(token => token.code).join(','));
 			for (const token of tokens) {
+				util.logInfo(`[${token.code}]: start launching ${tool}`);
 				await util.sleep(1000);
 				this.subProcesses[token.code] = {
 					token: token.code,
@@ -36,19 +33,18 @@ class ServerMasterUtil {
 				this.launchTokenPair(tool, token.code, option);
 			}
 		} else if (option.tokens.length)
-			for (const token of option.tokens) {
-				const rawToken = tokens.find(t => t.code === token);
-				if (!rawToken) throw new Error('invalid token specified');
+			for (const token of tokens) {
+				if (!option.tokens.includes(token.code)) continue;
 
-				util.logInfo(`[${token}]:` + 'start launching orderBookServer for pair ' + token);
+				util.logInfo(`[${token.code}]: start launching ${tool}`);
 				await util.sleep(1000);
-				this.subProcesses[token] = {
-					token: token,
+				this.subProcesses[token.code] = {
+					token: token.code,
 					lastFailTimestamp: 0,
 					failCount: 0,
 					instance: undefined as any
 				};
-				this.launchTokenPair(tool, token, option);
+				this.launchTokenPair(tool, token.code, option);
 			}
 	}
 
