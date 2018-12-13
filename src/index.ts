@@ -45,6 +45,7 @@ const start = async () => {
 		});
 	switch (tool) {
 		case CST.DB_ORDER_WATCHER:
+			console.log(option.tokens);
 			serverMasterUtil.startLaunching(web3Util as Web3Util, tool, option, () =>
 				orderWatcherServer.startServer(web3Util as Web3Util, option)
 			);
@@ -56,6 +57,7 @@ const start = async () => {
 			orderPersistenceUtil.startProcessing(option);
 			break;
 		case CST.DB_ORDER_BOOKS:
+			console.log(option.tokens);
 			serverMasterUtil.startLaunching(web3Util as Web3Util, tool, option, () =>
 				orderBookServer.startServer(web3Util as Web3Util, option)
 			);

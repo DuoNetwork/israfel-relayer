@@ -38,6 +38,7 @@ class Util {
 
 	public defaultOption: IOption = {
 		live: false,
+		tokens: [],
 		token: '',
 		amount: 1,
 		maker: 0,
@@ -58,6 +59,9 @@ class Util {
 		for (let i = 3; i < argv.length; i++) {
 			const args = argv[i].split('=');
 			switch (args[0]) {
+				case 'tokens':
+					option.tokens = args[1].split(',');
+					break;
 				case 'token':
 					option.token = args[1] || option.token;
 					break;

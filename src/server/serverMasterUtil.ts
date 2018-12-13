@@ -15,7 +15,15 @@ class ServerMasterUtil {
 	): Promise<void> {
 		const tokens: IToken[] = await dynamoUtil.scanTokens();
 
-		if (!option.token) {
+		if (option.token) {
+			const rawToken = tokens.find(t => t.code === option.token);
+			if (!rawToken) throw new Error('invalid token specified');
+
+			util.logInfo(
+				`[${option.token}]:` + 'start launching orderBookServer for pair ' + option.token
+			);
+			startServer(web3Util, option);
+		} else if (!option.tokens.length) {
 			util.logInfo('launching all pairs ' + tokens.map(token => token.code).join(','));
 			for (const token of tokens) {
 				await util.sleep(1000);
@@ -27,15 +35,21 @@ class ServerMasterUtil {
 				};
 				this.launchTokenPair(tool, token.code, option);
 			}
-		} else {
-			const token = tokens.find(t => t.code === option.token);
-			if (!token) throw new Error('invalid token specified');
+		} else if (option.tokens.length)
+			for (const token of option.tokens) {
+				const rawToken = tokens.find(t => t.code === token);
+				if (!rawToken) throw new Error('invalid token specified');
 
-			util.logInfo(
-				`[${option.token}]:` + 'start launching orderBookServer for pair ' + option.token
-			);
-			startServer(web3Util, option);
-		}
+				util.logInfo(`[${token}]:` + 'start launching orderBookServer for pair ' + token);
+				await util.sleep(1000);
+				this.subProcesses[token] = {
+					token: token,
+					lastFailTimestamp: 0,
+					failCount: 0,
+					instance: undefined as any
+				};
+				this.launchTokenPair(tool, token, option);
+			}
 	}
 
 	public launchTokenPair(tool: string, token: string, option: IOption) {
