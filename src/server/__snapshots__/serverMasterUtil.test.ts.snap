@@ -1,0 +1,116 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`launchTokenPair debug 1`] = `
+Array [
+  Array [
+    "npm run tool token=token  debug >> tool.token.log",
+    Object {},
+  ],
+]
+`;
+
+exports[`launchTokenPair debug 2`] = `
+Object {
+  "token": Object {
+    "failCount": 0,
+    "instance": undefined,
+    "lastFailTimestamp": 1234567890,
+    "token": "token",
+  },
+}
+`;
+
+exports[`launchTokenPair fail 1`] = `
+Array [
+  Array [
+    "npm run tool token=token  >> tool.token.log",
+    Object {},
+  ],
+]
+`;
+
+exports[`launchTokenPair fail 2`] = `
+Object {
+  "token": Object {
+    "failCount": 0,
+    "instance": undefined,
+    "lastFailTimestamp": 1234567890,
+    "token": "token",
+  },
+}
+`;
+
+exports[`launchTokenPair fail 3`] = `
+Array [
+  Array [
+    "tool",
+    Object {
+      "debug": false,
+      "live": false,
+    },
+    "token",
+  ],
+]
+`;
+
+exports[`launchTokenPair success 1`] = `
+Array [
+  Array [
+    "npm run tool token=token  >> tool.token.log",
+    Object {},
+  ],
+]
+`;
+
+exports[`launchTokenPair success 2`] = `
+Object {
+  "token": Object {
+    "failCount": 0,
+    "instance": Object {
+      "on": [MockFunction] {
+        "calls": Array [
+          Array [
+            "exit",
+            [Function],
+          ],
+        ],
+        "results": Array [
+          Object {
+            "isThrow": false,
+            "value": undefined,
+          },
+        ],
+      },
+    },
+    "lastFailTimestamp": 1234567890,
+    "token": "token",
+  },
+}
+`;
+
+exports[`launchTokenPair success 3`] = `
+Array [
+  Array [
+    "exit",
+    [Function],
+  ],
+]
+`;
+
+exports[`retry after long enought time 1`] = `
+Object {
+  "failCount": 1,
+  "instance": undefined,
+  "lastFailTimestamp": 1234567890,
+  "token": "token",
+}
+`;
+
+exports[`retry within short time 1`] = `
+Object {
+  "failCount": 3,
+  "instance": undefined,
+  "lastFailTimestamp": 1234567890,
+  "token": "token",
+}
+`;

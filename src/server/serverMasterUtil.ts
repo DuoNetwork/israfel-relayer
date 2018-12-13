@@ -3,7 +3,6 @@ import { IOption, ISubProcess, IToken } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
-// import orderBookServer from './orderBookServer';
 
 class ServerMasterUtil {
 	public subProcesses: { [key: string]: ISubProcess } = {};
