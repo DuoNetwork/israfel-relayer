@@ -94,7 +94,7 @@ export const PROVIDER_INFURA_KOVAN = 'https://kovan.infura.io';
 export const PROVIDER_INFURA_MAIN = 'https://mainnet.infura.io';
 export const NETWORK_ID_MAIN = 1;
 export const NETWORK_ID_KOVAN = 42;
-export const PROVIDER_LOCAL = 'http://localhost:8545';
+export const PROVIDER_LOCAL = 'http://10.106.11.13:8545';
 export const NETWORK_ID_LOCAL = 50;
 export const PENDING_HOURS = 24;
 
