@@ -197,7 +197,7 @@ class OrderBookServer {
 	}
 
 	public async startServer(option: IOption) {
-		const privateKeyFile = require(`./keys/privateKey.${
+		const privateKeyFile = require(`../keys/privateKey.${
 			option.live ? CST.DB_LIVE : CST.DB_DEV
 		}.json`);
 		this.web3Util = new Web3Util(null, option.live, privateKeyFile.key, false);
@@ -214,7 +214,7 @@ class OrderBookServer {
 			dynamoUtil.updateStatus(this.pair);
 			setInterval(
 				() => dynamoUtil.updateStatus(this.pair, Object.keys(this.liveOrders).length),
-				10000
+				15000
 			);
 		}
 	}
