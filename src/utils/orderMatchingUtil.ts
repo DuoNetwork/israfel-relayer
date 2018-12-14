@@ -174,41 +174,41 @@ class OrderMatchingUtil {
 
 		if (validOrdersToMatch.length > 0) {
 			let currentNonce = await web3Util.getTransactionCount();
-			const curretnGasPrice = await web3Util.getGasPrice();
-			await Promise.all(
-				validOrdersToMatch.map(orders => {
-					const leftOrderHash = orders[0].orderHash;
-					const rightOrderHash = orders[1].orderHash;
-					return web3Util
-						.matchOrders(
-							signedOrders[feeOnToken ? rightOrderHash : leftOrderHash],
-							signedOrders[feeOnToken ? leftOrderHash : rightOrderHash],
-							{
-								gasPrice: new BigNumber(curretnGasPrice),
-								gasLimit: 300000,
-								nonce: currentNonce++,
-								shouldValidate: true
-							}
-						)
-						.then(res => {
-							util.logDebug('matching result' + res);
-							matchingStatus[leftOrderHash] = true;
-							matchingStatus[rightOrderHash] = true;
-						})
-						.catch(error => {
-							util.logDebug(
-								'matching error ' +
-									JSON.stringify(error) +
-									' for ' +
-									JSON.stringify(orders)
-							);
-							matchingStatus[leftOrderHash] =
-								false || !!orders[0].fill || !!matchingStatus[leftOrderHash];
-							matchingStatus[rightOrderHash] =
-								false || !!orders[1].fill || !!matchingStatus[rightOrderHash];
-						});
-				})
-			);
+			const curretnGasPrice = Math.min(await web3Util.getGasPrice(), 5000000000);
+
+			for (const orders of validOrdersToMatch) {
+				const leftOrderHash = orders[0].orderHash;
+				const rightOrderHash = orders[1].orderHash;
+				try {
+					const txHash = await web3Util.matchOrders(
+						signedOrders[feeOnToken ? rightOrderHash : leftOrderHash],
+						signedOrders[feeOnToken ? leftOrderHash : rightOrderHash],
+						{
+							gasPrice: new BigNumber(curretnGasPrice),
+							gasLimit: 300000,
+							nonce: currentNonce++,
+							shouldValidate: true
+						}
+					);
+
+					util.logDebug(`matching result for bidOrder ${
+						feeOnToken ? leftOrderHash : rightOrderHash
+					}
+					and askOrder ${feeOnToken ? rightOrderHash : leftOrderHash} + txHash ${txHash}`);
+					matchingStatus[leftOrderHash] = true;
+					matchingStatus[rightOrderHash] = true;
+				} catch (err) {
+					util.logDebug(
+						`matching error for bidOrder ${feeOnToken ? leftOrderHash : rightOrderHash}
+						and askOrder ${feeOnToken ? rightOrderHash : leftOrderHash}
+						err is ${JSON.stringify(err)} with order details ${JSON.stringify(orders)}`
+					);
+					matchingStatus[leftOrderHash] =
+						false || !!orders[0].fill || !!matchingStatus[leftOrderHash];
+					matchingStatus[rightOrderHash] =
+						false || !!orders[1].fill || !!matchingStatus[rightOrderHash];
+				}
+			}
 		}
 
 		for (const orderHash in matchingStatus)
