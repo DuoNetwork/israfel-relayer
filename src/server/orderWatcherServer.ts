@@ -71,14 +71,14 @@ class OrderWatcherServer {
 				filledTakerAssetAmount
 			} = (orderState as OrderStateValid).orderRelevantState;
 			util.logDebug(
-				`remainingFillableTakerAssetAmount ${remainingFillableTakerAssetAmount.valueOf()} filledTakerAssetAmount ${filledTakerAssetAmount.valueOf()} takerAssetAmount ${signedOrder.takerAssetAmount.valueOf()} add result: ${remainingFillableTakerAssetAmount
-					.add(filledTakerAssetAmount)}`
+				`remainingFillableTakerAssetAmount ${remainingFillableTakerAssetAmount.valueOf()} filledTakerAssetAmount ${filledTakerAssetAmount.valueOf()} takerAssetAmount ${signedOrder.takerAssetAmount.valueOf()} add result: ${remainingFillableTakerAssetAmount.add(
+					filledTakerAssetAmount
+				)}`
 			);
-			if (
-				remainingFillableTakerAssetAmount
-					.add(filledTakerAssetAmount)
-					.lessThan(signedOrder.takerAssetAmount)
-			)
+			const diff = signedOrder.takerAssetAmount
+				.sub(remainingFillableTakerAssetAmount)
+				.sub(filledTakerAssetAmount);
+			if (diff.greaterThan(1000000) || diff.lessThan(-1000000))
 				orderPersistRequest.status = CST.DB_BALANCE;
 			else if (Web3Util.fromWei(filledTakerAssetAmount)) {
 				orderPersistRequest.fill =

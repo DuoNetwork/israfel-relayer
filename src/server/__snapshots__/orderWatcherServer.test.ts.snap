@@ -292,23 +292,18 @@ exports[`handleOrderWatcherUpdate isValid balance plus fill less than orignial a
 Array [
   Array [
     Object {
-      "method": "terminate",
+      "fill": 56,
+      "method": "update",
       "orderHash": "orderHash",
       "pair": "pair",
       "requestor": "orderWatcher",
-      "status": "balance",
+      "status": "pFill",
     },
   ],
 ]
 `;
 
-exports[`handleOrderWatcherUpdate isValid balance plus fill less than orignial amount 2`] = `
-Array [
-  Array [
-    "orderHash",
-  ],
-]
-`;
+exports[`handleOrderWatcherUpdate isValid balance plus fill less than orignial amount 2`] = `Array []`;
 
 exports[`handleOrderWatcherUpdate isValid partial fill 1`] = `
 Array [
