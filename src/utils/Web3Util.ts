@@ -152,8 +152,8 @@ export default class Web3Util {
 		relayerAddr: string,
 		makerAssetAddr: string,
 		takerAssetAddr: string,
-		makerAmt: number,
-		takerAmt: number,
+		makerAmt: BigNumber,
+		takerAmt: BigNumber,
 		expInSeconds: number,
 		exchangeAddr: string
 	): Order {
@@ -163,8 +163,8 @@ export default class Web3Util {
 			takerAddress: relayerAddr.toLowerCase(),
 			makerFee: new BigNumber(0),
 			takerFee: new BigNumber(0),
-			makerAssetAmount: Web3Wrapper.toBaseUnitAmount(new BigNumber(util.round(makerAmt)), 18),
-			takerAssetAmount: Web3Wrapper.toBaseUnitAmount(new BigNumber(util.round(takerAmt)), 18),
+			makerAssetAmount: Web3Wrapper.toBaseUnitAmount(makerAmt, 18),
+			takerAssetAmount: Web3Wrapper.toBaseUnitAmount(takerAmt, 18),
 			makerAssetData: assetDataUtils.encodeERC20AssetData(makerAssetAddr),
 			takerAssetData: assetDataUtils.encodeERC20AssetData(takerAssetAddr),
 			salt: new BigNumber(0),
@@ -180,8 +180,8 @@ export default class Web3Util {
 		relayerAddr: string,
 		makerAssetAddr: string,
 		takerAssetAddr: string,
-		makerAmt: number,
-		takerAmt: number,
+		makerAmt: BigNumber,
+		takerAmt: BigNumber,
 		expInSeconds: number
 	): Promise<IRawOrder> {
 		if (this.wallet !== Wallet.MetaMask && this.wallet !== Wallet.Local)

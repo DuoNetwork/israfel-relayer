@@ -90,57 +90,57 @@ Object {
 
 exports[`getAmountAfterFee ask base flat 1`] = `
 Object {
-  "makerAssetAmount": 150,
-  "takerAssetAmount": 1.49,
+  "makerAssetAmount": "150",
+  "takerAssetAmount": "1.49",
 }
 `;
 
 exports[`getAmountAfterFee ask base ratio 1`] = `
 Object {
-  "makerAssetAmount": 150,
-  "takerAssetAmount": 1.485,
+  "makerAssetAmount": "150",
+  "takerAssetAmount": "1.485",
 }
 `;
 
 exports[`getAmountAfterFee ask flat 1`] = `
 Object {
-  "makerAssetAmount": 101,
-  "takerAssetAmount": 1,
+  "makerAssetAmount": "101",
+  "takerAssetAmount": "1",
 }
 `;
 
 exports[`getAmountAfterFee ask ratio 1`] = `
 Object {
-  "makerAssetAmount": 101,
-  "takerAssetAmount": 1,
+  "makerAssetAmount": "101",
+  "takerAssetAmount": "1",
 }
 `;
 
 exports[`getAmountAfterFee bid base flat 1`] = `
 Object {
-  "makerAssetAmount": 1.01,
-  "takerAssetAmount": 100,
+  "makerAssetAmount": "1.01",
+  "takerAssetAmount": "100",
 }
 `;
 
 exports[`getAmountAfterFee bid base ratio 1`] = `
 Object {
-  "makerAssetAmount": 1.515,
-  "takerAssetAmount": 150,
+  "makerAssetAmount": "1.515",
+  "takerAssetAmount": "150",
 }
 `;
 
 exports[`getAmountAfterFee bid flat 1`] = `
 Object {
-  "makerAssetAmount": 1,
-  "takerAssetAmount": 99,
+  "makerAssetAmount": "1",
+  "takerAssetAmount": "99",
 }
 `;
 
 exports[`getAmountAfterFee bid ratio 1`] = `
 Object {
-  "makerAssetAmount": 1,
-  "takerAssetAmount": 99,
+  "makerAssetAmount": "1",
+  "takerAssetAmount": "99",
 }
 `;
 

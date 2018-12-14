@@ -20,8 +20,8 @@ test('createRawOrderWithoutSalt', async () => {
 			'relayerAddr',
 			'makerAssetAddr',
 			'takerAssetAddr',
-			123,
-			456,
+			new BigNumber(123),
+			new BigNumber(456),
 			1234567890,
 			'exchangeAddr'
 		)
