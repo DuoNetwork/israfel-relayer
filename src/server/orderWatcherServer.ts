@@ -22,7 +22,7 @@ import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
 class OrderWatcherServer {
-	public pair: string = 'pair';
+	public pairs: string[] = [];
 	public orderWatcher: OrderWatcher | null = null;
 	public web3Util: Web3Util | null = null;
 	public watchingOrders: {
@@ -61,7 +61,7 @@ class OrderWatcherServer {
 			method: CST.DB_TERMINATE,
 			status: CST.DB_TERMINATE,
 			requestor: CST.DB_ORDER_WATCHER,
-			pair: this.pair,
+			pair: liveOrder.pair,
 			orderHash: orderHash
 		};
 		util.logDebug(JSON.stringify(orderState));
@@ -133,7 +133,7 @@ class OrderWatcherServer {
 						method: CST.DB_TERMINATE,
 						status: CST.DB_BALANCE,
 						requestor: CST.DB_ORDER_WATCHER,
-						pair: this.pair,
+						pair: liveOrder.pair,
 						orderHash: orderHash
 					});
 					return;
@@ -191,9 +191,11 @@ class OrderWatcherServer {
 	public async loadOrders() {
 		const prevOrderHashes = Object.keys(this.watchingOrders);
 
-		const currentLiveOrders = await orderPersistenceUtil.getAllLiveOrdersInPersistence(
-			this.pair
+		const pairOrders = await Promise.all(
+			this.pairs.map(pair => orderPersistenceUtil.getAllLiveOrdersInPersistence(pair))
 		);
+		const currentLiveOrders: { [orderHash: string]: ILiveOrder } = {};
+		pairOrders.forEach(orders => Object.assign(currentLiveOrders, orders));
 		const currentOrdersOrderHash = Object.keys(currentLiveOrders);
 		util.logInfo('loaded live orders : ' + Object.keys(currentOrdersOrderHash).length);
 		const ordersToRemove = prevOrderHashes.filter(
@@ -217,11 +219,14 @@ class OrderWatcherServer {
 				expirationMarginMs: 3 * CST.ONE_MINUTE_MS
 			}
 		);
-		this.pair = option.token + '|' + CST.TOKEN_WETH;
+		if (option.tokens.length)
+			this.pairs = option.tokens.map(token => token + '|' + CST.TOKEN_WETH);
+		else if (option.token) this.pairs = [option.token + '|' + CST.TOKEN_WETH];
 
-		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderQueueItem) =>
-			this.handleOrderUpdate(channel, orderQueueItem)
-		);
+		for (const pair of this.pairs)
+			orderPersistenceUtil.subscribeOrderUpdate(pair, (channel, orderQueueItem) =>
+				this.handleOrderUpdate(channel, orderQueueItem)
+			);
 
 		await this.loadOrders();
 		setInterval(() => this.loadOrders(), CST.ONE_MINUTE_MS * 60);
@@ -236,14 +241,16 @@ class OrderWatcherServer {
 		});
 
 		if (option.server) {
-			dynamoUtil.updateStatus(this.pair);
+			this.pairs.forEach(pair => dynamoUtil.updateStatus(pair));
 			setInterval(
 				() =>
-					dynamoUtil.updateStatus(
-						this.pair,
-						this.orderWatcher ? this.orderWatcher.getStats().orderCount : 0
+					this.pairs.forEach(pair =>
+						dynamoUtil.updateStatus(
+							pair,
+							this.orderWatcher ? this.orderWatcher.getStats().orderCount : 0
+						)
 					),
-				10000
+				15000
 			);
 		}
 	}

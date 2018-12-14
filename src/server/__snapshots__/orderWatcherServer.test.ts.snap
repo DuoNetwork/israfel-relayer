@@ -36,6 +36,7 @@ Object {
   "orderHash": Object {
     "liveOrder": Object {
       "orderHash": "orderHash",
+      "pair": "pair",
     },
     "signedOrder": Object {
       "exchangeAddress": "exchangeAddress",
@@ -85,6 +86,7 @@ Object {
   "orderHash": Object {
     "liveOrder": Object {
       "orderHash": "orderHash",
+      "pair": "pair",
     },
     "signedOrder": Object {
       "exchangeAddress": "exchangeAddress",
@@ -338,6 +340,17 @@ exports[`loadOrders 2`] = `
 Array [
   Array [
     "orderHash3",
+  ],
+]
+`;
+
+exports[`loadOrders 3`] = `
+Array [
+  Array [
+    "pair1",
+  ],
+  Array [
+    "pair2",
   ],
 ]
 `;

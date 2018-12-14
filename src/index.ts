@@ -31,7 +31,7 @@ switch (tool) {
 		relayerServer.startServer(config, option);
 		break;
 	case CST.DB_ORDER_WATCHER:
-		serverMasterUtil.startLaunching(tool, option, () => orderWatcherServer.startServer(option));
+		orderWatcherServer.startServer(option);
 		break;
 	case CST.DB_ORDER_BOOKS:
 		serverMasterUtil.startLaunching(tool, option, () => orderBookServer.startServer(option));
