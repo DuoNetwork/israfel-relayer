@@ -221,7 +221,26 @@ test('matchorders', async () => {
 		Promise.resolve({ signedOrder: pair + orderHash })
 	);
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
-	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch);
+	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch, true);
+	expect((web3Util.matchOrders as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(
+		(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).mock.calls
+	).toMatchSnapshot();
+});
+
+test('matchorders not fee on token', async () => {
+	orderUtil.parseSignedOrder = jest.fn((input: string) => input + 'signedOrder');
+	const web3Util = {
+		getTransactionCount: jest.fn(() => Promise.resolve(100)),
+		getGasPrice: jest.fn(() => Promise.resolve(2000000000)),
+		matchOrders: jest.fn(() => Promise.resolve())
+	} as any;
+	orderPersistenceUtil.getRawOrderInPersistence = jest.fn((pair, orderHash) =>
+		Promise.resolve({ signedOrder: pair + orderHash })
+	);
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch, false);
 	expect((web3Util.matchOrders as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
@@ -242,7 +261,7 @@ test('matchorders failed', async () => {
 		Promise.resolve({ signedOrder: pair + orderHash })
 	);
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
-	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch);
+	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch, true);
 	expect((web3Util.matchOrders as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
@@ -265,7 +284,7 @@ test('matchorders failed but has fill', async () => {
 		Promise.resolve({ signedOrder: pair + orderHash })
 	);
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
-	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch);
+	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch, true);
 	expect((web3Util.matchOrders as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
@@ -284,7 +303,7 @@ test('matchorders, no left raworder', async () => {
 		Promise.resolve(orderHash === 'orderHash1' ? null : { signedOrder: pair + orderHash })
 	);
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
-	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch);
+	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch, true);
 	expect((web3Util.matchOrders as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
@@ -303,7 +322,7 @@ test('matchorders, no right raworder', async () => {
 		Promise.resolve(orderHash === 'orderHash2' ? null : { signedOrder: pair + orderHash })
 	);
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
-	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch);
+	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch, true);
 	expect((web3Util.matchOrders as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
@@ -320,7 +339,7 @@ test('matchorders, no valid match', async () => {
 	} as any;
 	orderPersistenceUtil.getRawOrderInPersistence = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
-	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch);
+	await orderMatchingUtil.matchOrders(web3Util, 'code1|code2', ordersToMatch, true);
 	expect(web3Util.matchOrders as jest.Mock).not.toBeCalled();
 	expect(orderPersistenceUtil.persistOrder as jest.Mock).not.toBeCalled();
 	expect(

@@ -19,6 +19,7 @@ import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
 class OrderBookServer {
+	public feeOnToken: boolean = true;
 	public pair: string = 'pair';
 	public web3Util: Web3Util | null = null;
 	public liveOrders: { [orderHash: string]: ILiveOrder } = {};
@@ -98,7 +99,8 @@ class OrderBookServer {
 			await orderMatchingUtil.matchOrders(
 				this.web3Util as Web3Util,
 				this.pair,
-				ordersToMatch
+				ordersToMatch,
+				this.feeOnToken
 			);
 	}
 
@@ -185,7 +187,8 @@ class OrderBookServer {
 			await orderMatchingUtil.matchOrders(
 				this.web3Util as Web3Util,
 				this.pair,
-				matchingResult.ordersToMatch
+				matchingResult.ordersToMatch,
+				this.feeOnToken
 			);
 		util.logInfo('completed matching orderBook as a whole in cold start');
 		this.orderBookSnapshot = orderBookUtil.renderOrderBookSnapshot(this.pair, this.orderBook);
@@ -206,6 +209,9 @@ class OrderBookServer {
 		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderQueueItem) =>
 			this.handleOrderUpdate(channel, orderQueueItem)
 		);
+		const token = this.web3Util.tokens.find(t => t.code === option.token);
+		if (token && token.feeSchedules[CST.TOKEN_WETH] && token.feeSchedules[CST.TOKEN_WETH].asset)
+			this.feeOnToken = false;
 
 		await this.loadLiveOrders();
 		setInterval(() => this.loadLiveOrders(), CST.ONE_MINUTE_MS * 15);

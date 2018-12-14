@@ -107,7 +107,8 @@ class OrderMatchingUtil {
 	public async matchOrders(
 		web3Util: Web3Util,
 		pair: string,
-		ordersToMatch: IMatchingCandidate[]
+		ordersToMatch: IMatchingCandidate[],
+		feeOnToken: boolean
 	) {
 		const totalMatchingAmount: { [orderHash: string]: number } = {};
 		const validOrdersToMatch: ILiveOrder[][] = [];
@@ -179,12 +180,16 @@ class OrderMatchingUtil {
 					const leftOrderHash = orders[0].orderHash;
 					const rightOrderHash = orders[1].orderHash;
 					return web3Util
-						.matchOrders(signedOrders[rightOrderHash], signedOrders[leftOrderHash], {
-							gasPrice: new BigNumber(curretnGasPrice),
-							gasLimit: 300000,
-							nonce: currentNonce++,
-							shouldValidate: true
-						})
+						.matchOrders(
+							signedOrders[feeOnToken ? rightOrderHash : leftOrderHash],
+							signedOrders[feeOnToken ? leftOrderHash : rightOrderHash],
+							{
+								gasPrice: new BigNumber(curretnGasPrice),
+								gasLimit: 300000,
+								nonce: currentNonce++,
+								shouldValidate: true
+							}
+						)
 						.then(res => {
 							util.logDebug('matching result' + res);
 							matchingStatus[leftOrderHash] = true;
