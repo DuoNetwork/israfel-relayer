@@ -728,7 +728,7 @@ Array [
     "code1|code2orderHash1signedOrder",
     Object {
       "gasLimit": 300000,
-      "gasPrice": "2000000000",
+      "gasPrice": "5000000000",
       "nonce": 100,
       "shouldValidate": true,
     },
@@ -738,7 +738,7 @@ Array [
     "code1|code2orderHash1signedOrder",
     Object {
       "gasLimit": 300000,
-      "gasPrice": "2000000000",
+      "gasPrice": "5000000000",
       "nonce": 101,
       "shouldValidate": true,
     },
@@ -748,7 +748,7 @@ Array [
     "code1|code2orderHash3signedOrder",
     Object {
       "gasLimit": 300000,
-      "gasPrice": "2000000000",
+      "gasPrice": "5000000000",
       "nonce": 102,
       "shouldValidate": true,
     },
@@ -758,7 +758,7 @@ Array [
     "code1|code2orderHash3signedOrder",
     Object {
       "gasLimit": 300000,
-      "gasPrice": "2000000000",
+      "gasPrice": "5000000000",
       "nonce": 103,
       "shouldValidate": true,
     },
@@ -853,7 +853,7 @@ Array [
     "code1|code2orderHash1signedOrder",
     Object {
       "gasLimit": 300000,
-      "gasPrice": "2000000000",
+      "gasPrice": "5000000000",
       "nonce": 100,
       "shouldValidate": true,
     },
@@ -863,7 +863,7 @@ Array [
     "code1|code2orderHash1signedOrder",
     Object {
       "gasLimit": 300000,
-      "gasPrice": "2000000000",
+      "gasPrice": "5000000000",
       "nonce": 101,
       "shouldValidate": true,
     },
@@ -873,7 +873,7 @@ Array [
     "code1|code2orderHash3signedOrder",
     Object {
       "gasLimit": 300000,
-      "gasPrice": "2000000000",
+      "gasPrice": "5000000000",
       "nonce": 102,
       "shouldValidate": true,
     },
@@ -883,7 +883,7 @@ Array [
     "code1|code2orderHash3signedOrder",
     Object {
       "gasLimit": 300000,
-      "gasPrice": "2000000000",
+      "gasPrice": "5000000000",
       "nonce": 103,
       "shouldValidate": true,
     },
@@ -978,7 +978,7 @@ Array [
     "code1|code2orderHash1signedOrder",
     Object {
       "gasLimit": 300000,
-      "gasPrice": "2000000000",
+      "gasPrice": "5000000000",
       "nonce": 100,
       "shouldValidate": true,
     },
@@ -988,7 +988,7 @@ Array [
     "code1|code2orderHash1signedOrder",
     Object {
       "gasLimit": 300000,
-      "gasPrice": "2000000000",
+      "gasPrice": "5000000000",
       "nonce": 101,
       "shouldValidate": true,
     },
@@ -998,7 +998,7 @@ Array [
     "code1|code2orderHash3signedOrder",
     Object {
       "gasLimit": 300000,
-      "gasPrice": "2000000000",
+      "gasPrice": "5000000000",
       "nonce": 102,
       "shouldValidate": true,
     },
@@ -1008,7 +1008,7 @@ Array [
     "code1|code2orderHash3signedOrder",
     Object {
       "gasLimit": 300000,
-      "gasPrice": "2000000000",
+      "gasPrice": "5000000000",
       "nonce": 103,
       "shouldValidate": true,
     },
@@ -1103,7 +1103,7 @@ Array [
     "code1|code2orderHash2signedOrder",
     Object {
       "gasLimit": 300000,
-      "gasPrice": "2000000000",
+      "gasPrice": "5000000000",
       "nonce": 100,
       "shouldValidate": true,
     },
@@ -1113,7 +1113,7 @@ Array [
     "code1|code2orderHash5signedOrder",
     Object {
       "gasLimit": 300000,
-      "gasPrice": "2000000000",
+      "gasPrice": "5000000000",
       "nonce": 101,
       "shouldValidate": true,
     },
@@ -1123,7 +1123,7 @@ Array [
     "code1|code2orderHash2signedOrder",
     Object {
       "gasLimit": 300000,
-      "gasPrice": "2000000000",
+      "gasPrice": "5000000000",
       "nonce": 102,
       "shouldValidate": true,
     },
@@ -1133,7 +1133,7 @@ Array [
     "code1|code2orderHash4signedOrder",
     Object {
       "gasLimit": 300000,
-      "gasPrice": "2000000000",
+      "gasPrice": "5000000000",
       "nonce": 103,
       "shouldValidate": true,
     },
@@ -1228,7 +1228,7 @@ Array [
     "code1|code2orderHash3signedOrder",
     Object {
       "gasLimit": 300000,
-      "gasPrice": "2000000000",
+      "gasPrice": "5000000000",
       "nonce": 100,
       "shouldValidate": true,
     },
@@ -1238,7 +1238,7 @@ Array [
     "code1|code2orderHash3signedOrder",
     Object {
       "gasLimit": 300000,
-      "gasPrice": "2000000000",
+      "gasPrice": "5000000000",
       "nonce": 101,
       "shouldValidate": true,
     },
@@ -1309,7 +1309,7 @@ Array [
     "code1|code2orderHash1signedOrder",
     Object {
       "gasLimit": 300000,
-      "gasPrice": "2000000000",
+      "gasPrice": "5000000000",
       "nonce": 100,
       "shouldValidate": true,
     },
@@ -1319,7 +1319,7 @@ Array [
     "code1|code2orderHash3signedOrder",
     Object {
       "gasLimit": 300000,
-      "gasPrice": "2000000000",
+      "gasPrice": "5000000000",
       "nonce": 101,
       "shouldValidate": true,
     },

@@ -174,7 +174,7 @@ class OrderMatchingUtil {
 
 		if (validOrdersToMatch.length > 0) {
 			let currentNonce = await web3Util.getTransactionCount();
-			const curretnGasPrice = Math.min(await web3Util.getGasPrice(), 5000000000);
+			const curretnGasPrice = Math.max(await web3Util.getGasPrice(), 5000000000);
 
 			for (const orders of validOrdersToMatch) {
 				const leftOrderHash = orders[0].orderHash;
