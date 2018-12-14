@@ -186,7 +186,7 @@ class OrderMatchingUtil {
 						{
 							gasPrice: new BigNumber(curretnGasPrice),
 							gasLimit: 300000,
-							nonce: currentNonce++,
+							nonce: currentNonce,
 							shouldValidate: true
 						}
 					);
@@ -197,6 +197,7 @@ class OrderMatchingUtil {
 					and askOrder ${feeOnToken ? rightOrderHash : leftOrderHash} + txHash ${txHash}`);
 					matchingStatus[leftOrderHash] = true;
 					matchingStatus[rightOrderHash] = true;
+					currentNonce++;
 				} catch (err) {
 					util.logDebug(
 						`matching error for bidOrder ${feeOnToken ? leftOrderHash : rightOrderHash}
