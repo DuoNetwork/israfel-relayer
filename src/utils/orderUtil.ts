@@ -60,49 +60,53 @@ class OrderUtil {
 	}
 
 	public getPriceBeforeFee(
-		tokenAmountAfterFee: number,
-		baseAmountAfterFee: number,
+		tokenAmountAfterFeeNum: number,
+		baseAmountAfterFeeNum: number,
 		feeSchedule: IFeeSchedule,
 		isBid: boolean
 	) {
-		let feeAmount = 0;
-		let price = 0;
-		let tokenAmountBeforeFee = tokenAmountAfterFee;
-		let baseAmountBeforeFee = baseAmountAfterFee;
+		const tokenAmountAfterFee = new BigNumber(tokenAmountAfterFeeNum);
+		const baseAmountAfterFee = new BigNumber(baseAmountAfterFeeNum);
+		let feeAmount = new BigNumber(0);
+		let price = new BigNumber(0);
+		let tokenAmountBeforeFee = new BigNumber(tokenAmountAfterFee);
+		let baseAmountBeforeFee = new BigNumber(baseAmountAfterFee);
+		const feeRateBN = new BigNumber(feeSchedule.rate);
+		const feeMinBN = new BigNumber(feeSchedule.minimum);
 		if (isBid)
 			if (feeSchedule.asset) {
-				feeAmount = Math.max(
-					(baseAmountAfterFee * feeSchedule.rate) / (1 + feeSchedule.rate),
-					feeSchedule.minimum
+				feeAmount = BigNumber.max(
+					baseAmountAfterFee.mul(feeRateBN).div(feeRateBN.add(1)),
+					feeMinBN
 				);
-				baseAmountBeforeFee = baseAmountAfterFee - feeAmount;
+				baseAmountBeforeFee = baseAmountAfterFee.sub(feeAmount);
 			} else {
-				feeAmount = Math.max(
-					(tokenAmountAfterFee * feeSchedule.rate) / (1 - feeSchedule.rate),
-					feeSchedule.minimum
+				feeAmount = BigNumber.max(
+					tokenAmountAfterFee.mul(feeRateBN).div(new BigNumber(1).sub(feeRateBN)),
+					feeMinBN
 				);
-				tokenAmountBeforeFee = tokenAmountAfterFee + feeAmount;
+				tokenAmountBeforeFee = tokenAmountAfterFee.add(feeAmount);
 			}
 		else if (feeSchedule.asset) {
-			feeAmount = Math.max(
-				(baseAmountAfterFee * feeSchedule.rate) / (1 - feeSchedule.rate),
-				feeSchedule.minimum
+			feeAmount = BigNumber.max(
+				baseAmountAfterFee.mul(feeRateBN).div(new BigNumber(1).sub(feeRateBN)),
+				feeMinBN
 			);
-			baseAmountBeforeFee = baseAmountAfterFee + feeAmount;
+			baseAmountBeforeFee = baseAmountAfterFee.add(feeAmount);
 		} else {
-			feeAmount = Math.max(
-				(tokenAmountAfterFee * feeSchedule.rate) / (1 + feeSchedule.rate),
-				feeSchedule.minimum
+			feeAmount = BigNumber.max(
+				tokenAmountAfterFee.mul(feeRateBN).div(feeRateBN.add(1)),
+				feeMinBN
 			);
-			tokenAmountBeforeFee = tokenAmountAfterFee - feeAmount;
+			tokenAmountBeforeFee = tokenAmountAfterFee.sub(feeAmount);
 		}
 
-		price = baseAmountBeforeFee / tokenAmountBeforeFee;
+		price = baseAmountBeforeFee.div(tokenAmountBeforeFee);
 
 		util.logDebug(
 			`isBid ${isBid} feeAsset ${
 				feeSchedule.asset
-			} fee ${feeAmount} tokenAmountBeforeFee ${tokenAmountBeforeFee} baseAmountBeforeFee ${baseAmountBeforeFee} price ${price}`
+			} fee ${feeAmount.valueOf()} tokenAmountBeforeFee ${tokenAmountBeforeFee.valueOf()} baseAmountBeforeFee ${baseAmountBeforeFee.valueOf()} price ${price.valueOf()}`
 		);
 
 		return {
@@ -139,14 +143,14 @@ class OrderUtil {
 			account: signedOrder.makerAddress,
 			pair: pair,
 			orderHash: orderHash,
-			price: priceBeforeFee.price,
-			amount: priceBeforeFee.amount,
-			balance: priceBeforeFee.amount,
+			price: Number(priceBeforeFee.price.valueOf()),
+			amount: Number(priceBeforeFee.amount.valueOf()),
+			balance: Number(priceBeforeFee.amount.valueOf()),
 			matching: 0,
 			fill: 0,
 			side: side,
 			expiry: Number(signedOrder.expirationTimeSeconds) * 1000,
-			fee: priceBeforeFee.feeAmount,
+			fee: Number(priceBeforeFee.feeAmount.valueOf()),
 			feeAsset: feeSchedule.asset || code1,
 			initialSequence: 0,
 			currentSequence: 0,
