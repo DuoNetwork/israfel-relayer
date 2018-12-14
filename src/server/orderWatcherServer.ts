@@ -70,6 +70,10 @@ class OrderWatcherServer {
 				remainingFillableTakerAssetAmount,
 				filledTakerAssetAmount
 			} = (orderState as OrderStateValid).orderRelevantState;
+			util.logDebug(
+				`remainingFillableTakerAssetAmount ${remainingFillableTakerAssetAmount.valueOf()} filledTakerAssetAmount ${filledTakerAssetAmount.valueOf()} takerAssetAmount ${signedOrder.takerAssetAmount.valueOf()} add result: ${remainingFillableTakerAssetAmount
+					.add(filledTakerAssetAmount)}`
+			);
 			if (
 				remainingFillableTakerAssetAmount
 					.add(filledTakerAssetAmount)
