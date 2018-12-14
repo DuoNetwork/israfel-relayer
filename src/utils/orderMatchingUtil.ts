@@ -179,7 +179,7 @@ class OrderMatchingUtil {
 					const leftOrderHash = orders[0].orderHash;
 					const rightOrderHash = orders[1].orderHash;
 					return web3Util
-						.matchOrders(signedOrders[leftOrderHash], signedOrders[rightOrderHash], {
+						.matchOrders(signedOrders[rightOrderHash], signedOrders[leftOrderHash], {
 							gasPrice: new BigNumber(curretnGasPrice),
 							gasLimit: 300000,
 							nonce: currentNonce++,
