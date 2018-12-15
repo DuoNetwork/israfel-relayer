@@ -1,12 +1,12 @@
 import * as CST from '../common/constants';
 import {
 	ILiveOrder,
-	IMatchingCandidate,
 	IOption,
 	IOrderBook,
 	IOrderBookLevelUpdate,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotUpdate,
+	IOrderMatchRequest,
 	IOrderQueueItem,
 	IOrderUpdate
 } from '../common/types';
@@ -82,7 +82,7 @@ class OrderBookServer {
 				method: method
 			})
 		];
-		let ordersToMatch: IMatchingCandidate[] = [];
+		let ordersToMatch: IOrderMatchRequest[] = [];
 		const leftLiveOrder = orderQueueItem.liveOrder;
 		if (method !== CST.DB_TERMINATE && leftLiveOrder.balance > 0) {
 			const matchinResult = orderMatchingUtil.findMatchingOrders(

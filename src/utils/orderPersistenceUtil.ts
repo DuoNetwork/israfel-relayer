@@ -2,6 +2,7 @@ import * as CST from '../common/constants';
 import {
 	ILiveOrder,
 	IOption,
+	// IOrderMatchRequest,
 	IOrderPersistRequest,
 	IOrderQueueItem,
 	IStringSignedOrder,
@@ -28,6 +29,14 @@ class OrderPersistenceUtil {
 	private getOrderQueueKey() {
 		return `${CST.DB_ORDERS}|${CST.DB_QUEUE}`;
 	}
+
+	// private getMatchQueueKey() {
+	// 	return `${CST.DB_ORDERS}|${CST.DB_MATCH}|${CST.DB_QUEUE}`;
+	// }
+
+	// private getMatchCacheMapKey() {
+	// 	return `${CST.DB_ORDERS}|${CST.DB_MATCH}|${CST.DB_CACHE}`;
+	// }
 
 	public subscribeOrderUpdate(
 		pair: string,
@@ -236,6 +245,10 @@ class OrderPersistenceUtil {
 
 		return this.addUserOrderToDB(orderQueueItem.liveOrder, method, status, requestor, false);
 	}
+
+	// public async queueMatchOrders(orderMatchRequest: IOrderMatchRequest) {
+
+	// }
 
 	public async processOrderQueue() {
 		const queueKey = await redisUtil.pop(this.getOrderQueueKey());

@@ -2,10 +2,10 @@ import { BigNumber, SignedOrder } from '0x.js';
 import * as CST from '../common/constants';
 import {
 	ILiveOrder,
-	IMatchingCandidate,
 	IOrderBook,
 	IOrderBookLevel,
 	IOrderBookLevelUpdate,
+	IOrderMatchRequest,
 	IStringSignedOrder
 } from '../common/types';
 import orderPersistenceUtil from './orderPersistenceUtil';
@@ -19,11 +19,11 @@ class OrderMatchingUtil {
 		liveOrders: { [orderHash: string]: ILiveOrder },
 		updatesRequired: boolean
 	): {
-		ordersToMatch: IMatchingCandidate[];
+		ordersToMatch: IOrderMatchRequest[];
 		orderBookLevelUpdates: IOrderBookLevelUpdate[];
 	} {
 		const { bids, asks } = orderBook;
-		const ordersToMatch: IMatchingCandidate[] = [];
+		const ordersToMatch: IOrderMatchRequest[] = [];
 		const orderBookLevelUpdates: IOrderBookLevelUpdate[] = [];
 		if (bids.length && asks.length) {
 			const bestBid = bids.find(level => level.balance > 0);
@@ -77,9 +77,10 @@ class OrderMatchingUtil {
 				askLiveOrder.balance -= matchingAmount;
 				askLiveOrder.matching += matchingAmount;
 				ordersToMatch.push({
-					leftOrder: bidLiveOrder,
-					rightOrder: askLiveOrder,
-					matchingAmount: matchingAmount
+					pair: bidLiveOrder.pair,
+					leftOrderHash: bidLiveOrder.orderHash,
+					rightOrderHash: askLiveOrder.orderHash,
+					amount: matchingAmount
 				});
 				if (updatesRequired) {
 					orderBookLevelUpdates.push({
@@ -107,59 +108,55 @@ class OrderMatchingUtil {
 	public async matchOrders(
 		web3Util: Web3Util,
 		pair: string,
-		ordersToMatch: IMatchingCandidate[],
+		ordersToMatch: IOrderMatchRequest[],
 		feeOnToken: boolean
 	) {
 		const totalMatchingAmount: { [orderHash: string]: number } = {};
-		const validOrdersToMatch: ILiveOrder[][] = [];
+		const validOrdersToMatch: string[][] = [];
 		const signedOrders: { [orderHash: string]: SignedOrder } = {};
 		const missingSignedOrders: { [orderHash: string]: boolean } = {};
 		const matchingStatus: { [orderHash: string]: boolean } = {};
 
 		for (const orderToMatch of ordersToMatch) {
-			const { leftOrder, rightOrder, matchingAmount } = orderToMatch;
-			if (
-				missingSignedOrders[leftOrder.orderHash] ||
-				missingSignedOrders[rightOrder.orderHash]
-			) {
+			const { leftOrderHash, rightOrderHash, amount } = orderToMatch;
+			if (missingSignedOrders[leftOrderHash] || missingSignedOrders[rightOrderHash]) {
 				util.logDebug('ignore match with missing signed order');
 				continue;
 			}
-			if (!signedOrders[leftOrder.orderHash]) {
+			if (!signedOrders[leftOrderHash]) {
 				const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
 					pair,
-					leftOrder.orderHash
+					leftOrderHash
 				);
 				if (!leftRawOrder) {
-					util.logError(`raw order of ${leftOrder.orderHash} does not exist`);
-					missingSignedOrders[leftOrder.orderHash] = true;
+					util.logError(`raw order of ${leftOrderHash} does not exist`);
+					missingSignedOrders[leftOrderHash] = true;
 					continue;
 				}
-				signedOrders[leftOrder.orderHash] = orderUtil.parseSignedOrder(
+				signedOrders[leftOrderHash] = orderUtil.parseSignedOrder(
 					leftRawOrder.signedOrder as IStringSignedOrder
 				);
 			}
-			if (!signedOrders[rightOrder.orderHash]) {
+			if (!signedOrders[rightOrderHash]) {
 				const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
 					pair,
-					rightOrder.orderHash
+					rightOrderHash
 				);
 
 				if (!rightRawOrder) {
-					util.logError(`raw order of ${rightOrder.orderHash} does not exist`);
-					missingSignedOrders[rightOrder.orderHash] = true;
+					util.logError(`raw order of ${rightOrderHash} does not exist`);
+					missingSignedOrders[rightOrderHash] = true;
 					continue;
 				}
 
-				signedOrders[rightOrder.orderHash] = orderUtil.parseSignedOrder(
+				signedOrders[rightOrderHash] = orderUtil.parseSignedOrder(
 					rightRawOrder.signedOrder as IStringSignedOrder
 				);
 			}
-			totalMatchingAmount[leftOrder.orderHash] =
-				(totalMatchingAmount[leftOrder.orderHash] || 0) + matchingAmount;
-			totalMatchingAmount[rightOrder.orderHash] =
-				(totalMatchingAmount[rightOrder.orderHash] || 0) + matchingAmount;
-			validOrdersToMatch.push([leftOrder, rightOrder]);
+			totalMatchingAmount[leftOrderHash] = (totalMatchingAmount[leftOrderHash] || 0) + amount;
+			totalMatchingAmount[rightOrderHash] =
+				(totalMatchingAmount[rightOrderHash] || 0) + amount;
+			validOrdersToMatch.push([leftOrderHash, rightOrderHash]);
 		}
 
 		for (const orderHash in totalMatchingAmount)
@@ -177,8 +174,8 @@ class OrderMatchingUtil {
 			const curretnGasPrice = Math.max(await web3Util.getGasPrice(), 5000000000);
 
 			for (const orders of validOrdersToMatch) {
-				const leftOrderHash = orders[0].orderHash;
-				const rightOrderHash = orders[1].orderHash;
+				const leftOrderHash = orders[0];
+				const rightOrderHash = orders[1];
 				try {
 					const txHash = await web3Util.matchOrders(
 						signedOrders[feeOnToken ? rightOrderHash : leftOrderHash],
@@ -204,10 +201,8 @@ class OrderMatchingUtil {
 						and askOrder ${feeOnToken ? rightOrderHash : leftOrderHash}
 						err is ${JSON.stringify(err)} with order details ${JSON.stringify(orders)}`
 					);
-					matchingStatus[leftOrderHash] =
-						false || !!orders[0].fill || !!matchingStatus[leftOrderHash];
-					matchingStatus[rightOrderHash] =
-						false || !!orders[1].fill || !!matchingStatus[rightOrderHash];
+					matchingStatus[leftOrderHash] = false || !!matchingStatus[leftOrderHash];
+					matchingStatus[rightOrderHash] = false || !!matchingStatus[rightOrderHash];
 				}
 			}
 		}

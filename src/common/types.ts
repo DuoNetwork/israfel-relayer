@@ -73,6 +73,13 @@ export interface IOrderPersistRequest {
 	signedOrder?: IStringSignedOrder;
 }
 
+export interface IOrderMatchRequest {
+	pair: string;
+	amount: number;
+	leftOrderHash: string;
+	rightOrderHash: string;
+}
+
 export interface IOrderQueueItem {
 	method: string;
 	status: string;
@@ -198,12 +205,6 @@ export interface IStatus {
 	pair: string;
 	tool: string;
 	count?: number;
-}
-
-export interface IMatchingCandidate {
-	leftOrder: ILiveOrder;
-	rightOrder: ILiveOrder;
-	matchingAmount: number;
 }
 
 export interface IToken {
