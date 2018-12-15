@@ -10,10 +10,43 @@ import {
 } from '../common/types';
 import orderPersistenceUtil from './orderPersistenceUtil';
 import orderUtil from './orderUtil';
+import redisUtil from './redisUtil';
 import util from './util';
 import Web3Util from './Web3Util';
 
 class OrderMatchingUtil {
+	private getMatchQueueKey() {
+		return `${CST.DB_MATCH}|${CST.DB_QUEUE}`;
+	}
+
+	private getMatchCacheMapKey() {
+		return `${CST.DB_MATCH}|${CST.DB_CACHE}`;
+	}
+
+	public queueMatchRequest(orderMatchRequest: IOrderMatchRequest) {
+		// push request into queue
+		redisUtil.push(this.getMatchQueueKey(), JSON.stringify(orderMatchRequest));
+	}
+
+	public async persistPendingMatch(orderMatchRequest: IOrderMatchRequest) {
+		if (!orderMatchRequest.transactionHash) return;
+
+		return redisUtil.hashSet(
+			this.getMatchCacheMapKey(),
+			orderMatchRequest.transactionHash,
+			JSON.stringify(orderMatchRequest)
+		);
+	}
+
+	public async getAllPendingMatchRequests() {
+		const allRequestStrings = await redisUtil.hashGetAll(this.getMatchCacheMapKey());
+		const allRequests: { [txHash: string]: IOrderMatchRequest } = {};
+		for (const txHash in allRequestStrings)
+			allRequests[txHash] = JSON.parse(allRequestStrings[txHash]);
+
+		return allRequests;
+	}
+
 	public findMatchingOrders(
 		orderBook: IOrderBook,
 		liveOrders: { [orderHash: string]: ILiveOrder },

@@ -80,6 +80,7 @@ export interface IOrderMatchRequest {
 	amount: number;
 	leftOrderHash: string;
 	rightOrderHash: string;
+	transactionHash?: string;
 }
 
 export interface IOrderQueueItem {

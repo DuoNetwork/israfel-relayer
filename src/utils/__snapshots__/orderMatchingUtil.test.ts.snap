@@ -504,6 +504,20 @@ Object {
 }
 `;
 
+exports[`getAllPendingMatchRequests 1`] = `
+Object {
+  "txHash": "pendingMatchRequest",
+}
+`;
+
+exports[`getAllPendingMatchRequests 2`] = `
+Array [
+  Array [
+    "match|cache",
+  ],
+]
+`;
+
 exports[`matchorders 1`] = `
 Array [
   Array [
@@ -1064,6 +1078,25 @@ Array [
   Array [
     "code1|code2",
     "orderHash3",
+  ],
+]
+`;
+
+exports[`persistPendingMatch 1`] = `
+Array [
+  Array [
+    "match|cache",
+    "txHash",
+    "{\\"pendingRequest\\":\\"pendingRequest\\",\\"transactionHash\\":\\"txHash\\"}",
+  ],
+]
+`;
+
+exports[`queueMatchRequest 1`] = `
+Array [
+  Array [
+    "match|queue",
+    "\\"matchRequest\\"",
   ],
 ]
 `;

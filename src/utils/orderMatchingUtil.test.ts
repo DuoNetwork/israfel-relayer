@@ -1,7 +1,41 @@
 import orderMatchingUtil from './orderMatchingUtil';
 import orderPersistenceUtil from './orderPersistenceUtil';
 import orderUtil from './orderUtil';
+import redisUtil from './redisUtil';
 import util from './util';
+
+test('queueMatchRequest', () => {
+	redisUtil.push = jest.fn();
+	orderMatchingUtil.queueMatchRequest('matchRequest' as any);
+	expect((redisUtil.push as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('persistPendingMatch no txHash', async () => {
+	redisUtil.hashSet = jest.fn();
+	expect(
+		await orderMatchingUtil.persistPendingMatch({
+			pendingRequest: 'pendingRequest'
+		} as any)
+	).toBeUndefined();
+	expect(redisUtil.hashSet as jest.Mock).not.toBeCalled();
+});
+
+test('persistPendingMatch', async () => {
+	redisUtil.hashSet = jest.fn();
+	await orderMatchingUtil.persistPendingMatch({
+		pendingRequest: 'pendingRequest',
+		transactionHash: 'txHash'
+	} as any);
+	expect((redisUtil.hashSet as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('getAllPendingMatchRequests', async () => {
+	redisUtil.hashGetAll = jest.fn(() => Promise.resolve({
+		txHash: JSON.stringify('pendingMatchRequest')
+	}));
+	expect(await orderMatchingUtil.getAllPendingMatchRequests()).toMatchSnapshot();
+	expect((redisUtil.hashGetAll as jest.Mock).mock.calls).toMatchSnapshot();
+})
 
 const orderBook = {
 	bids: [
