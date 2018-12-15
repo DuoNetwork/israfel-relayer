@@ -189,6 +189,72 @@ Array [
 ]
 `;
 
+exports[`addUserOrder with txHash 1`] = `
+Array [
+  Array [
+    Object {
+      "Item": Object {
+        "accountYearMonth": Object {
+          "S": "0xAccount|1970-01",
+        },
+        "amount": Object {
+          "N": "456",
+        },
+        "balance": Object {
+          "N": "123",
+        },
+        "createdAt": Object {
+          "N": "1234560000",
+        },
+        "expiry": Object {
+          "N": "1234567890",
+        },
+        "fee": Object {
+          "N": "1",
+        },
+        "feeAsset": Object {
+          "S": "feeAsset",
+        },
+        "fill": Object {
+          "N": "234",
+        },
+        "initialSequence": Object {
+          "N": "1",
+        },
+        "matching": Object {
+          "N": "111",
+        },
+        "pairOrderHashSequenceStatus": Object {
+          "S": "code1|code2|0xOrderHash|2|status",
+        },
+        "price": Object {
+          "N": "0.12345678",
+        },
+        "processed": Object {
+          "BOOL": false,
+        },
+        "side": Object {
+          "S": "side",
+        },
+        "transactionHash": Object {
+          "S": "txHash",
+        },
+        "type": Object {
+          "S": "type",
+        },
+        "updatedAt": Object {
+          "N": "1234567890",
+        },
+        "updatedBy": Object {
+          "S": "updatedBy",
+        },
+      },
+      "TableName": "israfel.userOrders.dev",
+    },
+  ],
+]
+`;
+
 exports[`deleteData 1`] = `
 Array [
   Array [
@@ -443,6 +509,29 @@ Array [
     "processed": true,
     "side": "side",
     "status": "status",
+    "type": "type",
+    "updatedAt": 1234567890,
+    "updatedBy": "updatedBy",
+  },
+  Object {
+    "account": "0xAccount",
+    "amount": 456,
+    "balance": 123,
+    "createdAt": 1234560000,
+    "currentSequence": 1,
+    "expiry": 1234567890,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 234,
+    "initialSequence": 1,
+    "matching": 111,
+    "orderHash": "0xOrderHash",
+    "pair": "code1|code2",
+    "price": 123,
+    "processed": true,
+    "side": "side",
+    "status": "status",
+    "transactionHash": "txHash",
     "type": "type",
     "updatedAt": 1234567890,
     "updatedBy": "updatedBy",

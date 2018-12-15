@@ -541,6 +541,34 @@ test('addUserOrder', async () => {
 	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
+test('addUserOrder with txHash', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
+	await dynamoUtil.addUserOrder({
+		account: '0xAccount',
+		pair: 'code1|code2',
+		type: 'type',
+		status: 'status',
+		orderHash: '0xOrderHash',
+		price: 0.123456789,
+		balance: 123,
+		amount: 456,
+		matching: 111,
+		fill: 234,
+		side: 'side',
+		expiry: 1234567890,
+		fee: 1,
+		feeAsset: 'feeAsset',
+		createdAt: 1234560000,
+		initialSequence: 1,
+		currentSequence: 2,
+		updatedBy: 'updatedBy',
+		processed: false,
+		transactionHash: 'txHash'
+	});
+	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
 test('getUserOrdersForMonth', async () => {
 	let queryOutput: { [key: string]: any } = {
 		Items: []
@@ -572,6 +600,30 @@ test('getUserOrdersForMonth', async () => {
 				[CST.DB_UPDATED_AT]: { N: '1234567890' },
 				[CST.DB_UPDATED_BY]: { S: 'updatedBy' },
 				[CST.DB_PROCESSED]: { BOOL: true }
+			},
+			{
+				[CST.DB_ACCOUNT_YM]: {
+					S: '0xAccount|year-month'
+				},
+				[CST.DB_PAIR_OH_SEQ_STATUS]: { S: 'code1|code2|0xOrderHash|1|status' },
+				[CST.DB_TYPE]: { S: 'type' },
+				[CST.DB_PRICE]: {
+					N: '123'
+				},
+				[CST.DB_BALANCE]: { N: '123' },
+				[CST.DB_AMOUNT]: { N: '456' },
+				[CST.DB_MATCHING]: { N: '111' },
+				[CST.DB_FILL]: { N: '234' },
+				[CST.DB_SIDE]: { S: 'side' },
+				[CST.DB_EXP]: { N: '1234567890' },
+				[CST.DB_FEE]: { N: '1' },
+				[CST.DB_FEE_ASSET]: { S: 'feeAsset' },
+				[CST.DB_INITIAL_SEQ]: { N: '1' },
+				[CST.DB_CREATED_AT]: { N: '1234560000' },
+				[CST.DB_UPDATED_AT]: { N: '1234567890' },
+				[CST.DB_UPDATED_BY]: { S: 'updatedBy' },
+				[CST.DB_PROCESSED]: { BOOL: true },
+				[CST.DB_TX_HASH]: { S: 'txHash' }
 			}
 		]
 	};

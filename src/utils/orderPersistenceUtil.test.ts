@@ -42,14 +42,14 @@ const liveOrder = {
 test('addUserOrderToDB', async () => {
 	dynamoUtil.addUserOrder = jest.fn(() => Promise.resolve());
 	expect(
-		await orderPersistenceUtil.addUserOrderToDB(liveOrder, 'type', 'status', 'updatedBy', true)
+		await orderPersistenceUtil.addUserOrderToDB(liveOrder, 'type', 'status', 'updatedBy', true, 'txHash')
 	).toMatchSnapshot();
 });
 
 test('addUserOrderToDB error', async () => {
 	dynamoUtil.addUserOrder = jest.fn(() => Promise.reject('addUserOrderToDB'));
 	expect(
-		await orderPersistenceUtil.addUserOrderToDB(liveOrder, 'type', 'status', 'updatedBy', false)
+		await orderPersistenceUtil.addUserOrderToDB(liveOrder, 'type', 'status', 'updatedBy', false, 'txHash')
 	).toMatchSnapshot();
 });
 
@@ -254,7 +254,8 @@ test('persistOrder not add match', async () => {
 			pair: 'code1|code2',
 			token: 'token' as any,
 			orderHash: '0xOrderHash',
-			matching: 20
+			matching: 20,
+			transactionHash: 'txHash'
 		})
 	).not.toBeNull();
 	expect((redisUtil.hashSet as jest.Mock).mock.calls).toMatchSnapshot();

@@ -34,6 +34,7 @@ export interface IUserOrder extends ILiveOrder {
 	status: string;
 	updatedBy: string;
 	processed: boolean;
+	transactionHash?: string;
 }
 
 export interface IRawOrder {
@@ -71,6 +72,7 @@ export interface IOrderPersistRequest {
 	fill?: number;
 	matching?: number;
 	signedOrder?: IStringSignedOrder;
+	transactionHash?: string;
 }
 
 export interface IOrderMatchRequest {
@@ -86,6 +88,7 @@ export interface IOrderQueueItem {
 	requestor: string;
 	liveOrder: ILiveOrder;
 	signedOrder?: IStringSignedOrder;
+	transactionHash?: string;
 }
 
 export interface IOrderBook {

@@ -254,7 +254,8 @@ class RelayerServer {
 				orderQueueItem.method,
 				orderQueueItem.status,
 				orderQueueItem.requestor,
-				true
+				true,
+				orderQueueItem.transactionHash
 			);
 			this.accountClients[account].forEach(ws =>
 				this.sendUserOrderResponse(ws, userOrder, orderQueueItem.method)

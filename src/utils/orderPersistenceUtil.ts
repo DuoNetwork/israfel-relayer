@@ -55,14 +55,16 @@ class OrderPersistenceUtil {
 		type: string,
 		status: string,
 		updatedBy: string,
-		processed: boolean
+		processed: boolean,
+		txHash?: string
 	) {
 		const userOrder = orderUtil.constructUserOrder(
 			liveOrder,
 			type,
 			status,
 			updatedBy,
-			processed
+			processed,
+			txHash
 		);
 		try {
 			await dynamoUtil.addUserOrder(userOrder);
@@ -166,7 +168,8 @@ class OrderPersistenceUtil {
 			matching,
 			token,
 			status,
-			requestor
+			requestor,
+			transactionHash
 		} = orderPersistRequest;
 		if (method === CST.DB_ADD && !token) {
 			util.logDebug(`invalid add request ${orderHash}, missing token`);
@@ -227,6 +230,9 @@ class OrderPersistenceUtil {
 			);
 		}
 
+		if (transactionHash)
+			orderQueueItem.transactionHash = transactionHash;
+
 		util.logDebug(`storing order queue item in redis ${orderHash}`);
 		await redisUtil.multi();
 		const key = this.getCacheMapField(pair, method, orderHash);
@@ -243,7 +249,14 @@ class OrderPersistenceUtil {
 			util.logError(error);
 		}
 
-		return this.addUserOrderToDB(orderQueueItem.liveOrder, method, status, requestor, false);
+		return this.addUserOrderToDB(
+			orderQueueItem.liveOrder,
+			method,
+			status,
+			requestor,
+			false,
+			transactionHash
+		);
 	}
 
 	// public async queueMatchOrders(orderMatchRequest: IOrderMatchRequest) {
@@ -300,7 +313,8 @@ class OrderPersistenceUtil {
 			method,
 			orderQueueItem.status,
 			orderQueueItem.requestor,
-			true
+			true,
+			orderQueueItem.transactionHash
 		);
 
 		return true;

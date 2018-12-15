@@ -39,6 +39,7 @@ Object {
   "processed": true,
   "side": "ask",
   "status": "status",
+  "transactionHash": "txHash",
   "type": "type",
   "updatedBy": "updatedBy",
 }
@@ -83,6 +84,7 @@ Object {
   "processed": true,
   "side": "bid",
   "status": "status",
+  "transactionHash": "txHash",
   "type": "type",
   "updatedBy": "updatedBy",
 }

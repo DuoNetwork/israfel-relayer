@@ -48,7 +48,7 @@ test('constructNewLiveOrder bid', () => {
 		'takerCode|makerCode',
 		'0xOrderHash'
 	);
-	const userOrder = orderUtil.constructUserOrder(liveOrder, 'type', 'status', 'updatedBy', true);
+	const userOrder = orderUtil.constructUserOrder(liveOrder, 'type', 'status', 'updatedBy', true, 'txHash');
 	expect(liveOrder).toMatchSnapshot();
 	expect(userOrder).toMatchSnapshot();
 });
@@ -76,7 +76,7 @@ test('constructNewLiveOrder ask', () => {
 		'makerCode|takerCode',
 		'0xOrderHash'
 	);
-	const userOrder = orderUtil.constructUserOrder(liveOrder, 'type', 'status', 'updatedBy', true);
+	const userOrder = orderUtil.constructUserOrder(liveOrder, 'type', 'status', 'updatedBy', true, 'txHash');
 	expect(liveOrder).toMatchSnapshot();
 	expect(userOrder).toMatchSnapshot();
 });

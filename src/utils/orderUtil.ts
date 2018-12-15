@@ -10,14 +10,16 @@ class OrderUtil {
 		type: string,
 		status: string,
 		updatedBy: string,
-		processed: boolean
+		processed: boolean,
+		txHash?: string
 	): IUserOrder {
 		return {
 			...liveOrder,
 			type: type,
 			status: status,
 			updatedBy: updatedBy,
-			processed: processed
+			processed: processed,
+			transactionHash: txHash
 		};
 	}
 

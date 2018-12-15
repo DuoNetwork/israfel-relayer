@@ -381,7 +381,7 @@ class DynamoUtil {
 
 	public convertUserOrderToDynamo(userOrder: IUserOrder): AttributeMap {
 		const timestamp = util.getUTCNowTimestamp();
-		return {
+		const data: AttributeMap = {
 			[CST.DB_ACCOUNT_YM]: {
 				S: userOrder.account + '|' + moment.utc(timestamp).format('YYYY-MM')
 			},
@@ -408,6 +408,8 @@ class DynamoUtil {
 			[CST.DB_UPDATED_BY]: { S: userOrder.updatedBy + '' },
 			[CST.DB_PROCESSED]: { BOOL: userOrder.processed }
 		};
+		if (userOrder.transactionHash) data[CST.DB_TX_HASH] = { S: userOrder.transactionHash };
+		return data;
 	}
 
 	public addUserOrder(userOrder: IUserOrder) {
@@ -423,7 +425,7 @@ class DynamoUtil {
 		const [code1, code2, orderHash, seq, status] = (
 			data[CST.DB_PAIR_OH_SEQ_STATUS].S || ''
 		).split('|');
-		return {
+		const userOrder: IUserOrder = {
 			account: (data[CST.DB_ACCOUNT_YM].S || '').split('|')[0],
 			pair: `${code1}|${code2}`,
 			type: data[CST.DB_TYPE].S || '',
@@ -445,6 +447,8 @@ class DynamoUtil {
 			updatedBy: data[CST.DB_UPDATED_BY].S || '',
 			processed: !!data[CST.DB_PROCESSED].BOOL
 		};
+		if (data[CST.DB_TX_HASH]) userOrder.transactionHash = data[CST.DB_TX_HASH].S;
+		return userOrder;
 	}
 
 	public async getUserOrders(account: string, start: number, end: number = 0, pair: string = '') {
