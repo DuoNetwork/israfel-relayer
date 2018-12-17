@@ -210,7 +210,7 @@ class OrderPersistenceUtil {
 				0
 			);
 		} else if (matching) {
-			// only from orderBook
+			// only from orderMatcher
 			orderQueueItem.liveOrder.balance = Math.max(
 				orderQueueItem.liveOrder.balance - matching,
 				0

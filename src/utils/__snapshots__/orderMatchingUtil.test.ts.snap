@@ -504,30 +504,6 @@ Object {
 }
 `;
 
-exports[`getAllPendingMatchRequests 1`] = `
-Object {
-  "txHash": "pendingMatchRequest",
-}
-`;
-
-exports[`getAllPendingMatchRequests 2`] = `
-Array [
-  Array [
-    "match|cache",
-  ],
-]
-`;
-
-exports[`persistPendingMatch 1`] = `
-Array [
-  Array [
-    "match|cache",
-    "txHash",
-    "{\\"pendingRequest\\":\\"pendingRequest\\",\\"transactionHash\\":\\"txHash\\"}",
-  ],
-]
-`;
-
 exports[`queueMatchRequest 1`] = `
 Array [
   Array [

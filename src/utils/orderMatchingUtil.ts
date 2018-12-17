@@ -1,4 +1,4 @@
-import { BigNumber, SignedOrder } from '0x.js';
+import { BigNumber } from '0x.js';
 import * as CST from '../common/constants';
 import {
 	ILiveOrder,
@@ -19,39 +19,38 @@ import Web3Util from './Web3Util';
 class OrderMatchingUtil {
 	public availableAddrs: string[] = [];
 	public currentAddrIdx: number = 0;
-	public currentAddr = this.availableAddrs[this.currentAddrIdx];
 
 	private getMatchQueueKey() {
 		return `${CST.DB_MATCH}|${CST.DB_QUEUE}`;
 	}
 
-	private getMatchCacheMapKey() {
-		return `${CST.DB_MATCH}|${CST.DB_CACHE}`;
-	}
+	// private getMatchCacheMapKey() {
+	// 	return `${CST.DB_MATCH}|${CST.DB_CACHE}`;
+	// }
 
 	public queueMatchRequest(orderMatchRequest: IOrderMatchRequest) {
 		// push request into queue
 		redisUtil.push(this.getMatchQueueKey(), JSON.stringify(orderMatchRequest));
 	}
 
-	public async persistPendingMatch(orderMatchRequest: IOrderMatchRequest) {
-		if (!orderMatchRequest.transactionHash) return;
+	// public async persistPendingMatch(orderMatchRequest: IOrderMatchRequest) {
+	// 	if (!orderMatchRequest.transactionHash) return;
 
-		return redisUtil.hashSet(
-			this.getMatchCacheMapKey(),
-			orderMatchRequest.transactionHash,
-			JSON.stringify(orderMatchRequest)
-		);
-	}
+	// 	return redisUtil.hashSet(
+	// 		this.getMatchCacheMapKey(),
+	// 		orderMatchRequest.transactionHash,
+	// 		JSON.stringify(orderMatchRequest)
+	// 	);
+	// }
 
-	public async getAllPendingMatchRequests() {
-		const allRequestStrings = await redisUtil.hashGetAll(this.getMatchCacheMapKey());
-		const allRequests: { [txHash: string]: IOrderMatchRequest } = {};
-		for (const txHash in allRequestStrings)
-			allRequests[txHash] = JSON.parse(allRequestStrings[txHash]);
+	// public async getAllPendingMatchRequests() {
+	// 	const allRequestStrings = await redisUtil.hashGetAll(this.getMatchCacheMapKey());
+	// 	const allRequests: { [txHash: string]: IOrderMatchRequest } = {};
+	// 	for (const txHash in allRequestStrings)
+	// 		allRequests[txHash] = JSON.parse(allRequestStrings[txHash]);
 
-		return allRequests;
-	}
+	// 	return allRequests;
+	// }
 
 	public findMatchingOrders(
 		orderBook: IOrderBook,
@@ -144,189 +143,252 @@ class OrderMatchingUtil {
 		};
 	}
 
-	public async matchOrders(
-		web3Util: Web3Util,
-		pair: string,
-		orderMatchRequests: IOrderMatchRequest[],
-		feeOnToken: boolean
-	) {
-		const totalMatchingAmount: { [orderHash: string]: number } = {};
-		const validOrdersToMatch: string[][] = [];
-		const signedOrders: { [orderHash: string]: SignedOrder } = {};
-		const missingSignedOrders: { [orderHash: string]: boolean } = {};
-		const matchingStatus: { [orderHash: string]: boolean } = {};
+	// public async matchOrders(
+	// 	web3Util: Web3Util,
+	// 	pair: string,
+	// 	orderMatchRequests: IOrderMatchRequest[],
+	// 	feeOnToken: boolean
+	// ) {
+	// 	const totalMatchingAmount: { [orderHash: string]: number } = {};
+	// 	const validOrdersToMatch: string[][] = [];
+	// 	const signedOrders: { [orderHash: string]: SignedOrder } = {};
+	// 	const missingSignedOrders: { [orderHash: string]: boolean } = {};
+	// 	const matchingStatus: { [orderHash: string]: boolean } = {};
 
-		for (const omr of orderMatchRequests) {
-			const { leftOrderHash, rightOrderHash, amount } = omr;
-			if (missingSignedOrders[leftOrderHash] || missingSignedOrders[rightOrderHash]) {
-				util.logDebug('ignore match with missing signed order');
-				continue;
-			}
-			if (!signedOrders[leftOrderHash]) {
-				const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
-					pair,
-					leftOrderHash
-				);
-				if (!leftRawOrder) {
-					util.logError(`raw order of ${leftOrderHash} does not exist`);
-					missingSignedOrders[leftOrderHash] = true;
-					continue;
-				}
-				signedOrders[leftOrderHash] = orderUtil.parseSignedOrder(
-					leftRawOrder.signedOrder as IStringSignedOrder
-				);
-			}
-			if (!signedOrders[rightOrderHash]) {
-				const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
-					pair,
-					rightOrderHash
-				);
+	// 	for (const omr of orderMatchRequests) {
+	// 		const { leftOrderHash, rightOrderHash, amount } = omr;
+	// 		if (missingSignedOrders[leftOrderHash] || missingSignedOrders[rightOrderHash]) {
+	// 			util.logDebug('ignore match with missing signed order');
+	// 			continue;
+	// 		}
+	// 		if (!signedOrders[leftOrderHash]) {
+	// 			const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
+	// 				pair,
+	// 				leftOrderHash
+	// 			);
+	// 			if (!leftRawOrder) {
+	// 				util.logError(`raw order of ${leftOrderHash} does not exist`);
+	// 				missingSignedOrders[leftOrderHash] = true;
+	// 				continue;
+	// 			}
+	// 			signedOrders[leftOrderHash] = orderUtil.parseSignedOrder(
+	// 				leftRawOrder.signedOrder as IStringSignedOrder
+	// 			);
+	// 		}
+	// 		if (!signedOrders[rightOrderHash]) {
+	// 			const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
+	// 				pair,
+	// 				rightOrderHash
+	// 			);
 
-				if (!rightRawOrder) {
-					util.logError(`raw order of ${rightOrderHash} does not exist`);
-					missingSignedOrders[rightOrderHash] = true;
-					continue;
-				}
+	// 			if (!rightRawOrder) {
+	// 				util.logError(`raw order of ${rightOrderHash} does not exist`);
+	// 				missingSignedOrders[rightOrderHash] = true;
+	// 				continue;
+	// 			}
 
-				signedOrders[rightOrderHash] = orderUtil.parseSignedOrder(
-					rightRawOrder.signedOrder as IStringSignedOrder
-				);
-			}
-			totalMatchingAmount[leftOrderHash] = (totalMatchingAmount[leftOrderHash] || 0) + amount;
-			totalMatchingAmount[rightOrderHash] =
-				(totalMatchingAmount[rightOrderHash] || 0) + amount;
-			validOrdersToMatch.push([leftOrderHash, rightOrderHash]);
-		}
+	// 			signedOrders[rightOrderHash] = orderUtil.parseSignedOrder(
+	// 				rightRawOrder.signedOrder as IStringSignedOrder
+	// 			);
+	// 		}
+	// 		totalMatchingAmount[leftOrderHash] = (totalMatchingAmount[leftOrderHash] || 0) + amount;
+	// 		totalMatchingAmount[rightOrderHash] =
+	// 			(totalMatchingAmount[rightOrderHash] || 0) + amount;
+	// 		validOrdersToMatch.push([leftOrderHash, rightOrderHash]);
+	// 	}
 
-		for (const orderHash in totalMatchingAmount)
-			await orderPersistenceUtil.persistOrder({
-				method: CST.DB_UPDATE,
-				pair: pair,
-				orderHash: orderHash,
-				matching: totalMatchingAmount[orderHash],
-				requestor: CST.DB_ORDER_MATCHER,
-				status: CST.DB_MATCHING
-			});
+	// 	for (const orderHash in totalMatchingAmount)
+	// 		await orderPersistenceUtil.persistOrder({
+	// 			method: CST.DB_UPDATE,
+	// 			pair: pair,
+	// 			orderHash: orderHash,
+	// 			matching: totalMatchingAmount[orderHash],
+	// 			requestor: CST.DB_ORDER_MATCHER,
+	// 			status: CST.DB_MATCHING
+	// 		});
 
-		if (validOrdersToMatch.length > 0) {
-			let currentNonce = await web3Util.getTransactionCount(this.currentAddr);
-			const curretnGasPrice = Math.max(await web3Util.getGasPrice(), 5000000000);
+	// 	if (validOrdersToMatch.length > 0) {
+	// 		let currentNonce = await web3Util.getTransactionCount(this.currentAddr);
+	// 		const curretnGasPrice = Math.max(await web3Util.getGasPrice(), 5000000000);
 
-			for (const orders of validOrdersToMatch) {
-				const leftOrderHash = orders[0];
-				const rightOrderHash = orders[1];
-				try {
-					const txHash = await web3Util.matchOrders(
-						signedOrders[feeOnToken ? rightOrderHash : leftOrderHash],
-						signedOrders[feeOnToken ? leftOrderHash : rightOrderHash],
-						this.currentAddr,
-						{
-							gasPrice: new BigNumber(curretnGasPrice),
-							gasLimit: 300000,
-							nonce: currentNonce,
-							shouldValidate: true
-						}
-					);
+	// 		for (const orders of validOrdersToMatch) {
+	// 			const leftOrderHash = orders[0];
+	// 			const rightOrderHash = orders[1];
+	// 			try {
+	// 				const txHash = await web3Util.matchOrders(
+	// 					signedOrders[feeOnToken ? rightOrderHash : leftOrderHash],
+	// 					signedOrders[feeOnToken ? leftOrderHash : rightOrderHash],
+	// 					this.currentAddr,
+	// 					{
+	// 						gasPrice: new BigNumber(curretnGasPrice),
+	// 						gasLimit: 300000,
+	// 						nonce: currentNonce,
+	// 						shouldValidate: true
+	// 					}
+	// 				);
 
-					util.logDebug(`matching result for bidOrder ${
-						feeOnToken ? leftOrderHash : rightOrderHash
-					}
-					and askOrder ${feeOnToken ? rightOrderHash : leftOrderHash} + txHash ${txHash}`);
-					matchingStatus[leftOrderHash] = true;
-					matchingStatus[rightOrderHash] = true;
-					currentNonce++;
-				} catch (err) {
-					util.logDebug(
-						`matching error for bidOrder ${feeOnToken ? leftOrderHash : rightOrderHash}
-						and askOrder ${feeOnToken ? rightOrderHash : leftOrderHash}
-						err is ${JSON.stringify(err)} with order details ${JSON.stringify(orders)}`
-					);
-					matchingStatus[leftOrderHash] = false || !!matchingStatus[leftOrderHash];
-					matchingStatus[rightOrderHash] = false || !!matchingStatus[rightOrderHash];
-				}
-			}
-		}
+	// 				util.logDebug(`matching result for bidOrder ${
+	// 					feeOnToken ? leftOrderHash : rightOrderHash
+	// 				}
+	// 				and askOrder ${feeOnToken ? rightOrderHash : leftOrderHash} + txHash ${txHash}`);
+	// 				matchingStatus[leftOrderHash] = true;
+	// 				matchingStatus[rightOrderHash] = true;
+	// 				currentNonce++;
+	// 			} catch (err) {
+	// 				util.logDebug(
+	// 					`matching error for bidOrder ${feeOnToken ? leftOrderHash : rightOrderHash}
+	// 					and askOrder ${feeOnToken ? rightOrderHash : leftOrderHash}
+	// 					err is ${JSON.stringify(err)} with order details ${JSON.stringify(orders)}`
+	// 				);
+	// 				matchingStatus[leftOrderHash] = false || !!matchingStatus[leftOrderHash];
+	// 				matchingStatus[rightOrderHash] = false || !!matchingStatus[rightOrderHash];
+	// 			}
+	// 		}
+	// 	}
 
-		for (const orderHash in matchingStatus)
-			if (!matchingStatus[orderHash])
-				await orderPersistenceUtil.persistOrder({
-					method: CST.DB_TERMINATE,
-					pair: pair,
-					orderHash: orderHash,
-					requestor: CST.DB_ORDER_MATCHER,
-					status: CST.DB_MATCHING
-				});
-	}
+	// 	for (const orderHash in matchingStatus)
+	// 		if (!matchingStatus[orderHash])
+	// 			await orderPersistenceUtil.persistOrder({
+	// 				method: CST.DB_TERMINATE,
+	// 				pair: pair,
+	// 				orderHash: orderHash,
+	// 				requestor: CST.DB_ORDER_MATCHER,
+	// 				status: CST.DB_MATCHING
+	// 			});
+	// }
 
 	public async processMatchQueue(web3Util: Web3Util) {
-		const matchRequest: IOrderMatchRequest = JSON.parse(
-			await redisUtil.pop(this.getMatchQueueKey())
-		);
-		let feeOnToken = true;
-		const token = web3Util.tokens.find(t => t.code === matchRequest.pair.split('|')[0]);
-		if (token && token.feeSchedules[CST.TOKEN_WETH] && token.feeSchedules[CST.TOKEN_WETH].asset)
-			feeOnToken = false;
-		if (!matchRequest) return false;
-		const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
-			matchRequest.pair,
-			matchRequest.leftOrderHash
-		);
-		if (!leftRawOrder) {
-			util.logError(`raw order of ${matchRequest.leftOrderHash} does not exist`);
-			return false;
-		}
-
-		const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
-			matchRequest.pair,
-			matchRequest.rightOrderHash
-		);
-		if (!rightRawOrder) {
-			util.logError(`raw order of ${matchRequest.rightOrderHash} does not exist`);
-			return false;
-		}
-
-		const leftOrder = orderUtil.parseSignedOrder(
-			leftRawOrder.signedOrder as IStringSignedOrder
-		);
-		const rightOrder = orderUtil.parseSignedOrder(
-			rightRawOrder.signedOrder as IStringSignedOrder
-		);
-
-		const currentNonce = await web3Util.getTransactionCount(this.currentAddr);
-		const curretnGasPrice = Math.max(await web3Util.getGasPrice(), 5000000000);
-
+		const reqString = await redisUtil.pop(this.getMatchQueueKey());
+		if (!reqString) return false;
+		const matchRequest: IOrderMatchRequest = JSON.parse(reqString);
+		const { pair, leftOrderHash, rightOrderHash, amount } = matchRequest;
 		try {
-			const txHash = await web3Util.matchOrders(
-				feeOnToken ? rightOrder : leftOrder,
-				feeOnToken ? leftOrder : rightOrder,
-				this.currentAddr,
-				{
-					gasPrice: new BigNumber(curretnGasPrice),
-					gasLimit: 300000,
-					nonce: currentNonce,
-					shouldValidate: true
-				}
+			let feeOnToken = true;
+			const [code1, code2] = pair.split('|');
+			const token = web3Util.tokens.find(t => t.code === code1);
+			if (token && token.feeSchedules[code2] && token.feeSchedules[code2].asset)
+				feeOnToken = false;
+			const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
+				pair,
+				leftOrderHash
 			);
-			this.currentAddrIdx = (this.currentAddrIdx + 1) % this.availableAddrs.length;
-			this.currentAddr = this.availableAddrs[this.currentAddrIdx];
+			if (!leftRawOrder) {
+				util.logError(`raw order of ${leftOrderHash} does not exist, ignore match request`);
+				return false;
+			}
 
-			const res = await web3Util.awaitTransactionSuccessAsync(txHash);
-			if (res.status) return true;
-			// tx revert on chain handling below
-			else return false;
+			const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
+				pair,
+				rightOrderHash
+			);
+			if (!rightRawOrder) {
+				util.logError(
+					`raw order of ${rightOrderHash} does not exist, ignore match request`
+				);
+				return false;
+			}
+
+			const leftOrder = orderUtil.parseSignedOrder(
+				leftRawOrder.signedOrder as IStringSignedOrder
+			);
+			const rightOrder = orderUtil.parseSignedOrder(
+				rightRawOrder.signedOrder as IStringSignedOrder
+			);
+
+			const currentAddr = this.getCurrentAddress();
+			const currentNonce = await web3Util.getTransactionCount(currentAddr);
+			const curretnGasPrice = Math.max(await web3Util.getGasPrice(), 5000000000);
+			let txHash = '';
+			try {
+				txHash = await web3Util.matchOrders(
+					feeOnToken ? rightOrder : leftOrder,
+					feeOnToken ? leftOrder : rightOrder,
+					currentAddr,
+					{
+						gasPrice: new BigNumber(curretnGasPrice),
+						gasLimit: 300000,
+						nonce: currentNonce,
+						shouldValidate: true
+					}
+				);
+			} catch (matchError) {
+				util.logError('error in sending match tx for ' + reqString);
+				await Promise.all(
+					[leftOrderHash, rightOrderHash].map(orderHash =>
+						orderPersistenceUtil.persistOrder({
+							method: CST.DB_TERMINATE,
+							pair: pair,
+							orderHash: orderHash,
+							requestor: CST.DB_ORDER_MATCHER,
+							status: CST.DB_MATCHING
+						})
+					)
+				);
+
+				return true;
+			}
+
+			util.logDebug(txHash + ' sent for ' + reqString + ', sending order update');
+			await Promise.all(
+				[leftOrderHash, rightOrderHash].map(orderHash =>
+					orderPersistenceUtil.persistOrder({
+						method: CST.DB_UPDATE,
+						pair: pair,
+						orderHash: orderHash,
+						matching: amount,
+						requestor: CST.DB_ORDER_MATCHER,
+						status: CST.DB_MATCHING
+					})
+				)
+			);
+
+			if (txHash)
+				web3Util
+					.awaitTransactionSuccessAsync(txHash)
+					.then(receipt =>
+						util.logDebug('matchOrder successfully mined ' + JSON.stringify(receipt))
+					)
+					.catch(async txError => {
+						util.logError(
+							txHash +
+								' reverted ' +
+								txError +
+								', move matching amount back to balance'
+						);
+						await Promise.all(
+							[leftOrderHash, rightOrderHash].map(orderHash =>
+								orderPersistenceUtil.persistOrder({
+									method: CST.DB_UPDATE,
+									pair: pair,
+									orderHash: orderHash,
+									matching: -amount,
+									requestor: CST.DB_ORDER_MATCHER,
+									status: CST.DB_MATCHING
+								})
+							)
+						);
+					});
+
+			return true;
 		} catch (err) {
-			util.logDebug('error in call, terminate');
+			util.logError(`error in processing for ${reqString}`);
+			util.logError(err);
+			redisUtil.putBack(this.getMatchQueueKey(), reqString);
 			return false;
 		}
+	}
+
+	public getCurrentAddress() {
+		const currentAddr = this.availableAddrs[this.currentAddrIdx];
+		this.currentAddrIdx = (this.currentAddrIdx + 1) % this.availableAddrs.length;
+		return currentAddr;
 	}
 
 	public async startProcessing(option: IOption) {
 		const mnemonic = require('../keys/mnemomic.json');
 		const web3Util = new Web3Util(null, option.live, mnemonic.mnemomic, false);
-		if (web3Util) {
-			this.availableAddrs = await web3Util.getAvailableAddresses();
-			web3Util.setTokens(await dynamoUtil.scanTokens());
-		}
+		this.availableAddrs = await web3Util.getAvailableAddresses();
+		web3Util.setTokens(await dynamoUtil.scanTokens());
 
 		if (option.server) {
 			dynamoUtil.updateStatus(
