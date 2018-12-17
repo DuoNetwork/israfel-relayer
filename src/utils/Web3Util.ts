@@ -14,11 +14,11 @@ import {
 } from '0x.js';
 import { getContractAddressesForNetworkOrThrow } from '@0x/contract-addresses';
 import { schemas, SchemaValidator } from '@0x/json-schemas';
-import { MetamaskSubprovider, PrivateKeyWalletSubprovider } from '@0x/subproviders';
+import {MetamaskSubprovider, MnemonicWalletSubprovider , PrivateKeyWalletSubprovider } from '@0x/subproviders';
 import { addressUtils } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as CST from '../common/constants';
-import { IRawOrder, IStringSignedOrder, IToken, Wallet } from '../common/types';
+import {IMnemonicConfig, IRawOrder, IStringSignedOrder, IToken, Wallet } from '../common/types';
 import util from './util';
 
 const Web3Eth = require('web3-eth');
@@ -40,7 +40,7 @@ export default class Web3Util {
 	public contractAddresses: ContractAddresses;
 	public readonly relayerAddress: string;
 
-	constructor(window: any, live: boolean, privateKey: string, local: boolean) {
+	constructor(window: any, live: boolean, privateKey: string, mnemonicConfig: IMnemonicConfig, local: boolean) {
 		this.networkId = live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN;
 		if (window && (window.ethereum || window.web3)) {
 			this.rawMetamaskProvider = window.ethereum || window.web3.currentProvider;
@@ -59,6 +59,14 @@ export default class Web3Util {
 				if (!window && privateKey) {
 					pe.addProvider(new PrivateKeyWalletSubprovider(privateKey));
 					this.web3Eth = new Web3Eth(infuraProvider);
+				}
+
+				if (!window && mnemonicConfig) {
+					const mnemonicWallet = new MnemonicWalletSubprovider({
+						mnemonic: mnemonicConfig.MNEMONIC,
+						baseDerivationPath: mnemonicConfig.BASE_DERIVATION_PATH,
+					});
+					pe.addProvider(mnemonicWallet);
 				}
 
 				pe.addProvider(new RPCSubprovider(infuraProvider));
@@ -85,23 +93,28 @@ export default class Web3Util {
 		return this.web3Wrapper.getProvider();
 	}
 
-	public getTransactionCount() {
-		return this.web3Eth.getTransactionCount(this.relayerAddress);
+	public getTransactionCount(addr: string) {
+		return this.web3Eth.getTransactionCount(addr);
 	}
 
 	public getGasPrice() {
 		return this.web3Eth.getGasPrice();
 	}
 
+	public async getAvailableAddresses(): Promise<string[]> {
+		return await this.web3Wrapper.getAvailableAddressesAsync()
+	}
+
 	public matchOrders(
 		leftOrder: SignedOrder,
 		rightOrder: SignedOrder,
+		senderAddr: string,
 		txOption?: OrderTransactionOpts
 	) {
 		return this.contractWrappers.exchange.matchOrdersAsync(
 			leftOrder,
 			rightOrder,
-			this.relayerAddress,
+			senderAddr,
 			txOption || {}
 		);
 	}

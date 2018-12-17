@@ -37,18 +37,7 @@ Array [
 ]
 `;
 
-exports[`handleOrderUpdate add match 1`] = `
-Array [
-  Array [
-    null,
-    "code1|code2",
-    Array [
-      "ordersToMatch",
-    ],
-    true,
-  ],
-]
-`;
+exports[`handleOrderUpdate add match 1`] = `Array []`;
 
 exports[`handleOrderUpdate add match 2`] = `
 Array [
@@ -190,18 +179,7 @@ Array [
 ]
 `;
 
-exports[`loadLiveOrders 6`] = `
-Array [
-  Array [
-    null,
-    "code1|code2",
-    Array [
-      "ordersToMatch",
-    ],
-    true,
-  ],
-]
-`;
+exports[`loadLiveOrders 6`] = `Array []`;
 
 exports[`loadLiveOrders 7`] = `
 Array [

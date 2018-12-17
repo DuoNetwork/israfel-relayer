@@ -237,3 +237,8 @@ export interface ISubProcess {
 	lastFailTimestamp: number;
 	failCount: number;
 }
+
+export interface IMnemonicConfig {
+	BASE_DERIVATION_PATH: string;
+	MNEMONIC: string;
+}

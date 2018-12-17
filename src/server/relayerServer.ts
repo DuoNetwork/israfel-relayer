@@ -420,7 +420,7 @@ class RelayerServer {
 	}
 
 	public async startServer(config: object, option: IOption) {
-		this.web3Util = new Web3Util(null, option.live, '', false);
+		this.web3Util = new Web3Util(null, option.live, '', null as any, false);
 		this.web3Util.setTokens(await dynamoUtil.scanTokens());
 		setInterval(async () => {
 			if (this.web3Util) this.web3Util.setTokens(await dynamoUtil.scanTokens());
