@@ -313,35 +313,43 @@ class OrderMatchingUtil {
 				);
 			} catch (matchError) {
 				util.logError('error in sending match tx for ' + reqString);
-				await Promise.all(
-					[leftOrderHash, rightOrderHash].map(orderHash =>
-						orderPersistenceUtil.persistOrder({
-							method: CST.DB_TERMINATE,
-							pair: pair,
-							orderHash: orderHash,
-							requestor: CST.DB_ORDER_MATCHER,
-							status: CST.DB_MATCHING
-						})
-					)
-				);
+				await orderPersistenceUtil.persistOrder({
+					method: CST.DB_TERMINATE,
+					pair: pair,
+					orderHash: leftOrderHash,
+					requestor: CST.DB_ORDER_MATCHER,
+					status: CST.DB_MATCHING
+				});
+				await orderPersistenceUtil.persistOrder({
+					method: CST.DB_TERMINATE,
+					pair: pair,
+					orderHash: rightOrderHash,
+					requestor: CST.DB_ORDER_MATCHER,
+					status: CST.DB_MATCHING
+				});
 
 				return true;
 			}
 
 			util.logDebug(txHash + ' sent for ' + reqString + ', sending order update');
-			await Promise.all(
-				[leftOrderHash, rightOrderHash].map(orderHash =>
-					orderPersistenceUtil.persistOrder({
-						method: CST.DB_UPDATE,
-						pair: pair,
-						orderHash: orderHash,
-						matching: amount,
-						requestor: CST.DB_ORDER_MATCHER,
-						status: CST.DB_MATCHING,
-						transactionHash: txHash
-					})
-				)
-			);
+			await orderPersistenceUtil.persistOrder({
+				method: CST.DB_UPDATE,
+				pair: pair,
+				orderHash: leftOrderHash,
+				matching: amount,
+				requestor: CST.DB_ORDER_MATCHER,
+				status: CST.DB_MATCHING,
+				transactionHash: txHash
+			});
+			await orderPersistenceUtil.persistOrder({
+				method: CST.DB_UPDATE,
+				pair: pair,
+				orderHash: rightOrderHash,
+				matching: amount,
+				requestor: CST.DB_ORDER_MATCHER,
+				status: CST.DB_MATCHING,
+				transactionHash: txHash
+			});
 
 			web3Util
 				.awaitTransactionSuccessAsync(txHash)
@@ -352,19 +360,24 @@ class OrderMatchingUtil {
 					util.logError(
 						txHash + ' reverted ' + txError + ', move matching amount back to balance'
 					);
-					await Promise.all(
-						[leftOrderHash, rightOrderHash].map(orderHash =>
-							orderPersistenceUtil.persistOrder({
-								method: CST.DB_UPDATE,
-								pair: pair,
-								orderHash: orderHash,
-								matching: -amount,
-								requestor: CST.DB_ORDER_MATCHER,
-								status: CST.DB_MATCHING,
-								transactionHash: txHash
-							})
-						)
-					);
+					await orderPersistenceUtil.persistOrder({
+						method: CST.DB_UPDATE,
+						pair: pair,
+						orderHash: leftOrderHash,
+						matching: -amount,
+						requestor: CST.DB_ORDER_MATCHER,
+						status: CST.DB_MATCHING,
+						transactionHash: txHash
+					});
+					await orderPersistenceUtil.persistOrder({
+						method: CST.DB_UPDATE,
+						pair: pair,
+						orderHash: rightOrderHash,
+						matching: -amount,
+						requestor: CST.DB_ORDER_MATCHER,
+						status: CST.DB_MATCHING,
+						transactionHash: txHash
+					});
 				});
 
 			return true;
