@@ -16,7 +16,7 @@ import { getContractAddressesForNetworkOrThrow } from '@0x/contract-addresses';
 import { schemas, SchemaValidator } from '@0x/json-schemas';
 import {
 	MetamaskSubprovider,
-	MnemonicWalletSubprovider
+	MnemonicWalletSubprovider,
 	// PrivateKeyWalletSubprovider
 } from '@0x/subproviders';
 import { Web3Wrapper } from '@0x/web3-wrapper';
@@ -71,6 +71,7 @@ export default class Web3Util {
 				// }
 
 				if (!window && mnemonic) {
+					console.log('add mnemonic wallet');
 					const mnemonicWallet = new MnemonicWalletSubprovider({
 						mnemonic: mnemonic,
 						baseDerivationPath: CST.BASE_DERIVATION_PATH
@@ -183,7 +184,8 @@ export default class Web3Util {
 		return {
 			senderAddress: CST.DUMMY_ADDR,
 			makerAddress: userAddr.toLowerCase(),
-			takerAddress: relayerAddr.toLowerCase(),
+			// takerAddress: relayerAddr.toLowerCase(),
+			takerAddress: CST.DUMMY_ADDR,
 			makerFee: new BigNumber(0),
 			takerFee: new BigNumber(0),
 			makerAssetAmount: Web3Wrapper.toBaseUnitAmount(makerAmt, 18),

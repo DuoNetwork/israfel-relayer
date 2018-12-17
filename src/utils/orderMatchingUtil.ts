@@ -295,10 +295,12 @@ class OrderMatchingUtil {
 				rightRawOrder.signedOrder as IStringSignedOrder
 			);
 
-			const currentAddr = this.getCurrentAddress();
+			const currentAddr =  this.getCurrentAddress();
+			util.logDebug('using sender address ' + currentAddr);
 			const currentNonce = await web3Util.getTransactionCount(currentAddr);
 			const curretnGasPrice = Math.max(await web3Util.getGasPrice(), 5000000000);
 			let txHash = '';
+
 			try {
 				txHash = await web3Util.matchOrders(
 					feeOnToken ? rightOrder : leftOrder,
@@ -312,6 +314,7 @@ class OrderMatchingUtil {
 					}
 				);
 			} catch (matchError) {
+				util.logDebug(JSON.stringify(matchError));
 				util.logError('error in sending match tx for ' + reqString);
 				await orderPersistenceUtil.persistOrder({
 					method: CST.DB_TERMINATE,
@@ -354,7 +357,7 @@ class OrderMatchingUtil {
 			web3Util
 				.awaitTransactionSuccessAsync(txHash)
 				.then(receipt =>
-					util.logDebug('matchOrder successfully mined ' + JSON.stringify(receipt))
+					util.logDebug('matchOrder successfully mined ' + JSON.stringify(receipt.blockHash))
 				)
 				.catch(async txError => {
 					util.logError(
@@ -397,8 +400,11 @@ class OrderMatchingUtil {
 
 	public async startProcessing(option: IOption) {
 		const mnemonic = require('../keys/mnemomic.json');
+		// const privateKeyFile = require('../keys/privateKey.dev.json');
 		const web3Util = new Web3Util(null, option.live, mnemonic.mnemomic, false);
 		this.availableAddrs = await web3Util.getAvailableAddresses();
+		console.log('availabel addresss #################');
+		console.log(this.availableAddrs);
 		web3Util.setTokens(await dynamoUtil.scanTokens());
 
 		if (option.server) {
