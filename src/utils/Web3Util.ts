@@ -14,11 +14,15 @@ import {
 } from '0x.js';
 import { getContractAddressesForNetworkOrThrow } from '@0x/contract-addresses';
 import { schemas, SchemaValidator } from '@0x/json-schemas';
-import {MetamaskSubprovider, MnemonicWalletSubprovider , PrivateKeyWalletSubprovider } from '@0x/subproviders';
+import {
+	MetamaskSubprovider,
+	MnemonicWalletSubprovider,
+	PrivateKeyWalletSubprovider
+} from '@0x/subproviders';
 import { addressUtils } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as CST from '../common/constants';
-import {IMnemonicConfig, IRawOrder, IStringSignedOrder, IToken, Wallet } from '../common/types';
+import { IMnemonicConfig, IRawOrder, IStringSignedOrder, IToken, Wallet } from '../common/types';
 import util from './util';
 
 const Web3Eth = require('web3-eth');
@@ -40,7 +44,13 @@ export default class Web3Util {
 	public contractAddresses: ContractAddresses;
 	public readonly relayerAddress: string;
 
-	constructor(window: any, live: boolean, privateKey: string, mnemonicConfig: IMnemonicConfig, local: boolean) {
+	constructor(
+		window: any,
+		live: boolean,
+		privateKey: string,
+		mnemonicConfig: IMnemonicConfig,
+		local: boolean
+	) {
 		this.networkId = live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN;
 		if (window && (window.ethereum || window.web3)) {
 			this.rawMetamaskProvider = window.ethereum || window.web3.currentProvider;
@@ -64,7 +74,7 @@ export default class Web3Util {
 				if (!window && mnemonicConfig) {
 					const mnemonicWallet = new MnemonicWalletSubprovider({
 						mnemonic: mnemonicConfig.MNEMONIC,
-						baseDerivationPath: mnemonicConfig.BASE_DERIVATION_PATH,
+						baseDerivationPath: mnemonicConfig.BASE_DERIVATION_PATH
 					});
 					pe.addProvider(mnemonicWallet);
 				}
@@ -102,7 +112,7 @@ export default class Web3Util {
 	}
 
 	public async getAvailableAddresses(): Promise<string[]> {
-		return await this.web3Wrapper.getAvailableAddressesAsync()
+		return await this.web3Wrapper.getAvailableAddressesAsync();
 	}
 
 	public matchOrders(
@@ -371,6 +381,14 @@ export default class Web3Util {
 			util.logDebug(err);
 			return false;
 		}
+	}
+
+	public async awaitTransactionSuccessAsync(
+		txHash: string,
+		pollingIntervalMs?: number,
+		timeoutMs?: number
+	) {
+		return this.web3Wrapper.awaitTransactionSuccessAsync(txHash, pollingIntervalMs, timeoutMs);
 	}
 
 	public isValidAddress(address: string) {

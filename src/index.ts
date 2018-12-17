@@ -7,6 +7,7 @@ import orderWatcherServer from './server/orderWatcherServer';
 import relayerServer from './server/relayerServer';
 import serverMasterUtil from './server/serverMasterUtil';
 import dynamoUtil from './utils/dynamoUtil';
+import orderMatchingUtil from './utils/orderMatchingUtil';
 import orderPersistenceUtil from './utils/orderPersistenceUtil';
 import osUtil from './utils/osUtil';
 import redisUtil from './utils/redisUtil';
@@ -35,6 +36,9 @@ switch (tool) {
 		break;
 	case CST.DB_ORDER_BOOKS:
 		serverMasterUtil.startLaunching(tool, option, () => orderBookServer.startServer(option));
+		break;
+	case CST.DB_ORDER_MATCHER:
+		orderMatchingUtil.startProcessing(option);
 		break;
 	default:
 		break;

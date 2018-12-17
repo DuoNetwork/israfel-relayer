@@ -1,16 +1,16 @@
 import { BigNumber, SignedOrder } from '0x.js';
 import * as CST from '../common/constants';
-// import * as CONFIG from '../common/network.config';
+import * as CONFIG from '../common/network.config';
 import {
 	ILiveOrder,
-	// IOption,
+	IOption,
 	IOrderBook,
 	IOrderBookLevel,
 	IOrderBookLevelUpdate,
 	IOrderMatchRequest,
 	IStringSignedOrder
 } from '../common/types';
-// import dynamoUtil from './dynamoUtil';
+import dynamoUtil from './dynamoUtil';
 import orderPersistenceUtil from './orderPersistenceUtil';
 import orderUtil from './orderUtil';
 import redisUtil from './redisUtil';
@@ -18,7 +18,6 @@ import util from './util';
 import Web3Util from './Web3Util';
 
 class OrderMatchingUtil {
-	public web3Util: Web3Util | null = null;
 	public availableAddrs: string[] = [];
 	public currentAddrIdx: number = 0;
 	public currentAddr = this.availableAddrs[this.currentAddrIdx];
@@ -146,8 +145,8 @@ class OrderMatchingUtil {
 		};
 	}
 
-	public async  matchOrders(
-		// web3Util: Web3Util,
+	public async matchOrders(
+		web3Util: Web3Util,
 		pair: string,
 		ordersToMatch: IOrderMatchRequest[],
 		feeOnToken: boolean
@@ -157,11 +156,6 @@ class OrderMatchingUtil {
 		const signedOrders: { [orderHash: string]: SignedOrder } = {};
 		const missingSignedOrders: { [orderHash: string]: boolean } = {};
 		const matchingStatus: { [orderHash: string]: boolean } = {};
-
-		if (!this.web3Util) {
-			util.logDebug('web3Util not inititated');
-			return;
-		}
 
 		for (const orderToMatch of ordersToMatch) {
 			const { leftOrderHash, rightOrderHash, amount } = orderToMatch;
@@ -216,14 +210,14 @@ class OrderMatchingUtil {
 			});
 
 		if (validOrdersToMatch.length > 0) {
-			let currentNonce = await this.web3Util.getTransactionCount(this.currentAddr);
-			const curretnGasPrice = Math.max(await this.web3Util.getGasPrice(), 5000000000);
+			let currentNonce = await web3Util.getTransactionCount(this.currentAddr);
+			const curretnGasPrice = Math.max(await web3Util.getGasPrice(), 5000000000);
 
 			for (const orders of validOrdersToMatch) {
 				const leftOrderHash = orders[0];
 				const rightOrderHash = orders[1];
 				try {
-					const txHash = await this.web3Util.matchOrders(
+					const txHash = await web3Util.matchOrders(
 						signedOrders[feeOnToken ? rightOrderHash : leftOrderHash],
 						signedOrders[feeOnToken ? leftOrderHash : rightOrderHash],
 						this.currentAddr,
@@ -265,87 +259,97 @@ class OrderMatchingUtil {
 				});
 	}
 
-	// public async processMatchQueue() {
-	// 	if (!this.web3Util) {
-	// 		util.logDebug('web3Util not inititated');
-	// 		return;
-	// 	}
-	// 	const matchRequest: IOrderMatchRequest = JSON.parse(
-	// 		await redisUtil.pop(this.getMatchQueueKey())
-	// 	);
-	// 	if (!matchRequest) return false;
-	// 	const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
-	// 		matchRequest.pair,
-	// 		matchRequest.leftOrderHash
-	// 	);
-	// 	if (!leftRawOrder) {
-	// 		util.logError(`raw order of ${matchRequest.leftOrderHash} does not exist`);
-	// 		return;
-	// 	}
+	public async processMatchQueue(web3Util: Web3Util) {
+		const matchRequest: IOrderMatchRequest = JSON.parse(
+			await redisUtil.pop(this.getMatchQueueKey())
+		);
+		let feeOnToken = true;
+		const token = web3Util.tokens.find(t => t.code === matchRequest.pair.split('|')[0]);
+		if (token && token.feeSchedules[CST.TOKEN_WETH] && token.feeSchedules[CST.TOKEN_WETH].asset)
+			feeOnToken = false;
+		if (!matchRequest) return false;
+		const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
+			matchRequest.pair,
+			matchRequest.leftOrderHash
+		);
+		if (!leftRawOrder) {
+			util.logError(`raw order of ${matchRequest.leftOrderHash} does not exist`);
+			return false;
+		}
 
-	// 	const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
-	// 		matchRequest.pair,
-	// 		matchRequest.rightOrderHash
-	// 	);
-	// 	if (!rightRawOrder) {
-	// 		util.logError(`raw order of ${matchRequest.rightOrderHash} does not exist`);
-	// 		return;
-	// 	}
+		const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
+			matchRequest.pair,
+			matchRequest.rightOrderHash
+		);
+		if (!rightRawOrder) {
+			util.logError(`raw order of ${matchRequest.rightOrderHash} does not exist`);
+			return false;
+		}
 
-	// 	const currentNonce = await this.web3Util.getTransactionCount(this.currentAddr);
-	// 	const curretnGasPrice = Math.max(await this.web3Util.getGasPrice(), 5000000000);
+		const leftOrder = orderUtil.parseSignedOrder(
+			leftRawOrder.signedOrder as IStringSignedOrder
+		);
+		const rightOrder = orderUtil.parseSignedOrder(
+			rightRawOrder.signedOrder as IStringSignedOrder
+		);
 
-	// 	try {
-	// 		const txHash = await this.web3Util.matchOrders(
-	// 			orderUtil.parseSignedOrder(rightRawOrder.signedOrder as IStringSignedOrder),
-	// 			orderUtil.parseSignedOrder(leftRawOrder.signedOrder as IStringSignedOrder),
-	// 			this.currentAddr,
-	// 			{
-	// 				gasPrice: new BigNumber(curretnGasPrice),
-	// 				gasLimit: 300000,
-	// 				nonce: currentNonce,
-	// 				shouldValidate: true
-	// 			}
-	// 		);
-	// 		console.log(txHash);
-	// 		this.currentAddrIdx = (this.currentAddrIdx + 1) % this.availableAddrs.length;
-	// 		this.currentAddr = this.availableAddrs[this.currentAddrIdx];
+		const currentNonce = await web3Util.getTransactionCount(this.currentAddr);
+		const curretnGasPrice = Math.max(await web3Util.getGasPrice(), 5000000000);
 
-	// 		return true;
-	// 	} catch (err) {
-	// 		util.logDebug('error in call, terminate');
-	// 	}
-	// }
+		try {
+			const txHash = await web3Util.matchOrders(
+				feeOnToken ? rightOrder : leftOrder,
+				feeOnToken ? leftOrder : rightOrder,
+				this.currentAddr,
+				{
+					gasPrice: new BigNumber(curretnGasPrice),
+					gasLimit: 300000,
+					nonce: currentNonce,
+					shouldValidate: true
+				}
+			);
+			this.currentAddrIdx = (this.currentAddrIdx + 1) % this.availableAddrs.length;
+			this.currentAddr = this.availableAddrs[this.currentAddrIdx];
 
-	// public async startProcessing(option: IOption) {
-	// 	const web3Util = new Web3Util(null, option.live, '', CONFIG.mnemonicConfig, false);
-	// 	if (web3Util) {
-	// 		this.availableAddrs = await web3Util.getAvailableAddresses();
-	// 		web3Util.setTokens(await dynamoUtil.scanTokens());
-	// 	}
+			const res = await web3Util.awaitTransactionSuccessAsync(txHash);
+			if (res.status) return true;
+			// tx revert on chain handling below
+			else return false;
+		} catch (err) {
+			util.logDebug('error in call, terminate');
+			return false;
+		}
+	}
 
-	// 	if (option.server) {
-	// 		dynamoUtil.updateStatus(
-	// 			'orderMatching',
-	// 			await redisUtil.getQueueLength(this.getMatchQueueKey())
-	// 		);
+	public async startProcessing(option: IOption) {
+		const web3Util = new Web3Util(null, option.live, '', CONFIG.mnemonicConfig, false);
+		if (web3Util) {
+			this.availableAddrs = await web3Util.getAvailableAddresses();
+			web3Util.setTokens(await dynamoUtil.scanTokens());
+		}
 
-	// 		setInterval(
-	// 			async () =>
-	// 				dynamoUtil.updateStatus(
-	// 					'orderMatching',
-	// 					await redisUtil.getQueueLength(this.getMatchQueueKey())
-	// 				),
-	// 			15000
-	// 		);
-	// 	}
+		if (option.server) {
+			dynamoUtil.updateStatus(
+				CST.DB_ORDER_MATCHER,
+				await redisUtil.getQueueLength(this.getMatchQueueKey())
+			);
 
-	// 	const loop = () =>
-	// 		this.processMatchQueue().then(result => {
-	// 			setTimeout(() => loop(), result ? 0 : 500);
-	// 		});
-	// 	loop();
-	// }
+			setInterval(
+				async () =>
+					dynamoUtil.updateStatus(
+						CST.DB_ORDER_MATCHER,
+						await redisUtil.getQueueLength(this.getMatchQueueKey())
+					),
+				15000
+			);
+		}
+
+		const loop = () =>
+			this.processMatchQueue(web3Util).then(result => {
+				setTimeout(() => loop(), result ? 0 : 500);
+			});
+		loop();
+	}
 }
 
 const orderMatchingUtil = new OrderMatchingUtil();
