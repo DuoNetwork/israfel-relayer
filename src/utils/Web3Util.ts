@@ -184,7 +184,6 @@ export default class Web3Util {
 		return {
 			senderAddress: CST.DUMMY_ADDR,
 			makerAddress: userAddr.toLowerCase(),
-			// takerAddress: relayerAddr.toLowerCase(),
 			takerAddress: CST.DUMMY_ADDR,
 			makerFee: new BigNumber(0),
 			takerFee: new BigNumber(0),
@@ -202,7 +201,6 @@ export default class Web3Util {
 	public async createRawOrder(
 		pair: string,
 		userAddr: string,
-		relayerAddr: string,
 		makerAssetAddr: string,
 		takerAssetAddr: string,
 		makerAmt: BigNumber,
@@ -213,7 +211,7 @@ export default class Web3Util {
 			throw new Error('cannot sign');
 		const order = Web3Util.createRawOrderWithoutSalt(
 			userAddr,
-			relayerAddr,
+			this.relayerAddress,
 			makerAssetAddr,
 			takerAssetAddr,
 			makerAmt,
