@@ -337,37 +337,35 @@ class OrderMatchingUtil {
 						orderHash: orderHash,
 						matching: amount,
 						requestor: CST.DB_ORDER_MATCHER,
-						status: CST.DB_MATCHING
+						status: CST.DB_MATCHING,
+						transactionHash: txHash
 					})
 				)
 			);
 
-			if (txHash)
-				web3Util
-					.awaitTransactionSuccessAsync(txHash)
-					.then(receipt =>
-						util.logDebug('matchOrder successfully mined ' + JSON.stringify(receipt))
-					)
-					.catch(async txError => {
-						util.logError(
-							txHash +
-								' reverted ' +
-								txError +
-								', move matching amount back to balance'
-						);
-						await Promise.all(
-							[leftOrderHash, rightOrderHash].map(orderHash =>
-								orderPersistenceUtil.persistOrder({
-									method: CST.DB_UPDATE,
-									pair: pair,
-									orderHash: orderHash,
-									matching: -amount,
-									requestor: CST.DB_ORDER_MATCHER,
-									status: CST.DB_MATCHING
-								})
-							)
-						);
-					});
+			web3Util
+				.awaitTransactionSuccessAsync(txHash)
+				.then(receipt =>
+					util.logDebug('matchOrder successfully mined ' + JSON.stringify(receipt))
+				)
+				.catch(async txError => {
+					util.logError(
+						txHash + ' reverted ' + txError + ', move matching amount back to balance'
+					);
+					await Promise.all(
+						[leftOrderHash, rightOrderHash].map(orderHash =>
+							orderPersistenceUtil.persistOrder({
+								method: CST.DB_UPDATE,
+								pair: pair,
+								orderHash: orderHash,
+								matching: -amount,
+								requestor: CST.DB_ORDER_MATCHER,
+								status: CST.DB_MATCHING,
+								transactionHash: txHash
+							})
+						)
+					);
+				});
 
 			return true;
 		} catch (err) {
