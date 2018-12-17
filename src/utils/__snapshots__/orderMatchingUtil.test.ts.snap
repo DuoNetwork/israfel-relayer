@@ -504,6 +504,23 @@ Object {
 }
 `;
 
+exports[`processMatchQueue, no leftRawOrder 1`] = `
+Array [
+  Array [
+    "match|queue",
+  ],
+]
+`;
+
+exports[`processMatchQueue, no leftRawOrder 2`] = `
+Array [
+  Array [
+    "code1|code2",
+    "0xleftHash",
+  ],
+]
+`;
+
 exports[`queueMatchRequest 1`] = `
 Array [
   Array [

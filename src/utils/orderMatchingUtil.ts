@@ -268,13 +268,16 @@ class OrderMatchingUtil {
 			const token = web3Util.tokens.find(t => t.code === code1);
 			if (token && token.feeSchedules[code2] && token.feeSchedules[code2].asset)
 				feeOnToken = false;
+			console.log("########################1");
 			const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
 				pair,
 				leftOrderHash
 			);
+
+			console.log("########################2");
 			if (!leftRawOrder) {
 				util.logError(`raw order of ${leftOrderHash} does not exist, ignore match request`);
-				return false;
+				return true;
 			}
 
 			const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
@@ -285,7 +288,7 @@ class OrderMatchingUtil {
 				util.logError(
 					`raw order of ${rightOrderHash} does not exist, ignore match request`
 				);
-				return false;
+				return true;
 			}
 
 			const leftOrder = orderUtil.parseSignedOrder(
@@ -387,6 +390,7 @@ class OrderMatchingUtil {
 		} catch (err) {
 			util.logError(`error in processing for ${reqString}`);
 			util.logError(err);
+			console.log('catching error');
 			redisUtil.putBack(this.getMatchQueueKey(), reqString);
 			return false;
 		}
