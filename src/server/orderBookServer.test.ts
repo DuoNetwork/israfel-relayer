@@ -134,7 +134,7 @@ test('handleOrderUpdate add', async () => {
 	orderBookServer.updateOrderBookSnapshot = jest.fn(() => Promise.resolve());
 	orderQueueItem.method = CST.DB_ADD;
 	orderMatchingUtil.findMatchingOrders = jest.fn(() => ({
-		ordersToMatch: [],
+		orderMatchRequests: [],
 		orderBookLevelUpdates: []
 	}));
 	orderMatchingUtil.matchOrders = jest.fn(() => Promise.resolve());
@@ -152,7 +152,7 @@ test('handleOrderUpdate add match', async () => {
 	orderBookServer.updateOrderBookSnapshot = jest.fn(() => Promise.resolve());
 	orderQueueItem.method = CST.DB_ADD;
 	orderMatchingUtil.findMatchingOrders = jest.fn(() => ({
-		ordersToMatch: ['ordersToMatch'],
+		orderMatchRequests: ['orderMatchRequests'],
 		orderBookLevelUpdates: ['orderBookLevelUpdates1', 'orderBookLevelUpdates2']
 	}));
 	orderMatchingUtil.matchOrders = jest.fn(() => Promise.resolve());
@@ -172,7 +172,7 @@ test('handleOrderUpdate terminate', async () => {
 	orderBookServer.updateOrderBookSnapshot = jest.fn(() => Promise.resolve());
 	orderQueueItem.method = CST.DB_TERMINATE;
 	orderMatchingUtil.findMatchingOrders = jest.fn(() => ({
-		ordersToMatch: [],
+		orderMatchRequests: [],
 		orderBookLevelUpdates: []
 	}));
 	orderMatchingUtil.matchOrders = jest.fn(() => Promise.resolve());
@@ -209,7 +209,7 @@ test('loadLiveOrders', async () => {
 	orderBookUtil.renderOrderBookSnapshot = jest.fn(() => 'orderBookSnapshot');
 	orderMatchingUtil.matchOrders = jest.fn(() => Promise.resolve());
 	orderMatchingUtil.findMatchingOrders = jest.fn(() => ({
-		ordersToMatch: ['ordersToMatch'],
+		orderMatchRequests: ['orderMatchRequests'],
 		orderBookLevelUpdates: []
 	}));
 	orderBookServer.updateOrderSequences = jest.fn();
@@ -239,7 +239,7 @@ test('loadLiveOrders no match', async () => {
 	orderBookUtil.renderOrderBookSnapshot = jest.fn(() => 'orderBookSnapshot');
 	orderMatchingUtil.matchOrders = jest.fn(() => Promise.resolve());
 	orderMatchingUtil.findMatchingOrders = jest.fn(() => ({
-		ordersToMatch: [],
+		orderMatchRequests: [],
 		orderBookLevelUpdates: []
 	}));
 	orderBookServer.updateOrderSequences = jest.fn();

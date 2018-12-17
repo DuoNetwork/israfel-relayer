@@ -6,7 +6,6 @@ import {
 	IOrderBookLevelUpdate,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotUpdate,
-	IOrderMatchRequest,
 	IOrderQueueItem,
 	IOrderUpdate
 } from '../common/types';
@@ -16,12 +15,9 @@ import orderBookUtil from '../utils/orderBookUtil';
 import orderMatchingUtil from '../utils/orderMatchingUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import util from '../utils/util';
-import Web3Util from '../utils/Web3Util';
 
 class OrderBookServer {
-	public feeOnToken: boolean = true;
 	public pair: string = 'pair';
-	public web3Util: Web3Util | null = null;
 	public liveOrders: { [orderHash: string]: ILiveOrder } = {};
 	public pendingUpdates: IOrderQueueItem[] = [];
 	public loadingOrders: boolean = true;
@@ -82,7 +78,6 @@ class OrderBookServer {
 				method: method
 			})
 		];
-		let ordersToMatch: IOrderMatchRequest[] = [];
 		const leftLiveOrder = orderQueueItem.liveOrder;
 		if (method !== CST.DB_TERMINATE && leftLiveOrder.balance > 0) {
 			const matchinResult = orderMatchingUtil.findMatchingOrders(
@@ -90,22 +85,13 @@ class OrderBookServer {
 				this.liveOrders,
 				true
 			);
-			ordersToMatch = matchinResult.ordersToMatch;
+			matchinResult.orderMatchRequests.forEach(orderToMatch =>
+				orderMatchingUtil.queueMatchRequest(orderToMatch)
+			);
 			orderBookLevelUpdates.push(...matchinResult.orderBookLevelUpdates);
 		}
 
 		await this.updateOrderBookSnapshot(orderBookLevelUpdates);
-		if (ordersToMatch.length > 0)
-			ordersToMatch.forEach(orderToMatch =>
-				orderMatchingUtil.queueMatchRequest(orderToMatch)
-			);
-
-		// await orderMatchingUtil.matchOrders(
-		// 	this.web3Util as Web3Util,
-		// 	this.pair,
-		// 	ordersToMatch,
-		// 	this.feeOnToken
-		// );
 	}
 
 	public updateOrderBook(orderUpdate: IOrderUpdate) {
@@ -187,18 +173,7 @@ class OrderBookServer {
 			this.liveOrders,
 			false
 		);
-		if (matchingResult.ordersToMatch.length)
-			for (const orderToMatch of matchingResult.ordersToMatch)
-				orderMatchingUtil.queueMatchRequest(orderToMatch);
-
-		// await this.web3Util.getAvailableAddresses();
-		// await orderMatchingUtil.matchOrders(
-		// 	this.web3Util as Web3Util,
-		// 	this.pair,
-		// 	matchingResult.ordersToMatch,
-		// 	this.feeOnToken
-		// );
-
+		matchingResult.orderMatchRequests.forEach(omr => orderMatchingUtil.queueMatchRequest(omr));
 		util.logInfo('completed matching orderBook as a whole in cold start');
 		this.orderBookSnapshot = orderBookUtil.renderOrderBookSnapshot(this.pair, this.orderBook);
 		await orderBookPersistenceUtil.publishOrderBookUpdate(this.pair, this.orderBookSnapshot);
@@ -209,18 +184,10 @@ class OrderBookServer {
 	}
 
 	public async startServer(option: IOption) {
-		const privateKeyFile = require(`../keys/privateKey.${
-			option.live ? CST.DB_LIVE : CST.DB_DEV
-		}.json`);
-		this.web3Util = new Web3Util(null, option.live, privateKeyFile.key, null as any, false);
-		this.web3Util.setTokens(await dynamoUtil.scanTokens());
 		this.pair = option.token + '|' + CST.TOKEN_WETH;
 		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderQueueItem) =>
 			this.handleOrderUpdate(channel, orderQueueItem)
 		);
-		const token = this.web3Util.tokens.find(t => t.code === option.token);
-		if (token && token.feeSchedules[CST.TOKEN_WETH] && token.feeSchedules[CST.TOKEN_WETH].asset)
-			this.feeOnToken = false;
 
 		await this.loadLiveOrders();
 		setInterval(() => this.loadLiveOrders(), CST.ONE_MINUTE_MS * 15);

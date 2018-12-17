@@ -16,13 +16,12 @@ import { getContractAddressesForNetworkOrThrow } from '@0x/contract-addresses';
 import { schemas, SchemaValidator } from '@0x/json-schemas';
 import {
 	MetamaskSubprovider,
-	MnemonicWalletSubprovider,
-	PrivateKeyWalletSubprovider
+	MnemonicWalletSubprovider
+	// PrivateKeyWalletSubprovider
 } from '@0x/subproviders';
-import { addressUtils } from '@0x/utils';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as CST from '../common/constants';
-import { IMnemonicConfig, IRawOrder, IStringSignedOrder, IToken, Wallet } from '../common/types';
+import { IRawOrder, IStringSignedOrder, IToken, Wallet } from '../common/types';
 import util from './util';
 
 const Web3Eth = require('web3-eth');
@@ -47,8 +46,8 @@ export default class Web3Util {
 	constructor(
 		window: any,
 		live: boolean,
-		privateKey: string,
-		mnemonicConfig: IMnemonicConfig,
+		// privateKey: string,
+		mnemonic: string,
 		local: boolean
 	) {
 		this.networkId = live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN;
@@ -66,17 +65,18 @@ export default class Web3Util {
 					(live ? CST.PROVIDER_INFURA_MAIN : CST.PROVIDER_INFURA_KOVAN) +
 					'/' +
 					infura.token;
-				if (!window && privateKey) {
-					pe.addProvider(new PrivateKeyWalletSubprovider(privateKey));
-					this.web3Eth = new Web3Eth(infuraProvider);
-				}
+				// if (!window && privateKey) {
+				// 	pe.addProvider(new PrivateKeyWalletSubprovider(privateKey));
+				// 	this.web3Eth = new Web3Eth(infuraProvider);
+				// }
 
-				if (!window && mnemonicConfig) {
+				if (!window && mnemonic) {
 					const mnemonicWallet = new MnemonicWalletSubprovider({
-						mnemonic: mnemonicConfig.MNEMONIC,
-						baseDerivationPath: mnemonicConfig.BASE_DERIVATION_PATH
+						mnemonic: mnemonic,
+						baseDerivationPath: CST.BASE_DERIVATION_PATH
 					});
 					pe.addProvider(mnemonicWallet);
+					this.web3Eth = new Web3Eth(infuraProvider);
 				}
 
 				pe.addProvider(new RPCSubprovider(infuraProvider));
@@ -84,7 +84,7 @@ export default class Web3Util {
 			pe.start();
 			this.web3Wrapper = new Web3Wrapper(pe);
 			this.web3Accounts = new Web3Accounts(this.web3Wrapper.getProvider());
-			this.wallet = local || (!window && privateKey) ? Wallet.Local : Wallet.None;
+			this.wallet = local || (!window && mnemonic) ? Wallet.Local : Wallet.None;
 		}
 
 		this.contractWrappers = new ContractWrappers(this.web3Wrapper.getProvider(), {
@@ -392,7 +392,7 @@ export default class Web3Util {
 	}
 
 	public isValidAddress(address: string) {
-		return address !== CST.DUMMY_ADDR && addressUtils.isAddress(address);
+		return address !== CST.DUMMY_ADDR && Web3Wrapper.isAddress(address);
 	}
 
 	public getTransactionReceipt(txHash: string) {

@@ -3,7 +3,7 @@
 exports[`findMatchingOrders, updatesRequired false, bid balance 0 1`] = `
 Object {
   "orderBookLevelUpdates": Array [],
-  "ordersToMatch": Array [
+  "orderMatchRequests": Array [
     Object {
       "amount": 20,
       "leftOrderHash": "orderHash1",
@@ -17,28 +17,28 @@ Object {
 exports[`findMatchingOrders, updatesRequired false, no ask live order 1`] = `
 Object {
   "orderBookLevelUpdates": Array [],
-  "ordersToMatch": Array [],
+  "orderMatchRequests": Array [],
 }
 `;
 
 exports[`findMatchingOrders, updatesRequired false, no bid live order 1`] = `
 Object {
   "orderBookLevelUpdates": Array [],
-  "ordersToMatch": Array [],
+  "orderMatchRequests": Array [],
 }
 `;
 
 exports[`findMatchingOrders, updatesRequired false, no bids 1`] = `
 Object {
   "orderBookLevelUpdates": Array [],
-  "ordersToMatch": Array [],
+  "orderMatchRequests": Array [],
 }
 `;
 
 exports[`findMatchingOrders, updatesRequired false, no matching 1`] = `
 Object {
   "orderBookLevelUpdates": Array [],
-  "ordersToMatch": Array [],
+  "orderMatchRequests": Array [],
 }
 `;
 
@@ -58,7 +58,7 @@ Object {
       "side": "ask",
     },
   ],
-  "ordersToMatch": Array [
+  "orderMatchRequests": Array [
     Object {
       "amount": 20,
       "leftOrderHash": "orderHash1",
@@ -85,7 +85,7 @@ Object {
       "side": "ask",
     },
   ],
-  "ordersToMatch": Array [
+  "orderMatchRequests": Array [
     Object {
       "amount": 30,
       "leftOrderHash": "orderHash1",
@@ -242,7 +242,7 @@ Object {
       "side": "ask",
     },
   ],
-  "ordersToMatch": Array [
+  "orderMatchRequests": Array [
     Object {
       "amount": 20,
       "leftOrderHash": "orderHash1",
@@ -387,7 +387,7 @@ Object {
       "side": "ask",
     },
   ],
-  "ordersToMatch": Array [
+  "orderMatchRequests": Array [
     Object {
       "amount": 20,
       "leftOrderHash": "orderHash1",

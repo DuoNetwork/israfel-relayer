@@ -1,6 +1,5 @@
 import { BigNumber, SignedOrder } from '0x.js';
 import * as CST from '../common/constants';
-import * as CONFIG from '../common/network.config';
 import {
 	ILiveOrder,
 	IOption,
@@ -59,18 +58,18 @@ class OrderMatchingUtil {
 		liveOrders: { [orderHash: string]: ILiveOrder },
 		updatesRequired: boolean
 	): {
-		ordersToMatch: IOrderMatchRequest[];
+		orderMatchRequests: IOrderMatchRequest[];
 		orderBookLevelUpdates: IOrderBookLevelUpdate[];
 	} {
 		const { bids, asks } = orderBook;
-		const ordersToMatch: IOrderMatchRequest[] = [];
+		const orderMatchRequests: IOrderMatchRequest[] = [];
 		const orderBookLevelUpdates: IOrderBookLevelUpdate[] = [];
 		if (bids.length && asks.length) {
 			const bestBid = bids.find(level => level.balance > 0);
 			const bestAsk = asks.find(level => level.balance > 0);
 			if (!bestBid || !bestAsk || bestAsk.price > bestBid.price)
 				return {
-					ordersToMatch,
+					orderMatchRequests,
 					orderBookLevelUpdates
 				};
 			const bidsToMatch: IOrderBookLevel[] = [];
@@ -116,7 +115,7 @@ class OrderMatchingUtil {
 				bidLiveOrder.matching += matchingAmount;
 				askLiveOrder.balance -= matchingAmount;
 				askLiveOrder.matching += matchingAmount;
-				ordersToMatch.push({
+				orderMatchRequests.push({
 					pair: bidLiveOrder.pair,
 					leftOrderHash: bidLiveOrder.orderHash,
 					rightOrderHash: askLiveOrder.orderHash,
@@ -140,7 +139,7 @@ class OrderMatchingUtil {
 		}
 
 		return {
-			ordersToMatch,
+			orderMatchRequests,
 			orderBookLevelUpdates
 		};
 	}
@@ -148,7 +147,7 @@ class OrderMatchingUtil {
 	public async matchOrders(
 		web3Util: Web3Util,
 		pair: string,
-		ordersToMatch: IOrderMatchRequest[],
+		orderMatchRequests: IOrderMatchRequest[],
 		feeOnToken: boolean
 	) {
 		const totalMatchingAmount: { [orderHash: string]: number } = {};
@@ -157,8 +156,8 @@ class OrderMatchingUtil {
 		const missingSignedOrders: { [orderHash: string]: boolean } = {};
 		const matchingStatus: { [orderHash: string]: boolean } = {};
 
-		for (const orderToMatch of ordersToMatch) {
-			const { leftOrderHash, rightOrderHash, amount } = orderToMatch;
+		for (const omr of orderMatchRequests) {
+			const { leftOrderHash, rightOrderHash, amount } = omr;
 			if (missingSignedOrders[leftOrderHash] || missingSignedOrders[rightOrderHash]) {
 				util.logDebug('ignore match with missing signed order');
 				continue;
@@ -322,7 +321,8 @@ class OrderMatchingUtil {
 	}
 
 	public async startProcessing(option: IOption) {
-		const web3Util = new Web3Util(null, option.live, '', CONFIG.mnemonicConfig, false);
+		const mnemonic = require('../keys/mnemomic.json');
+		const web3Util = new Web3Util(null, option.live, mnemonic.mnemomic, false);
 		if (web3Util) {
 			this.availableAddrs = await web3Util.getAvailableAddresses();
 			web3Util.setTokens(await dynamoUtil.scanTokens());
