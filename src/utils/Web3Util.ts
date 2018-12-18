@@ -14,11 +14,7 @@ import {
 } from '0x.js';
 import { getContractAddressesForNetworkOrThrow } from '@0x/contract-addresses';
 import { schemas, SchemaValidator } from '@0x/json-schemas';
-import {
-	MetamaskSubprovider,
-	MnemonicWalletSubprovider,
-	// PrivateKeyWalletSubprovider
-} from '@0x/subproviders';
+import { MetamaskSubprovider, MnemonicWalletSubprovider } from '@0x/subproviders';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as CST from '../common/constants';
 import { IRawOrder, IStringSignedOrder, IToken, Wallet } from '../common/types';
@@ -43,13 +39,7 @@ export default class Web3Util {
 	public contractAddresses: ContractAddresses;
 	public readonly relayerAddress: string;
 
-	constructor(
-		window: any,
-		live: boolean,
-		// privateKey: string,
-		mnemonic: string,
-		local: boolean
-	) {
+	constructor(window: any, live: boolean, mnemonic: string, local: boolean) {
 		this.networkId = live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN;
 		if (window && (window.ethereum || window.web3)) {
 			this.rawMetamaskProvider = window.ethereum || window.web3.currentProvider;
@@ -65,13 +55,8 @@ export default class Web3Util {
 					(live ? CST.PROVIDER_INFURA_MAIN : CST.PROVIDER_INFURA_KOVAN) +
 					'/' +
 					infura.token;
-				// if (!window && privateKey) {
-				// 	pe.addProvider(new PrivateKeyWalletSubprovider(privateKey));
-				// 	this.web3Eth = new Web3Eth(infuraProvider);
-				// }
 
 				if (!window && mnemonic) {
-					console.log('add mnemonic wallet');
 					const mnemonicWallet = new MnemonicWalletSubprovider({
 						mnemonic: mnemonic,
 						baseDerivationPath: CST.BASE_DERIVATION_PATH

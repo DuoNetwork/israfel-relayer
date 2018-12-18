@@ -396,7 +396,7 @@ class RelayerServer {
 				util.logDebug('no custodian, skip loading duo accepted prices');
 				return;
 			}
-			const dates = util.getDates(2, 1, 'day', 'YYYY-MM-DD');
+			const dates = util.getDates(8, 1, 'day', 'YYYY-MM-DD');
 			for (const custodian of custodians)
 				this.duoAcceptedPrices[custodian] = await duoDynamoUtil.queryAcceptPriceEvent(
 					Web3Util.toChecksumAddress(custodian),
@@ -407,7 +407,7 @@ class RelayerServer {
 	}
 
 	public async loadDuoExchangePrices() {
-		const start = util.getUTCNowTimestamp() - 48 * 3600000;
+		const start = util.getUTCNowTimestamp() - 24 * 3600000;
 		for (const source of [API_GDAX, API_GEMINI, API_KRAKEN])
 			this.duoExchangePrices[source] = await duoDynamoUtil.getPrices(
 				source,
