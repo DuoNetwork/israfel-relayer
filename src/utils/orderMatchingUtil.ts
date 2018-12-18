@@ -135,7 +135,6 @@ class OrderMatchingUtil {
 			rightOrderAmount
 		} = matchRequest;
 
-		console.log(matchRequest);
 		try {
 			let feeOnToken = true;
 			const [code1, code2] = pair.split('|');
@@ -156,6 +155,7 @@ class OrderMatchingUtil {
 				pair,
 				rightOrderHash
 			);
+
 			if (!rightRawOrder) {
 				util.logError(
 					`raw order of ${rightOrderHash} does not exist, ignore match request`
@@ -166,6 +166,7 @@ class OrderMatchingUtil {
 			const leftOrder = orderUtil.parseSignedOrder(
 				leftRawOrder.signedOrder as IStringSignedOrder
 			);
+
 			const rightOrder = orderUtil.parseSignedOrder(
 				rightRawOrder.signedOrder as IStringSignedOrder
 			);
