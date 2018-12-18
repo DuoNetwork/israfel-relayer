@@ -246,39 +246,44 @@ class OrderMatchingUtil {
 						rightOrderHash
 					);
 
-					const leftFilledAmt = leftFilledTakerAmt
-						.div(new BigNumber(leftOrder.takerAssetAmount))
-						.mul(new BigNumber(leftOrderAmount))
-						.valueOf();
+					const leftFilledAmt = Number(
+						leftFilledTakerAmt
+							.div(new BigNumber(leftOrder.takerAssetAmount))
+							.mul(new BigNumber(leftOrderAmount))
+							.valueOf()
+					);
 
-					const rightFilledAmt = rightFilledTakerAmt
-						.div(new BigNumber(rightOrder.makerAssetAmount))
-						.mul(new BigNumber(rightOrderAmount))
-						.valueOf();
+					const rightFilledAmt = Number(
+						rightFilledTakerAmt
+							.div(new BigNumber(rightOrder.takerAssetAmount))
+							.mul(new BigNumber(rightOrderAmount))
+							.valueOf()
+					);
 
 					// update order status
-					util.logDebug(
-						`update rightOrder orderHash: ${rightOrderHash}, fill amount: ${rightFilledAmt}`
-					);
-					await orderPersistenceUtil.persistOrder({
-						method: CST.DB_UPDATE,
-						pair: pair,
-						orderHash: rightOrderHash,
-						fill: Number(rightFilledAmt),
-						requestor: CST.DB_ORDER_MATCHER,
-						status: CST.DB_PFILL,
-						transactionHash: receipt.blockHash
-					});
 					util.logDebug(
 						`update leftOrder orderHash: ${leftOrderHash}, fill amount: ${leftFilledAmt}`
 					);
 					await orderPersistenceUtil.persistOrder({
-						method: CST.DB_UPDATE,
+						method: leftFilledAmt >= leftOrderAmount ? CST.DB_TERMINATE : CST.DB_UPDATE,
 						pair: pair,
 						orderHash: leftOrderHash,
-						fill: Number(leftFilledAmt),
+						fill: leftFilledAmt,
 						requestor: CST.DB_ORDER_MATCHER,
-						status: CST.DB_PFILL,
+						status: leftFilledAmt >= leftOrderAmount ? CST.DB_FILL : CST.DB_PFILL,
+						transactionHash: receipt.blockHash
+					});
+
+					util.logDebug(
+						`update rightOrder orderHash: ${rightOrderHash}, fill amount: ${rightFilledAmt}`
+					);
+					await orderPersistenceUtil.persistOrder({
+						method: rightFilledAmt >= rightOrderAmount ? CST.DB_TERMINATE : CST.DB_UPDATE,
+						pair: pair,
+						orderHash: rightOrderHash,
+						fill: rightFilledAmt,
+						requestor: CST.DB_ORDER_MATCHER,
+						status: rightFilledAmt >= rightOrderAmount ? CST.DB_FILL : CST.DB_PFILL,
 						transactionHash: receipt.blockHash
 					});
 				})
