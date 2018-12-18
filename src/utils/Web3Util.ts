@@ -276,12 +276,12 @@ export default class Web3Util {
 		return token ? token.address : '';
 	}
 
-	public async setUnlimitedTokenAllowance(code: string) {
+	public async setUnlimitedTokenAllowance(code: string, account: string) {
 		const tokenAddress = this.getTokenAddressFromCode(code);
 		if (tokenAddress)
 			return this.contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
 				tokenAddress,
-				await this.getCurrentAddress()
+				account
 			);
 		return Promise.reject();
 	}
@@ -299,17 +299,6 @@ export default class Web3Util {
 		return 0;
 	}
 
-	public async removeProxyAllowance(code: string) {
-		const tokenAddress = this.getTokenAddressFromCode(code);
-		if (tokenAddress)
-			return this.contractWrappers.erc20Token.setProxyAllowanceAsync(
-				tokenAddress,
-				await this.getCurrentAddress(),
-				Web3Wrapper.toWei(new BigNumber(0))
-			);
-		return Promise.reject();
-	}
-
 	public async getEthBalance(address: string) {
 		return Web3Util.fromWei(await this.web3Wrapper.getBalanceInWeiAsync(address));
 	}
@@ -323,19 +312,19 @@ export default class Web3Util {
 		return 0;
 	}
 
-	public async wrapEther(amount: number) {
+	public async wrapEther(amount: number, address: string) {
 		return this.contractWrappers.etherToken.depositAsync(
 			this.contractAddresses.etherToken,
 			Web3Wrapper.toWei(new BigNumber(amount)),
-			await this.getCurrentAddress()
+			address
 		);
 	}
 
-	public async unwrapEther(amount: number) {
+	public async unwrapEther(amount: number, address: string) {
 		return this.contractWrappers.etherToken.withdrawAsync(
 			this.contractAddresses.etherToken,
 			Web3Wrapper.toWei(new BigNumber(amount)),
-			await this.getCurrentAddress()
+			address
 		);
 	}
 
