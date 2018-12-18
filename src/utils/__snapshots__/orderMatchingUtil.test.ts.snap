@@ -5,9 +5,11 @@ Object {
   "orderBookLevelUpdates": Array [],
   "orderMatchRequests": Array [
     Object {
-      "amount": 20,
+      "leftOrderAmount": 20,
       "leftOrderHash": "orderHash1",
+      "matchingAmount": 20,
       "pair": "pair",
+      "rightOrderAmount": 30,
       "rightOrderHash": "orderHash3",
     },
   ],
@@ -60,9 +62,11 @@ Object {
   ],
   "orderMatchRequests": Array [
     Object {
-      "amount": 20,
+      "leftOrderAmount": 20,
       "leftOrderHash": "orderHash1",
+      "matchingAmount": 20,
       "pair": "pair",
+      "rightOrderAmount": 30,
       "rightOrderHash": "orderHash3",
     },
   ],
@@ -87,9 +91,11 @@ Object {
   ],
   "orderMatchRequests": Array [
     Object {
-      "amount": 30,
+      "leftOrderAmount": 20,
       "leftOrderHash": "orderHash1",
+      "matchingAmount": 30,
       "pair": "pair",
+      "rightOrderAmount": 30,
       "rightOrderHash": "orderHash3",
     },
   ],
@@ -244,21 +250,27 @@ Object {
   ],
   "orderMatchRequests": Array [
     Object {
-      "amount": 20,
+      "leftOrderAmount": 20,
       "leftOrderHash": "orderHash1",
+      "matchingAmount": 20,
       "pair": "pair",
+      "rightOrderAmount": 30,
       "rightOrderHash": "orderHash3",
     },
     Object {
-      "amount": 10,
+      "leftOrderAmount": 30,
       "leftOrderHash": "orderHash2",
+      "matchingAmount": 10,
       "pair": "pair",
+      "rightOrderAmount": 30,
       "rightOrderHash": "orderHash3",
     },
     Object {
-      "amount": 20,
+      "leftOrderAmount": 30,
       "leftOrderHash": "orderHash2",
+      "matchingAmount": 20,
       "pair": "pair",
+      "rightOrderAmount": 20,
       "rightOrderHash": "orderHash4",
     },
   ],
@@ -389,9 +401,11 @@ Object {
   ],
   "orderMatchRequests": Array [
     Object {
-      "amount": 20,
+      "leftOrderAmount": 20,
       "leftOrderHash": "orderHash1",
+      "matchingAmount": 20,
       "pair": "pair",
+      "rightOrderAmount": 30,
       "rightOrderHash": "orderHash3",
     },
   ],

@@ -115,6 +115,10 @@ export default class Web3Util {
 		);
 	}
 
+	public getFilledTakerAssetAmount(orderHash: string) {
+		return this.contractWrappers.exchange.getFilledTakerAssetAmountAsync(orderHash);
+	}
+
 	public web3PersonalSign(account: string, message: string): Promise<string> {
 		if (this.wallet !== Wallet.MetaMask) return Promise.reject();
 		return this.web3Personal.sign(message, account);

@@ -233,7 +233,9 @@ test('processMatchQueue, empty queue', async () => {
 test('processMatchQueue, no leftRawOrder', async () => {
 	const orderMatchReq: IOrderMatchRequest = {
 		pair: 'code1|code2',
-		amount: 10,
+		matchingAmount: 10,
+		leftOrderAmount: 10,
+		rightOrderAmount: 10,
 		leftOrderHash: '0xleftHash',
 		rightOrderHash: '0xrightHash'
 	};

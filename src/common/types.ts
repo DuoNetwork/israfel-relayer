@@ -77,7 +77,9 @@ export interface IOrderPersistRequest {
 
 export interface IOrderMatchRequest {
 	pair: string;
-	amount: number;
+	leftOrderAmount: number;
+	rightOrderAmount: number;
+	matchingAmount: number;
 	leftOrderHash: string;
 	rightOrderHash: string;
 	transactionHash?: string;

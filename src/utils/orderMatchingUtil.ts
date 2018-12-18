@@ -95,7 +95,9 @@ class OrderMatchingUtil {
 					pair: bidLiveOrder.pair,
 					leftOrderHash: bidLiveOrder.orderHash,
 					rightOrderHash: askLiveOrder.orderHash,
-					amount: matchingAmount
+					leftOrderAmount: bidLiveOrder.amount,
+					rightOrderAmount: askLiveOrder.amount,
+					matchingAmount: matchingAmount
 				});
 				if (updatesRequired) {
 					orderBookLevelUpdates.push({
@@ -124,7 +126,16 @@ class OrderMatchingUtil {
 		const reqString = await redisUtil.pop(this.getMatchQueueKey());
 		if (!reqString) return false;
 		const matchRequest: IOrderMatchRequest = JSON.parse(reqString);
-		const { pair, leftOrderHash, rightOrderHash, amount } = matchRequest;
+		const {
+			pair,
+			leftOrderHash,
+			rightOrderHash,
+			matchingAmount,
+			leftOrderAmount,
+			rightOrderAmount
+		} = matchRequest;
+
+		console.log(matchRequest);
 		try {
 			let feeOnToken = true;
 			const [code1, code2] = pair.split('|');
@@ -159,7 +170,7 @@ class OrderMatchingUtil {
 				rightRawOrder.signedOrder as IStringSignedOrder
 			);
 
-			const currentAddr =  this.getCurrentAddress();
+			const currentAddr = this.getCurrentAddress();
 			util.logDebug('using sender address ' + currentAddr);
 			const currentNonce = await web3Util.getTransactionCount(currentAddr);
 			const curretnGasPrice = Math.max(await web3Util.getGasPrice(), 5000000000);
@@ -203,7 +214,7 @@ class OrderMatchingUtil {
 				method: CST.DB_UPDATE,
 				pair: pair,
 				orderHash: leftOrderHash,
-				matching: amount,
+				matching: matchingAmount,
 				requestor: CST.DB_ORDER_MATCHER,
 				status: CST.DB_MATCHING,
 				transactionHash: txHash
@@ -212,7 +223,7 @@ class OrderMatchingUtil {
 				method: CST.DB_UPDATE,
 				pair: pair,
 				orderHash: rightOrderHash,
-				matching: amount,
+				matching: matchingAmount,
 				requestor: CST.DB_ORDER_MATCHER,
 				status: CST.DB_MATCHING,
 				transactionHash: txHash
@@ -220,9 +231,57 @@ class OrderMatchingUtil {
 
 			web3Util
 				.awaitTransactionSuccessAsync(txHash)
-				.then(receipt =>
-					util.logDebug('matchOrder successfully mined ' + JSON.stringify(receipt.blockHash))
-				)
+				.then(async receipt => {
+					util.logDebug(
+						`matchOrder successfully mined: txHash: ${receipt.blockHash}, sender: ${
+							receipt.from
+						}`
+					);
+
+					const leftFilledTakerAmt = await web3Util.getFilledTakerAssetAmount(
+						leftOrderHash
+					);
+
+					const rightFilledTakerAmt = await web3Util.getFilledTakerAssetAmount(
+						rightOrderHash
+					);
+
+					const leftFilledAmt = leftFilledTakerAmt
+						.div(new BigNumber(leftOrder.takerAssetAmount))
+						.mul(new BigNumber(leftOrderAmount))
+						.valueOf();
+
+					const rightFilledAmt = rightFilledTakerAmt
+						.div(new BigNumber(rightOrder.makerAssetAmount))
+						.mul(new BigNumber(rightOrderAmount))
+						.valueOf();
+
+					// update order status
+					util.logDebug(
+						`update rightOrder orderHash: ${rightOrderHash}, fill amount: ${rightFilledAmt}`
+					);
+					await orderPersistenceUtil.persistOrder({
+						method: CST.DB_UPDATE,
+						pair: pair,
+						orderHash: rightOrderHash,
+						fill: Number(rightFilledAmt),
+						requestor: CST.DB_ORDER_MATCHER,
+						status: CST.DB_PFILL,
+						transactionHash: receipt.blockHash
+					});
+					util.logDebug(
+						`update leftOrder orderHash: ${leftOrderHash}, fill amount: ${leftFilledAmt}`
+					);
+					await orderPersistenceUtil.persistOrder({
+						method: CST.DB_UPDATE,
+						pair: pair,
+						orderHash: leftOrderHash,
+						fill: Number(leftFilledAmt),
+						requestor: CST.DB_ORDER_MATCHER,
+						status: CST.DB_PFILL,
+						transactionHash: receipt.blockHash
+					});
+				})
 				.catch(async txError => {
 					util.logError(
 						txHash + ' reverted ' + txError + ', move matching amount back to balance'
@@ -231,7 +290,7 @@ class OrderMatchingUtil {
 						method: CST.DB_UPDATE,
 						pair: pair,
 						orderHash: leftOrderHash,
-						matching: -amount,
+						matching: -matchingAmount,
 						requestor: CST.DB_ORDER_MATCHER,
 						status: CST.DB_MATCHING,
 						transactionHash: txHash
@@ -240,7 +299,7 @@ class OrderMatchingUtil {
 						method: CST.DB_UPDATE,
 						pair: pair,
 						orderHash: rightOrderHash,
-						matching: -amount,
+						matching: -matchingAmount,
 						requestor: CST.DB_ORDER_MATCHER,
 						status: CST.DB_MATCHING,
 						transactionHash: txHash
