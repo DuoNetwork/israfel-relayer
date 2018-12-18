@@ -243,21 +243,10 @@ class OrderMatchingUtil {
 						leftOrderHash
 					);
 
-					const rightFilledTakerAmt = await web3Util.getFilledTakerAssetAmount(
-						rightOrderHash
-					);
-
 					const leftFilledAmt = Number(
 						leftFilledTakerAmt
 							.div(new BigNumber(leftOrder.takerAssetAmount))
 							.mul(new BigNumber(leftOrderAmount))
-							.valueOf()
-					);
-
-					const rightFilledAmt = Number(
-						rightFilledTakerAmt
-							.div(new BigNumber(rightOrder.takerAssetAmount))
-							.mul(new BigNumber(rightOrderAmount))
 							.valueOf()
 					);
 
@@ -275,11 +264,23 @@ class OrderMatchingUtil {
 						transactionHash: receipt.blockHash
 					});
 
+					const rightFilledTakerAmt = await web3Util.getFilledTakerAssetAmount(
+						rightOrderHash
+					);
+
+					const rightFilledAmt = Number(
+						rightFilledTakerAmt
+							.div(new BigNumber(rightOrder.takerAssetAmount))
+							.mul(new BigNumber(rightOrderAmount))
+							.valueOf()
+					);
+
 					util.logDebug(
 						`update rightOrder orderHash: ${rightOrderHash}, fill amount: ${rightFilledAmt}`
 					);
 					await orderPersistenceUtil.persistOrder({
-						method: rightFilledAmt >= rightOrderAmount ? CST.DB_TERMINATE : CST.DB_UPDATE,
+						method:
+							rightFilledAmt >= rightOrderAmount ? CST.DB_TERMINATE : CST.DB_UPDATE,
 						pair: pair,
 						orderHash: rightOrderHash,
 						fill: rightFilledAmt,
