@@ -117,10 +117,9 @@ export default class Web3Util {
 	}
 
 	public getFilledTakerAssetAmount(orderHash: string) {
-		return this.contractWrappers.exchange.getFilledTakerAssetAmountAsync(orderHash,
-			{
-				defaultBlock: BlockParamLiteral.Latest
-			});
+		return this.contractWrappers.exchange.getFilledTakerAssetAmountAsync(orderHash, {
+			defaultBlock: BlockParamLiteral.Latest
+		});
 	}
 
 	public web3PersonalSign(account: string, message: string): Promise<string> {

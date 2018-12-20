@@ -1,5 +1,6 @@
 // fix for @ledgerhq/hw-transport-u2f 4.28.0
 import '@babel/polyfill';
+import Web3Wrapper from '../../duo-contract-wrapper/src/Web3Wrapper';
 import * as CST from './common/constants';
 import { IOption } from './common/types';
 import orderBookServer from './server/orderBookServer';
@@ -39,6 +40,19 @@ switch (tool) {
 		break;
 	case CST.DB_ORDER_MATCHER:
 		orderMatchingUtil.startProcessing(option);
+		break;
+	case CST.NODE:
+		util.logInfo('starting node hear beat');
+		const web3Wrapper = new Web3Wrapper(null, 'local', CST.PROVIDER_LOCAL, option.live);
+
+		setInterval(
+			() =>
+				web3Wrapper
+					.getCurrentBlockNumber()
+					.then(bn => dynamoUtil.updateStatus(CST.NODE, bn))
+					.catch(error => util.logInfo(JSON.stringify(error))),
+			30000
+		);
 		break;
 	default:
 		break;
