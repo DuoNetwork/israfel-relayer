@@ -3,7 +3,7 @@
 exports[`launchTkenPair debug not win32 1`] = `
 Array [
   Array [
-    "npm run tool token=token live  debug &> tool.token.log",
+    "npm run tool token=token env=live  debug &> tool.token.log",
     Object {
       "shell": "/bin/bash",
     },
@@ -25,7 +25,7 @@ Object {
 exports[`launchTokenPair debug win32 1`] = `
 Array [
   Array [
-    "npm run tool token=token dev  debug >> tool.token.log",
+    "npm run tool token=token env=dev  debug >> tool.token.log",
     Object {},
   ],
 ]
@@ -45,7 +45,7 @@ Object {
 exports[`launchTokenPair fail not win32 1`] = `
 Array [
   Array [
-    "npm run tool token=token live  &> tool.token.log",
+    "npm run tool token=token env=live  &> tool.token.log",
     Object {
       "shell": "/bin/bash",
     },
@@ -81,7 +81,7 @@ Array [
 exports[`launchTokenPair fail win32 1`] = `
 Array [
   Array [
-    "npm run tool token=token dev  >> tool.token.log",
+    "npm run tool token=token env=dev  >> tool.token.log",
     Object {},
   ],
 ]
@@ -115,7 +115,7 @@ Array [
 exports[`launchTokenPair success not win32 1`] = `
 Array [
   Array [
-    "npm run tool token=token live  &> tool.token.log",
+    "npm run tool token=token env=live  &> tool.token.log",
     Object {
       "shell": "/bin/bash",
     },
@@ -161,7 +161,7 @@ Array [
 exports[`launchTokenPair success win 32 1`] = `
 Array [
   Array [
-    "npm run tool token=token dev  >> tool.token.log",
+    "npm run tool token=token env=dev  >> tool.token.log",
     Object {},
   ],
 ]

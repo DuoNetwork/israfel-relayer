@@ -51,7 +51,7 @@ class ServerMasterUtil {
 
 	public launchTokenPair(tool: string, token: string, option: IOption) {
 		const cmd =
-			`npm run ${tool} token=${token} ${option.env} ${option.server ? ' server' : ''}${
+			`npm run ${tool} token=${token} env=${option.env} ${option.server ? ' server' : ''}${
 				option.debug ? ' debug' : ''
 			}` +
 			(osUtil.isWindows() ? ' >>' : ' &>') +
