@@ -1,15 +1,17 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`launchTokenPair debug 1`] = `
+exports[`launchTkenPair debug not win32 1`] = `
 Array [
   Array [
-    "npm run tool token=token  debug >> tool.token.log",
-    Object {},
+    "npm run tool token=token  debug &> tool.token.log",
+    Object {
+      "shell": "/bin/bash",
+    },
   ],
 ]
 `;
 
-exports[`launchTokenPair debug 2`] = `
+exports[`launchTkenPair debug not win32 2`] = `
 Object {
   "token": Object {
     "failCount": 0,
@@ -20,16 +22,18 @@ Object {
 }
 `;
 
-exports[`launchTokenPair fail 1`] = `
+exports[`launchTokenPair debug win32 1`] = `
 Array [
   Array [
-    "npm run tool token=token  >> tool.token.log",
-    Object {},
+    "npm run tool token=token  debug &> tool.token.log",
+    Object {
+      "shell": "/bin/bash",
+    },
   ],
 ]
 `;
 
-exports[`launchTokenPair fail 2`] = `
+exports[`launchTokenPair debug win32 2`] = `
 Object {
   "token": Object {
     "failCount": 0,
@@ -40,7 +44,29 @@ Object {
 }
 `;
 
-exports[`launchTokenPair fail 3`] = `
+exports[`launchTokenPair fail not win32 1`] = `
+Array [
+  Array [
+    "npm run tool token=token  &> tool.token.log",
+    Object {
+      "shell": "/bin/bash",
+    },
+  ],
+]
+`;
+
+exports[`launchTokenPair fail not win32 2`] = `
+Object {
+  "token": Object {
+    "failCount": 0,
+    "instance": undefined,
+    "lastFailTimestamp": 1234567890,
+    "token": "token",
+  },
+}
+`;
+
+exports[`launchTokenPair fail not win32 3`] = `
 Array [
   Array [
     "tool",
@@ -53,16 +79,53 @@ Array [
 ]
 `;
 
-exports[`launchTokenPair success 1`] = `
+exports[`launchTokenPair fail win32 1`] = `
 Array [
   Array [
-    "npm run tool token=token  >> tool.token.log",
-    Object {},
+    "npm run tool token=token  &> tool.token.log",
+    Object {
+      "shell": "/bin/bash",
+    },
   ],
 ]
 `;
 
-exports[`launchTokenPair success 2`] = `
+exports[`launchTokenPair fail win32 2`] = `
+Object {
+  "token": Object {
+    "failCount": 0,
+    "instance": undefined,
+    "lastFailTimestamp": 1234567890,
+    "token": "token",
+  },
+}
+`;
+
+exports[`launchTokenPair fail win32 3`] = `
+Array [
+  Array [
+    "tool",
+    Object {
+      "debug": false,
+      "live": false,
+    },
+    "token",
+  ],
+]
+`;
+
+exports[`launchTokenPair success not win32 1`] = `
+Array [
+  Array [
+    "npm run tool token=token  &> tool.token.log",
+    Object {
+      "shell": "/bin/bash",
+    },
+  ],
+]
+`;
+
+exports[`launchTokenPair success not win32 2`] = `
 Object {
   "token": Object {
     "failCount": 0,
@@ -88,7 +151,53 @@ Object {
 }
 `;
 
-exports[`launchTokenPair success 3`] = `
+exports[`launchTokenPair success not win32 3`] = `
+Array [
+  Array [
+    "exit",
+    [Function],
+  ],
+]
+`;
+
+exports[`launchTokenPair success win 32 1`] = `
+Array [
+  Array [
+    "npm run tool token=token  &> tool.token.log",
+    Object {
+      "shell": "/bin/bash",
+    },
+  ],
+]
+`;
+
+exports[`launchTokenPair success win 32 2`] = `
+Object {
+  "token": Object {
+    "failCount": 0,
+    "instance": Object {
+      "on": [MockFunction] {
+        "calls": Array [
+          Array [
+            "exit",
+            [Function],
+          ],
+        ],
+        "results": Array [
+          Object {
+            "isThrow": false,
+            "value": undefined,
+          },
+        ],
+      },
+    },
+    "lastFailTimestamp": 1234567890,
+    "token": "token",
+  },
+}
+`;
+
+exports[`launchTokenPair success win 32 3`] = `
 Array [
   Array [
     "exit",
