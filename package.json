@@ -12,7 +12,8 @@
 		"orderWatcher": "ts-node ./src/index orderWatcher",
 		"orders": "ts-node ./src/index orders",
 		"orderBooks": "ts-node ./src/index orderBooks",
-		"orderMatcher": "ts-node ./src/index orderMatcher"
+		"orderMatcher": "ts-node ./src/index orderMatcher",
+		"node": "ts-node ./src/index node"
 	},
 	"jest": {
 		"testEnvironment": "node",
