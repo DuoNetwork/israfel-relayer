@@ -451,7 +451,7 @@ class RelayerServer {
 		const port = 8080;
 		const server = https
 			.createServer({
-				key: fs.readFileSync(`./src/keys/ws./key.${option.env}.pem`, 'utf8'),
+				key: fs.readFileSync(`./src/keys/websocket/key.${option.env}.pem`, 'utf8'),
 				cert: fs.readFileSync(`./src/keys/websocket/cert.${option.env}.pem`, 'utf8')
 			})
 			.listen(port);
