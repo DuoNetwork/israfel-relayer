@@ -1,0 +1,63 @@
+version: 2
+jobs:
+    build-duo-contract-wrapper:
+        working_directory: /home/circleci/duo-contract-wrapper
+        docker: 
+            - image: circleci/node:8.11.1
+        steps:
+            - run: git clone https://github.com/FinBook/duo-contract-wrapper.git /home/circleci/duo-contract-wrapper
+            - run: cd /home/circleci/duo-contract-wrapper
+            - restore_cache:
+                key: dependency-cache-{{ .Environment.CIRCLE_SHA1 }}
+            - run:
+                name: Install npm wee
+                command: npm install
+            - save_cache:
+                key: dependency-cache-{{ .Environment.CIRCLE_SHA1 }}
+                paths:
+                    - /home/circleci/duo-contract-wrapper
+    build-duo-admin:
+        working_directory: /home/circleci/duo-admin
+        docker: 
+            - image: circleci/node:8.11.1
+        steps:
+            - run: git clone https://github.com/FinBook/duo-admin.git /home/circleci/duo-admin
+            - run: cd /home/circleci/duo-admin
+            - restore_cache:
+                key: dependency-assets-{{ .Environment.CIRCLE_SHA1 }}
+            - run:
+                name: Install npm wee
+                command: npm install
+            - save_cache:
+                key: dependency-assets-{{ .Environment.CIRCLE_SHA1 }}
+                paths:
+                    - /home/circleci/duo-admin
+    test:
+        working_directory: /home/circleci/israfel-relayer   
+        docker: 
+            - image: circleci/node:8.11.1 
+        steps:
+            - checkout
+            - restore_cache:
+                key: dependency-cache-{{ .Environment.CIRCLE_SHA1 }}
+            - restore_cache:
+                key: dependency-assets-{{ .Environment.CIRCLE_SHA1 }}
+            - run:
+                name: Install npm
+                command: npm install
+            - run:
+                name: test
+                command: npm test -- -w 1
+workflows:
+    version: 2
+    build_and_test:
+        jobs:
+            - build-duo-contract-wrapper
+            - build-duo-admin
+            - test:
+                requires:
+                    - build-duo-contract-wrapper
+                    - build-duo-admin
+                filters:
+                    branches:
+                        only: master
