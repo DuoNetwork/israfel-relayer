@@ -1,7 +1,8 @@
 import child_process from 'child_process';
 import { IOption, ISubProcess, IToken } from '../common/types';
-import dynamoUtil from '../utils/dynamoUtil';
-import util from '../utils/util';
+import dynamoUtil from './dynamoUtil';
+import osUtil from './osUtil';
+import util from './util';
 
 class ServerMasterUtil {
 	public subProcesses: { [key: string]: ISubProcess } = {};
@@ -50,17 +51,17 @@ class ServerMasterUtil {
 
 	public launchTokenPair(tool: string, token: string, option: IOption) {
 		const cmd =
-			`npm run ${tool} token=${token} ${option.server ? ' server' : ''}${
+			`npm run ${tool} token=${token} ${option.env} ${option.server ? ' server' : ''}${
 				option.debug ? ' debug' : ''
 			}` +
-			(process.platform === 'win32' ? ' >>' : ' &>') +
+			(osUtil.isWindows() ? ' >>' : ' &>') +
 			` ${tool}.${token}.log`;
 
 		util.logInfo(`[${token}]: ${cmd}`);
 
 		const procInstance = child_process.exec(
 			cmd,
-			process.platform === 'win32' ? {} : { shell: '/bin/bash' }
+			osUtil.isWindows() ? {} : { shell: '/bin/bash' }
 		);
 
 		this.subProcesses[token].instance = procInstance;

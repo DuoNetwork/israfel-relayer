@@ -212,11 +212,11 @@ class OrderWatcherServer {
 	}
 
 	public async startServer(option: IOption) {
-		this.web3Util = new Web3Util(null, option.live, '', true);
+		this.web3Util = new Web3Util(null, option.env === CST.DB_LIVE, '', true);
 		this.web3Util.setTokens(await dynamoUtil.scanTokens());
 		this.orderWatcher = new OrderWatcher(
 			this.web3Util.getProvider(),
-			option.live ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN,
+			option.env === CST.DB_LIVE ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN,
 			undefined,
 			{
 				cleanupJobIntervalMs: 30000,

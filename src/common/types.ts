@@ -195,7 +195,7 @@ export interface IWsInfoResponse extends IWsResponse {
 }
 
 export interface IOption {
-	live: boolean;
+	env: string;
 	tokens: string[];
 	token: string;
 	maker: number;

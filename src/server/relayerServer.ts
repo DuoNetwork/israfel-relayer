@@ -420,20 +420,26 @@ class RelayerServer {
 	}
 
 	public async startServer(config: object, option: IOption) {
-		this.web3Util = new Web3Util(null, option.live, '', false);
+		this.web3Util = new Web3Util(null, option.env === CST.DB_LIVE, '', false);
 		this.web3Util.setTokens(await dynamoUtil.scanTokens());
 		setInterval(async () => {
 			if (this.web3Util) this.web3Util.setTokens(await dynamoUtil.scanTokens());
 		}, 3600000);
-		duoDynamoUtil.init(config, option.live, CST.DB_RELAYER, Web3Util.fromWei, async txHash => {
-			const txReceipt = this.web3Util
-				? await this.web3Util.getTransactionReceipt(txHash)
-				: null;
-			if (!txReceipt) return null;
-			return {
-				status: txReceipt.status as string
-			};
-		});
+		duoDynamoUtil.init(
+			config,
+			option.env === CST.DB_LIVE,
+			CST.DB_RELAYER,
+			Web3Util.fromWei,
+			async txHash => {
+				const txReceipt = this.web3Util
+					? await this.web3Util.getTransactionReceipt(txHash)
+					: null;
+				if (!txReceipt) return null;
+				return {
+					status: txReceipt.status as string
+				};
+			}
+		);
 
 		this.loadDuoAcceptedPrices();
 		this.loadDuoExchangePrices();
@@ -445,8 +451,8 @@ class RelayerServer {
 		const port = 8080;
 		const server = https
 			.createServer({
-				key: fs.readFileSync('./src/keys/websocket/key.pem', 'utf8'),
-				cert: fs.readFileSync('./src/keys/websocket/cert.pem', 'utf8')
+				key: fs.readFileSync(`./src/keys/ws./key.${option.env}.pem`, 'utf8'),
+				cert: fs.readFileSync(`./src/keys/websocket/cert.${option.env}.pem`, 'utf8')
 			})
 			.listen(port);
 		this.wsServer = new WebSocket.Server({ server: server });

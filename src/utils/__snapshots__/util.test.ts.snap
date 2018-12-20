@@ -13,7 +13,7 @@ exports[`parseOptions 1`] = `
 Object {
   "amount": 123,
   "debug": true,
-  "live": true,
+  "env": "live",
   "maker": 456,
   "server": true,
   "spender": 789,

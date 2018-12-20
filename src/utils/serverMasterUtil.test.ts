@@ -1,7 +1,8 @@
 import child_process from 'child_process';
-import osUtil from '../utils/osUtil';
-import util from '../utils/util';
+import { DB_DEV, DB_LIVE } from '../common/constants';
+import osUtil from './osUtil';
 import serverMasterUtil from './serverMasterUtil';
+import util from './util';
 
 test('retry after long enought time', () => {
 	child_process.exec = jest.fn() as any;
@@ -36,6 +37,7 @@ test('retry within short time', () => {
 	serverMasterUtil.retry(
 		'tool',
 		{
+			env: DB_DEV,
 			debug: false,
 			live: false
 		} as any,
@@ -56,6 +58,7 @@ test('launchTokenPair fail win32', () => {
 		instance: undefined as any
 	};
 	serverMasterUtil.launchTokenPair('tool', 'token', {
+		env: DB_DEV,
 		debug: false,
 		live: false
 	} as any);
@@ -80,6 +83,7 @@ test('launchTokenPair success win 32', () => {
 		instance: undefined as any
 	};
 	serverMasterUtil.launchTokenPair('tool', 'token',  {
+		env: DB_DEV,
 		debug: false,
 		live: false
 	} as any);
@@ -101,6 +105,7 @@ test('launchTokenPair debug win32', () => {
 		instance: undefined as any
 	};
 	serverMasterUtil.launchTokenPair('tool', 'token',  {
+		env: DB_DEV,
 		debug: true,
 		live: false
 	} as any);
@@ -120,6 +125,7 @@ test('launchTokenPair fail not win32', () => {
 		instance: undefined as any
 	};
 	serverMasterUtil.launchTokenPair('tool', 'token', {
+		env: DB_LIVE,
 		debug: false,
 		live: false
 	} as any);
@@ -144,6 +150,7 @@ test('launchTokenPair success not win32', () => {
 		instance: undefined as any
 	};
 	serverMasterUtil.launchTokenPair('tool', 'token',  {
+		env: DB_LIVE,
 		debug: false,
 		live: false
 	} as any);
@@ -164,6 +171,7 @@ test('launchTkenPair debug not win32', () => {
 		instance: undefined as any
 	};
 	serverMasterUtil.launchTokenPair('tool', 'token',  {
+		env: DB_LIVE,
 		debug: true,
 		live: false
 	} as any);

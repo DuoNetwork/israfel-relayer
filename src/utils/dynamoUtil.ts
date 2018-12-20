@@ -16,16 +16,11 @@ import util from './util';
 
 class DynamoUtil {
 	public ddb: undefined | DynamoDB = undefined;
-	private live: boolean = false;
+	private env: string = CST.DB_DEV;
 	private hostname: string = 'hostname';
 	private tool: string = 'tool';
-	public init(
-		config: object,
-		live: boolean,
-		tool: string = 'tool',
-		hostname: string = 'hostname'
-	) {
-		this.live = live;
+	public init(config: object, env: string, tool: string = 'tool', hostname: string = 'hostname') {
+		this.env = env;
 		this.tool = tool;
 		this.hostname = hostname;
 		AWS.config.update(config);
@@ -101,9 +96,17 @@ class DynamoUtil {
 		return token;
 	}
 
+	private getTableName(table: string) {
+		return (
+			CST.DB_ISRAFEL +
+			'.' +
+			(this.env === CST.DB_DEV ? table + '.' + CST.DB_DEV : this.env + '.' + table)
+		);
+	}
+
 	public async scanTokens() {
 		const data = await this.scanData({
-			TableName: `${CST.DB_ISRAFEL}.${CST.DB_TOKENS}.${this.live ? CST.DB_LIVE : CST.DB_DEV}`
+			TableName: this.getTableName(CST.DB_TOKENS)
 		});
 		if (!data.Items || !data.Items.length) return [];
 
@@ -112,7 +115,7 @@ class DynamoUtil {
 
 	public updateStatus(process: string, count: number = 0) {
 		const params: PutItemInput = {
-			TableName: `${CST.DB_ISRAFEL}.${CST.DB_STATUS}.${this.live ? CST.DB_LIVE : CST.DB_DEV}`,
+			TableName: this.getTableName(CST.DB_STATUS),
 			Item: {
 				[CST.DB_PROCESS]: {
 					S: `${this.tool}|${process}|${this.hostname}`
@@ -143,7 +146,7 @@ class DynamoUtil {
 
 	public async scanStatus(): Promise<IStatus[]> {
 		const data = await this.scanData({
-			TableName: `${CST.DB_ISRAFEL}.${CST.DB_STATUS}.${this.live ? CST.DB_LIVE : CST.DB_DEV}`
+			TableName: this.getTableName(CST.DB_STATUS)
 		});
 		if (!data.Items || !data.Items.length) return [];
 
@@ -175,18 +178,14 @@ class DynamoUtil {
 
 	public addLiveOrder(liveOrder: ILiveOrder) {
 		return this.putData({
-			TableName: `${CST.DB_ISRAFEL}.${CST.DB_LIVE_ORDERS}.${
-				this.live ? CST.DB_LIVE : CST.DB_DEV
-			}`,
+			TableName: this.getTableName(CST.DB_LIVE_ORDERS),
 			Item: this.convertLiveOrderToDynamo(liveOrder)
 		});
 	}
 
 	public async updateLiveOrder(liveOrder: ILiveOrder) {
 		return this.updateData({
-			TableName: `${CST.DB_ISRAFEL}.${CST.DB_LIVE_ORDERS}.${
-				this.live ? CST.DB_LIVE : CST.DB_DEV
-			}`,
+			TableName: this.getTableName(CST.DB_LIVE_ORDERS),
 			Key: {
 				[CST.DB_PAIR]: {
 					S: liveOrder.pair
@@ -218,9 +217,7 @@ class DynamoUtil {
 
 	public deleteLiveOrder(liveOrder: ILiveOrder): Promise<void> {
 		return this.deleteData({
-			TableName: `${CST.DB_ISRAFEL}.${CST.DB_LIVE_ORDERS}.${
-				this.live ? CST.DB_LIVE : CST.DB_DEV
-			}`,
+			TableName: this.getTableName(CST.DB_LIVE_ORDERS),
 			Key: {
 				[CST.DB_PAIR]: {
 					S: liveOrder.pair
@@ -255,9 +252,7 @@ class DynamoUtil {
 
 	public async getLiveOrders(pair: string, orderHash: string = ''): Promise<ILiveOrder[]> {
 		const params: QueryInput = {
-			TableName: `${CST.DB_ISRAFEL}.${CST.DB_LIVE_ORDERS}.${
-				this.live ? CST.DB_LIVE : CST.DB_DEV
-			}`,
+			TableName: this.getTableName(CST.DB_LIVE_ORDERS),
 			KeyConditionExpression: `${CST.DB_PAIR} = :${CST.DB_PAIR}`,
 			ExpressionAttributeValues: {
 				[':' + CST.DB_PAIR]: { S: pair }
@@ -281,9 +276,7 @@ class DynamoUtil {
 
 	public deleteRawOrderSignature(orderHash: string) {
 		return this.updateData({
-			TableName: `${CST.DB_ISRAFEL}.${CST.DB_RAW_ORDERS}.${
-				this.live ? CST.DB_LIVE : CST.DB_DEV
-			}`,
+			TableName: this.getTableName(CST.DB_RAW_ORDERS),
 			Key: {
 				[CST.DB_ORDER_HASH]: {
 					S: orderHash
@@ -330,9 +323,7 @@ class DynamoUtil {
 
 	public addRawOrder(rawOrder: IRawOrder) {
 		return this.putData({
-			TableName: `${CST.DB_ISRAFEL}.${CST.DB_RAW_ORDERS}.${
-				this.live ? CST.DB_LIVE : CST.DB_DEV
-			}`,
+			TableName: this.getTableName(CST.DB_RAW_ORDERS),
 			Item: this.convertRawOrderToDynamo(rawOrder)
 		});
 	}
@@ -364,9 +355,7 @@ class DynamoUtil {
 
 	public async getRawOrder(orderHash: string): Promise<IRawOrder | null> {
 		const params: QueryInput = {
-			TableName: `${CST.DB_ISRAFEL}.${CST.DB_RAW_ORDERS}.${
-				this.live ? CST.DB_LIVE : CST.DB_DEV
-			}`,
+			TableName: this.getTableName(CST.DB_RAW_ORDERS),
 			KeyConditionExpression: `${CST.DB_ORDER_HASH} = :${CST.DB_ORDER_HASH}`,
 			ExpressionAttributeValues: {
 				[':' + CST.DB_ORDER_HASH]: { S: orderHash }
@@ -414,9 +403,7 @@ class DynamoUtil {
 
 	public addUserOrder(userOrder: IUserOrder) {
 		return this.putData({
-			TableName: `${CST.DB_ISRAFEL}.${CST.DB_USER_ORDERS}.${
-				this.live ? CST.DB_LIVE : CST.DB_DEV
-			}`,
+			TableName: this.getTableName(CST.DB_USER_ORDERS),
 			Item: this.convertUserOrderToDynamo(userOrder)
 		});
 	}
@@ -470,9 +457,7 @@ class DynamoUtil {
 
 	public async getUserOrdersForMonth(account: string, yearMonth: string, pair: string = '') {
 		const params: QueryInput = {
-			TableName: `${CST.DB_ISRAFEL}.${CST.DB_USER_ORDERS}.${
-				this.live ? CST.DB_LIVE : CST.DB_DEV
-			}`,
+			TableName: this.getTableName(CST.DB_USER_ORDERS),
 			KeyConditionExpression: `${CST.DB_ACCOUNT_YM} = :${CST.DB_ACCOUNT_YM}`,
 			ExpressionAttributeValues: {
 				[':' + CST.DB_ACCOUNT_YM]: {

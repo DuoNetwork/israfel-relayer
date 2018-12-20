@@ -6,12 +6,12 @@ import { IOption } from './common/types';
 import orderBookServer from './server/orderBookServer';
 import orderWatcherServer from './server/orderWatcherServer';
 import relayerServer from './server/relayerServer';
-import serverMasterUtil from './server/serverMasterUtil';
 import dynamoUtil from './utils/dynamoUtil';
 import orderMatchingUtil from './utils/orderMatchingUtil';
 import orderPersistenceUtil from './utils/orderPersistenceUtil';
 import osUtil from './utils/osUtil';
 import redisUtil from './utils/redisUtil';
+import serverMasterUtil from './utils/serverMasterUtil';
 import util from './utils/util';
 
 const tool = process.argv[2];
@@ -19,11 +19,11 @@ util.logInfo('tool ' + tool);
 const option: IOption = util.parseOptions(process.argv);
 if (option.debug) util.logLevel = CST.LOG_DEBUG;
 
-const redisConfig = require(`./keys/redis.${option.live ? CST.DB_LIVE : CST.DB_DEV}.json`);
+const redisConfig = require(`./keys/redis.${option.env}.json`);
 redisUtil.init(redisConfig);
 
-const config = require(`./keys/dynamo.${option.live ? CST.DB_LIVE : CST.DB_DEV}.json`);
-dynamoUtil.init(config, option.live, tool, osUtil.getHostName());
+const config = require(`./keys/dynamo.${option.env}.json`);
+dynamoUtil.init(config, option.env, tool, osUtil.getHostName());
 
 switch (tool) {
 	case CST.DB_ORDERS:
@@ -43,7 +43,12 @@ switch (tool) {
 		break;
 	case CST.NODE:
 		util.logInfo('starting node hear beat');
-		const web3Wrapper = new Web3Wrapper(null, 'local', CST.PROVIDER_LOCAL, option.live);
+		const web3Wrapper = new Web3Wrapper(
+			null,
+			'local',
+			CST.PROVIDER_LOCAL,
+			option.env === CST.DB_LIVE
+		);
 
 		setInterval(
 			() =>

@@ -5,6 +5,7 @@ export const DB_USER_ORDERS = 'userOrders';
 export const DB_SEQUENCE = 'sequence';
 export const DB_STATUS = 'status';
 export const DB_LIVE = 'live';
+export const DB_UAT = 'uat';
 export const DB_DEV = 'dev';
 export const DB_PAIR = 'pair';
 export const DB_INITIAL_SEQ = 'initialSequence';

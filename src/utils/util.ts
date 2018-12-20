@@ -37,7 +37,7 @@ class Util {
 	}
 
 	public defaultOption: IOption = {
-		live: false,
+		env: CST.DB_DEV,
 		tokens: [],
 		token: '',
 		amount: 1,
@@ -53,12 +53,14 @@ class Util {
 
 	public parseOptions(argv: string[]): IOption {
 		const option: IOption = this.defaultOption;
-		option.live = argv.includes('live');
 		option.server = argv.includes('server');
 		option.debug = argv.includes('debug');
 		for (let i = 3; i < argv.length; i++) {
 			const args = argv[i].split('=');
 			switch (args[0]) {
+				case 'env':
+					option.env = [CST.DB_LIVE, CST.DB_UAT].includes(args[1]) ? args[1] : option.env;
+					break;
 				case 'tokens':
 					option.tokens = args[1].split(',');
 					break;

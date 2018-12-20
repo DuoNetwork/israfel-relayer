@@ -51,7 +51,7 @@ test('parseOptions', () => {
 		'npm',
 		'run',
 		'tool',
-		'live',
+		'env=live',
 		'debug',
 		'token=token',
 		'amount=123',

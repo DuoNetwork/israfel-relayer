@@ -330,7 +330,7 @@ class OrderMatchingUtil {
 
 	public async startProcessing(option: IOption) {
 		const mnemonic = require('../keys/mnemomic.json');
-		const web3Util = new Web3Util(null, option.live, mnemonic.mnemomic, false);
+		const web3Util = new Web3Util(null, option.env === CST.DB_LIVE, mnemonic.mnemomic, false);
 		this.availableAddrs = await web3Util.getAvailableAddresses();
 		web3Util.setTokens(await dynamoUtil.scanTokens());
 
