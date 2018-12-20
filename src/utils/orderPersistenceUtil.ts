@@ -177,6 +177,11 @@ class OrderPersistenceUtil {
 		}
 
 		const sequence = await redisUtil.increment(`${CST.DB_SEQUENCE}|${pair}`);
+		if (!util.isNumber(sequence)) {
+			util.logDebug(`sequence ${sequence} is not a number ....`);
+			return null;
+		}
+
 		if (method === CST.DB_ADD) {
 			liveOrder = orderUtil.constructNewLiveOrder(
 				orderPersistRequest.signedOrder as IStringSignedOrder,
