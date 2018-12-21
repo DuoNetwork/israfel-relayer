@@ -32,6 +32,7 @@ class OrderMatchingUtil {
 	public findMatchingOrders(
 		orderBook: IOrderBook,
 		liveOrders: { [orderHash: string]: ILiveOrder },
+		feeOnToken: boolean,
 		updatesRequired: boolean
 	): {
 		orderMatchRequests: IOrderMatchRequest[];
@@ -78,37 +79,47 @@ class OrderMatchingUtil {
 					askIdx++;
 					continue;
 				}
-				const matchingAmount = Math.min(bid.balance, ask.balance);
-				if (bid.balance < ask.balance) bidIdx++;
-				else if (bid.balance > ask.balance) askIdx++;
+				const bidFillableBalance = feeOnToken ? bid.balance * bid.price : bid.balance;
+				const askFillableBalance = feeOnToken ? ask.balance * ask.price : ask.balance;
+				const matchingAmount = Math.min(bidFillableBalance, askFillableBalance);
+				const bidMatchingAmount = feeOnToken ? matchingAmount / bid.price : matchingAmount;
+				const askMatchingAmount = feeOnToken ? matchingAmount / ask.price : matchingAmount;
+				if (bidFillableBalance < askFillableBalance) bidIdx++;
+				else if (bidFillableBalance > askFillableBalance) askIdx++;
 				else {
 					bidIdx++;
 					askIdx++;
 				}
-				bid.balance -= matchingAmount;
-				ask.balance -= matchingAmount;
-				bidLiveOrder.balance -= matchingAmount;
-				bidLiveOrder.matching += matchingAmount;
-				askLiveOrder.balance -= matchingAmount;
-				askLiveOrder.matching += matchingAmount;
+				bid.balance -= bidMatchingAmount;
+				ask.balance -= askMatchingAmount;
+				bidLiveOrder.balance -= bidMatchingAmount;
+				bidLiveOrder.matching += bidMatchingAmount;
+				askLiveOrder.balance -= askMatchingAmount;
+				askLiveOrder.matching += askMatchingAmount;
 				orderMatchRequests.push({
 					pair: bidLiveOrder.pair,
-					leftOrderHash: bidLiveOrder.orderHash,
-					rightOrderHash: askLiveOrder.orderHash,
-					leftOrderAmount: bidLiveOrder.amount,
-					rightOrderAmount: askLiveOrder.amount,
-					matchingAmount: matchingAmount
+					feeOnToken: feeOnToken,
+					bid: {
+						orderHash: bidLiveOrder.orderHash,
+						orderAmount: bidLiveOrder.amount,
+						matchingAmount: bidMatchingAmount
+					},
+					ask: {
+						orderHash: askLiveOrder.orderHash,
+						orderAmount: askLiveOrder.amount,
+						matchingAmount: askMatchingAmount
+					}
 				});
 				if (updatesRequired) {
 					orderBookLevelUpdates.push({
 						price: bid.price,
-						change: -matchingAmount,
+						change: -bidMatchingAmount,
 						count: bid.balance > 0 ? 0 : -1,
 						side: bidLiveOrder.side
 					});
 					orderBookLevelUpdates.push({
 						price: ask.price,
-						change: -matchingAmount,
+						change: -askMatchingAmount,
 						count: ask.balance > 0 ? 0 : -1,
 						side: askLiveOrder.side
 					});
@@ -126,49 +137,37 @@ class OrderMatchingUtil {
 		const reqString = await redisUtil.pop(this.getMatchQueueKey());
 		if (!reqString) return false;
 		const matchRequest: IOrderMatchRequest = JSON.parse(reqString);
-		const {
-			pair,
-			leftOrderHash,
-			rightOrderHash,
-			matchingAmount,
-			leftOrderAmount,
-			rightOrderAmount
-		} = matchRequest;
+		const { pair, feeOnToken, bid, ask } = matchRequest;
 
 		try {
-			let feeOnToken = true;
-			const [code1, code2] = pair.split('|');
-			const token = web3Util.tokens.find(t => t.code === code1);
-			if (token && token.feeSchedules[code2] && token.feeSchedules[code2].asset)
-				feeOnToken = false;
-			const leftRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
+			const bidRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
 				pair,
-				leftOrderHash
+				bid.orderHash
 			);
 
-			if (!leftRawOrder) {
-				util.logError(`raw order of ${leftOrderHash} does not exist, ignore match request`);
+			if (!bidRawOrder) {
+				util.logError(`raw order of ${bidRawOrder} does not exist, ignore match request`);
 				return true;
 			}
 
-			const rightRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
+			const askRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
 				pair,
-				rightOrderHash
+				ask.orderHash
 			);
 
-			if (!rightRawOrder) {
+			if (!askRawOrder) {
 				util.logError(
-					`raw order of ${rightOrderHash} does not exist, ignore match request`
+					`raw order of ${askRawOrder} does not exist, ignore match request`
 				);
 				return true;
 			}
 
-			const leftOrder = orderUtil.parseSignedOrder(
-				leftRawOrder.signedOrder as IStringSignedOrder
+			const bidOrder = orderUtil.parseSignedOrder(
+				bidRawOrder.signedOrder as IStringSignedOrder
 			);
 
-			const rightOrder = orderUtil.parseSignedOrder(
-				rightRawOrder.signedOrder as IStringSignedOrder
+			const askOrder = orderUtil.parseSignedOrder(
+				askRawOrder.signedOrder as IStringSignedOrder
 			);
 
 			const currentAddr = this.getCurrentAddress();
@@ -179,8 +178,8 @@ class OrderMatchingUtil {
 
 			try {
 				txHash = await web3Util.matchOrders(
-					feeOnToken ? rightOrder : leftOrder,
-					feeOnToken ? leftOrder : rightOrder,
+					feeOnToken ? askOrder : bidOrder,
+					feeOnToken ? bidOrder : askOrder,
 					currentAddr,
 					{
 						gasPrice: new BigNumber(curretnGasPrice),
@@ -195,14 +194,14 @@ class OrderMatchingUtil {
 				await orderPersistenceUtil.persistOrder({
 					method: CST.DB_TERMINATE,
 					pair: pair,
-					orderHash: leftOrderHash,
+					orderHash: bid.orderHash,
 					requestor: CST.DB_ORDER_MATCHER,
 					status: CST.DB_MATCHING
 				});
 				await orderPersistenceUtil.persistOrder({
 					method: CST.DB_TERMINATE,
 					pair: pair,
-					orderHash: rightOrderHash,
+					orderHash: ask.orderHash,
 					requestor: CST.DB_ORDER_MATCHER,
 					status: CST.DB_MATCHING
 				});
@@ -214,8 +213,8 @@ class OrderMatchingUtil {
 			await orderPersistenceUtil.persistOrder({
 				method: CST.DB_UPDATE,
 				pair: pair,
-				orderHash: leftOrderHash,
-				matching: matchingAmount,
+				orderHash: bid.orderHash,
+				matching: bid.matchingAmount,
 				requestor: CST.DB_ORDER_MATCHER,
 				status: CST.DB_MATCHING,
 				transactionHash: txHash
@@ -223,8 +222,8 @@ class OrderMatchingUtil {
 			await orderPersistenceUtil.persistOrder({
 				method: CST.DB_UPDATE,
 				pair: pair,
-				orderHash: rightOrderHash,
-				matching: matchingAmount,
+				orderHash: ask.orderHash,
+				matching: ask.orderAmount,
 				requestor: CST.DB_ORDER_MATCHER,
 				status: CST.DB_MATCHING,
 				transactionHash: txHash
@@ -239,53 +238,53 @@ class OrderMatchingUtil {
 						}`
 					);
 
-					const leftFilledTakerAmt = await web3Util.getFilledTakerAssetAmount(
-						leftOrderHash
+					const bidFilledTakerAmt = await web3Util.getFilledTakerAssetAmount(
+						bid.orderHash
 					);
 
-					const leftFilledAmt = Number(
-						leftFilledTakerAmt
-							.div(new BigNumber(leftOrder.takerAssetAmount))
-							.mul(new BigNumber(leftOrderAmount))
+					const bidFilledAmt = Number(
+						bidFilledTakerAmt
+							.div(bidOrder.takerAssetAmount)
+							.mul(new BigNumber(bid.orderAmount))
 							.valueOf()
 					);
 
 					// update order status
 					util.logDebug(
-						`update leftOrder orderHash: ${leftOrderHash}, fill amount: ${leftFilledAmt}`
+						`update bidOrder orderHash: ${bid.orderHash}, fill amount: ${bidFilledAmt}`
 					);
 					await orderPersistenceUtil.persistOrder({
-						method: leftFilledAmt >= leftOrderAmount ? CST.DB_TERMINATE : CST.DB_UPDATE,
+						method: bidFilledAmt >= bid.orderAmount ? CST.DB_TERMINATE : CST.DB_UPDATE,
 						pair: pair,
-						orderHash: leftOrderHash,
-						fill: leftFilledAmt,
+						orderHash: bid.orderHash,
+						fill: bidFilledAmt,
 						requestor: CST.DB_ORDER_MATCHER,
-						status: leftFilledAmt >= leftOrderAmount ? CST.DB_FILL : CST.DB_PFILL,
+						status: bidFilledAmt >= bid.orderAmount ? CST.DB_FILL : CST.DB_PFILL,
 						transactionHash: receipt.blockHash
 					});
 
-					const rightFilledTakerAmt = await web3Util.getFilledTakerAssetAmount(
-						rightOrderHash
+					const askFilledTakerAmt = await web3Util.getFilledTakerAssetAmount(
+						ask.orderHash
 					);
 
-					const rightFilledAmt = Number(
-						rightFilledTakerAmt
-							.div(new BigNumber(rightOrder.takerAssetAmount))
-							.mul(new BigNumber(rightOrderAmount))
+					const askFilledAmt = Number(
+						askFilledTakerAmt
+							.div(askOrder.takerAssetAmount)
+							.mul(new BigNumber(ask.orderAmount))
 							.valueOf()
 					);
 
 					util.logDebug(
-						`update rightOrder orderHash: ${rightOrderHash}, fill amount: ${rightFilledAmt}`
+						`update askOrder orderHash: ${ask.orderHash}, fill amount: ${askFilledAmt}`
 					);
 					await orderPersistenceUtil.persistOrder({
 						method:
-							rightFilledAmt >= rightOrderAmount ? CST.DB_TERMINATE : CST.DB_UPDATE,
+							askFilledAmt >= ask.orderAmount ? CST.DB_TERMINATE : CST.DB_UPDATE,
 						pair: pair,
-						orderHash: rightOrderHash,
-						fill: rightFilledAmt,
+						orderHash: ask.orderHash,
+						fill: askFilledAmt,
 						requestor: CST.DB_ORDER_MATCHER,
-						status: rightFilledAmt >= rightOrderAmount ? CST.DB_FILL : CST.DB_PFILL,
+						status: askFilledAmt >= ask.orderAmount ? CST.DB_FILL : CST.DB_PFILL,
 						transactionHash: receipt.blockHash
 					});
 				})
@@ -296,8 +295,8 @@ class OrderMatchingUtil {
 					await orderPersistenceUtil.persistOrder({
 						method: CST.DB_UPDATE,
 						pair: pair,
-						orderHash: leftOrderHash,
-						matching: -matchingAmount,
+						orderHash: bid.orderHash,
+						matching: -bid.matchingAmount,
 						requestor: CST.DB_ORDER_MATCHER,
 						status: CST.DB_MATCHING,
 						transactionHash: txHash
@@ -305,8 +304,8 @@ class OrderMatchingUtil {
 					await orderPersistenceUtil.persistOrder({
 						method: CST.DB_UPDATE,
 						pair: pair,
-						orderHash: rightOrderHash,
-						matching: -matchingAmount,
+						orderHash: ask.orderHash,
+						matching: -ask.matchingAmount,
 						requestor: CST.DB_ORDER_MATCHER,
 						status: CST.DB_MATCHING,
 						transactionHash: txHash
