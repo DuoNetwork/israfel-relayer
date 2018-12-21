@@ -41,8 +41,8 @@ switch (tool) {
 	case CST.DB_ORDER_MATCHER:
 		orderMatchingUtil.startProcessing(option);
 		break;
-	case CST.NODE:
-		util.logInfo('starting node hear beat');
+	case CST.DB_NODE:
+		util.logInfo('starting node heart beat');
 		const web3Wrapper = new Web3Wrapper(
 			null,
 			'local',
@@ -54,7 +54,7 @@ switch (tool) {
 			() =>
 				web3Wrapper
 					.getCurrentBlockNumber()
-					.then(bn => dynamoUtil.updateStatus(CST.NODE, bn))
+					.then(bn => dynamoUtil.updateStatus(CST.DB_NODE, bn))
 					.catch(error => util.logInfo(JSON.stringify(error))),
 			30000
 		);
