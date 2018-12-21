@@ -190,6 +190,22 @@ test('findMatchingOrders, updatesRequired true, bid balance after matching > 0',
 	liveOrders10.orderHash1.price = 0.04;
 	orderBook10.bids[0].price = 0.04;
 	liveOrders10.orderHash1.balance = 40;
+	liveOrders10.orderHash1.amount = 40;
+	orderBook10.bids[0].balance = 40;
+	expect(
+		orderMatchingUtil.findMatchingOrders(orderBook10, liveOrders10, false, true)
+	).toMatchSnapshot();
+	expect(orderBook10).toMatchSnapshot();
+	expect(liveOrders10).toMatchSnapshot();
+});
+
+test('findMatchingOrders, updatesRequired true, bid balance after matching > 0, price cross', () => {
+	const orderBook10 = util.clone(orderBook);
+	const liveOrders10 = util.clone(liveOrders);
+	liveOrders10.orderHash1.price = 0.045;
+	orderBook10.bids[0].price = 0.045;
+	liveOrders10.orderHash1.balance = 40;
+	liveOrders10.orderHash1.amount = 40;
 	orderBook10.bids[0].balance = 40;
 	expect(
 		orderMatchingUtil.findMatchingOrders(orderBook10, liveOrders10, false, true)
@@ -230,6 +246,22 @@ test('findMatchingOrders, updatesRequired feeOnToken true, bid balance after mat
 	liveOrders10.orderHash1.price = 0.04;
 	orderBook10.bids[0].price = 0.04;
 	liveOrders10.orderHash1.balance = 40;
+	liveOrders10.orderHash1.amount = 40;
+	orderBook10.bids[0].balance = 40;
+	expect(
+		orderMatchingUtil.findMatchingOrders(orderBook10, liveOrders10, true, true)
+	).toMatchSnapshot();
+	expect(orderBook10).toMatchSnapshot();
+	expect(liveOrders10).toMatchSnapshot();
+});
+
+test('findMatchingOrders, updatesRequired feeOnToken true, bid balance after matching > 0 price cross', () => {
+	const orderBook10 = util.clone(orderBook);
+	const liveOrders10 = util.clone(liveOrders);
+	liveOrders10.orderHash1.price = 0.045;
+	orderBook10.bids[0].price = 0.045;
+	liveOrders10.orderHash1.balance = 40;
+	liveOrders10.orderHash1.amount = 40;
 	orderBook10.bids[0].balance = 40;
 	expect(
 		orderMatchingUtil.findMatchingOrders(orderBook10, liveOrders10, true, true)
