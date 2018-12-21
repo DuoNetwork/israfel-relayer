@@ -84,6 +84,14 @@ Array [
 ]
 `;
 
+exports[`handleOrderUpdate custodian not in trading 1`] = `
+Array [
+  Array [
+    "orderHash1",
+  ],
+]
+`;
+
 exports[`handleOrderUpdate loadingOrders 1`] = `
 Array [
   Object {
@@ -268,6 +276,20 @@ Array [
   Array [
     "code1|code2",
     "orderBookSnapshot",
+  ],
+]
+`;
+
+exports[`terminateOrder 1`] = `
+Array [
+  Array [
+    Object {
+      "method": "terminate",
+      "orderHash": "orderHash",
+      "pair": "code1|code2",
+      "requestor": "orderBooks",
+      "status": "reset",
+    },
   ],
 ]
 `;

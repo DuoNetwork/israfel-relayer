@@ -34,6 +34,7 @@ export const DB_BALANCE = 'balance';
 export const DB_AMOUNT = 'amount';
 export const DB_FILL = 'fill';
 export const DB_PFILL = 'pFill';
+export const DB_RESET = 'reset';
 export const DB_CREATED_AT = 'createdAt';
 export const DB_UPDATED_AT = 'updatedAt';
 export const DB_UPDATED_BY = 'updatedBy';

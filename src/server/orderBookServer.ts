@@ -1,3 +1,6 @@
+import { CTD_TRADING } from '../../../duo-contract-wrapper/src/constants';
+import DualClassWrapper from '../../../duo-contract-wrapper/src/DualClassWrapper';
+import Web3Wrapper from '../../../duo-contract-wrapper/src/Web3Wrapper';
 import * as CST from '../common/constants';
 import {
 	ILiveOrder,
@@ -33,15 +36,24 @@ class OrderBookServer {
 		asks: []
 	};
 	public processedUpdates: { [orderHash: string]: number } = {};
+	public custodianInTrading: boolean = false;
 
 	public async handleOrderUpdate(channel: string, orderQueueItem: IOrderQueueItem) {
 		util.logDebug('receive update from channel: ' + channel);
 
 		if (
-			orderQueueItem.requestor === CST.DB_ORDER_MATCHER &&
-			orderQueueItem.method !== CST.DB_TERMINATE
+			orderQueueItem.requestor === CST.DB_ORDER_BOOKS ||
+			(orderQueueItem.requestor === CST.DB_ORDER_MATCHER &&
+				orderQueueItem.method !== CST.DB_TERMINATE)
 		) {
 			util.logDebug('ignore order update requested by self');
+			return;
+		}
+
+		if (!this.custodianInTrading) {
+			util.logDebug('custodian not in trading, terminate incoming order');
+			if (orderQueueItem.method !== CST.DB_TERMINATE)
+				this.terminateOrder(orderQueueItem.liveOrder.orderHash);
 			return;
 		}
 
@@ -162,29 +174,113 @@ class OrderBookServer {
 	}
 
 	public async loadLiveOrders() {
-		this.loadingOrders = true;
-		this.liveOrders = await orderPersistenceUtil.getAllLiveOrdersInPersistence(this.pair);
-		util.logInfo('loaded live orders : ' + Object.keys(this.liveOrders).length);
-		this.updateOrderSequences();
-		this.orderBook = orderBookUtil.constructOrderBook(this.liveOrders);
-		util.logDebug('start matchig ordderBook');
-		const matchingResult = orderMatchingUtil.findMatchingOrders(
-			this.orderBook,
-			this.liveOrders,
-			false
-		);
-		matchingResult.orderMatchRequests.forEach(omr => orderMatchingUtil.queueMatchRequest(omr));
-		util.logInfo('completed matching orderBook as a whole in cold start');
-		this.orderBookSnapshot = orderBookUtil.renderOrderBookSnapshot(this.pair, this.orderBook);
-		await orderBookPersistenceUtil.publishOrderBookUpdate(this.pair, this.orderBookSnapshot);
-		this.loadingOrders = false;
-		for (const updateItem of this.pendingUpdates)
-			await this.handleOrderUpdate('pending', updateItem);
-		this.pendingUpdates = [];
+		if (this.custodianInTrading) {
+			this.loadingOrders = true;
+			this.liveOrders = await orderPersistenceUtil.getAllLiveOrdersInPersistence(this.pair);
+			util.logInfo('loaded live orders : ' + Object.keys(this.liveOrders).length);
+			this.updateOrderSequences();
+			this.orderBook = orderBookUtil.constructOrderBook(this.liveOrders);
+			util.logDebug('start matchig ordderBook');
+			const matchingResult = orderMatchingUtil.findMatchingOrders(
+				this.orderBook,
+				this.liveOrders,
+				false
+			);
+			matchingResult.orderMatchRequests.forEach(omr =>
+				orderMatchingUtil.queueMatchRequest(omr)
+			);
+			util.logInfo('completed matching orderBook as a whole in cold start');
+			this.orderBookSnapshot = orderBookUtil.renderOrderBookSnapshot(
+				this.pair,
+				this.orderBook
+			);
+			await orderBookPersistenceUtil.publishOrderBookUpdate(
+				this.pair,
+				this.orderBookSnapshot
+			);
+			this.loadingOrders = false;
+			for (const updateItem of this.pendingUpdates)
+				await this.handleOrderUpdate('pending', updateItem);
+			this.pendingUpdates = [];
+		}
+	}
+
+	public terminateOrder(orderHash: string) {
+		return orderPersistenceUtil.persistOrder({
+			method: CST.DB_TERMINATE,
+			status: CST.DB_RESET,
+			requestor: CST.DB_ORDER_BOOKS,
+			pair: this.pair,
+			orderHash: orderHash
+		});
+	}
+
+	public async checkCustodianState(dualClassWrapper: DualClassWrapper) {
+		const state = await dualClassWrapper.getStates();
+		this.custodianInTrading = state.state === CTD_TRADING;
+		if (!this.custodianInTrading) {
+			const prevVersion = this.orderBookSnapshot.version;
+			const updates = [
+				...this.orderBookSnapshot.bids.map(bid => ({
+					price: bid.price,
+					change: bid.balance,
+					count: -bid.count,
+					side: CST.DB_BID
+				})),
+				...this.orderBookSnapshot.asks.map(ask => ({
+					price: ask.price,
+					change: ask.balance,
+					count: -ask.count,
+					side: CST.DB_ASK
+				}))
+			];
+			this.orderBook = orderBookUtil.constructOrderBook({});
+			this.orderBookSnapshot = orderBookUtil.renderOrderBookSnapshot(
+				this.pair,
+				this.orderBook
+			);
+			await orderBookPersistenceUtil.publishOrderBookUpdate(
+				this.pair,
+				this.orderBookSnapshot,
+				{
+					pair: this.pair,
+					updates: updates,
+					prevVersion: prevVersion,
+					version: this.orderBookSnapshot.version
+				}
+			);
+			for (const orderHash in this.liveOrders) await this.terminateOrder(orderHash);
+			this.liveOrders = {};
+			this.pendingUpdates = [];
+		}
 	}
 
 	public async startServer(option: IOption) {
 		this.pair = option.token + '|' + CST.TOKEN_WETH;
+		const tokens = await dynamoUtil.scanTokens();
+		const token = tokens.find(t => t.code === option.token);
+		if (!token) {
+			util.logInfo('Invalid token, exit');
+			return;
+		}
+
+		const infura = require('../keys/infura.json');
+		const dualClassWrapper = new DualClassWrapper(
+			new Web3Wrapper(
+				null,
+				'',
+				(option.env === CST.DB_LIVE
+					? CST.PROVIDER_INFURA_MAIN
+					: CST.PROVIDER_INFURA_KOVAN) +
+					'/' +
+					infura.token,
+				option.env === CST.DB_LIVE
+			),
+			token.custodian
+		);
+		await this.checkCustodianState(dualClassWrapper);
+		setInterval(() => this.checkCustodianState(dualClassWrapper), 10000);
+
 		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderQueueItem) =>
 			this.handleOrderUpdate(channel, orderQueueItem)
 		);
