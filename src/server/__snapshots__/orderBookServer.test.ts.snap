@@ -1,5 +1,53 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`checkCustodianState not in trading 1`] = `"orderBook"`;
+
+exports[`checkCustodianState not in trading 2`] = `
+Object {
+  "pair": "orderBookSnapshot",
+  "version": 1234567890,
+}
+`;
+
+exports[`checkCustodianState not in trading 3`] = `
+Array [
+  Array [
+    "code1|code2",
+    Object {
+      "pair": "orderBookSnapshot",
+      "version": 1234567890,
+    },
+    Object {
+      "pair": "code1|code2",
+      "prevVersion": 123,
+      "updates": Array [
+        Object {
+          "change": 456,
+          "count": -2,
+          "price": 123,
+          "side": "bid",
+        },
+        Object {
+          "change": 123,
+          "count": -3,
+          "price": 456,
+          "side": "ask",
+        },
+      ],
+      "version": 1234567890,
+    },
+  ],
+]
+`;
+
+exports[`checkCustodianState not in trading 4`] = `
+Array [
+  Array [
+    "orderHash",
+  ],
+]
+`;
+
 exports[`handleOrderUpdate add 1`] = `
 Array [
   Array [

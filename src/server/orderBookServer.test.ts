@@ -324,3 +324,58 @@ test('loadLiveOrders custodian not in trading', async () => {
 	expect(orderBookPersistenceUtil.publishOrderBookUpdate as jest.Mock).not.toBeCalled();
 	expect(orderBookServer.handleOrderUpdate as jest.Mock).not.toBeCalled();
 });
+
+test('checkCustodianState not in trading', async () => {
+	const dualClassWrapper = {
+		getStates: jest.fn(() =>
+			Promise.resolve({
+				state: 'state'
+			})
+		)
+	};
+
+	orderBookServer.liveOrders = {
+		orderHash: 'liveOrder' as any
+	};
+	orderBookServer.pendingUpdates = ['pendingUpdates' as any];
+	orderBookServer.orderBookSnapshot = {
+		pair: 'pair',
+		version: 123,
+		bids: [{ price: 123, balance: 456, count: 2 }],
+		asks: [{ price: 456, balance: 123, count: 3 }]
+	};
+	orderBookServer.terminateOrder = jest.fn(() => Promise.resolve());
+	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve());
+	orderBookUtil.constructOrderBook = jest.fn(() => 'orderBook');
+	orderBookUtil.renderOrderBookSnapshot = jest.fn(() => ({
+		pair: 'orderBookSnapshot',
+		version: 1234567890
+	}));
+	await orderBookServer.checkCustodianState(dualClassWrapper as any);
+	expect(orderBookServer.custodianInTrading).toBeFalsy();
+	expect(orderBookServer.liveOrders).toEqual({});
+	expect(orderBookServer.pendingUpdates).toEqual([]);
+	expect(orderBookServer.orderBook).toMatchSnapshot();
+	expect(orderBookServer.orderBookSnapshot).toMatchSnapshot();
+	expect(
+		(orderBookPersistenceUtil.publishOrderBookUpdate as jest.Mock).mock.calls
+	).toMatchSnapshot();
+	expect((orderBookServer.terminateOrder as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('checkCustodianState in trading', async () => {
+	const dualClassWrapper = {
+		getStates: jest.fn(() =>
+			Promise.resolve({
+				state: 'Trading'
+			})
+		)
+	};
+	orderBookServer.terminateOrder = jest.fn(() => Promise.resolve());
+	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve());
+
+	await orderBookServer.checkCustodianState(dualClassWrapper as any);
+	expect(orderBookServer.custodianInTrading).toBeTruthy();
+	expect(orderBookPersistenceUtil.publishOrderBookUpdate as jest.Mock).not.toBeCalled();
+	expect(orderBookServer.terminateOrder as jest.Mock).not.toBeCalled();
+});
