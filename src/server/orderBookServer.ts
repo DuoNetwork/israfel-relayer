@@ -268,7 +268,7 @@ class OrderBookServer {
 		const dualClassWrapper = new DualClassWrapper(
 			new Web3Wrapper(
 				null,
-				'',
+				'infura',
 				(option.env === CST.DB_LIVE
 					? CST.PROVIDER_INFURA_MAIN
 					: CST.PROVIDER_INFURA_KOVAN) +
