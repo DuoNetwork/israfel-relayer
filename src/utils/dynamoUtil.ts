@@ -97,11 +97,7 @@ class DynamoUtil {
 	}
 
 	private getTableName(table: string) {
-		return (
-			CST.DB_ISRAFEL +
-			'.' +
-			(this.env === CST.DB_DEV ? table + '.' + CST.DB_DEV : this.env + '.' + table)
-		);
+		return `${CST.DB_ISRAFEL}.${this.env}.${table}`;
 	}
 
 	public async scanTokens() {

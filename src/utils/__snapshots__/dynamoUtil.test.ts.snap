@@ -54,7 +54,7 @@ Array [
           "N": "1234567890",
         },
       },
-      "TableName": "israfel.liveOrders.dev",
+      "TableName": "israfel.dev.liveOrders",
     },
   ],
 ]
@@ -120,7 +120,7 @@ Array [
           "N": "1234567890",
         },
       },
-      "TableName": "israfel.rawOrders.dev",
+      "TableName": "israfel.dev.rawOrders",
     },
   ],
 ]
@@ -183,7 +183,7 @@ Array [
           "S": "updatedBy",
         },
       },
-      "TableName": "israfel.userOrders.dev",
+      "TableName": "israfel.dev.userOrders",
     },
   ],
 ]
@@ -249,7 +249,7 @@ Array [
           "S": "updatedBy",
         },
       },
-      "TableName": "israfel.userOrders.dev",
+      "TableName": "israfel.dev.userOrders",
     },
   ],
 ]
@@ -280,7 +280,7 @@ Array [
           "S": "code1|code2",
         },
       },
-      "TableName": "israfel.liveOrders.dev",
+      "TableName": "israfel.dev.liveOrders",
     },
   ],
 ]
@@ -300,7 +300,7 @@ Array [
           "S": "0xOrderHash",
         },
       },
-      "TableName": "israfel.rawOrders.dev",
+      "TableName": "israfel.dev.rawOrders",
       "UpdateExpression": "SET updatedAt = :updatedAt REMOVE signature",
     },
   ],
@@ -319,7 +319,7 @@ Array [
         },
       },
       "KeyConditionExpression": "pair = :pair",
-      "TableName": "israfel.liveOrders.dev",
+      "TableName": "israfel.dev.liveOrders",
     },
   ],
 ]
@@ -363,7 +363,7 @@ Array [
         },
       },
       "KeyConditionExpression": "pair = :pair AND orderHash = :orderHash",
-      "TableName": "israfel.liveOrders.dev",
+      "TableName": "israfel.dev.liveOrders",
     },
   ],
 ]
@@ -404,7 +404,7 @@ Array [
         },
       },
       "KeyConditionExpression": "orderHash = :orderHash",
-      "TableName": "israfel.rawOrders.dev",
+      "TableName": "israfel.dev.rawOrders",
     },
   ],
 ]
@@ -555,7 +555,7 @@ Array [
         },
       },
       "KeyConditionExpression": "accountYearMonth = :accountYearMonth AND pairOrderHashSequenceStatus BETWEEN :start AND :end",
-      "TableName": "israfel.userOrders.dev",
+      "TableName": "israfel.dev.userOrders",
     },
   ],
 ]
@@ -606,7 +606,7 @@ exports[`scanStatus 2`] = `
 Array [
   Array [
     Object {
-      "TableName": "israfel.status.dev",
+      "TableName": "israfel.dev.status",
     },
   ],
 ]
@@ -636,7 +636,7 @@ exports[`scanTokens 2`] = `
 Array [
   Array [
     Object {
-      "TableName": "israfel.tokens.dev",
+      "TableName": "israfel.dev.tokens",
     },
   ],
 ]
@@ -721,7 +721,7 @@ Array [
           "S": "code1|code2",
         },
       },
-      "TableName": "israfel.liveOrders.dev",
+      "TableName": "israfel.dev.liveOrders",
       "UpdateExpression": "SET balance = :balance, matching = :matching, fill = :fill, updatedAt = :updatedAt, currentSequence = :currentSequence ",
     },
   ],
@@ -743,7 +743,7 @@ Array [
           "N": "1234567890",
         },
       },
-      "TableName": "israfel.status.dev",
+      "TableName": "israfel.dev.status",
     },
   ],
   Array [
@@ -762,7 +762,7 @@ Array [
           "N": "1234567890",
         },
       },
-      "TableName": "israfel.status.dev",
+      "TableName": "israfel.dev.status",
     },
   ],
 ]
