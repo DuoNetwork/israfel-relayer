@@ -45,7 +45,7 @@ Array [
           "S": "code1|code2",
         },
         "price": Object {
-          "N": "0.12345678",
+          "N": "0.12345679",
         },
         "side": Object {
           "S": "bid",
@@ -165,7 +165,7 @@ Array [
           "S": "code1|code2|0xOrderHash|2|status",
         },
         "price": Object {
-          "N": "0.12345678",
+          "N": "0.12345679",
         },
         "processed": Object {
           "BOOL": false,
@@ -228,7 +228,7 @@ Array [
           "S": "code1|code2|0xOrderHash|2|status",
         },
         "price": Object {
-          "N": "0.12345678",
+          "N": "0.12345679",
         },
         "processed": Object {
           "BOOL": false,
