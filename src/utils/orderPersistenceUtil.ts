@@ -205,24 +205,36 @@ class OrderPersistenceUtil {
 			orderQueueItem.liveOrder.balance = 0;
 		} else if (fill) {
 			// only from orderWatcher
-			orderQueueItem.liveOrder.matching = Math.max(
-				orderQueueItem.liveOrder.matching - fill + orderQueueItem.liveOrder.fill,
-				0
+			orderQueueItem.liveOrder.matching = util.round(
+				Math.max(
+					orderQueueItem.liveOrder.matching - fill + orderQueueItem.liveOrder.fill,
+					0
+				)
 			);
-			orderQueueItem.liveOrder.fill = fill;
-			orderQueueItem.liveOrder.balance = Math.max(
-				orderQueueItem.liveOrder.amount - fill - orderQueueItem.liveOrder.matching,
-				0
+			orderQueueItem.liveOrder.fill = util.round(fill);
+			orderQueueItem.liveOrder.balance = util.round(
+				Math.max(
+					orderQueueItem.liveOrder.amount -
+						orderQueueItem.liveOrder.fill -
+						orderQueueItem.liveOrder.matching,
+					0
+				)
 			);
 		} else if (matching) {
 			// only from orderMatcher
-			orderQueueItem.liveOrder.balance = Math.max(
-				orderQueueItem.liveOrder.balance - matching,
-				0
+			orderQueueItem.liveOrder.matching = util.round(
+				Math.min(
+					orderQueueItem.liveOrder.amount - orderQueueItem.liveOrder.fill,
+					orderQueueItem.liveOrder.matching + matching
+				)
 			);
-			orderQueueItem.liveOrder.matching = Math.min(
-				orderQueueItem.liveOrder.amount - orderQueueItem.liveOrder.fill,
-				orderQueueItem.liveOrder.matching + matching
+			orderQueueItem.liveOrder.balance = util.round(
+				Math.max(
+					orderQueueItem.liveOrder.amount -
+						orderQueueItem.liveOrder.fill -
+						orderQueueItem.liveOrder.matching,
+					0
+				)
 			);
 		}
 
