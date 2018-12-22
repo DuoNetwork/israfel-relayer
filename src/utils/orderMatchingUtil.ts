@@ -223,7 +223,7 @@ class OrderMatchingUtil {
 				method: CST.DB_UPDATE,
 				pair: pair,
 				orderHash: ask.orderHash,
-				matching: ask.orderAmount,
+				matching: ask.matchingAmount,
 				requestor: CST.DB_ORDER_MATCHER,
 				status: CST.DB_MATCHING,
 				transactionHash: txHash
