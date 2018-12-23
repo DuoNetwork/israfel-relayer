@@ -185,7 +185,7 @@ class OrderMatchingUtil {
 						gasPrice: new BigNumber(curretnGasPrice),
 						gasLimit: 300000,
 						nonce: currentNonce,
-						shouldValidate: true
+						shouldValidate: false
 					}
 				);
 			} catch (matchError) {
