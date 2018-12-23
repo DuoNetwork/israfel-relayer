@@ -205,12 +205,12 @@ class OrderPersistenceUtil {
 			orderQueueItem.liveOrder.matching = 0;
 			orderQueueItem.liveOrder.balance = 0;
 		} else if (fill) {
-			// only from orderWatcher
+			// from orderMatcher or orderWatcher
+			// if from orderMatcher, matching will be a negative number to offset previous matching number
+			// if from orderWatcher, matching wont be set and need to use difference in fill to adjust matching
+			const matchinAdjust = Math.min(matching || 0, -fill + orderQueueItem.liveOrder.fill);
 			orderQueueItem.liveOrder.matching = util.round(
-				Math.max(
-					orderQueueItem.liveOrder.matching - fill + orderQueueItem.liveOrder.fill,
-					0
-				)
+				Math.max(orderQueueItem.liveOrder.matching + matchinAdjust, 0)
 			);
 			orderQueueItem.liveOrder.fill = util.round(fill);
 			orderQueueItem.liveOrder.balance = util.round(
@@ -221,7 +221,7 @@ class OrderPersistenceUtil {
 					0
 				)
 			);
-		} else if (matching) {
+		} else if (!fill && matching) {
 			// only from orderMatcher
 			orderQueueItem.liveOrder.matching = util.round(
 				Math.min(

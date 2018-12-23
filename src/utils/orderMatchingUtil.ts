@@ -258,6 +258,7 @@ class OrderMatchingUtil {
 						pair: pair,
 						orderHash: bid.orderHash,
 						fill: bidFilledAmt,
+						matching: -bid.matchingAmount,
 						requestor: CST.DB_ORDER_MATCHER,
 						status: bidFilledAmt >= bid.orderAmount ? CST.DB_FILL : CST.DB_PFILL,
 						transactionHash: receipt.blockHash
@@ -283,6 +284,7 @@ class OrderMatchingUtil {
 						pair: pair,
 						orderHash: ask.orderHash,
 						fill: askFilledAmt,
+						matching: -ask.matchingAmount,
 						requestor: CST.DB_ORDER_MATCHER,
 						status: askFilledAmt >= ask.orderAmount ? CST.DB_FILL : CST.DB_PFILL,
 						transactionHash: receipt.blockHash
