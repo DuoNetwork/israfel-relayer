@@ -151,6 +151,7 @@ class OrderPersistenceUtil {
 	}
 
 	public async persistOrder(orderPersistRequest: IOrderPersistRequest) {
+		util.logDebug('persist request: ' + JSON.stringify(orderPersistRequest));
 		const {
 			pair,
 			orderHash,
@@ -240,18 +241,19 @@ class OrderPersistenceUtil {
 
 		if (transactionHash) orderQueueItem.transactionHash = transactionHash;
 
-		util.logDebug(`storing order queue item in redis ${orderHash}`);
+		const orderQueueItemString = JSON.stringify(orderQueueItem);
+		util.logDebug(`storing order queue item in redis ${orderHash}: ${orderQueueItemString}`);
 		await redisUtil.multi();
 		const key = this.getCacheMapField(pair, method, orderHash);
 		// store order in hash map
-		redisUtil.hashSet(this.getOrderCacheMapKey(pair), key, JSON.stringify(orderQueueItem));
+		redisUtil.hashSet(this.getOrderCacheMapKey(pair), key, orderQueueItemString);
 		// push orderhash into queue
 		redisUtil.push(this.getOrderQueueKey(), key);
 		await redisUtil.exec();
 		util.logDebug(`done`);
 
 		try {
-			redisUtil.publish(this.getOrderPubSubChannel(pair), JSON.stringify(orderQueueItem));
+			redisUtil.publish(this.getOrderPubSubChannel(pair), orderQueueItemString);
 		} catch (error) {
 			util.logError(error);
 		}

@@ -85,7 +85,7 @@ class Util {
 	}
 
 	public round(num: string | number) {
-		return +(Math.floor((num + 'e+8') as any) + 'e-8');
+		return +(Math.round((num + 'e+8') as any) + 'e-8');
 	}
 
 	public safeWsSend(ws: WebSocket, message: string) {

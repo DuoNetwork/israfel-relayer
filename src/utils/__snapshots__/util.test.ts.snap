@@ -28,8 +28,8 @@ exports[`round 2`] = `12345`;
 
 exports[`round 3`] = `12345.1234567`;
 
-exports[`round 4`] = `12345.12345678`;
+exports[`round 4`] = `12345.12345679`;
 
-exports[`round 5`] = `0.12345678`;
+exports[`round 5`] = `0.12345679`;
 
-exports[`round 6`] = `12345.12345678`;
+exports[`round 6`] = `12345.12345679`;
