@@ -251,10 +251,7 @@ test('handleOrderWatcherUpdate isValid no fill', async () => {
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
 	orderWatcherServer.watchingOrders = {
 		orderHash: {
-			liveOrder: {
-				amount: 456,
-				pair: 'pair'
-			},
+			pair: 'pair',
 			signedOrder: {
 				takerAssetAmount: new BigNumber(456)
 			}
@@ -266,18 +263,17 @@ test('handleOrderWatcherUpdate isValid no fill', async () => {
 });
 
 test('handleOrderWatcherUpdate isValid balance plus fill less than orignial amount', async () => {
-	orderStateValid.orderRelevantState.filledTakerAssetAmount = new BigNumber(1);
-	orderStateValid.orderRelevantState.remainingFillableTakerAssetAmount = new BigNumber(400);
+	orderStateValid.orderRelevantState.filledTakerAssetAmount = new BigNumber(1000000000000000000);
+	orderStateValid.orderRelevantState.remainingFillableTakerAssetAmount = new BigNumber(
+		400000000000000000000
+	);
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
 	orderWatcherServer.watchingOrders = {
 		orderHash: {
-			liveOrder: {
-				amount: 456,
-				pair: 'pair'
-			},
+			pair: 'pair',
 			signedOrder: {
-				takerAssetAmount: new BigNumber(456)
+				takerAssetAmount: new BigNumber(456000000000000000000)
 			}
 		} as any
 	};
@@ -293,17 +289,14 @@ test('handleOrderWatcherUpdate isValid partial fill', async () => {
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
 	orderWatcherServer.watchingOrders = {
 		orderHash: {
-			liveOrder: {
-				amount: 456,
-				pair: 'pair'
-			},
+			pair: 'pair',
 			signedOrder: {
 				takerAssetAmount: new BigNumber(456)
 			}
 		} as any
 	};
 	await orderWatcherServer.handleOrderWatcherUpdate(orderStateValid);
-	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(orderWatcherServer.updateOrder as jest.Mock).not.toBeCalled();
 	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
 });
 
@@ -315,7 +308,7 @@ const orderStateInValid: OrderState = {
 
 test('handleOrderWatcherUpdate invalid ExchangeContractErrs.OrderFillRoundingError', async () => {
 	orderWatcherServer.watchingOrders = {
-		orderHash: { liveOrder: { pair: 'pair', orderHash: 'orderHash' } } as any
+		orderHash: { pair: 'pair' } as any
 	};
 	orderWatcherServer.web3Util = {} as any;
 	orderStateInValid.error = ExchangeContractErrs.OrderFillRoundingError;
@@ -328,7 +321,7 @@ test('handleOrderWatcherUpdate invalid ExchangeContractErrs.OrderFillRoundingErr
 
 test('handleOrderWatcherUpdate invalid ExchangeContractErrs.OrderFillExpired', async () => {
 	orderWatcherServer.watchingOrders = {
-		orderHash: { liveOrder: { pair: 'pair', orderHash: 'orderHash' } } as any
+		orderHash: { pair: 'pair' } as any
 	};
 	orderWatcherServer.web3Util = {} as any;
 	orderStateInValid.error = ExchangeContractErrs.OrderFillExpired;
@@ -341,7 +334,7 @@ test('handleOrderWatcherUpdate invalid ExchangeContractErrs.OrderFillExpired', a
 
 test('handleOrderWatcherUpdate invalid ExchangeContractErrs.OrderCancelled', async () => {
 	orderWatcherServer.watchingOrders = {
-		orderHash: { liveOrder: { pair: 'pair', orderHash: 'orderHash' } } as any
+		orderHash: { pair: 'pair' } as any
 	};
 	orderWatcherServer.web3Util = {} as any;
 	orderStateInValid.error = ExchangeContractErrs.OrderCancelled;
@@ -354,7 +347,7 @@ test('handleOrderWatcherUpdate invalid ExchangeContractErrs.OrderCancelled', asy
 
 test('handleOrderWatcherUpdate invalid ExchangeContractErrs.OrderRemainingFillAmountZero', async () => {
 	orderWatcherServer.watchingOrders = {
-		orderHash: { liveOrder: { pair: 'pair', orderHash: 'orderHash' } } as any
+		orderHash: { pair: 'pair' } as any
 	};
 	orderWatcherServer.web3Util = {} as any;
 	orderStateInValid.error = ExchangeContractErrs.OrderRemainingFillAmountZero;
@@ -367,7 +360,7 @@ test('handleOrderWatcherUpdate invalid ExchangeContractErrs.OrderRemainingFillAm
 
 test('handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientMakerBalance', async () => {
 	orderWatcherServer.watchingOrders = {
-		orderHash: { liveOrder: { pair: 'pair', orderHash: 'orderHash' } } as any
+		orderHash: { pair: 'pair' } as any
 	};
 	orderWatcherServer.web3Util = {} as any;
 	orderStateInValid.error = ExchangeContractErrs.InsufficientMakerBalance;
@@ -380,7 +373,7 @@ test('handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientMakerBal
 
 test('handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientMakerAllowance', async () => {
 	orderWatcherServer.watchingOrders = {
-		orderHash: { liveOrder: { pair: 'pair', orderHash: 'orderHash' } } as any
+		orderHash: { pair: 'pair' } as any
 	};
 	orderWatcherServer.web3Util = {} as any;
 	orderStateInValid.error = ExchangeContractErrs.InsufficientMakerAllowance;
@@ -393,7 +386,7 @@ test('handleOrderWatcherUpdate invalid ExchangeContractErrs.InsufficientMakerAll
 
 test('handleOrderWatcherUpdate invalid default', async () => {
 	orderWatcherServer.watchingOrders = {
-		orderHash: { liveOrder: { pair: 'pair', orderHash: 'orderHash' } } as any
+		orderHash: { pair: 'pair' } as any
 	};
 	orderWatcherServer.web3Util = {} as any;
 	orderStateInValid.error = '' as any;

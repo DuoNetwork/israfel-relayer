@@ -205,9 +205,8 @@ class OrderPersistenceUtil {
 			orderQueueItem.liveOrder.matching = 0;
 			orderQueueItem.liveOrder.balance = 0;
 		} else if (fill) {
-			// from orderMatcher or orderWatcher
-			// if from orderMatcher, matching will be a negative number to offset previous matching number
-			// if from orderWatcher, matching wont be set and need to use difference in fill to adjust matching
+			// only from orderMatcher
+			// matching will be a negative number to offset previous matching number
 			const matchinAdjust = Math.min(matching || 0, -fill + orderQueueItem.liveOrder.fill);
 			orderQueueItem.liveOrder.matching = util.round(
 				Math.max(orderQueueItem.liveOrder.matching + matchinAdjust, 0)

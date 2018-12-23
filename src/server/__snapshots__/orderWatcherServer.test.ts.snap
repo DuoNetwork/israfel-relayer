@@ -34,10 +34,7 @@ Array [
 exports[`addIntoWatch no signed order fillable 3`] = `
 Object {
   "orderHash": Object {
-    "liveOrder": Object {
-      "orderHash": "orderHash",
-      "pair": "pair",
-    },
+    "pair": "pair",
     "signedOrder": Object {
       "exchangeAddress": "exchangeAddress",
       "expirationTimeSeconds": "1234567890",
@@ -84,10 +81,7 @@ Array [
 exports[`addIntoWatch with signed order fillable 2`] = `
 Object {
   "orderHash": Object {
-    "liveOrder": Object {
-      "orderHash": "orderHash",
-      "pair": "pair",
-    },
+    "pair": "pair",
     "signedOrder": Object {
       "exchangeAddress": "exchangeAddress",
       "expirationTimeSeconds": "1234567890",
@@ -292,30 +286,20 @@ exports[`handleOrderWatcherUpdate isValid balance plus fill less than orignial a
 Array [
   Array [
     Object {
-      "fill": 56,
-      "method": "update",
+      "method": "terminate",
       "orderHash": "orderHash",
       "pair": "pair",
       "requestor": "orderWatcher",
-      "status": "pFill",
+      "status": "balance",
     },
   ],
 ]
 `;
 
-exports[`handleOrderWatcherUpdate isValid balance plus fill less than orignial amount 2`] = `Array []`;
-
-exports[`handleOrderWatcherUpdate isValid partial fill 1`] = `
+exports[`handleOrderWatcherUpdate isValid balance plus fill less than orignial amount 2`] = `
 Array [
   Array [
-    Object {
-      "fill": 1,
-      "method": "update",
-      "orderHash": "orderHash",
-      "pair": "pair",
-      "requestor": "orderWatcher",
-      "status": "pFill",
-    },
+    "orderHash",
   ],
 ]
 `;

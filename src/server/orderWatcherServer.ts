@@ -27,7 +27,7 @@ class OrderWatcherServer {
 	public web3Util: Web3Util | null = null;
 	public watchingOrders: {
 		[orderHash: string]: {
-			liveOrder: ILiveOrder;
+			pair: string;
 			signedOrder: SignedOrder;
 		};
 	} = {};
@@ -55,13 +55,12 @@ class OrderWatcherServer {
 			util.logDebug(orderHash + ' not in cache, ignored');
 			return;
 		}
-		const liveOrder = this.watchingOrders[orderHash].liveOrder;
 		const signedOrder = this.watchingOrders[orderHash].signedOrder;
 		const orderPersistRequest: IOrderPersistRequest = {
 			method: CST.DB_TERMINATE,
 			status: CST.DB_TERMINATE,
 			requestor: CST.DB_ORDER_WATCHER,
-			pair: liveOrder.pair,
+			pair: this.watchingOrders[orderHash].pair,
 			orderHash: orderHash
 		};
 		util.logDebug(JSON.stringify(orderState));
@@ -80,18 +79,7 @@ class OrderWatcherServer {
 				.sub(filledTakerAssetAmount);
 			if (diff.greaterThan(1000000) || diff.lessThan(-1000000))
 				orderPersistRequest.status = CST.DB_BALANCE;
-			else if (Web3Util.fromWei(filledTakerAssetAmount)) {
-				orderPersistRequest.fill =
-					liveOrder.amount -
-					liveOrder.amount *
-						Number(
-							remainingFillableTakerAssetAmount
-								.div(signedOrder.takerAssetAmount)
-								.valueOf()
-						);
-				orderPersistRequest.method = CST.DB_UPDATE;
-				orderPersistRequest.status = CST.DB_PFILL;
-			} else return;
+			else return;
 		} else {
 			const error = (orderState as OrderStateInvalid).error;
 			switch (error) {
@@ -145,7 +133,7 @@ class OrderWatcherServer {
 
 				await this.orderWatcher.addOrderAsync(rawSignedOrder);
 				this.watchingOrders[orderHash] = {
-					liveOrder: liveOrder,
+					pair: liveOrder.pair,
 					signedOrder: rawSignedOrder
 				};
 				util.logDebug('successfully added ' + orderHash);
