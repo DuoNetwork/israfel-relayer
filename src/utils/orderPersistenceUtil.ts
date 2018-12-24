@@ -151,6 +151,7 @@ class OrderPersistenceUtil {
 	}
 
 	public async persistOrder(orderPersistRequest: IOrderPersistRequest) {
+		util.logDebug('persist request: ' + JSON.stringify(orderPersistRequest));
 		const {
 			pair,
 			orderHash,
@@ -204,42 +205,54 @@ class OrderPersistenceUtil {
 			orderQueueItem.liveOrder.matching = 0;
 			orderQueueItem.liveOrder.balance = 0;
 		} else if (fill) {
-			// only from orderWatcher
-			orderQueueItem.liveOrder.matching = Math.max(
-				orderQueueItem.liveOrder.matching - fill + orderQueueItem.liveOrder.fill,
-				0
-			);
-			orderQueueItem.liveOrder.fill = fill;
-			orderQueueItem.liveOrder.balance = Math.max(
-				orderQueueItem.liveOrder.amount - fill - orderQueueItem.liveOrder.matching,
-				0
-			);
-		} else if (matching) {
 			// only from orderMatcher
-			orderQueueItem.liveOrder.balance = Math.max(
-				orderQueueItem.liveOrder.balance - matching,
-				0
+			// matching will be a negative number to offset previous matching number
+			const matchinAdjust = Math.min(matching || 0, -fill + orderQueueItem.liveOrder.fill);
+			orderQueueItem.liveOrder.matching = util.round(
+				Math.max(orderQueueItem.liveOrder.matching + matchinAdjust, 0)
 			);
-			orderQueueItem.liveOrder.matching = Math.min(
-				orderQueueItem.liveOrder.amount - orderQueueItem.liveOrder.fill,
-				orderQueueItem.liveOrder.matching + matching
+			orderQueueItem.liveOrder.fill = util.round(fill);
+			orderQueueItem.liveOrder.balance = util.round(
+				Math.max(
+					orderQueueItem.liveOrder.amount -
+						orderQueueItem.liveOrder.fill -
+						orderQueueItem.liveOrder.matching,
+					0
+				)
+			);
+		} else if (!fill && matching) {
+			// only from orderMatcher
+			orderQueueItem.liveOrder.matching = util.round(
+				Math.min(
+					orderQueueItem.liveOrder.amount - orderQueueItem.liveOrder.fill,
+					orderQueueItem.liveOrder.matching + matching
+				)
+			);
+			orderQueueItem.liveOrder.balance = util.round(
+				Math.max(
+					orderQueueItem.liveOrder.amount -
+						orderQueueItem.liveOrder.fill -
+						orderQueueItem.liveOrder.matching,
+					0
+				)
 			);
 		}
 
 		if (transactionHash) orderQueueItem.transactionHash = transactionHash;
 
-		util.logDebug(`storing order queue item in redis ${orderHash}`);
+		const orderQueueItemString = JSON.stringify(orderQueueItem);
+		util.logDebug(`storing order queue item in redis ${orderHash}: ${orderQueueItemString}`);
 		await redisUtil.multi();
 		const key = this.getCacheMapField(pair, method, orderHash);
 		// store order in hash map
-		redisUtil.hashSet(this.getOrderCacheMapKey(pair), key, JSON.stringify(orderQueueItem));
+		redisUtil.hashSet(this.getOrderCacheMapKey(pair), key, orderQueueItemString);
 		// push orderhash into queue
 		redisUtil.push(this.getOrderQueueKey(), key);
 		await redisUtil.exec();
 		util.logDebug(`done`);
 
 		try {
-			redisUtil.publish(this.getOrderPubSubChannel(pair), JSON.stringify(orderQueueItem));
+			redisUtil.publish(this.getOrderPubSubChannel(pair), orderQueueItemString);
 		} catch (error) {
 			util.logError(error);
 		}

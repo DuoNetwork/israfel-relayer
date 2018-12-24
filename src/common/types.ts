@@ -77,12 +77,16 @@ export interface IOrderPersistRequest {
 
 export interface IOrderMatchRequest {
 	pair: string;
-	leftOrderAmount: number;
-	rightOrderAmount: number;
-	matchingAmount: number;
-	leftOrderHash: string;
-	rightOrderHash: string;
+	feeOnToken: boolean;
+	bid: IOrderMatchingInfo;
+	ask: IOrderMatchingInfo;
 	transactionHash?: string;
+}
+
+export interface IOrderMatchingInfo {
+	orderHash: string;
+	orderAmount: number;
+	matchingAmount: number;
 }
 
 export interface IOrderQueueItem {

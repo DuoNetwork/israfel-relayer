@@ -5,12 +5,18 @@ Object {
   "orderBookLevelUpdates": Array [],
   "orderMatchRequests": Array [
     Object {
-      "leftOrderAmount": 20,
-      "leftOrderHash": "orderHash1",
-      "matchingAmount": 20,
+      "ask": Object {
+        "matchingAmount": 20,
+        "orderAmount": 30,
+        "orderHash": "orderHash3",
+      },
+      "bid": Object {
+        "matchingAmount": 20,
+        "orderAmount": 20,
+        "orderHash": "orderHash1",
+      },
+      "feeOnToken": false,
       "pair": "pair",
-      "rightOrderAmount": 30,
-      "rightOrderHash": "orderHash3",
     },
   ],
 }
@@ -44,6 +50,622 @@ Object {
 }
 `;
 
+exports[`findMatchingOrders, updatesRequired feeOnToken true, bid balance after matching > 0 1`] = `
+Object {
+  "orderBookLevelUpdates": Array [
+    Object {
+      "change": -30,
+      "count": 0,
+      "price": 0.04,
+      "side": "bid",
+    },
+    Object {
+      "change": -30,
+      "count": -1,
+      "price": 0.04,
+      "side": "ask",
+    },
+  ],
+  "orderMatchRequests": Array [
+    Object {
+      "ask": Object {
+        "matchingAmount": 30,
+        "orderAmount": 30,
+        "orderHash": "orderHash3",
+      },
+      "bid": Object {
+        "matchingAmount": 30,
+        "orderAmount": 40,
+        "orderHash": "orderHash1",
+      },
+      "feeOnToken": true,
+      "pair": "pair",
+    },
+  ],
+}
+`;
+
+exports[`findMatchingOrders, updatesRequired feeOnToken true, bid balance after matching > 0 2`] = `
+Object {
+  "asks": Array [
+    Object {
+      "balance": 0,
+      "initialSequence": 3,
+      "orderHash": "orderHash3",
+      "price": 0.04,
+    },
+    Object {
+      "balance": 20,
+      "initialSequence": 4,
+      "orderHash": "orderHash4",
+      "price": 0.05,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "balance": 10,
+      "initialSequence": 1,
+      "orderHash": "orderHash1",
+      "price": 0.04,
+    },
+    Object {
+      "balance": 30,
+      "initialSequence": 2,
+      "orderHash": "orderHash2",
+      "price": 0.01,
+    },
+  ],
+}
+`;
+
+exports[`findMatchingOrders, updatesRequired feeOnToken true, bid balance after matching > 0 3`] = `
+Object {
+  "orderHash1": Object {
+    "account": "account1",
+    "amount": 40,
+    "balance": 10,
+    "createdAt": 1234567890,
+    "currentSequence": 5,
+    "expiry": 1234567890000,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 0,
+    "initialSequence": 1,
+    "matching": 30,
+    "orderHash": "orderHash1",
+    "pair": "pair",
+    "price": 0.04,
+    "side": "bid",
+  },
+  "orderHash2": Object {
+    "account": "account2",
+    "amount": 30,
+    "balance": 30,
+    "createdAt": 1234567890,
+    "currentSequence": 6,
+    "expiry": 1234567890000,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 0,
+    "initialSequence": 2,
+    "matching": 0,
+    "orderHash": "orderHash2",
+    "pair": "pair",
+    "price": 0.01,
+    "side": "bid",
+  },
+  "orderHash3": Object {
+    "account": "account3",
+    "amount": 30,
+    "balance": 0,
+    "createdAt": 1234567890,
+    "currentSequence": 7,
+    "expiry": 1234567890000,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 0,
+    "initialSequence": 3,
+    "matching": 30,
+    "orderHash": "orderHash3",
+    "pair": "pair",
+    "price": 0.04,
+    "side": "ask",
+  },
+  "orderHash4": Object {
+    "account": "account4",
+    "amount": 20,
+    "balance": 20,
+    "createdAt": 1234567890,
+    "currentSequence": 8,
+    "expiry": 1234567890000,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 0,
+    "initialSequence": 4,
+    "matching": 0,
+    "orderHash": "orderHash4",
+    "pair": "pair",
+    "price": 0.05,
+    "side": "ask",
+  },
+}
+`;
+
+exports[`findMatchingOrders, updatesRequired feeOnToken true, bid balance after matching > 0 price cross 1`] = `
+Object {
+  "orderBookLevelUpdates": Array [
+    Object {
+      "change": -26.666666666666668,
+      "count": 0,
+      "price": 0.045,
+      "side": "bid",
+    },
+    Object {
+      "change": -30,
+      "count": -1,
+      "price": 0.04,
+      "side": "ask",
+    },
+  ],
+  "orderMatchRequests": Array [
+    Object {
+      "ask": Object {
+        "matchingAmount": 30,
+        "orderAmount": 30,
+        "orderHash": "orderHash3",
+      },
+      "bid": Object {
+        "matchingAmount": 26.666666666666668,
+        "orderAmount": 40,
+        "orderHash": "orderHash1",
+      },
+      "feeOnToken": true,
+      "pair": "pair",
+    },
+  ],
+}
+`;
+
+exports[`findMatchingOrders, updatesRequired feeOnToken true, bid balance after matching > 0 price cross 2`] = `
+Object {
+  "asks": Array [
+    Object {
+      "balance": 0,
+      "initialSequence": 3,
+      "orderHash": "orderHash3",
+      "price": 0.04,
+    },
+    Object {
+      "balance": 20,
+      "initialSequence": 4,
+      "orderHash": "orderHash4",
+      "price": 0.05,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "balance": 13.333333333333332,
+      "initialSequence": 1,
+      "orderHash": "orderHash1",
+      "price": 0.045,
+    },
+    Object {
+      "balance": 30,
+      "initialSequence": 2,
+      "orderHash": "orderHash2",
+      "price": 0.01,
+    },
+  ],
+}
+`;
+
+exports[`findMatchingOrders, updatesRequired feeOnToken true, bid balance after matching > 0 price cross 3`] = `
+Object {
+  "orderHash1": Object {
+    "account": "account1",
+    "amount": 40,
+    "balance": 13.333333333333332,
+    "createdAt": 1234567890,
+    "currentSequence": 5,
+    "expiry": 1234567890000,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 0,
+    "initialSequence": 1,
+    "matching": 26.666666666666668,
+    "orderHash": "orderHash1",
+    "pair": "pair",
+    "price": 0.045,
+    "side": "bid",
+  },
+  "orderHash2": Object {
+    "account": "account2",
+    "amount": 30,
+    "balance": 30,
+    "createdAt": 1234567890,
+    "currentSequence": 6,
+    "expiry": 1234567890000,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 0,
+    "initialSequence": 2,
+    "matching": 0,
+    "orderHash": "orderHash2",
+    "pair": "pair",
+    "price": 0.01,
+    "side": "bid",
+  },
+  "orderHash3": Object {
+    "account": "account3",
+    "amount": 30,
+    "balance": 0,
+    "createdAt": 1234567890,
+    "currentSequence": 7,
+    "expiry": 1234567890000,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 0,
+    "initialSequence": 3,
+    "matching": 30,
+    "orderHash": "orderHash3",
+    "pair": "pair",
+    "price": 0.04,
+    "side": "ask",
+  },
+  "orderHash4": Object {
+    "account": "account4",
+    "amount": 20,
+    "balance": 20,
+    "createdAt": 1234567890,
+    "currentSequence": 8,
+    "expiry": 1234567890000,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 0,
+    "initialSequence": 4,
+    "matching": 0,
+    "orderHash": "orderHash4",
+    "pair": "pair",
+    "price": 0.05,
+    "side": "ask",
+  },
+}
+`;
+
+exports[`findMatchingOrders, updatesRequired feeOnToken true, matching all, all partial filled 1`] = `
+Object {
+  "orderBookLevelUpdates": Array [
+    Object {
+      "change": -20,
+      "count": -1,
+      "price": 0.05,
+      "side": "bid",
+    },
+    Object {
+      "change": -25,
+      "count": 0,
+      "price": 0.04,
+      "side": "ask",
+    },
+    Object {
+      "change": -5,
+      "count": 0,
+      "price": 0.04,
+      "side": "bid",
+    },
+    Object {
+      "change": -5,
+      "count": -1,
+      "price": 0.04,
+      "side": "ask",
+    },
+    Object {
+      "change": -25,
+      "count": -1,
+      "price": 0.04,
+      "side": "bid",
+    },
+    Object {
+      "change": -20,
+      "count": -1,
+      "price": 0.05,
+      "side": "ask",
+    },
+  ],
+  "orderMatchRequests": Array [
+    Object {
+      "ask": Object {
+        "matchingAmount": 25,
+        "orderAmount": 30,
+        "orderHash": "orderHash3",
+      },
+      "bid": Object {
+        "matchingAmount": 20,
+        "orderAmount": 20,
+        "orderHash": "orderHash1",
+      },
+      "feeOnToken": true,
+      "pair": "pair",
+    },
+    Object {
+      "ask": Object {
+        "matchingAmount": 5,
+        "orderAmount": 30,
+        "orderHash": "orderHash3",
+      },
+      "bid": Object {
+        "matchingAmount": 5,
+        "orderAmount": 30,
+        "orderHash": "orderHash2",
+      },
+      "feeOnToken": true,
+      "pair": "pair",
+    },
+    Object {
+      "ask": Object {
+        "matchingAmount": 20,
+        "orderAmount": 20,
+        "orderHash": "orderHash4",
+      },
+      "bid": Object {
+        "matchingAmount": 25,
+        "orderAmount": 30,
+        "orderHash": "orderHash2",
+      },
+      "feeOnToken": true,
+      "pair": "pair",
+    },
+  ],
+}
+`;
+
+exports[`findMatchingOrders, updatesRequired feeOnToken true, matching all, all partial filled 2`] = `
+Object {
+  "asks": Array [
+    Object {
+      "balance": 0,
+      "initialSequence": 3,
+      "orderHash": "orderHash3",
+      "price": 0.04,
+    },
+    Object {
+      "balance": 0,
+      "initialSequence": 4,
+      "orderHash": "orderHash4",
+      "price": 0.05,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "balance": 0,
+      "initialSequence": 1,
+      "orderHash": "orderHash1",
+      "price": 0.05,
+    },
+    Object {
+      "balance": 0,
+      "initialSequence": 2,
+      "orderHash": "orderHash2",
+      "price": 0.04,
+    },
+  ],
+}
+`;
+
+exports[`findMatchingOrders, updatesRequired feeOnToken true, matching all, all partial filled 3`] = `
+Object {
+  "orderHash1": Object {
+    "account": "account1",
+    "amount": 20,
+    "balance": 0,
+    "createdAt": 1234567890,
+    "currentSequence": 5,
+    "expiry": 1234567890000,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 0,
+    "initialSequence": 1,
+    "matching": 20,
+    "orderHash": "orderHash1",
+    "pair": "pair",
+    "price": 0.05,
+    "side": "bid",
+  },
+  "orderHash2": Object {
+    "account": "account2",
+    "amount": 30,
+    "balance": 0,
+    "createdAt": 1234567890,
+    "currentSequence": 6,
+    "expiry": 1234567890000,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 0,
+    "initialSequence": 2,
+    "matching": 30,
+    "orderHash": "orderHash2",
+    "pair": "pair",
+    "price": 0.04,
+    "side": "bid",
+  },
+  "orderHash3": Object {
+    "account": "account3",
+    "amount": 30,
+    "balance": 0,
+    "createdAt": 1234567890,
+    "currentSequence": 7,
+    "expiry": 1234567890000,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 0,
+    "initialSequence": 3,
+    "matching": 30,
+    "orderHash": "orderHash3",
+    "pair": "pair",
+    "price": 0.04,
+    "side": "ask",
+  },
+  "orderHash4": Object {
+    "account": "account4",
+    "amount": 20,
+    "balance": 0,
+    "createdAt": 1234567890,
+    "currentSequence": 8,
+    "expiry": 1234567890000,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 0,
+    "initialSequence": 4,
+    "matching": 20,
+    "orderHash": "orderHash4",
+    "pair": "pair",
+    "price": 0.05,
+    "side": "ask",
+  },
+}
+`;
+
+exports[`findMatchingOrders, updatesRequired feeOnToken true, matching first bid and ask 1`] = `
+Object {
+  "orderBookLevelUpdates": Array [
+    Object {
+      "change": -20,
+      "count": -1,
+      "price": 0.04,
+      "side": "bid",
+    },
+    Object {
+      "change": -20,
+      "count": 0,
+      "price": 0.04,
+      "side": "ask",
+    },
+  ],
+  "orderMatchRequests": Array [
+    Object {
+      "ask": Object {
+        "matchingAmount": 20,
+        "orderAmount": 30,
+        "orderHash": "orderHash3",
+      },
+      "bid": Object {
+        "matchingAmount": 20,
+        "orderAmount": 20,
+        "orderHash": "orderHash1",
+      },
+      "feeOnToken": true,
+      "pair": "pair",
+    },
+  ],
+}
+`;
+
+exports[`findMatchingOrders, updatesRequired feeOnToken true, matching first bid and ask 2`] = `
+Object {
+  "asks": Array [
+    Object {
+      "balance": 10,
+      "initialSequence": 3,
+      "orderHash": "orderHash3",
+      "price": 0.04,
+    },
+    Object {
+      "balance": 20,
+      "initialSequence": 4,
+      "orderHash": "orderHash4",
+      "price": 0.05,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "balance": 0,
+      "initialSequence": 1,
+      "orderHash": "orderHash1",
+      "price": 0.04,
+    },
+    Object {
+      "balance": 30,
+      "initialSequence": 2,
+      "orderHash": "orderHash2",
+      "price": 0.01,
+    },
+  ],
+}
+`;
+
+exports[`findMatchingOrders, updatesRequired feeOnToken true, matching first bid and ask 3`] = `
+Object {
+  "orderHash1": Object {
+    "account": "account1",
+    "amount": 20,
+    "balance": 0,
+    "createdAt": 1234567890,
+    "currentSequence": 5,
+    "expiry": 1234567890000,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 0,
+    "initialSequence": 1,
+    "matching": 20,
+    "orderHash": "orderHash1",
+    "pair": "pair",
+    "price": 0.04,
+    "side": "bid",
+  },
+  "orderHash2": Object {
+    "account": "account2",
+    "amount": 30,
+    "balance": 30,
+    "createdAt": 1234567890,
+    "currentSequence": 6,
+    "expiry": 1234567890000,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 0,
+    "initialSequence": 2,
+    "matching": 0,
+    "orderHash": "orderHash2",
+    "pair": "pair",
+    "price": 0.01,
+    "side": "bid",
+  },
+  "orderHash3": Object {
+    "account": "account3",
+    "amount": 30,
+    "balance": 10,
+    "createdAt": 1234567890,
+    "currentSequence": 7,
+    "expiry": 1234567890000,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 0,
+    "initialSequence": 3,
+    "matching": 20,
+    "orderHash": "orderHash3",
+    "pair": "pair",
+    "price": 0.04,
+    "side": "ask",
+  },
+  "orderHash4": Object {
+    "account": "account4",
+    "amount": 20,
+    "balance": 20,
+    "createdAt": 1234567890,
+    "currentSequence": 8,
+    "expiry": 1234567890000,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 0,
+    "initialSequence": 4,
+    "matching": 0,
+    "orderHash": "orderHash4",
+    "pair": "pair",
+    "price": 0.05,
+    "side": "ask",
+  },
+}
+`;
+
 exports[`findMatchingOrders, updatesRequired true, ask balance 0 1`] = `
 Object {
   "orderBookLevelUpdates": Array [
@@ -62,12 +684,18 @@ Object {
   ],
   "orderMatchRequests": Array [
     Object {
-      "leftOrderAmount": 20,
-      "leftOrderHash": "orderHash1",
-      "matchingAmount": 20,
+      "ask": Object {
+        "matchingAmount": 20,
+        "orderAmount": 30,
+        "orderHash": "orderHash3",
+      },
+      "bid": Object {
+        "matchingAmount": 20,
+        "orderAmount": 20,
+        "orderHash": "orderHash1",
+      },
+      "feeOnToken": false,
       "pair": "pair",
-      "rightOrderAmount": 30,
-      "rightOrderHash": "orderHash3",
     },
   ],
 }
@@ -91,12 +719,18 @@ Object {
   ],
   "orderMatchRequests": Array [
     Object {
-      "leftOrderAmount": 20,
-      "leftOrderHash": "orderHash1",
-      "matchingAmount": 30,
+      "ask": Object {
+        "matchingAmount": 30,
+        "orderAmount": 30,
+        "orderHash": "orderHash3",
+      },
+      "bid": Object {
+        "matchingAmount": 30,
+        "orderAmount": 40,
+        "orderHash": "orderHash1",
+      },
+      "feeOnToken": false,
       "pair": "pair",
-      "rightOrderAmount": 30,
-      "rightOrderHash": "orderHash3",
     },
   ],
 }
@@ -139,7 +773,7 @@ exports[`findMatchingOrders, updatesRequired true, bid balance after matching > 
 Object {
   "orderHash1": Object {
     "account": "account1",
-    "amount": 20,
+    "amount": 40,
     "balance": 10,
     "createdAt": 1234567890,
     "currentSequence": 5,
@@ -152,6 +786,147 @@ Object {
     "orderHash": "orderHash1",
     "pair": "pair",
     "price": 0.04,
+    "side": "bid",
+  },
+  "orderHash2": Object {
+    "account": "account2",
+    "amount": 30,
+    "balance": 30,
+    "createdAt": 1234567890,
+    "currentSequence": 6,
+    "expiry": 1234567890000,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 0,
+    "initialSequence": 2,
+    "matching": 0,
+    "orderHash": "orderHash2",
+    "pair": "pair",
+    "price": 0.01,
+    "side": "bid",
+  },
+  "orderHash3": Object {
+    "account": "account3",
+    "amount": 30,
+    "balance": 0,
+    "createdAt": 1234567890,
+    "currentSequence": 7,
+    "expiry": 1234567890000,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 0,
+    "initialSequence": 3,
+    "matching": 30,
+    "orderHash": "orderHash3",
+    "pair": "pair",
+    "price": 0.04,
+    "side": "ask",
+  },
+  "orderHash4": Object {
+    "account": "account4",
+    "amount": 20,
+    "balance": 20,
+    "createdAt": 1234567890,
+    "currentSequence": 8,
+    "expiry": 1234567890000,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 0,
+    "initialSequence": 4,
+    "matching": 0,
+    "orderHash": "orderHash4",
+    "pair": "pair",
+    "price": 0.05,
+    "side": "ask",
+  },
+}
+`;
+
+exports[`findMatchingOrders, updatesRequired true, bid balance after matching > 0, price cross 1`] = `
+Object {
+  "orderBookLevelUpdates": Array [
+    Object {
+      "change": -30,
+      "count": 0,
+      "price": 0.045,
+      "side": "bid",
+    },
+    Object {
+      "change": -30,
+      "count": -1,
+      "price": 0.04,
+      "side": "ask",
+    },
+  ],
+  "orderMatchRequests": Array [
+    Object {
+      "ask": Object {
+        "matchingAmount": 30,
+        "orderAmount": 30,
+        "orderHash": "orderHash3",
+      },
+      "bid": Object {
+        "matchingAmount": 30,
+        "orderAmount": 40,
+        "orderHash": "orderHash1",
+      },
+      "feeOnToken": false,
+      "pair": "pair",
+    },
+  ],
+}
+`;
+
+exports[`findMatchingOrders, updatesRequired true, bid balance after matching > 0, price cross 2`] = `
+Object {
+  "asks": Array [
+    Object {
+      "balance": 0,
+      "initialSequence": 3,
+      "orderHash": "orderHash3",
+      "price": 0.04,
+    },
+    Object {
+      "balance": 20,
+      "initialSequence": 4,
+      "orderHash": "orderHash4",
+      "price": 0.05,
+    },
+  ],
+  "bids": Array [
+    Object {
+      "balance": 10,
+      "initialSequence": 1,
+      "orderHash": "orderHash1",
+      "price": 0.045,
+    },
+    Object {
+      "balance": 30,
+      "initialSequence": 2,
+      "orderHash": "orderHash2",
+      "price": 0.01,
+    },
+  ],
+}
+`;
+
+exports[`findMatchingOrders, updatesRequired true, bid balance after matching > 0, price cross 3`] = `
+Object {
+  "orderHash1": Object {
+    "account": "account1",
+    "amount": 40,
+    "balance": 10,
+    "createdAt": 1234567890,
+    "currentSequence": 5,
+    "expiry": 1234567890000,
+    "fee": 1,
+    "feeAsset": "feeAsset",
+    "fill": 0,
+    "initialSequence": 1,
+    "matching": 30,
+    "orderHash": "orderHash1",
+    "pair": "pair",
+    "price": 0.045,
     "side": "bid",
   },
   "orderHash2": Object {
@@ -250,28 +1025,46 @@ Object {
   ],
   "orderMatchRequests": Array [
     Object {
-      "leftOrderAmount": 20,
-      "leftOrderHash": "orderHash1",
-      "matchingAmount": 20,
+      "ask": Object {
+        "matchingAmount": 20,
+        "orderAmount": 30,
+        "orderHash": "orderHash3",
+      },
+      "bid": Object {
+        "matchingAmount": 20,
+        "orderAmount": 20,
+        "orderHash": "orderHash1",
+      },
+      "feeOnToken": false,
       "pair": "pair",
-      "rightOrderAmount": 30,
-      "rightOrderHash": "orderHash3",
     },
     Object {
-      "leftOrderAmount": 30,
-      "leftOrderHash": "orderHash2",
-      "matchingAmount": 10,
+      "ask": Object {
+        "matchingAmount": 10,
+        "orderAmount": 30,
+        "orderHash": "orderHash3",
+      },
+      "bid": Object {
+        "matchingAmount": 10,
+        "orderAmount": 30,
+        "orderHash": "orderHash2",
+      },
+      "feeOnToken": false,
       "pair": "pair",
-      "rightOrderAmount": 30,
-      "rightOrderHash": "orderHash3",
     },
     Object {
-      "leftOrderAmount": 30,
-      "leftOrderHash": "orderHash2",
-      "matchingAmount": 20,
+      "ask": Object {
+        "matchingAmount": 20,
+        "orderAmount": 20,
+        "orderHash": "orderHash4",
+      },
+      "bid": Object {
+        "matchingAmount": 20,
+        "orderAmount": 30,
+        "orderHash": "orderHash2",
+      },
+      "feeOnToken": false,
       "pair": "pair",
-      "rightOrderAmount": 20,
-      "rightOrderHash": "orderHash4",
     },
   ],
 }
@@ -401,12 +1194,18 @@ Object {
   ],
   "orderMatchRequests": Array [
     Object {
-      "leftOrderAmount": 20,
-      "leftOrderHash": "orderHash1",
-      "matchingAmount": 20,
+      "ask": Object {
+        "matchingAmount": 20,
+        "orderAmount": 30,
+        "orderHash": "orderHash3",
+      },
+      "bid": Object {
+        "matchingAmount": 20,
+        "orderAmount": 20,
+        "orderHash": "orderHash1",
+      },
+      "feeOnToken": false,
       "pair": "pair",
-      "rightOrderAmount": 30,
-      "rightOrderHash": "orderHash3",
     },
   ],
 }
@@ -579,7 +1378,7 @@ Array [
       "gasLimit": 300000,
       "gasPrice": "5000000000",
       "nonce": 1,
-      "shouldValidate": true,
+      "shouldValidate": false,
     },
   ],
 ]
@@ -692,7 +1491,7 @@ Array [
       "gasLimit": 300000,
       "gasPrice": "5000000000",
       "nonce": 1,
-      "shouldValidate": true,
+      "shouldValidate": false,
     },
   ],
 ]
@@ -729,6 +1528,234 @@ exports[`processMatchQueue, awaitTransactionSuccessAsync success 5`] = `
 Array [
   Array [
     undefined,
+  ],
+]
+`;
+
+exports[`processMatchQueue, awaitTransactionSuccessAsync success 6`] = `
+Array [
+  Array [
+    "0xleftHash",
+  ],
+]
+`;
+
+exports[`processMatchQueue, awaitTransactionSuccessAsync success partial 1`] = `
+Array [
+  Array [
+    "match|queue",
+  ],
+]
+`;
+
+exports[`processMatchQueue, awaitTransactionSuccessAsync success partial 2`] = `
+Array [
+  Array [
+    "code1|code2",
+    "0xleftHash",
+  ],
+  Array [
+    "code1|code2",
+    "0xrightHash",
+  ],
+]
+`;
+
+exports[`processMatchQueue, awaitTransactionSuccessAsync success partial 3`] = `
+Array [
+  Array [
+    Object {
+      "exchangeAddress": "0x48bacb9266a570d521063ef5dd96e61686dbe788",
+      "expirationTimeSeconds": "1538117918",
+      "feeRecipientAddress": "0x5409ed021d9299bf6814279a6a1411a7e866a631",
+      "makerAddress": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f871",
+      "makerAssetAmount": "1000000000000000000",
+      "makerAssetData": "0xf47261b0000000000000000000000000871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c",
+      "makerFee": "0",
+      "salt": "15105341483720",
+      "senderAddress": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
+      "signature": "signature2",
+      "takerAddress": "0x5409ed021d9299bf6814279a6a1411a7e866a631",
+      "takerAssetAmount": "1000000000000000000",
+      "takerAssetData": "0xf47261b00000000000000000000000000b1ba0af832d7c05fd64161e0db78e85978e8082",
+      "takerFee": "0",
+    },
+    Object {
+      "exchangeAddress": "0x48bacb9266a570d521063ef5dd96e61686dbe788",
+      "expirationTimeSeconds": "1538117918",
+      "feeRecipientAddress": "0x5409ed021d9299bf6814279a6a1411a7e866a631",
+      "makerAddress": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
+      "makerAssetAmount": "1000000000000000000",
+      "makerAssetData": "0xf47261b0000000000000000000000000871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c",
+      "makerFee": "0",
+      "salt": "15105341483720",
+      "senderAddress": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
+      "signature": "signature1",
+      "takerAddress": "0x5409ed021d9299bf6814279a6a1411a7e866a631",
+      "takerAssetAmount": "1000000000000000000",
+      "takerAssetData": "0xf47261b00000000000000000000000000b1ba0af832d7c05fd64161e0db78e85978e8082",
+      "takerFee": "0",
+    },
+    "address1",
+    Object {
+      "gasLimit": 300000,
+      "gasPrice": "5000000000",
+      "nonce": 1,
+      "shouldValidate": false,
+    },
+  ],
+]
+`;
+
+exports[`processMatchQueue, awaitTransactionSuccessAsync success partial 4`] = `
+Array [
+  Array [
+    Object {
+      "matching": 10,
+      "method": "update",
+      "orderHash": "0xleftHash",
+      "pair": "code1|code2",
+      "requestor": "orderMatcher",
+      "status": "matching",
+      "transactionHash": undefined,
+    },
+  ],
+  Array [
+    Object {
+      "matching": 10,
+      "method": "update",
+      "orderHash": "0xrightHash",
+      "pair": "code1|code2",
+      "requestor": "orderMatcher",
+      "status": "matching",
+      "transactionHash": undefined,
+    },
+  ],
+]
+`;
+
+exports[`processMatchQueue, awaitTransactionSuccessAsync success partial 5`] = `
+Array [
+  Array [
+    undefined,
+  ],
+]
+`;
+
+exports[`processMatchQueue, awaitTransactionSuccessAsync success partial 6`] = `
+Array [
+  Array [
+    "0xleftHash",
+  ],
+]
+`;
+
+exports[`processMatchQueue, awaitTransactionSuccessAsync success, not feeOnToken 1`] = `
+Array [
+  Array [
+    "match|queue",
+  ],
+]
+`;
+
+exports[`processMatchQueue, awaitTransactionSuccessAsync success, not feeOnToken 2`] = `
+Array [
+  Array [
+    "code1|code2",
+    "0xleftHash",
+  ],
+  Array [
+    "code1|code2",
+    "0xrightHash",
+  ],
+]
+`;
+
+exports[`processMatchQueue, awaitTransactionSuccessAsync success, not feeOnToken 3`] = `
+Array [
+  Array [
+    Object {
+      "exchangeAddress": "0x48bacb9266a570d521063ef5dd96e61686dbe788",
+      "expirationTimeSeconds": "1538117918",
+      "feeRecipientAddress": "0x5409ed021d9299bf6814279a6a1411a7e866a631",
+      "makerAddress": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
+      "makerAssetAmount": "1000000000000000000",
+      "makerAssetData": "0xf47261b0000000000000000000000000871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c",
+      "makerFee": "0",
+      "salt": "15105341483720",
+      "senderAddress": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
+      "signature": "signature1",
+      "takerAddress": "0x5409ed021d9299bf6814279a6a1411a7e866a631",
+      "takerAssetAmount": "1000000000000000000",
+      "takerAssetData": "0xf47261b00000000000000000000000000b1ba0af832d7c05fd64161e0db78e85978e8082",
+      "takerFee": "0",
+    },
+    Object {
+      "exchangeAddress": "0x48bacb9266a570d521063ef5dd96e61686dbe788",
+      "expirationTimeSeconds": "1538117918",
+      "feeRecipientAddress": "0x5409ed021d9299bf6814279a6a1411a7e866a631",
+      "makerAddress": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f871",
+      "makerAssetAmount": "1000000000000000000",
+      "makerAssetData": "0xf47261b0000000000000000000000000871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c",
+      "makerFee": "0",
+      "salt": "15105341483720",
+      "senderAddress": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
+      "signature": "signature2",
+      "takerAddress": "0x5409ed021d9299bf6814279a6a1411a7e866a631",
+      "takerAssetAmount": "1000000000000000000",
+      "takerAssetData": "0xf47261b00000000000000000000000000b1ba0af832d7c05fd64161e0db78e85978e8082",
+      "takerFee": "0",
+    },
+    "address1",
+    Object {
+      "gasLimit": 300000,
+      "gasPrice": "5000000000",
+      "nonce": 1,
+      "shouldValidate": false,
+    },
+  ],
+]
+`;
+
+exports[`processMatchQueue, awaitTransactionSuccessAsync success, not feeOnToken 4`] = `
+Array [
+  Array [
+    Object {
+      "matching": 10,
+      "method": "update",
+      "orderHash": "0xleftHash",
+      "pair": "code1|code2",
+      "requestor": "orderMatcher",
+      "status": "matching",
+      "transactionHash": undefined,
+    },
+  ],
+  Array [
+    Object {
+      "matching": 10,
+      "method": "update",
+      "orderHash": "0xrightHash",
+      "pair": "code1|code2",
+      "requestor": "orderMatcher",
+      "status": "matching",
+      "transactionHash": undefined,
+    },
+  ],
+]
+`;
+
+exports[`processMatchQueue, awaitTransactionSuccessAsync success, not feeOnToken 5`] = `
+Array [
+  Array [
+    undefined,
+  ],
+]
+`;
+
+exports[`processMatchQueue, awaitTransactionSuccessAsync success, not feeOnToken 6`] = `
+Array [
+  Array [
+    "0xleftHash",
   ],
 ]
 `;
@@ -807,6 +1834,54 @@ Array [
   Array [
     "code1|code2",
     "0xleftHash",
+  ],
+  Array [
+    "code1|code2",
+    "0xrightHash",
+  ],
+]
+`;
+
+exports[`processMatchQueue, persistOrder reject 1`] = `
+Array [
+  Array [
+    "match|queue",
+  ],
+]
+`;
+
+exports[`processMatchQueue, persistOrder reject 2`] = `
+Array [
+  Array [
+    "code1|code2",
+    "0xleftHash",
+  ],
+  Array [
+    "code1|code2",
+    "0xrightHash",
+  ],
+]
+`;
+
+exports[`processMatchQueue, persistOrder reject 3`] = `
+Array [
+  Array [
+    Object {
+      "method": "terminate",
+      "orderHash": "0xleftHash",
+      "pair": "code1|code2",
+      "requestor": "orderMatcher",
+      "status": "matching",
+    },
+  ],
+]
+`;
+
+exports[`processMatchQueue, persistOrder reject 4`] = `
+Array [
+  Array [
+    "match|queue",
+    "{\\"pair\\":\\"code1|code2\\",\\"feeOnToken\\":true,\\"bid\\":{\\"orderAmount\\":10,\\"orderHash\\":\\"0xleftHash\\",\\"matchingAmount\\":10},\\"ask\\":{\\"orderAmount\\":10,\\"orderHash\\":\\"0xrightHash\\",\\"matchingAmount\\":10}}",
   ],
 ]
 `;
