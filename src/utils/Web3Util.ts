@@ -51,7 +51,14 @@ export default class Web3Util {
 			const pe = new Web3ProviderEngine();
 			if (local) pe.addProvider(new RPCSubprovider(CST.PROVIDER_LOCAL));
 			else {
-				const infura = require('../keys/infura.json');
+				let infura = {
+					token: ''
+				};
+				try {
+					infura = require('../keys/infura.json');
+				} catch (error) {
+					console.log(error);
+				}
 				const infuraProvider =
 					(live ? CST.PROVIDER_INFURA_MAIN : CST.PROVIDER_INFURA_KOVAN) +
 					'/' +
