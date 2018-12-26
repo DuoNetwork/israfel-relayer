@@ -159,29 +159,6 @@ class Util {
 			return todayExpiry;
 		}
 	}
-
-	public getContractTypeAndTenor(token: string): { [key: string]: string } {
-		if (token === 'aETH' || token === 'bETH')
-			return {
-				type: CST.BEETHOVEN,
-				tenor: CST.TENOR_PPT
-			};
-		else if (token === 'aETH-M19' || token === 'bETH-M19')
-			return {
-				type: CST.BEETHOVEN,
-				tenor: CST.TENOR_M19
-			};
-		else if (token === 'sETH' || token === 'LETH')
-			return {
-				type: CST.MOZART,
-				tenor: CST.TENOR_PPT
-			};
-		else
-			return {
-				type: CST.MOZART,
-				tenor: CST.TENOR_M19
-			};
-	}
 }
 
 const util = new Util();
