@@ -1,0 +1,198 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`addOrder ask 1`] = `
+Array [
+  Array [
+    "{\\"method\\":\\"add\\",\\"channel\\":\\"orders\\",\\"pair\\":\\"code1|code2\\",\\"orderHash\\":\\"orderHash\\",\\"order\\":\\"signedOrder\\"}",
+  ],
+]
+`;
+
+exports[`addOrder ask 2`] = `
+Array [
+  Array [
+    456,
+    123,
+    Object {},
+    false,
+  ],
+]
+`;
+
+exports[`addOrder ask 3`] = `
+Array [
+  Array [
+    "code1|code2",
+    "account",
+    "code1address",
+    "code2address",
+    456,
+    123,
+    1234568,
+  ],
+]
+`;
+
+exports[`addOrder bid 1`] = `
+Array [
+  Array [
+    "{\\"method\\":\\"add\\",\\"channel\\":\\"orders\\",\\"pair\\":\\"code1|code2\\",\\"orderHash\\":\\"orderHash\\",\\"order\\":\\"signedOrder\\"}",
+  ],
+]
+`;
+
+exports[`addOrder bid 2`] = `
+Array [
+  Array [
+    456,
+    123,
+    Object {},
+    true,
+  ],
+]
+`;
+
+exports[`addOrder bid 3`] = `
+Array [
+  Array [
+    "code1|code2",
+    "account",
+    "code2address",
+    "code1address",
+    456,
+    123,
+    1234568,
+  ],
+]
+`;
+
+exports[`deleteOrder 1`] = `
+Array [
+  Array [
+    "{\\"method\\":\\"terminate\\",\\"channel\\":\\"orders\\",\\"pair\\":\\"pair\\",\\"orderHash\\":\\"orderHash\\",\\"signature\\":\\"signature\\"}",
+  ],
+]
+`;
+
+exports[`handleMessage info 1`] = `
+Array [
+  Array [
+    "tokens",
+  ],
+]
+`;
+
+exports[`handleMessage info 2`] = `
+Array [
+  Array [
+    "tokens",
+    "status",
+    "acceptedPrices",
+    "exchangePrices",
+  ],
+]
+`;
+
+exports[`handleMessage orderBooks 1`] = `
+Array [
+  Array [
+    Object {
+      "channel": "orderBooks",
+    },
+  ],
+]
+`;
+
+exports[`handleMessage orders 1`] = `
+Array [
+  Array [
+    Object {
+      "channel": "orders",
+    },
+  ],
+]
+`;
+
+exports[`handleOrderBookResponse not ok 1`] = `
+Array [
+  Array [
+    "any",
+    "pair",
+    "status",
+  ],
+]
+`;
+
+exports[`handleOrderBookResponse snapshot 1`] = `
+Array [
+  Array [
+    "orderBookSnapshot",
+  ],
+]
+`;
+
+exports[`handleOrderBookResponse update 1`] = `
+Array [
+  Array [
+    "orderBookUpdate",
+  ],
+]
+`;
+
+exports[`handleOrderResponse history 1`] = `
+Array [
+  Array [
+    "orderHistory",
+  ],
+]
+`;
+
+exports[`handleOrderResponse not ok 1`] = `
+Array [
+  Array [
+    "method",
+    "0xOrderHash",
+    "status",
+  ],
+]
+`;
+
+exports[`handleOrderResponse ok 1`] = `
+Array [
+  Array [
+    "userOrder",
+  ],
+]
+`;
+
+exports[`subscribeOrderBook 1`] = `
+Array [
+  Array [
+    "{\\"method\\":\\"subscribe\\",\\"channel\\":\\"orderBooks\\",\\"pair\\":\\"pair\\"}",
+  ],
+]
+`;
+
+exports[`subscribeOrderHistory 1`] = `
+Array [
+  Array [
+    "{\\"method\\":\\"subscribe\\",\\"channel\\":\\"orders\\",\\"pair\\":\\"\\",\\"account\\":\\"0x48bacb9266a570d521063ef5dd96e61686dbe788\\"}",
+  ],
+]
+`;
+
+exports[`unsubscribeOrderBook 1`] = `
+Array [
+  Array [
+    "{\\"method\\":\\"unsubscribe\\",\\"channel\\":\\"orderBooks\\",\\"pair\\":\\"pair\\"}",
+  ],
+]
+`;
+
+exports[`unsubscribeOrderHistory 1`] = `
+Array [
+  Array [
+    "{\\"method\\":\\"unsubscribe\\",\\"channel\\":\\"orders\\",\\"pair\\":\\"\\",\\"account\\":\\"account\\"}",
+  ],
+]
+`;

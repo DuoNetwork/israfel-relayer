@@ -379,7 +379,7 @@ export default class Web3Util {
 		return this.web3Wrapper.awaitTransactionSuccessAsync(txHash, pollingIntervalMs, timeoutMs);
 	}
 
-	public isValidAddress(address: string) {
+	public static isValidAddress(address: string) {
 		return address !== CST.DUMMY_ADDR && Web3Wrapper.isAddress(address);
 	}
 

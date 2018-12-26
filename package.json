@@ -51,6 +51,7 @@
 		"aws-sdk": "^2.366.0",
 		"ethers": "^4.0.15",
 		"ioredis": "^4.2.0",
+		"isomorphic-ws": "^4.0.1",
 		"moment": "^2.22.2",
 		"ts-node": "^7.0.1",
 		"typescript": "^3.1.6",
