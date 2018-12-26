@@ -1,6 +1,7 @@
 // fix for @ledgerhq/hw-transport-u2f 4.28.0
 import '@babel/polyfill';
 import Web3Wrapper from '../../duo-contract-wrapper/src/Web3Wrapper';
+import marketMaker from './client/maketMaker';
 import * as CST from './common/constants';
 import { IOption } from './common/types';
 import orderBookServer from './server/orderBookServer';
@@ -58,6 +59,9 @@ switch (tool) {
 					.catch(error => util.logInfo(JSON.stringify(error))),
 			30000
 		);
+		break;
+	case CST.DB_MKT_MAKER:
+		marketMaker.startProcessing(config, option);
 		break;
 	default:
 		break;

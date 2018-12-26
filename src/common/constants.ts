@@ -1,3 +1,6 @@
+import { BEETHOVEN, MOZART, TENOR_M19, TENOR_PPT } from '../../../duo-admin/src/common/constants';
+export { BEETHOVEN, MOZART, TENOR_M19, TENOR_PPT } from '../../../duo-admin/src/common/constants';
+
 export const DB_ISRAFEL = 'israfel';
 export const DB_LIVE_ORDERS = 'liveOrders';
 export const DB_RAW_ORDERS = 'rawOrders';
@@ -55,6 +58,7 @@ export const DB_MATURITY = 'maturity';
 export const DB_CUSTODIAN = 'custodian';
 export const DB_MATCH = 'match';
 export const DB_TX_HASH = 'transactionHash';
+export const DB_MKT_MAKER = 'marketMaker';
 
 export const DB_ADD = 'add';
 export const DB_UPDATE = 'update';
@@ -148,3 +152,22 @@ export const BASE_DERIVATION_PATH = `44'/60'/0'/0`;
 
 export const TERMINATE_SIGN_MSG =
 	'By signing this message, your are confirming to cancel this order (no gas cost involved): ';
+
+export const AVAILABLE_ADDR_IDX: { [key: string]: number[] } = {
+	[BEETHOVEN + '|' + TENOR_PPT]: [0, 1],
+	[BEETHOVEN + '|' + TENOR_M19]: [2, 3],
+	[MOZART + '|' + TENOR_PPT]: [4, 5],
+	[MOZART + '|' + TENOR_M19]: [6, 7]
+};
+
+export const MIN_ORDER_BOOK_LEVELS = 3;
+export const MIN_SIDE_LIQUIDITY = 50;
+
+export const MIN_ETH_BALANCE = 3;
+export const MIN_WETH_BALANCE = 3;
+export const MIN_TOKEN_BALANCE = 150;
+export const MAX_TOKEN_BALANCE = 400;
+
+export const PRICE_STEP = 0.0005;
+export const PRICE_ROUND = 4;
+export const PRICE_LEVEL = 5;

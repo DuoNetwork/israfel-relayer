@@ -1,6 +1,6 @@
 import { SignedOrder } from '0x.js';
 import { ChildProcess } from 'child_process';
-export { IAcceptedPrice, IPrice } from '../../../duo-admin/src/common/types';
+export { IAcceptedPrice, IDualClassStates, IPrice } from '../../../duo-admin/src/common/types';
 import { IAcceptedPrice, IPrice } from '../../../duo-admin/src/common/types';
 
 export enum Wallet {
@@ -242,4 +242,19 @@ export interface ISubProcess {
 	instance: ChildProcess;
 	lastFailTimestamp: number;
 	failCount: number;
+}
+
+export interface IAccounts {
+	address: string;
+	privateKey: string;
+}
+
+export interface ICreateOB {
+	pair: string;
+	isBid: boolean;
+	contractTenor: string;
+	midPrice: number;
+	totalSize: number;
+	numOfOrders: number;
+	existingPriceLevel: number[];
 }
