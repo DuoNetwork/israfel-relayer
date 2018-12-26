@@ -37,7 +37,8 @@ export class OrderMakerUtil {
 			return;
 		}
 		const allAddrs = await this.web3Util.getAvailableAddresses();
-		const idxs = CST.AVAILABLE_ADDR_IDX[option.type + '|' + option.tenor];
+		const { type, tenor } = util.getContractTypeAndTenor(option.token);
+		const idxs = CST.AVAILABLE_ADDR_IDX[type + '|' + tenor];
 		this.availableAddrs = allAddrs.slice(idxs[0], idxs[1] + 1);
 	}
 

@@ -25,7 +25,7 @@ import orderUtil from '../utils/orderUtil';
 import Web3Util from '../utils/Web3Util';
 
 export default class RelayerClient {
-	private web3Util: Web3Util;
+	public web3Util: Web3Util;
 	private env: string;
 	public ws: WebSocket | null = null;
 	private handleConnected: () => any = () => ({});

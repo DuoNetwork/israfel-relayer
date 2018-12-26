@@ -1,10 +1,10 @@
-import moment from 'moment';
+// import moment from 'moment';
 import DualClassWrapper from '../../../duo-contract-wrapper/src/DualClassWrapper';
 import Web3Wrapper from '../../../duo-contract-wrapper/src/Web3Wrapper';
 import Web3Util from '../../../israfel-relayer/src/utils/Web3Util';
 import * as CST from '../common/constants';
 import { IAccounts, IDualClassStates, IOption } from '../common/types';
-import util from './util';
+import util from '../utils/util';
 
 export class ContractUtil {
 	public dualClassCustodianWrapper: DualClassWrapper;
@@ -14,9 +14,10 @@ export class ContractUtil {
 	constructor(web3Util: Web3Util, web3Wrapper: Web3Wrapper, option: IOption) {
 		this.web3Wrapper = web3Wrapper;
 		this.web3Util = web3Util;
+		const { type, tenor } = util.getContractTypeAndTenor(option.token);
 		this.dualClassCustodianWrapper = new DualClassWrapper(
 			web3Wrapper,
-			web3Wrapper.contractAddresses.Custodians[option.type][option.tenor].custodian.address
+			web3Wrapper.contractAddresses.Custodians[type][tenor].custodian.address
 		);
 	}
 
@@ -27,6 +28,18 @@ export class ContractUtil {
 			address: faucetAccount.publicKey,
 			privateKey: faucetAccount.privateKey
 		};
+	}
+
+	public async estimateDualTokenCreateAmt(ethAmount: number): Promise<number[]> {
+		if (!this.dualClassCustodianWrapper || ethAmount <= 0) {
+			util.logDebug(`no dualClassWrapper initiated`);
+			return [];
+		}
+		const states: IDualClassStates = await this.dualClassCustodianWrapper.getStates();
+		const tokenValueB =
+			(((1 - states.createCommRate) * states.resetPrice) / (1 + states.alpha)) * ethAmount;
+		const tokenValueA = states.alpha * tokenValueB;
+		return [tokenValueA, tokenValueB];
 	}
 
 	public async checkBalance(
@@ -50,7 +63,7 @@ export class ContractUtil {
 					faucetAccount.address,
 					faucetAccount.privateKey,
 					address,
-					util.round(CST.MIN_ETH_BALANCE, 4),
+					util.round(CST.MIN_ETH_BALANCE),
 					await this.web3Util.getTransactionCount(faucetAccount.address)
 				);
 			}
@@ -73,7 +86,7 @@ export class ContractUtil {
 					);
 
 				util.logDebug(`start wrapping for ${address} with amt ${amtToWrap}`);
-				await this.web3Util.wrapEther(util.round(amtToWrap, 4), address);
+				await this.web3Util.wrapEther(util.round(amtToWrap), address);
 			}
 
 			// wETHallowance

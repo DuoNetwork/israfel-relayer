@@ -1,5 +1,13 @@
 import { BEETHOVEN, MOZART, TENOR_M19, TENOR_PPT } from '../../../duo-admin/src/common/constants';
-export { BEETHOVEN, MOZART, TENOR_M19, TENOR_PPT } from '../../../duo-admin/src/common/constants';
+export {
+	BEETHOVEN,
+	MOZART,
+	TENOR_M19,
+	TENOR_PPT,
+	REDEEM_GAS,
+	DEFAULT_GAS_PRICE,
+	CREATE_GAS
+} from '../../../duo-admin/src/common/constants';
 
 export const DB_ISRAFEL = 'israfel';
 export const DB_LIVE_ORDERS = 'liveOrders';
@@ -21,6 +29,7 @@ export const DB_PAIR_OH_SEQ_STATUS = 'pairOrderHashSequenceStatus';
 export const DB_TYPE = 'type';
 export const DB_CONFIRMED = 'confirmed';
 export const DB_MATCHING = 'matching';
+
 export const DB_USER = 'user';
 export const DB_ORDER_PROCESSOR = 'orderProcessor';
 export const DB_ORDER_MATCHER = 'orderMatcher';
