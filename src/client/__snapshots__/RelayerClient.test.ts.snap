@@ -66,6 +66,12 @@ Array [
 ]
 `;
 
+exports[`addOrder invalid amount 1`] = `[Error: invalid amount]`;
+
+exports[`addOrder invalid pair 1`] = `[Error: invalid pair]`;
+
+exports[`addOrder missing token 1`] = `[Error: invalid pair]`;
+
 exports[`deleteOrder 1`] = `
 Array [
   Array [
@@ -123,7 +129,20 @@ Array [
 ]
 `;
 
-exports[`handleOrderBookResponse snapshot older than pending updates 1`] = `
+exports[`handleOrderBookResponse snapshot newer than pending updates 1`] = `
+Array [
+  Array [
+    Object {
+      "asks": Array [],
+      "bids": Array [],
+      "pair": "pair",
+      "version": 124,
+    },
+  ],
+]
+`;
+
+exports[`handleOrderBookResponse snapshot no pending updates 1`] = `
 Array [
   Array [
     Object {
@@ -132,13 +151,44 @@ Array [
       "pair": "pair",
       "version": 122,
     },
+  ],
+]
+`;
+
+exports[`handleOrderBookResponse snapshot older than pending updates 1`] = `
+Array [
+  Array [
     Object {
+      "asks": Array [],
+      "bids": Array [],
       "pair": "pair",
-      "prevVersion": 122,
-      "updates": Array [],
       "version": 123,
     },
   ],
+]
+`;
+
+exports[`handleOrderBookResponse snapshot older than pending updates but has gap 1`] = `
+Array [
+  Array [
+    Object {
+      "asks": Array [],
+      "bids": Array [],
+      "pair": "pair",
+      "version": 123,
+    },
+  ],
+]
+`;
+
+exports[`handleOrderBookResponse snapshot older than pending updates but has gap 2`] = `
+Array [
+  Object {
+    "pair": "pair",
+    "prevVersion": 124,
+    "updates": Array [],
+    "version": 125,
+  },
 ]
 `;
 
@@ -149,15 +199,20 @@ Array [
       "asks": Array [],
       "bids": Array [],
       "pair": "pair",
-      "version": 122,
-    },
-    Object {
-      "pair": "pair",
-      "prevVersion": 122,
-      "updates": Array [],
       "version": 123,
     },
   ],
+]
+`;
+
+exports[`handleOrderBookResponse update after snapshot has gap 1`] = `
+Array [
+  Object {
+    "pair": "pair",
+    "prevVersion": 123,
+    "updates": Array [],
+    "version": 124,
+  },
 ]
 `;
 
@@ -200,7 +255,15 @@ Array [
 ]
 `;
 
-exports[`subscribeOrderBook 1`] = `
+exports[`subscribeOrderBook existing pair 1`] = `
+Array [
+  Array [
+    "{\\"method\\":\\"subscribe\\",\\"channel\\":\\"orderBooks\\",\\"pair\\":\\"pair\\"}",
+  ],
+]
+`;
+
+exports[`subscribeOrderBook new pair 1`] = `
 Array [
   Array [
     "{\\"method\\":\\"subscribe\\",\\"channel\\":\\"orderBooks\\",\\"pair\\":\\"pair\\"}",

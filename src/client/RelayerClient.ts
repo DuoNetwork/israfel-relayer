@@ -64,11 +64,6 @@ export default class RelayerClient {
 		}, this.reconnectionNumber * 5000);
 	}
 
-	public close() {
-		this.ws = new WebSocket(`wss://relayer.${this.env}.israfel.info:8080`);
-		this.ws.onclose = () => this.reconnect();
-	}
-
 	public connectToRelayer() {
 		this.ws = new WebSocket(`wss://relayer.${this.env}.israfel.info:8080`);
 		this.ws.onopen = () => {
@@ -100,29 +95,42 @@ export default class RelayerClient {
 				orderBookResponse.status
 			);
 		else if (orderBookResponse.method === CST.DB_SNAPSHOT) {
-			const {pair, orderBookSnapshot} = orderBookResponse as IWsOrderBookResponse;
+			const { pair, orderBookSnapshot } = orderBookResponse as IWsOrderBookResponse;
 			this.orderBookSnapshots[pair] = orderBookSnapshot;
 			const pendingUpdates = this.pendingOrderBookUpdates[pair];
+			let hasGap = false;
 			if (pendingUpdates && pendingUpdates.length) {
 				pendingUpdates.sort((a, b) => a.version - b.version);
-				pendingUpdates.forEach(update => {
-					if (update.version > orderBookSnapshot.version)
-						orderBookUtil.updateOrderBookSnapshot(orderBookSnapshot, update);
-				});
-				this.pendingOrderBookUpdates[pair] = [];
+				while (pendingUpdates.length) {
+					const update = pendingUpdates.shift();
+					if (!update) break;
+					if (update.prevVersion < orderBookSnapshot.version) continue;
+					if (update.prevVersion > orderBookSnapshot.version) {
+						hasGap = true;
+						pendingUpdates.unshift(update);
+						break;
+					}
+					orderBookUtil.updateOrderBookSnapshot(orderBookSnapshot, update);
+				}
 			}
-			this.orderBookSnapshotAvailable[pair] = true;
+
+			if (!hasGap) this.orderBookSnapshotAvailable[pair] = true;
+			else this.subscribeOrderBook(pair);
+
 			this.handleOrderBookUpdate(orderBookSnapshot);
-		} else {
-			const {pair, orderBookUpdate} = orderBookResponse as IWsOrderBookUpdateResponse;
-			if (!this.orderBookSnapshotAvailable[pair]) {
-				if (!this.pendingOrderBookUpdates[pair])
-					this.pendingOrderBookUpdates[pair] = [];
+		} else if (orderBookResponse.method === CST.DB_UPDATE) {
+			const { pair, orderBookUpdate } = orderBookResponse as IWsOrderBookUpdateResponse;
+			if (!this.orderBookSnapshotAvailable[pair])
 				this.pendingOrderBookUpdates[pair].push(orderBookUpdate);
-			} else {
+			else {
 				const orderBookSnapshot = this.orderBookSnapshots[pair];
-				orderBookUtil.updateOrderBookSnapshot(orderBookSnapshot, orderBookUpdate);
-				this.handleOrderBookUpdate(orderBookSnapshot);
+				if (orderBookUpdate.prevVersion === orderBookSnapshot.version) {
+					orderBookUtil.updateOrderBookSnapshot(orderBookSnapshot, orderBookUpdate);
+					this.handleOrderBookUpdate(orderBookSnapshot);
+				} else if (orderBookUpdate.prevVersion > orderBookSnapshot.version) {
+					this.pendingOrderBookUpdates[pair].push(orderBookUpdate);
+					this.subscribeOrderBook(pair);
+				}
 			}
 		}
 	}
@@ -154,7 +162,8 @@ export default class RelayerClient {
 
 	public subscribeOrderBook(pair: string) {
 		if (!this.ws) return;
-
+		this.orderBookSnapshotAvailable[pair] = false;
+		if (!this.pendingOrderBookUpdates[pair]) this.pendingOrderBookUpdates[pair] = [];
 		const msg: IWsRequest = {
 			method: CST.WS_SUB,
 			channel: CST.DB_ORDER_BOOKS,
@@ -172,6 +181,9 @@ export default class RelayerClient {
 			pair: pair
 		};
 		this.ws.send(JSON.stringify(msg));
+		this.orderBookSnapshotAvailable[pair] = false;
+		delete this.orderBookSnapshots[pair];
+		this.pendingOrderBookUpdates[pair] = [];
 	}
 
 	public subscribeOrderHistory(account: string) {

@@ -1,12 +1,63 @@
 import * as CST from '../common/constants';
 import { IWsOrderBookResponse, IWsOrderBookUpdateResponse } from '../common/types';
-import orderBookUtil from '../utils/orderBookUtil';
 import orderUtil from '../utils/orderUtil';
 // import Web3Util from '../utils/Web3Util';
 import RelayerClient from './RelayerClient';
 
 const web3Util: any = {};
 const relayerClient = new RelayerClient(web3Util as any, CST.DB_DEV);
+
+test('subscribeOrderBook no ws', () => {
+	relayerClient.ws = null;
+	relayerClient.pendingOrderBookUpdates = {};
+	relayerClient.subscribeOrderBook('pair');
+	expect(relayerClient.orderBookSnapshotAvailable['pair']).toBeFalsy();
+	expect(relayerClient.pendingOrderBookUpdates['pair']).toBeFalsy();
+});
+
+test('subscribeOrderBook new pair', () => {
+	const send = jest.fn();
+	relayerClient.ws = { send } as any;
+	relayerClient.pendingOrderBookUpdates = {};
+	relayerClient.subscribeOrderBook('pair');
+	expect(send.mock.calls).toMatchSnapshot();
+	expect(relayerClient.orderBookSnapshotAvailable['pair']).toBeFalsy();
+	expect(relayerClient.pendingOrderBookUpdates['pair']).toEqual([]);
+});
+
+test('subscribeOrderBook existing pair', () => {
+	const send = jest.fn();
+	relayerClient.ws = { send } as any;
+	relayerClient.pendingOrderBookUpdates['pair'] = ['pending'] as any;
+	relayerClient.subscribeOrderBook('pair');
+	expect(send.mock.calls).toMatchSnapshot();
+	expect(relayerClient.orderBookSnapshotAvailable['pair']).toBeFalsy();
+	expect(relayerClient.pendingOrderBookUpdates['pair'].length).toBe(1);
+});
+
+test('unsubscribeOrderBook no ws', () => {
+	relayerClient.ws = null;
+	relayerClient.orderBookSnapshots['pair'] = 'snapshot' as any;
+	relayerClient.orderBookSnapshotAvailable['pair'] = true;
+	relayerClient.pendingOrderBookUpdates['pair'] = ['pending'] as any;
+	relayerClient.unsubscribeOrderBook('pair');
+	expect(relayerClient.orderBookSnapshotAvailable['pair']).toBeTruthy();
+	expect(relayerClient.pendingOrderBookUpdates['pair']).toEqual(['pending']);
+	expect(relayerClient.orderBookSnapshots['pair']).toBe('snapshot');
+});
+
+test('unsubscribeOrderBook', () => {
+	const send = jest.fn();
+	relayerClient.ws = { send } as any;
+	relayerClient.orderBookSnapshots['pair'] = 'snapshot' as any;
+	relayerClient.orderBookSnapshotAvailable['pair'] = true;
+	relayerClient.pendingOrderBookUpdates['pair'] = ['pending'] as any;
+	relayerClient.unsubscribeOrderBook('pair');
+	expect(send.mock.calls).toMatchSnapshot();
+	expect(relayerClient.orderBookSnapshotAvailable['pair']).toBeFalsy();
+	expect(relayerClient.pendingOrderBookUpdates['pair']).toEqual([]);
+	expect(relayerClient.orderBookSnapshots['pair']).toBeFalsy();
+});
 
 test('handleOrderResponse ok', () => {
 	const handleUpdate = jest.fn();
@@ -64,6 +115,8 @@ test('handleOrderBookResponse update before snapshot', () => {
 	const handleUpdate = jest.fn();
 	const handleError = jest.fn();
 	relayerClient.onOrderBook(handleUpdate, handleError);
+	relayerClient.subscribeOrderBook = jest.fn();
+	relayerClient.pendingOrderBookUpdates['pair'] = [];
 	const res: IWsOrderBookUpdateResponse = {
 		channel: 'channel',
 		status: CST.WS_OK,
@@ -79,6 +132,7 @@ test('handleOrderBookResponse update before snapshot', () => {
 	relayerClient.handleOrderBookResponse(res);
 	expect(handleUpdate).not.toBeCalled();
 	expect(handleError).not.toBeCalled();
+	expect(relayerClient.subscribeOrderBook as jest.Mock).not.toBeCalled();
 	expect(relayerClient.pendingOrderBookUpdates).toMatchSnapshot();
 });
 
@@ -86,7 +140,15 @@ test('handleOrderBookResponse snapshot newer than pending updates', () => {
 	const handleUpdate = jest.fn();
 	const handleError = jest.fn();
 	relayerClient.onOrderBook(handleUpdate, handleError);
-	orderBookUtil.updateOrderBookSnapshot = jest.fn();
+	relayerClient.subscribeOrderBook = jest.fn();
+	relayerClient.pendingOrderBookUpdates['pair'] = [
+		{
+			pair: 'pair',
+			updates: [],
+			prevVersion: 122,
+			version: 123
+		}
+	];
 	const res: IWsOrderBookResponse = {
 		channel: 'channel',
 		status: CST.WS_OK,
@@ -96,13 +158,13 @@ test('handleOrderBookResponse snapshot newer than pending updates', () => {
 			pair: 'pair',
 			version: 124,
 			bids: [],
-			asks: [],
+			asks: []
 		}
-	}
+	};
 	relayerClient.handleOrderBookResponse(res);
-	expect(handleUpdate).toBeCalled();
+	expect(handleUpdate.mock.calls).toMatchSnapshot();
 	expect(handleError).not.toBeCalled();
-	expect(orderBookUtil.updateOrderBookSnapshot as jest.Mock).not.toBeCalled();
+	expect(relayerClient.subscribeOrderBook as jest.Mock).not.toBeCalled();
 	expect(relayerClient.pendingOrderBookUpdates['pair']).toEqual([]);
 	expect(relayerClient.orderBookSnapshotAvailable['pair']).toBeTruthy();
 });
@@ -111,13 +173,15 @@ test('handleOrderBookResponse snapshot older than pending updates', () => {
 	const handleUpdate = jest.fn();
 	const handleError = jest.fn();
 	relayerClient.onOrderBook(handleUpdate, handleError);
-	orderBookUtil.updateOrderBookSnapshot = jest.fn();
-	relayerClient.pendingOrderBookUpdates['pair'] = [ {
-		pair: 'pair',
-		updates: [],
-		prevVersion: 122,
-		version: 123
-	}];
+	relayerClient.subscribeOrderBook = jest.fn();
+	relayerClient.pendingOrderBookUpdates['pair'] = [
+		{
+			pair: 'pair',
+			updates: [],
+			prevVersion: 122,
+			version: 123
+		}
+	];
 	const res: IWsOrderBookResponse = {
 		channel: 'channel',
 		status: CST.WS_OK,
@@ -127,22 +191,96 @@ test('handleOrderBookResponse snapshot older than pending updates', () => {
 			pair: 'pair',
 			version: 122,
 			bids: [],
-			asks: [],
+			asks: []
 		}
-	}
+	};
 	relayerClient.handleOrderBookResponse(res);
-	expect(handleUpdate).toBeCalled();
+	expect(handleUpdate.mock.calls).toMatchSnapshot();
 	expect(handleError).not.toBeCalled();
-	expect((orderBookUtil.updateOrderBookSnapshot as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(relayerClient.subscribeOrderBook as jest.Mock).not.toBeCalled();
 	expect(relayerClient.pendingOrderBookUpdates['pair']).toEqual([]);
 	expect(relayerClient.orderBookSnapshotAvailable['pair']).toBeTruthy();
+});
+
+test('handleOrderBookResponse snapshot no pending updates', () => {
+	const handleUpdate = jest.fn();
+	const handleError = jest.fn();
+	relayerClient.onOrderBook(handleUpdate, handleError);
+	relayerClient.subscribeOrderBook = jest.fn();
+	relayerClient.pendingOrderBookUpdates['pair'] = [];
+	const res: IWsOrderBookResponse = {
+		channel: 'channel',
+		status: CST.WS_OK,
+		method: CST.DB_SNAPSHOT,
+		pair: 'pair',
+		orderBookSnapshot: {
+			pair: 'pair',
+			version: 122,
+			bids: [],
+			asks: []
+		}
+	};
+	relayerClient.handleOrderBookResponse(res);
+	expect(handleUpdate.mock.calls).toMatchSnapshot();
+	expect(handleError).not.toBeCalled();
+	expect(relayerClient.subscribeOrderBook as jest.Mock).not.toBeCalled();
+	expect(relayerClient.pendingOrderBookUpdates['pair']).toEqual([]);
+	expect(relayerClient.orderBookSnapshotAvailable['pair']).toBeTruthy();
+});
+
+test('handleOrderBookResponse snapshot older than pending updates but has gap', () => {
+	const handleUpdate = jest.fn();
+	const handleError = jest.fn();
+	relayerClient.onOrderBook(handleUpdate, handleError);
+	relayerClient.orderBookSnapshotAvailable['pair'] = false;
+	relayerClient.subscribeOrderBook = jest.fn();
+	relayerClient.pendingOrderBookUpdates['pair'] = [
+		{
+			pair: 'pair',
+			updates: [],
+			prevVersion: 122,
+			version: 123
+		},
+		{
+			pair: 'pair',
+			updates: [],
+			prevVersion: 124,
+			version: 125
+		}
+	];
+	const res: IWsOrderBookResponse = {
+		channel: 'channel',
+		status: CST.WS_OK,
+		method: CST.DB_SNAPSHOT,
+		pair: 'pair',
+		orderBookSnapshot: {
+			pair: 'pair',
+			version: 122,
+			bids: [],
+			asks: []
+		}
+	};
+	relayerClient.handleOrderBookResponse(res);
+	expect(handleUpdate.mock.calls).toMatchSnapshot();
+	expect(handleError).not.toBeCalled();
+	expect(relayerClient.subscribeOrderBook as jest.Mock).toBeCalled();
+	expect(relayerClient.pendingOrderBookUpdates['pair']).toMatchSnapshot();
+	expect(relayerClient.orderBookSnapshotAvailable['pair']).toBeFalsy();
 });
 
 test('handleOrderBookResponse update after snapshot', () => {
 	const handleUpdate = jest.fn();
 	const handleError = jest.fn();
 	relayerClient.onOrderBook(handleUpdate, handleError);
-	orderBookUtil.updateOrderBookSnapshot = jest.fn();
+	relayerClient.orderBookSnapshotAvailable['pair'] = true;
+	relayerClient.subscribeOrderBook = jest.fn();
+	relayerClient.pendingOrderBookUpdates['pair'] = [];
+	relayerClient.orderBookSnapshots['pair'] = {
+		pair: 'pair',
+		version: 122,
+		bids: [],
+		asks: []
+	};
 	const res: IWsOrderBookUpdateResponse = {
 		channel: 'channel',
 		status: CST.WS_OK,
@@ -156,11 +294,74 @@ test('handleOrderBookResponse update after snapshot', () => {
 		}
 	};
 	relayerClient.handleOrderBookResponse(res);
-	expect(handleUpdate).toBeCalled();
+	expect(handleUpdate.mock.calls).toMatchSnapshot();
 	expect(handleError).not.toBeCalled();
-	expect((orderBookUtil.updateOrderBookSnapshot as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(relayerClient.subscribeOrderBook as jest.Mock).not.toBeCalled();
 	expect(relayerClient.pendingOrderBookUpdates['pair']).toEqual([]);
-	expect(relayerClient.orderBookSnapshotAvailable['pair']).toBeTruthy();
+});
+
+test('handleOrderBookResponse update after snapshot has gap', () => {
+	const handleUpdate = jest.fn();
+	const handleError = jest.fn();
+	relayerClient.onOrderBook(handleUpdate, handleError);
+	relayerClient.orderBookSnapshotAvailable['pair'] = true;
+	relayerClient.subscribeOrderBook = jest.fn();
+	relayerClient.pendingOrderBookUpdates['pair'] = [];
+	relayerClient.orderBookSnapshots['pair'] = {
+		pair: 'pair',
+		version: 122,
+		bids: [],
+		asks: []
+	};
+	const res: IWsOrderBookUpdateResponse = {
+		channel: 'channel',
+		status: CST.WS_OK,
+		method: CST.DB_UPDATE,
+		pair: 'pair',
+		orderBookUpdate: {
+			pair: 'pair',
+			updates: [],
+			prevVersion: 123,
+			version: 124
+		}
+	};
+	relayerClient.handleOrderBookResponse(res);
+	expect(handleUpdate).not.toBeCalled();
+	expect(handleError).not.toBeCalled();
+	expect(relayerClient.subscribeOrderBook as jest.Mock).toBeCalled();
+	expect(relayerClient.pendingOrderBookUpdates['pair']).toMatchSnapshot();
+});
+
+test('handleOrderBookResponse update after obsolete', () => {
+	const handleUpdate = jest.fn();
+	const handleError = jest.fn();
+	relayerClient.onOrderBook(handleUpdate, handleError);
+	relayerClient.orderBookSnapshotAvailable['pair'] = true;
+	relayerClient.subscribeOrderBook = jest.fn();
+	relayerClient.pendingOrderBookUpdates['pair'] = [];
+	relayerClient.orderBookSnapshots['pair'] = {
+		pair: 'pair',
+		version: 122,
+		bids: [],
+		asks: []
+	};
+	const res: IWsOrderBookUpdateResponse = {
+		channel: 'channel',
+		status: CST.WS_OK,
+		method: CST.DB_UPDATE,
+		pair: 'pair',
+		orderBookUpdate: {
+			pair: 'pair',
+			updates: [],
+			prevVersion: 121,
+			version: 122
+		}
+	};
+	relayerClient.handleOrderBookResponse(res);
+	expect(handleUpdate).not.toBeCalled();
+	expect(handleError).not.toBeCalled();
+	expect(relayerClient.subscribeOrderBook as jest.Mock).not.toBeCalled();
+	expect(relayerClient.pendingOrderBookUpdates['pair']).toEqual([])
 });
 
 test('handleOrderBookResponse not ok', () => {
@@ -176,6 +377,21 @@ test('handleOrderBookResponse not ok', () => {
 	} as any);
 	expect(handleUpdate).not.toBeCalled();
 	expect(handleError.mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderBookResponse invalid method', () => {
+	const handleUpdate = jest.fn();
+	const handleError = jest.fn();
+	relayerClient.onOrderBook(handleUpdate, handleError);
+	relayerClient.handleOrderBookResponse({
+		channel: 'channel',
+		status: CST.WS_OK,
+		method: 'any',
+		pair: 'pair',
+		orderBookUpdate: 'orderBookUpdate'
+	} as any);
+	expect(handleUpdate).not.toBeCalled();
+	expect(handleError).not.toBeCalled();
 });
 
 test('handleMessage unsub', () => {
@@ -259,20 +475,6 @@ test('handleMessage info', () => {
 	expect(handleInfo.mock.calls).toMatchSnapshot();
 });
 
-test('subscribeOrderBook', () => {
-	const send = jest.fn();
-	relayerClient.ws = { send } as any;
-	relayerClient.subscribeOrderBook('pair');
-	expect(send.mock.calls).toMatchSnapshot();
-});
-
-test('unsubscribeOrderBook', () => {
-	const send = jest.fn();
-	relayerClient.ws = { send } as any;
-	relayerClient.unsubscribeOrderBook('pair');
-	expect(send.mock.calls).toMatchSnapshot();
-});
-
 test('subscribeOrderHistory invalid address', () => {
 	const send = jest.fn();
 	relayerClient.ws = { send } as any;
@@ -294,7 +496,66 @@ test('unsubscribeOrderHistory', () => {
 	expect(send.mock.calls).toMatchSnapshot();
 });
 
-test('addOrder bid', async done => {
+test('addOrder no ws', async () => {
+	relayerClient.ws = null;
+	web3Util.isValidPair = jest.fn(() => false);
+	await relayerClient.addOrder('account', 'code1|code2', 123, 456, true, 1234567890);
+	expect(web3Util.isValidPair as jest.Mock).not.toBeCalled();
+});
+
+test('addOrder invalid pair', async () => {
+	const send = jest.fn();
+	relayerClient.ws = { send } as any;
+	web3Util.isValidPair = jest.fn(() => false);
+	try {
+		await relayerClient.addOrder('account', 'code1|code2', 123, 456, true, 1234567890);
+		expect(true).toBeFalsy();
+	} catch (error) {
+		expect(error).toMatchSnapshot();
+	}
+});
+
+test('addOrder missing token', async () => {
+	const send = jest.fn();
+	relayerClient.ws = { send } as any;
+	web3Util.isValidPair = jest.fn(() => true);
+	web3Util.getTokenByCode = jest.fn();
+	try {
+		await relayerClient.addOrder('account', 'code1|code2', 123, 456, true, 1234567890);
+		expect(true).toBeFalsy();
+	} catch (error) {
+		expect(error).toMatchSnapshot();
+	}
+});
+
+test('addOrder invalid amount', async () => {
+	const send = jest.fn();
+	relayerClient.ws = { send } as any;
+	web3Util.getTokenAddressFromCode = jest.fn((code: string) => code + 'address');
+	orderUtil.getAmountAfterFee = jest.fn(() => ({
+		takerAssetAmount: 0,
+		makerAssetAmount: 0
+	}));
+	web3Util.isValidPair = jest.fn(() => true);
+	web3Util.getTokenByCode = jest.fn(() => ({
+		address: 'code1address',
+		code: 'code1',
+		precisions: {
+			code2: 1
+		},
+		feeSchedules: {
+			code2: {}
+		}
+	}));
+	try {
+		await relayerClient.addOrder('account', 'code1|code2', 123, 456, true, 1234567890);
+		expect(true).toBeFalsy();
+	} catch (error) {
+		expect(error).toMatchSnapshot();
+	}
+});
+
+test('addOrder bid', async () => {
 	const send = jest.fn();
 	relayerClient.ws = { send } as any;
 	web3Util.getTokenAddressFromCode = jest.fn((code: string) => code + 'address');
@@ -321,10 +582,9 @@ test('addOrder bid', async done => {
 	expect(send.mock.calls).toMatchSnapshot();
 	expect((orderUtil.getAmountAfterFee as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((web3Util.createRawOrder as jest.Mock).mock.calls).toMatchSnapshot();
-	done();
 });
 
-test('addOrder ask', async done => {
+test('addOrder ask', async () => {
 	const send = jest.fn();
 	relayerClient.ws = { send } as any;
 	web3Util.getTokenAddressFromCode = jest.fn((code: string) => code + 'address');
@@ -351,7 +611,6 @@ test('addOrder ask', async done => {
 	expect(send.mock.calls).toMatchSnapshot();
 	expect((orderUtil.getAmountAfterFee as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((web3Util.createRawOrder as jest.Mock).mock.calls).toMatchSnapshot();
-	done();
 });
 
 test('deleteOrder', () => {
