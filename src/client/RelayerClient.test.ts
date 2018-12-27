@@ -61,9 +61,9 @@ test('handleOrderResponse not ok', () => {
 });
 
 test('handleOrderBookResponse update before snapshot', () => {
-	const handleSnapshot = jest.fn();
+	const handleUpdate = jest.fn();
 	const handleError = jest.fn();
-	relayerClient.onOrderBook(handleSnapshot, handleError);
+	relayerClient.onOrderBook(handleUpdate, handleError);
 	const res: IWsOrderBookUpdateResponse = {
 		channel: 'channel',
 		status: CST.WS_OK,
@@ -77,15 +77,15 @@ test('handleOrderBookResponse update before snapshot', () => {
 		}
 	};
 	relayerClient.handleOrderBookResponse(res);
-	expect(handleSnapshot).not.toBeCalled();
+	expect(handleUpdate).not.toBeCalled();
 	expect(handleError).not.toBeCalled();
 	expect(relayerClient.pendingOrderBookUpdates).toMatchSnapshot();
 });
 
 test('handleOrderBookResponse snapshot newer than pending updates', () => {
-	const handleSnapshot = jest.fn();
+	const handleUpdate = jest.fn();
 	const handleError = jest.fn();
-	relayerClient.onOrderBook(handleSnapshot, handleError);
+	relayerClient.onOrderBook(handleUpdate, handleError);
 	orderBookUtil.updateOrderBookSnapshot = jest.fn();
 	const res: IWsOrderBookResponse = {
 		channel: 'channel',
@@ -100,7 +100,7 @@ test('handleOrderBookResponse snapshot newer than pending updates', () => {
 		}
 	}
 	relayerClient.handleOrderBookResponse(res);
-	expect(handleSnapshot).toBeCalled();
+	expect(handleUpdate).toBeCalled();
 	expect(handleError).not.toBeCalled();
 	expect(orderBookUtil.updateOrderBookSnapshot as jest.Mock).not.toBeCalled();
 	expect(relayerClient.pendingOrderBookUpdates['pair']).toEqual([]);
@@ -108,9 +108,9 @@ test('handleOrderBookResponse snapshot newer than pending updates', () => {
 });
 
 test('handleOrderBookResponse snapshot older than pending updates', () => {
-	const handleSnapshot = jest.fn();
+	const handleUpdate = jest.fn();
 	const handleError = jest.fn();
-	relayerClient.onOrderBook(handleSnapshot, handleError);
+	relayerClient.onOrderBook(handleUpdate, handleError);
 	orderBookUtil.updateOrderBookSnapshot = jest.fn();
 	relayerClient.pendingOrderBookUpdates['pair'] = [ {
 		pair: 'pair',
@@ -131,7 +131,7 @@ test('handleOrderBookResponse snapshot older than pending updates', () => {
 		}
 	}
 	relayerClient.handleOrderBookResponse(res);
-	expect(handleSnapshot).toBeCalled();
+	expect(handleUpdate).toBeCalled();
 	expect(handleError).not.toBeCalled();
 	expect((orderBookUtil.updateOrderBookSnapshot as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(relayerClient.pendingOrderBookUpdates['pair']).toEqual([]);
@@ -139,9 +139,9 @@ test('handleOrderBookResponse snapshot older than pending updates', () => {
 });
 
 test('handleOrderBookResponse update after snapshot', () => {
-	const handleSnapshot = jest.fn();
+	const handleUpdate = jest.fn();
 	const handleError = jest.fn();
-	relayerClient.onOrderBook(handleSnapshot, handleError);
+	relayerClient.onOrderBook(handleUpdate, handleError);
 	orderBookUtil.updateOrderBookSnapshot = jest.fn();
 	const res: IWsOrderBookUpdateResponse = {
 		channel: 'channel',
@@ -156,7 +156,7 @@ test('handleOrderBookResponse update after snapshot', () => {
 		}
 	};
 	relayerClient.handleOrderBookResponse(res);
-	expect(handleSnapshot).toBeCalled();
+	expect(handleUpdate).toBeCalled();
 	expect(handleError).not.toBeCalled();
 	expect((orderBookUtil.updateOrderBookSnapshot as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(relayerClient.pendingOrderBookUpdates['pair']).toEqual([]);
@@ -164,9 +164,9 @@ test('handleOrderBookResponse update after snapshot', () => {
 });
 
 test('handleOrderBookResponse not ok', () => {
-	const handleSnapshot = jest.fn();
+	const handleUpdate = jest.fn();
 	const handleError = jest.fn();
-	relayerClient.onOrderBook(handleSnapshot, handleError);
+	relayerClient.onOrderBook(handleUpdate, handleError);
 	relayerClient.handleOrderBookResponse({
 		channel: 'channel',
 		status: 'status',
@@ -174,7 +174,7 @@ test('handleOrderBookResponse not ok', () => {
 		pair: 'pair',
 		orderBookUpdate: 'orderBookUpdate'
 	} as any);
-	expect(handleSnapshot).not.toBeCalled();
+	expect(handleUpdate).not.toBeCalled();
 	expect(handleError.mock.calls).toMatchSnapshot();
 });
 

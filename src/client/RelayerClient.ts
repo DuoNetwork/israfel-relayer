@@ -43,7 +43,7 @@ export default class RelayerClient {
 		orderHash: string,
 		error: string
 	) => any = () => ({});
-	private handleOrderBookSnapshot: (orderBookSnapshot: IOrderBookSnapshot) => any = () => ({});
+	private handleOrderBookUpdate: (orderBookSnapshot: IOrderBookSnapshot) => any = () => ({});
 	private handleOrderBookError: (method: string, pair: string, error: string) => any = () => ({});
 	public reconnectionNumber: number = 0;
 	public orderBookSnapshots: { [pair: string]: IOrderBookSnapshot } = {};
@@ -110,9 +110,9 @@ export default class RelayerClient {
 						orderBookUtil.updateOrderBookSnapshot(orderBookSnapshot, update);
 				});
 				this.pendingOrderBookUpdates[pair] = [];
-				this.orderBookSnapshotAvailable[pair] = true;
 			}
-			this.handleOrderBookSnapshot(orderBookSnapshot);
+			this.orderBookSnapshotAvailable[pair] = true;
+			this.handleOrderBookUpdate(orderBookSnapshot);
 		} else {
 			const {pair, orderBookUpdate} = orderBookResponse as IWsOrderBookUpdateResponse;
 			if (!this.orderBookSnapshotAvailable[pair]) {
@@ -122,7 +122,7 @@ export default class RelayerClient {
 			} else {
 				const orderBookSnapshot = this.orderBookSnapshots[pair];
 				orderBookUtil.updateOrderBookSnapshot(orderBookSnapshot, orderBookUpdate);
-				this.handleOrderBookSnapshot(orderBookSnapshot);
+				this.handleOrderBookUpdate(orderBookSnapshot);
 			}
 		}
 	}
@@ -268,10 +268,10 @@ export default class RelayerClient {
 	}
 
 	public onOrderBook(
-		handleSnapshot: (orderBookSnapshot: IOrderBookSnapshot) => any,
+		handleUpdate: (orderBookSnapshot: IOrderBookSnapshot) => any,
 		handleError: (method: string, pair: string, error: string) => any
 	) {
-		this.handleOrderBookSnapshot = handleSnapshot;
+		this.handleOrderBookUpdate = handleUpdate;
 		this.handleOrderBookError = handleError;
 	}
 
