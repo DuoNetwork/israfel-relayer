@@ -6,7 +6,7 @@ import Web3Util from '../../../israfel-relayer/src/utils/Web3Util';
 import * as CST from '../common/constants';
 import {
 	IAccounts,
-	ICreateOB,
+	ICreateOrderBook,
 	IDualClassStates,
 	IOption,
 	IOrderBookSnapshot,
@@ -24,10 +24,11 @@ class MarketMaker {
 	public tokens: IToken[] = [];
 	private dualClassWrapper: DualClassWrapper | null = null;
 	private relayerClient: RelayerClient | null = null;
-	public tokenIndex: number = 0;
 	public isMakingOrder: boolean = false;
 	public liveOrders: { [pair: string]: { [orderHash: string]: IUserOrder } } = {};
 	public makerAddress: string = '';
+	public lastAcceptedPrice: { [key: string]: number } = { price: 0, time: 0 };
+	public expectedMidPrice: { [key: string]: number } = {};
 
 	public getMainAccount() {
 		const faucetAccount = require('../keys/faucetAccount.json');
@@ -163,195 +164,219 @@ class MarketMaker {
 		return addresses;
 	}
 
-	// private getSideTotalLiquidity(side: IOrderBookSnapshotLevel[]): number {
-	// 	return side.length
-	// 		? side
-	// 				.map(ask => ask.balance)
-	// 				.reduce((accumulator, currentValue) => accumulator + currentValue)
-	// 		: 0;
-	// }
+	private getSideTotalLiquidity(side: IOrderBookSnapshotLevel[]): number {
+		return side.length
+			? side
+					.map(ask => ask.balance)
+					.reduce((accumulator, currentValue) => accumulator + currentValue)
+			: 0;
+	}
 
-	// private getSideAmtToCreate(currentSideLevel: number, currentSideLiquidity: number): number {
-	// 	return currentSideLevel >= 3
-	// 		? 50 - currentSideLiquidity
-	// 		: currentSideLevel === 2
-	// 		? Math.max(50 - currentSideLiquidity, 20)
-	// 		: currentSideLevel === 1
-	// 		? Math.max(50 - currentSideLiquidity, 40)
-	// 		: 50;
-	// }
+	private getSideAmtToCreate(currentSideLevel: number, currentSideLiquidity: number): number {
+		return currentSideLevel >= 3
+			? 50 - currentSideLiquidity
+			: currentSideLevel === 2
+			? Math.max(50 - currentSideLiquidity, 20)
+			: currentSideLevel === 1
+			? Math.max(50 - currentSideLiquidity, 40)
+			: 50;
+	}
 
-	// public async startMakingOrders() {
-	// 	util.logInfo(`start anlayzing new orderBookSnapshot`);
-	// 	if (!this.orderBookSnapshot || !this.lastAcceptedPrice) {
-	// 		util.logDebug(`no orderBookSnapshot or orderMakerUtil or lastAcceptedPrice, pls check`);
-	// 		return;
-	// 	}
+	public async startMakingOrders(pair: string) {
+		util.logInfo(`start anlayzing new orderBookSnapshot`);
+		if (!this.dualClassWrapper) {
+			util.logDebug(`no dualClassWrapper initiated`);
+			return;
+		}
 
-	// 	const expectedMidPrice = util.round(
-	// 		(this.tokenIndex === 0 ? this.lastAcceptedPrice.navA : this.lastAcceptedPrice.navB) /
-	// 			this.lastAcceptedPrice.price
-	// 	);
+		const states = await this.dualClassWrapper.getStates();
+		if (
+			states.lastPrice !== this.lastAcceptedPrice.price ||
+			states.lastPriceTime !== this.lastAcceptedPrice.time
+		) {
+			this.lastAcceptedPrice.price = states.lastPrice;
+			this.lastAcceptedPrice.time = states.lastPriceTime;
+			this.expectedMidPrice[this.tokens[0].code] = util.round(states.navA / states.lastPrice);
+			this.expectedMidPrice[this.tokens[1].code] = util.round(states.navB / states.lastPrice);
+		}
 
-	// 	util.logDebug(`expected midprice of pair ${this.pair} is ${expectedMidPrice}`);
+		let bidAmountToCreate = 0;
+		let askAmountToCreate = 0;
+		let numOfBidOrdersToPlace = 0;
+		let numOfAskOrdersToPlace = 0;
+		let existingBidPrices = this.orderBookSnapshots[pair].bids.map(bid => bid.price);
+		let existingAskPrices = this.orderBookSnapshots[pair].asks.map(ask => ask.price);
+		let currentAskLevels = this.orderBookSnapshots[pair].asks.length;
+		let currentBidLevels = this.orderBookSnapshots[pair].bids.length;
 
-	// 	let bidAmountToCreate = 0;
-	// 	let askAmountToCreate = 0;
-	// 	let numOfBidOrdersToPlace = 0;
-	// 	let numOfAskOrdersToPlace = 0;
-	// 	let existingBidPrices = this.orderBookSnapshot.bids.map(bid => bid.price);
-	// 	let existingAskPrices = this.orderBookSnapshot.asks.map(ask => ask.price);
-	// 	let currentAskLevels = this.orderBookSnapshot.asks.length;
-	// 	let currentBidLevels = this.orderBookSnapshot.bids.length;
+		if (!currentBidLevels && !currentAskLevels) {
+			util.logDebug(`no bids and asks, need to create whole new orderBook`);
+			askAmountToCreate = CST.MIN_SIDE_LIQUIDITY;
+			bidAmountToCreate = CST.MIN_SIDE_LIQUIDITY;
+			numOfBidOrdersToPlace = CST.MIN_ORDER_BOOK_LEVELS;
+			numOfAskOrdersToPlace = CST.MIN_ORDER_BOOK_LEVELS;
+		} else if (!currentBidLevels && currentAskLevels) {
+			util.logInfo(`no bids ,have asks`);
+			const bestAskPrice = this.orderBookSnapshots[pair].asks[0].price;
+			const totalLiquidity = this.getSideTotalLiquidity(this.orderBookSnapshots[pair].asks);
+			util.logDebug(
+				`best ask price is ${bestAskPrice} with totalLiquilidty ${totalLiquidity}`
+			);
 
-	// 	if (!currentBidLevels && !currentAskLevels) {
-	// 		util.logDebug(`no bids and asks, need to create whole new orderBook`);
-	// 		askAmountToCreate = CST.MIN_SIDE_LIQUIDITY;
-	// 		bidAmountToCreate = CST.MIN_SIDE_LIQUIDITY;
-	// 		numOfBidOrdersToPlace = CST.MIN_ORDER_BOOK_LEVELS;
-	// 		numOfAskOrdersToPlace = CST.MIN_ORDER_BOOK_LEVELS;
-	// 	} else if (!currentBidLevels && currentAskLevels) {
-	// 		util.logInfo(`no bids ,have asks`);
-	// 		const bestAskPrice = this.orderBookSnapshot.asks[0].price;
-	// 		const totalLiquidity = this.getSideTotalLiquidity(this.orderBookSnapshot.asks);
-	// 		util.logDebug(
-	// 			`best ask price is ${bestAskPrice} with totalLiquilidty ${totalLiquidity}`
-	// 		);
+			if (bestAskPrice > this.expectedMidPrice.price) {
+				askAmountToCreate = CST.MIN_SIDE_LIQUIDITY - totalLiquidity;
+				bidAmountToCreate = CST.MIN_SIDE_LIQUIDITY;
+				numOfBidOrdersToPlace = CST.MIN_ORDER_BOOK_LEVELS;
+				numOfAskOrdersToPlace = CST.MIN_ORDER_BOOK_LEVELS - currentAskLevels;
+			} else if (bestAskPrice <= this.expectedMidPrice.price) {
+				util.logDebug(`ask side liquidity not enough, take all and recreate orderBook`);
+				// take one side
+				await this.takeOneSideOrders(
+					pair,
+					false,
+					this.orderBookSnapshots[pair].asks.filter(
+						ask => ask.price <= this.expectedMidPrice.price
+					)
+				);
 
-	// 		if (bestAskPrice > expectedMidPrice) {
-	// 			askAmountToCreate = CST.MIN_SIDE_LIQUIDITY - totalLiquidity;
-	// 			bidAmountToCreate = CST.MIN_SIDE_LIQUIDITY;
-	// 			numOfBidOrdersToPlace = CST.MIN_ORDER_BOOK_LEVELS;
-	// 			numOfAskOrdersToPlace = CST.MIN_ORDER_BOOK_LEVELS - currentAskLevels;
-	// 		} else if (bestAskPrice <= expectedMidPrice) {
-	// 			util.logDebug(`ask side liquidity not enough, take all and recreate orderBook`);
-	// 			// take one side
-	// 			await this.orderMakerUtil.takeOneSideOrders(
-	// 				this.pair,
-	// 				false,
-	// 				this.orderBookSnapshot.asks.filter(ask => ask.price <= expectedMidPrice)
-	// 			);
+				bidAmountToCreate = CST.MIN_SIDE_LIQUIDITY;
+				numOfBidOrdersToPlace = CST.MIN_ORDER_BOOK_LEVELS;
 
-	// 			bidAmountToCreate = CST.MIN_SIDE_LIQUIDITY;
-	// 			numOfBidOrdersToPlace = CST.MIN_ORDER_BOOK_LEVELS;
+				currentAskLevels = this.orderBookSnapshots[pair].asks.filter(
+					ask => ask.price > this.expectedMidPrice.price
+				).length;
+				const totalAskLiquidity = this.getSideTotalLiquidity(
+					this.orderBookSnapshots[pair].asks.filter(
+						ask => ask.price > this.expectedMidPrice.price
+					)
+				);
+				askAmountToCreate = this.getSideAmtToCreate(currentAskLevels, totalAskLiquidity);
+				numOfAskOrdersToPlace = Math.max(3 - currentAskLevels, 1);
+				existingAskPrices = existingAskPrices.filter(
+					price => price > this.expectedMidPrice.price
+				);
+			}
+		} else if (!currentAskLevels && currentBidLevels) {
+			util.logInfo(`no asks, have bids`);
+			const bestBidPrice = this.orderBookSnapshots[pair].bids[0].price;
+			const totalLiquidity = this.getSideTotalLiquidity(this.orderBookSnapshots[pair].bids);
+			util.logDebug(
+				`best bid price is ${bestBidPrice} with totalLiquilidty ${totalLiquidity}`
+			);
 
-	// 			currentAskLevels = this.orderBookSnapshot.asks.filter(
-	// 				ask => ask.price > expectedMidPrice
-	// 			).length;
-	// 			const totalAskLiquidity = this.getSideTotalLiquidity(
-	// 				this.orderBookSnapshot.asks.filter(ask => ask.price > expectedMidPrice)
-	// 			);
-	// 			askAmountToCreate = this.getSideAmtToCreate(currentAskLevels, totalAskLiquidity);
-	// 			numOfAskOrdersToPlace = Math.max(3 - currentAskLevels, 1);
-	// 			existingAskPrices = existingAskPrices.filter(price => price > expectedMidPrice);
-	// 		}
-	// 	} else if (!currentAskLevels && currentBidLevels) {
-	// 		util.logInfo(`no asks, have bids`);
-	// 		const bestBidPrice = this.orderBookSnapshot.bids[0].price;
-	// 		const totalLiquidity = this.getSideTotalLiquidity(this.orderBookSnapshot.bids);
-	// 		util.logDebug(
-	// 			`best bid price is ${bestBidPrice} with totalLiquilidty ${totalLiquidity}`
-	// 		);
+			if (bestBidPrice < this.expectedMidPrice.price) {
+				bidAmountToCreate = CST.MIN_SIDE_LIQUIDITY - totalLiquidity;
+				askAmountToCreate = CST.MIN_SIDE_LIQUIDITY;
+				numOfBidOrdersToPlace = 3 - currentBidLevels;
+				numOfAskOrdersToPlace = 3;
+			} else if (bestBidPrice >= this.expectedMidPrice.price) {
+				util.logDebug(`bid side liquidity not enough, take all and recreate orderBook`);
+				// take all
+				await this.takeOneSideOrders(
+					pair,
+					true,
+					this.orderBookSnapshots[pair].bids.filter(
+						bid => bid.price >= this.expectedMidPrice.price
+					)
+				);
+				askAmountToCreate = CST.MIN_SIDE_LIQUIDITY;
+				numOfAskOrdersToPlace = CST.MIN_ORDER_BOOK_LEVELS;
 
-	// 		if (bestBidPrice < expectedMidPrice) {
-	// 			bidAmountToCreate = CST.MIN_SIDE_LIQUIDITY - totalLiquidity;
-	// 			askAmountToCreate = CST.MIN_SIDE_LIQUIDITY;
-	// 			numOfBidOrdersToPlace = 3 - currentBidLevels;
-	// 			numOfAskOrdersToPlace = 3;
-	// 		} else if (bestBidPrice >= expectedMidPrice) {
-	// 			util.logDebug(`bid side liquidity not enough, take all and recreate orderBook`);
-	// 			// take all
-	// 			await this.orderMakerUtil.takeOneSideOrders(
-	// 				this.pair,
-	// 				true,
-	// 				this.orderBookSnapshot.bids.filter(bid => bid.price >= expectedMidPrice)
-	// 			);
-	// 			askAmountToCreate = CST.MIN_SIDE_LIQUIDITY;
-	// 			numOfAskOrdersToPlace = CST.MIN_ORDER_BOOK_LEVELS;
+				currentBidLevels = this.orderBookSnapshots[pair].bids.filter(
+					bod => bod.price < this.expectedMidPrice.price
+				).length;
+				const totalBidLiquidity = this.getSideTotalLiquidity(
+					this.orderBookSnapshots[pair].bids.filter(
+						bid => bid.price < this.expectedMidPrice.price
+					)
+				);
 
-	// 			currentBidLevels = this.orderBookSnapshot.bids.filter(
-	// 				bod => bod.price < expectedMidPrice
-	// 			).length;
-	// 			const totalBidLiquidity = this.getSideTotalLiquidity(
-	// 				this.orderBookSnapshot.bids.filter(bid => bid.price < expectedMidPrice)
-	// 			);
+				bidAmountToCreate = this.getSideAmtToCreate(currentBidLevels, totalBidLiquidity);
+				numOfBidOrdersToPlace = Math.max(3 - currentBidLevels, 1);
+				existingBidPrices = existingBidPrices.filter(
+					price => price < this.expectedMidPrice.price
+				);
+			}
+		} else {
+			util.logInfo(`have both asks and have bids`);
+			const bestBidPrice = this.orderBookSnapshots[pair].bids[0].price;
+			const bestAskPrice = this.orderBookSnapshots[pair].asks[0].price;
+			let totalBidLiquidity = this.getSideTotalLiquidity(this.orderBookSnapshots[pair].bids);
+			let totalAskLiquidity = this.getSideTotalLiquidity(this.orderBookSnapshots[pair].asks);
+			if (this.expectedMidPrice.price > bestAskPrice) {
+				await this.takeOneSideOrders(
+					pair,
+					false,
+					this.orderBookSnapshots[pair].asks.filter(
+						ask => ask.price <= this.expectedMidPrice.price
+					)
+				);
 
-	// 			bidAmountToCreate = this.getSideAmtToCreate(currentBidLevels, totalBidLiquidity);
-	// 			numOfBidOrdersToPlace = Math.max(3 - currentBidLevels, 1);
-	// 			existingBidPrices = existingBidPrices.filter(price => price < expectedMidPrice);
-	// 		}
-	// 	} else {
-	// 		util.logInfo(`have both asks and have bids`);
-	// 		const bestBidPrice = this.orderBookSnapshot.bids[0].price;
-	// 		const bestAskPrice = this.orderBookSnapshot.asks[0].price;
-	// 		let totalBidLiquidity = this.getSideTotalLiquidity(this.orderBookSnapshot.bids);
-	// 		let totalAskLiquidity = this.getSideTotalLiquidity(this.orderBookSnapshot.asks);
-	// 		if (expectedMidPrice > bestAskPrice) {
-	// 			await this.orderMakerUtil.takeOneSideOrders(
-	// 				this.pair,
-	// 				false,
-	// 				this.orderBookSnapshot.asks.filter(ask => ask.price <= expectedMidPrice)
-	// 			);
+				currentAskLevels = this.orderBookSnapshots[pair].asks.filter(
+					ask => ask.price > this.expectedMidPrice.price
+				).length;
 
-	// 			currentAskLevels = this.orderBookSnapshot.asks.filter(
-	// 				ask => ask.price > expectedMidPrice
-	// 			).length;
+				totalAskLiquidity = this.getSideTotalLiquidity(
+					this.orderBookSnapshots[pair].asks.filter(
+						ask => ask.price > this.expectedMidPrice.price
+					)
+				);
+				existingAskPrices = existingAskPrices.filter(
+					price => price > this.expectedMidPrice.price
+				);
+			} else if (this.expectedMidPrice.price < bestBidPrice) {
+				await this.takeOneSideOrders(
+					pair,
+					true,
+					this.orderBookSnapshots[pair].bids.filter(
+						bid => bid.price >= this.expectedMidPrice.price
+					)
+				);
 
-	// 			totalAskLiquidity = this.getSideTotalLiquidity(
-	// 				this.orderBookSnapshot.asks.filter(ask => ask.price > expectedMidPrice)
-	// 			);
-	// 			existingAskPrices = existingAskPrices.filter(price => price > expectedMidPrice);
-	// 		} else if (expectedMidPrice < bestBidPrice) {
-	// 			await this.orderMakerUtil.takeOneSideOrders(
-	// 				this.pair,
-	// 				true,
-	// 				this.orderBookSnapshot.bids.filter(bid => bid.price >= expectedMidPrice)
-	// 			);
+				currentBidLevels = this.orderBookSnapshots[pair].bids.filter(
+					bid => bid.price < this.expectedMidPrice.price
+				).length;
+				totalBidLiquidity = this.getSideTotalLiquidity(
+					this.orderBookSnapshots[pair].bids.filter(
+						bid => bid.price < this.expectedMidPrice.price
+					)
+				);
+				existingBidPrices = existingBidPrices.filter(
+					price => price < this.expectedMidPrice.price
+				);
+			}
 
-	// 			currentBidLevels = this.orderBookSnapshot.bids.filter(
-	// 				bid => bid.price < expectedMidPrice
-	// 			).length;
-	// 			totalBidLiquidity = this.getSideTotalLiquidity(
-	// 				this.orderBookSnapshot.bids.filter(bid => bid.price < expectedMidPrice)
-	// 			);
-	// 			existingBidPrices = existingBidPrices.filter(price => price < expectedMidPrice);
-	// 		}
+			askAmountToCreate = this.getSideAmtToCreate(currentAskLevels, totalAskLiquidity);
+			bidAmountToCreate = this.getSideAmtToCreate(currentBidLevels, totalBidLiquidity);
+			numOfBidOrdersToPlace = Math.max(3 - currentBidLevels, 1);
+			numOfAskOrdersToPlace = Math.max(3 - currentAskLevels, 1);
+		}
 
-	// 		askAmountToCreate = this.getSideAmtToCreate(currentAskLevels, totalAskLiquidity);
-	// 		bidAmountToCreate = this.getSideAmtToCreate(currentBidLevels, totalBidLiquidity);
-	// 		numOfBidOrdersToPlace = Math.max(3 - currentBidLevels, 1);
-	// 		numOfAskOrdersToPlace = Math.max(3 - currentAskLevels, 1);
-	// 	}
+		util.logInfo(`bidAmountToCreate: ${bidAmountToCreate} numOfBidOrdersToPlace: ${numOfBidOrdersToPlace}
+		askAmountToCreate: ${askAmountToCreate} numOfAskOrdersToPlace: ${numOfAskOrdersToPlace}`);
 
-	// 	util.logInfo(`bidAmountToCreate: ${bidAmountToCreate} numOfBidOrdersToPlace: ${numOfBidOrdersToPlace}
-	// 	askAmountToCreate: ${askAmountToCreate} numOfAskOrdersToPlace: ${numOfAskOrdersToPlace}`);
+		if (askAmountToCreate > 0 && numOfAskOrdersToPlace > 0)
+			await this.createDualTokenOrderBook({
+				pair: pair,
+				isBid: false,
+				midPrice: this.expectedMidPrice.price,
+				totalSize: askAmountToCreate,
+				numOfOrders: numOfAskOrdersToPlace,
+				existingPriceLevel: existingAskPrices
+			});
+		if (bidAmountToCreate > 0 && numOfBidOrdersToPlace)
+			await this.createDualTokenOrderBook({
+				pair: pair,
+				isBid: true,
+				midPrice: this.expectedMidPrice.price,
+				totalSize: bidAmountToCreate,
+				numOfOrders: numOfBidOrdersToPlace,
+				existingPriceLevel: existingBidPrices
+			});
+		this.isMakingOrder = false;
+	}
 
-	// 	if (askAmountToCreate > 0 && numOfAskOrdersToPlace > 0)
-	// 		await this.orderMakerUtil.createOrderBookSide(
-	// 			this.pair,
-	// 			false,
-	// 			this.contractType,
-	// 			this.contractTenor,
-	// 			expectedMidPrice,
-	// 			askAmountToCreate,
-	// 			numOfAskOrdersToPlace,
-	// 			existingAskPrices
-	// 		);
-	// 	if (bidAmountToCreate > 0 && numOfBidOrdersToPlace)
-	// 		await this.orderMakerUtil.createOrderBookSide(
-	// 			this.pair,
-	// 			true,
-	// 			this.contractType,
-	// 			this.contractTenor,
-	// 			expectedMidPrice,
-	// 			bidAmountToCreate,
-	// 			numOfBidOrdersToPlace,
-	// 			existingBidPrices
-	// 		);
-	// 	this.isMakingOrder = false;
-	// }
-
-	public async createDualTokenOrderBook(createOb: ICreateOB) {
+	public async createDualTokenOrderBook(createOrderBook: ICreateOrderBook) {
 		if (!this.relayerClient) {
 			util.logDebug('no relayer client, ignore');
 			return;
@@ -360,19 +385,13 @@ class MarketMaker {
 		const {
 			pair,
 			isBid,
-			contractTenor,
 			midPrice,
 			totalSize,
 			numOfOrders,
 			existingPriceLevel
-		} = createOb;
+		} = createOrderBook;
 
-		if (![CST.TENOR_PPT, CST.TENOR_M19].includes(contractTenor)) {
-			util.logDebug('wrong contract tenor');
-			return;
-		}
 		const amountPerLevel = totalSize / numOfOrders;
-
 		util.logInfo(`start making side for  ${
 			isBid ? 'bid' : 'ask'
 		} with ${numOfOrders} orders, existing price level
@@ -395,7 +414,14 @@ class MarketMaker {
 					} with amount ${isBid ? bidAmt : askAmt}`
 				);
 				try {
-					await this.relayerClient.addOrder(this.makerAddress, pair, price, isBid ? bidAmt : askAmt, isBid, util.getExpiryTimestamp(false));
+					await this.relayerClient.addOrder(
+						this.makerAddress,
+						pair,
+						price,
+						isBid ? bidAmt : askAmt,
+						isBid,
+						util.getExpiryTimestamp(false)
+					);
 					createdOrder++;
 					i++;
 					util.sleep(1000);
@@ -435,31 +461,22 @@ class MarketMaker {
 		}
 	}
 
-	public async createOrderBookSide(
-		pair: string,
-		isBid: boolean,
-		contractType: string,
-		contractTenor: string,
-		midPrice: number,
-		totalSize: number,
-		numOfOrders: number,
-		existingPriceLevel: number[]
-	) {
-		if (contractType === CST.BEETHOVEN || contractType === CST.MOZART)
-			await this.createDualTokenOrderBook({
-				pair,
-				isBid,
-				contractTenor,
-				midPrice,
-				totalSize,
-				numOfOrders,
-				existingPriceLevel
-			});
-		else util.logDebug(`incorrect contract type specified`);
-	}
-
-	public handleOrderBookUpdate(orderBookSnapshot: IOrderBookSnapshot) {
+	public async handleOrderBookUpdate(orderBookSnapshot: IOrderBookSnapshot) {
 		this.orderBookSnapshots[orderBookSnapshot.pair] = orderBookSnapshot;
+		if (
+			!this.isMakingOrder &&
+			(this.orderBookSnapshots[orderBookSnapshot.pair].bids.length <
+				CST.MIN_ORDER_BOOK_LEVELS ||
+				this.orderBookSnapshots[orderBookSnapshot.pair].asks.length <
+					CST.MIN_ORDER_BOOK_LEVELS ||
+				this.getSideTotalLiquidity(this.orderBookSnapshots[orderBookSnapshot.pair].asks) <
+					CST.MIN_SIDE_LIQUIDITY ||
+				this.getSideTotalLiquidity(this.orderBookSnapshots[orderBookSnapshot.pair].bids) <
+					CST.MIN_SIDE_LIQUIDITY)
+		) {
+			this.isMakingOrder = true;
+			await this.startMakingOrders(orderBookSnapshot.pair);
+		}
 	}
 
 	public async startProcessing(option: IOption) {
@@ -478,6 +495,10 @@ class MarketMaker {
 				);
 				if (!bToken) return;
 				this.tokens = [aToken, bToken];
+				this.expectedMidPrice = {
+					[aToken.code]: 0,
+					[bToken.code]: 0
+				};
 				let infura = {
 					token: ''
 				};

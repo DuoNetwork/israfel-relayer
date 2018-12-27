@@ -249,10 +249,9 @@ export interface IAccounts {
 	privateKey: string;
 }
 
-export interface ICreateOB {
+export interface ICreateOrderBook {
 	pair: string;
 	isBid: boolean;
-	contractTenor: string;
 	midPrice: number;
 	totalSize: number;
 	numOfOrders: number;
