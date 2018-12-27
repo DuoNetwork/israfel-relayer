@@ -1,7 +1,6 @@
 import * as CST from '../common/constants';
 import { IWsOrderBookResponse, IWsOrderBookUpdateResponse } from '../common/types';
 import orderUtil from '../utils/orderUtil';
-// import Web3Util from '../utils/Web3Util';
 import RelayerClient from './RelayerClient';
 
 const web3Util: any = {};
