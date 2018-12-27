@@ -5,13 +5,13 @@ import Web3Wrapper from '../../../duo-contract-wrapper/src/Web3Wrapper';
 import Web3Util from '../../../israfel-relayer/src/utils/Web3Util';
 import * as CST from '../common/constants';
 import {
-	IAcceptedPrice,
 	IAccounts,
 	IDualClassStates,
 	IOption,
 	IOrderBookSnapshot,
+	IOrderBookSnapshotUpdate,
 	IToken,
-	IUserOrder
+	IUserOrder,
 } from '../common/types';
 import orderBookUtil from '../utils/orderBookUtil';
 import util from '../utils/util';
@@ -19,22 +19,16 @@ import { OrderMakerUtil } from './orderMakerUtil';
 import RelayerClient from './RelayerClient';
 
 class MarketMaker {
+	public orderBookSnapshots: { [pair: string]: IOrderBookSnapshot } = {};
+	public pendingOrderBookUpdates: { [pair: string]: IOrderBookSnapshotUpdate[] } = {};
+	public tokens: IToken[] = [];
 	private dualClassWrapper: DualClassWrapper | null = null;
 	private relayerClient: RelayerClient | null = null;
-	public orderBookSnapshot: IOrderBookSnapshot = {
-		version: 0,
-		pair: 'pair',
-		bids: [],
-		asks: []
-	};
-	public tokens: IToken[] = [];
 	public orderMakerUtil: OrderMakerUtil | null = null;
 	public tokenIndex: number = 0;
-	public acceptedPrices: IAcceptedPrice[] = [];
-	public orderBookSubscribed: boolean = false;
-	public orderSubscribed: boolean = false;
 	public isMakingOrder: boolean = false;
 	public liveOrders: { [pair: string]: { [orderHash: string]: IUserOrder } } = {};
+	public makerAddress: string = '';
 
 	public getMainAccount() {
 		const faucetAccount = require('../keys/faucetAccount.json');
@@ -370,12 +364,12 @@ class MarketMaker {
 	public async startProcessing(option: IOption) {
 		const mnemonic = require('../keys/mnemomicBot.json');
 		const live = option.env === CST.DB_LIVE;
-		const web3Util = new Web3Util(null, live, mnemonic.mnemomic, false);
+		const web3Util = new Web3Util(null, live, mnemonic[option.token], false);
+		this.makerAddress = (await web3Util.getAvailableAddresses())[0];
 		this.relayerClient = new RelayerClient(web3Util, option.env);
 
-		this.relayerClient.onInfoUpdate((tokens, status, acceptedPrices) => {
+		this.relayerClient.onInfoUpdate(tokens => {
 			if (!this.dualClassWrapper) {
-				util.logDebug(JSON.stringify(status));
 				const aToken = tokens.find(t => t.code === option.token);
 				if (!aToken) return;
 				const bToken = tokens.find(
@@ -400,20 +394,20 @@ class MarketMaker {
 					new Web3Wrapper(null, 'source', infuraProvider, live),
 					aToken.custodian
 				);
-			}
 
-			this.acceptedPrices = acceptedPrices[this.dualClassWrapper.address] || [];
+				this.orderMakerUtil = new OrderMakerUtil(web3Util);
 
-			if (!this.orderBookSubscribed && this.relayerClient) {
-				this.relayerClient.subscribeOrderBook(this.tokens[0].code + '|' + CST.TOKEN_WETH);
-				this.relayerClient.subscribeOrderBook(this.tokens[1].code + '|' + CST.TOKEN_WETH);
-				this.orderBookSubscribed = true;
-			}
-			if (!this.orderSubscribed && this.relayerClient) {
-				for (const address of orderMakerUtil.availableAddrs)
-					this.relayerClient.subscribeOrderHistory(address);
+				this.orderMakerUtil.setAvailableAddrs(option);
 
-				this.orderSubscribed = true;
+				if (this.relayerClient) {
+					this.relayerClient.subscribeOrderBook(
+						this.tokens[0].code + '|' + CST.TOKEN_WETH
+					);
+					this.relayerClient.subscribeOrderBook(
+						this.tokens[1].code + '|' + CST.TOKEN_WETH
+					);
+					this.relayerClient.subscribeOrderHistory(this.makerAddress);
+				}
 			}
 		});
 
@@ -439,9 +433,22 @@ class MarketMaker {
 			(method, orderHash, error) => util.logError(method + ' ' + orderHash + ' ' + error)
 		);
 		this.relayerClient.onOrderBook(
-			orderBookSnapshot => (this.orderBookSnapshot = orderBookSnapshot),
-			orderBookUpdate =>
-				orderBookUtil.updateOrderBookSnapshot(this.orderBookSnapshot, orderBookUpdate),
+			orderBookSnapshot =>
+				(this.orderBookSnapshots[orderBookSnapshot.pair] = orderBookSnapshot),
+			orderBookUpdate => {
+				const pair = orderBookUpdate.pair;
+				if (this.orderBookSnapshots[pair])
+				orderBookUtil.updateOrderBookSnapshot(
+					this.orderBookSnapshots[pair],
+					orderBookUpdate
+				);
+				else {
+					if (!this.pendingOrderBookUpdates[pair])
+						this.pendingOrderBookUpdates[pair] = [];
+					this.pendingOrderBookUpdates[pair].push(orderBookUpdate);
+				}
+			}
+				,
 			(method, pair, error) => util.logError(method + ' ' + pair + ' ' + error)
 		);
 
@@ -450,33 +457,6 @@ class MarketMaker {
 			() => util.logDebug('reconnecting')
 		);
 		this.relayerClient.connectToRelayer();
-
-		const orderMakerUtil: OrderMakerUtil = new OrderMakerUtil(web3Util);
-
-		await orderMakerUtil.setAvailableAddrs(option);
-
-		if (!this.relayerClient.ws) throw new Error('no ws client initied');
-
-		let waitNums = 0;
-		while (!this.dualClassWrapper && waitNums < 6) {
-			util.logDebug(`wait tokens to be set`);
-			util.sleep(1000);
-			waitNums++;
-		}
-
-		if (this.dualClassWrapper) {
-			if (!orderMakerUtil.availableAddrs.length) throw new Error('no available accounts');
-			orderMakerUtil.availableAddrs = await this.checkBalance(
-				web3Util,
-				this.dualClassWrapper,
-				orderMakerUtil.availableAddrs
-			);
-		} else throw new Error('tokens data have not been received, pls check relayer...');
-
-		setInterval(
-			() => this.checkBalance(web3Util, this.dualClassWrapper, orderMakerUtil.availableAddrs),
-			CST.ONE_MINUTE_MS * 20
-		);
 	}
 }
 

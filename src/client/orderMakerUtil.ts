@@ -1,117 +1,18 @@
 // fix for @ledgerhq/hw-transport-u2f 4.28.0
 import '@babel/polyfill';
-import WebSocket from 'ws';
-import orderUtil from '../../../israfel-relayer/src/utils/orderUtil';
 import Web3Util from '../../../israfel-relayer/src/utils/Web3Util';
 import * as CST from '../common/constants';
 import {
 	ICreateOB,
 	IOption,
 	IOrderBookSnapshotLevel,
-	IStringSignedOrder,
-	IWsAddOrderRequest
 } from '../common/types';
 import util from '../utils/util';
 
 export class OrderMakerUtil {
 	public web3Util: Web3Util;
-	public ws: WebSocket | null = null;
-	public availableAddrs: string[] = [];
-	public currentAddrIdx: number = 0;
 	constructor(web3Util: Web3Util) {
 		this.web3Util = web3Util;
-	}
-
-	public getCurrentAddress() {
-		const currentAddr = this.availableAddrs[this.currentAddrIdx];
-		this.currentAddrIdx = (this.currentAddrIdx + 1) % this.availableAddrs.length;
-		return currentAddr;
-	}
-
-	public async setAvailableAddrs(option: IOption) {
-		if (!this.web3Util) {
-			util.logDebug(`no web3Util initiated`);
-			return;
-		}
-		const allAddrs = await this.web3Util.getAvailableAddresses();
-		const { type, tenor } = util.getContractTypeAndTenor(option.token);
-		const idxs = CST.AVAILABLE_ADDR_IDX[type + '|' + tenor];
-		this.availableAddrs = allAddrs.slice(idxs[0], idxs[1] + 1);
-	}
-
-	public setWs(ws: WebSocket) {
-		this.ws = ws;
-	}
-
-	public async placeOrder(
-		isBid: boolean,
-		price: number,
-		amount: number,
-		pair: string
-	): Promise<boolean> {
-		console.log('############');
-		console.log(this.web3Util);
-		if (!this.web3Util) throw new Error('no web3Util initiated');
-		if (!this.web3Util.isValidPair(pair)) throw new Error('invalid pair');
-		const [code1, code2] = pair.split('|');
-		const token1 = this.web3Util.getTokenByCode(code1);
-		if (!token1) throw new Error('invalid pair');
-		const address1 = token1.address;
-		const address2 = this.web3Util.getTokenAddressFromCode(code2);
-
-		const amountAfterFee = orderUtil.getAmountAfterFee(
-			amount,
-			price,
-			token1.feeSchedules[code2],
-			isBid
-		);
-
-		const expiry = Math.floor(util.getExpiryTimestamp(false) / 1000);
-
-		if (!amountAfterFee.makerAssetAmount || !amountAfterFee.takerAssetAmount)
-			throw new Error('invalid amount');
-
-		const rawOrder = await this.web3Util.createRawOrder(
-			pair,
-			this.getCurrentAddress(),
-			isBid ? address2 : address1,
-			isBid ? address1 : address2,
-			amountAfterFee.makerAssetAmount,
-			amountAfterFee.takerAssetAmount,
-			expiry
-		);
-
-		const res = await this.validateOrder(
-			pair,
-			rawOrder.orderHash,
-			JSON.parse(JSON.stringify(rawOrder.signedOrder))
-		);
-		if (!res) throw new Error('validation not passed');
-
-		console.log(rawOrder.signedOrder);
-
-		const msg: IWsAddOrderRequest = {
-			method: CST.DB_ADD,
-			channel: CST.DB_ORDERS,
-			pair: pair,
-			orderHash: rawOrder.orderHash,
-			order: rawOrder.signedOrder
-		};
-		if (!this.ws) {
-			console.log('no client initiated');
-			return false;
-		}
-
-		util.logInfo(
-			'send add order request' +
-				JSON.stringify({
-					price: price,
-					amount: amount,
-					isBid: isBid
-				})
-		);
-		this.ws.send(JSON.stringify(msg));
-		return true;
 	}
 
 	public async createDualTokenOrderBook(createOb: ICreateOB) {
@@ -208,41 +109,5 @@ export class OrderMakerUtil {
 				existingPriceLevel
 			});
 		else util.logDebug(`incorrect contract type specified`);
-	}
-
-	public async validateOrder(
-		pair: string,
-		rawOrderHash: string,
-		stringSignedOrder: IStringSignedOrder
-	): Promise<boolean> {
-		if (!this.web3Util) {
-			util.logInfo(`no web3Util initiated when validating signedOrder`);
-			return false;
-		}
-
-		const token = this.web3Util.tokens.find(t => t.code === pair.split('|')[0]);
-		if (!token) {
-			util.logInfo(`no token can be found when validating signedOrder`);
-			return false;
-		}
-
-		try {
-			const orderHash = await orderUtil.validateOrder(
-				this.web3Util,
-				pair,
-				token,
-				stringSignedOrder
-			);
-			if (orderHash === rawOrderHash) {
-				util.logDebug(`order ${rawOrderHash} valided,`);
-				return true;
-			} else {
-				util.logDebug('invalid orderHash, ignore');
-				return false;
-			}
-		} catch (error) {
-			util.logError(error);
-			return false;
-		}
 	}
 }
