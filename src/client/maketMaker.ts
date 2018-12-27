@@ -6,16 +6,16 @@ import Web3Util from '../../../israfel-relayer/src/utils/Web3Util';
 import * as CST from '../common/constants';
 import {
 	IAccounts,
+	ICreateOB,
 	IDualClassStates,
 	IOption,
 	IOrderBookSnapshot,
+	IOrderBookSnapshotLevel,
 	IOrderBookSnapshotUpdate,
 	IToken,
-	IUserOrder,
+	IUserOrder
 } from '../common/types';
-import orderBookUtil from '../utils/orderBookUtil';
 import util from '../utils/util';
-import { OrderMakerUtil } from './orderMakerUtil';
 import RelayerClient from './RelayerClient';
 
 class MarketMaker {
@@ -24,7 +24,6 @@ class MarketMaker {
 	public tokens: IToken[] = [];
 	private dualClassWrapper: DualClassWrapper | null = null;
 	private relayerClient: RelayerClient | null = null;
-	public orderMakerUtil: OrderMakerUtil | null = null;
 	public tokenIndex: number = 0;
 	public isMakingOrder: boolean = false;
 	public liveOrders: { [pair: string]: { [orderHash: string]: IUserOrder } } = {};
@@ -352,14 +351,116 @@ class MarketMaker {
 	// 	this.isMakingOrder = false;
 	// }
 
-	// private getMainAccount(): IAccounts {
-	// 	const faucetAccount = require('../keys/faucetAccount.json');
+	public async createDualTokenOrderBook(createOb: ICreateOB) {
+		if (!this.relayerClient) {
+			util.logDebug('no relayer client, ignore');
+			return;
+		}
 
-	// 	return {
-	// 		address: faucetAccount.publicKey,
-	// 		privateKey: faucetAccount.privateKey
-	// 	};
-	// }
+		const {
+			pair,
+			isBid,
+			contractTenor,
+			midPrice,
+			totalSize,
+			numOfOrders,
+			existingPriceLevel
+		} = createOb;
+
+		if (![CST.TENOR_PPT, CST.TENOR_M19].includes(contractTenor)) {
+			util.logDebug('wrong contract tenor');
+			return;
+		}
+		const amountPerLevel = totalSize / numOfOrders;
+
+		util.logInfo(`start making side for  ${
+			isBid ? 'bid' : 'ask'
+		} with ${numOfOrders} orders, existing price level
+	${existingPriceLevel.length > 0 ? existingPriceLevel.join(',') : ' 0 existing price level'}
+		`);
+
+		let i = 0;
+		let createdOrder = 0;
+		while (createdOrder < numOfOrders) {
+			const bidPrice = util.round(midPrice - (i + 1) * CST.PRICE_STEP);
+			const askPrice = util.round(midPrice + (i + 1) * CST.PRICE_STEP);
+			const bidAmt = util.round(amountPerLevel + Math.random() * 10);
+			const askAmt = util.round(amountPerLevel + Math.random() * 10);
+
+			const price = isBid ? bidPrice : askPrice;
+			if (!existingPriceLevel.includes(price)) {
+				util.logInfo(
+					`placing an ${isBid ? 'bid' : 'ask'} order, with price ${
+						isBid ? bidPrice : askPrice
+					} with amount ${isBid ? bidAmt : askAmt}`
+				);
+				try {
+					await this.relayerClient.addOrder(this.makerAddress, pair, price, isBid ? bidAmt : askAmt, isBid, util.getExpiryTimestamp(false));
+					createdOrder++;
+					i++;
+					util.sleep(1000);
+				} catch (error) {
+					util.logDebug('failed to add order');
+				}
+			}
+			i++;
+		}
+	}
+
+	public async takeOneSideOrders(
+		pair: string,
+		isSideBid: boolean,
+		orderBookSide: IOrderBookSnapshotLevel[]
+	) {
+		if (!this.relayerClient) {
+			util.logDebug('no relayer client, ignore');
+			return;
+		}
+		console.log('take one side');
+		for (const orderLevel of orderBookSide) {
+			util.logDebug(
+				`taking an  ${isSideBid ? 'bid' : 'ask'} order with price ${
+					orderLevel.price
+				} amount ${orderLevel.balance}`
+			);
+			await this.relayerClient.addOrder(
+				this.makerAddress,
+				pair,
+				orderLevel.price,
+				orderLevel.balance,
+				!isSideBid,
+				util.getExpiryTimestamp(false)
+			);
+			util.sleep(1000);
+		}
+	}
+
+	public async createOrderBookSide(
+		pair: string,
+		isBid: boolean,
+		contractType: string,
+		contractTenor: string,
+		midPrice: number,
+		totalSize: number,
+		numOfOrders: number,
+		existingPriceLevel: number[]
+	) {
+		if (contractType === CST.BEETHOVEN || contractType === CST.MOZART)
+			await this.createDualTokenOrderBook({
+				pair,
+				isBid,
+				contractTenor,
+				midPrice,
+				totalSize,
+				numOfOrders,
+				existingPriceLevel
+			});
+		else util.logDebug(`incorrect contract type specified`);
+	}
+
+	public handleOrderBookUpdate(orderBookSnapshot: IOrderBookSnapshot) {
+		this.orderBookSnapshots[orderBookSnapshot.pair] = orderBookSnapshot;
+	}
 
 	public async startProcessing(option: IOption) {
 		const mnemonic = require('../keys/mnemomicBot.json');
@@ -395,10 +496,6 @@ class MarketMaker {
 					aToken.custodian
 				);
 
-				this.orderMakerUtil = new OrderMakerUtil(web3Util);
-
-				this.orderMakerUtil.setAvailableAddrs(option);
-
 				if (this.relayerClient) {
 					this.relayerClient.subscribeOrderBook(
 						this.tokens[0].code + '|' + CST.TOKEN_WETH
@@ -433,22 +530,7 @@ class MarketMaker {
 			(method, orderHash, error) => util.logError(method + ' ' + orderHash + ' ' + error)
 		);
 		this.relayerClient.onOrderBook(
-			orderBookSnapshot =>
-				(this.orderBookSnapshots[orderBookSnapshot.pair] = orderBookSnapshot),
-			orderBookUpdate => {
-				const pair = orderBookUpdate.pair;
-				if (this.orderBookSnapshots[pair])
-				orderBookUtil.updateOrderBookSnapshot(
-					this.orderBookSnapshots[pair],
-					orderBookUpdate
-				);
-				else {
-					if (!this.pendingOrderBookUpdates[pair])
-						this.pendingOrderBookUpdates[pair] = [];
-					this.pendingOrderBookUpdates[pair].push(orderBookUpdate);
-				}
-			}
-				,
+			orderBookSnapshot => this.handleOrderBookUpdate(orderBookSnapshot),
 			(method, pair, error) => util.logError(method + ' ' + pair + ' ' + error)
 		);
 
