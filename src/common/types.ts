@@ -257,3 +257,20 @@ export interface ICreateOrderBook {
 	numOfOrders: number;
 	existingPriceLevel: number[];
 }
+
+export interface IAction {
+	bidAmountToCreate: number;
+	askAmountToCreate: number;
+	numOfBidOrdersToPlace: number;
+	numOfAskOrdersToPlace: number;
+	expectedMidPrice: number;
+	existingBidPrices: number[];
+	existingAskPrices: number[];
+	currentAskLevels: number;
+	currentBidLevels: number;
+}
+
+export interface IBestPriceChange {
+	bidChange: number;
+	askChange: number;
+}
