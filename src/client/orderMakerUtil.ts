@@ -12,17 +12,14 @@ import {
 	IWsAddOrderRequest
 } from '../common/types';
 import util from '../utils/util';
-import { ContractUtil } from './contractUtil';
 
 export class OrderMakerUtil {
 	public web3Util: Web3Util;
 	public ws: WebSocket | null = null;
 	public availableAddrs: string[] = [];
 	public currentAddrIdx: number = 0;
-	public contractUtil: ContractUtil;
-	constructor(web3Util: Web3Util, contractUtil: ContractUtil) {
+	constructor(web3Util: Web3Util) {
 		this.web3Util = web3Util;
-		this.contractUtil = contractUtil;
 	}
 
 	public getCurrentAddress() {

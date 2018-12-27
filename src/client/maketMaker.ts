@@ -7,6 +7,7 @@ import * as CST from '../common/constants';
 import {
 	IAcceptedPrice,
 	IAccounts,
+	IDualClassStates,
 	IOption,
 	IOrderBookSnapshot,
 	IToken,
@@ -27,145 +28,147 @@ class MarketMaker {
 		asks: []
 	};
 	public tokens: IToken[] = [];
-	public pair: string = '';
 	public orderMakerUtil: OrderMakerUtil | null = null;
-	public contractAddress: string = '';
-	public contractType: string = '';
-	public contractTenor: string = '';
 	public tokenIndex: number = 0;
 	public acceptedPrices: IAcceptedPrice[] = [];
+	public orderBookSubscribed: boolean = false;
 	public orderSubscribed: boolean = false;
 	public isMakingOrder: boolean = false;
 	public liveOrders: { [pair: string]: { [orderHash: string]: IUserOrder } } = {};
 
-	// public async checkBalance(
-	// 	web3Util: Web3Util,
-	// 	dualClassWrapper: DualClassWrapper,
-	// 	pair: string,
-	// 	tokenIndex: number,
-	// 	addresses: string[]
-	// ): Promise<string[]> {
-	// 	const [code1, code2] = pair.split('|');
+	public getMainAccount() {
+		const faucetAccount = require('../keys/faucetAccount.json');
+		return {
+			address: faucetAccount.publicKey,
+			privateKey: faucetAccount.privateKey
+		};
+	}
 
-	// 	for (const address of addresses) {
-	// 		const faucetAccount: IAccounts = this.getMainAccount();
-	// 		// ethBalance
-	// 		const ethBalance = await web3Util.getEthBalance(address);
-	// 		util.logInfo(`the ethBalance of ${address} is ${ethBalance}`);
-	// 		if (ethBalance < CST.MIN_ETH_BALANCE) {
-	// 			util.logDebug(
-	// 				`the address ${address} current eth balance is ${ethBalance}, make transfer...`
-	// 			);
+	public async checkBalance(
+		web3Util: Web3Util,
+		dualClassWrapper: DualClassWrapper | null,
+		addresses: string[]
+	): Promise<string[]> {
+		if (!dualClassWrapper) return [];
+		const states: IDualClassStates = await dualClassWrapper.getStates();
 
-	// 			await dualClassWrapper.web3Wrapper.ethTransferRaw(
-	// 				faucetAccount.address,
-	// 				faucetAccount.privateKey,
-	// 				address,
-	// 				util.round(CST.MIN_ETH_BALANCE),
-	// 				await web3Util.getTransactionCount(faucetAccount.address)
-	// 			);
-	// 		}
+		for (const address of addresses) {
+			const faucetAccount: IAccounts = this.getMainAccount();
+			// ethBalance
+			const ethBalance = await web3Util.getEthBalance(address);
+			util.logInfo(`the ethBalance of ${address} is ${ethBalance}`);
+			if (ethBalance < CST.MIN_ETH_BALANCE) {
+				util.logDebug(
+					`the address ${address} current eth balance is ${ethBalance}, make transfer...`
+				);
 
-	// 		// wEthBalance
-	// 		const wEthBalance = await web3Util.getTokenBalance(code2, address);
-	// 		if (wEthBalance < CST.MIN_WETH_BALANCE) {
-	// 			util.logDebug(
-	// 				`the address ${address} current weth balance is ${wEthBalance}, wrapping...`
-	// 			);
-	// 			const amtToWrap = CST.MIN_WETH_BALANCE - wEthBalance + 0.1;
+				await dualClassWrapper.web3Wrapper.ethTransferRaw(
+					faucetAccount.address,
+					faucetAccount.privateKey,
+					address,
+					util.round(CST.MIN_ETH_BALANCE),
+					await web3Util.getTransactionCount(faucetAccount.address)
+				);
+			}
 
-	// 			if (ethBalance < amtToWrap)
-	// 				await dualClassWrapper.web3Wrapper.ethTransferRaw(
-	// 					faucetAccount.address,
-	// 					faucetAccount.privateKey,
-	// 					address,
-	// 					CST.MIN_ETH_BALANCE,
-	// 					await web3Util.getTransactionCount(faucetAccount.address)
-	// 				);
+			// wEthBalance
+			const wEthBalance = await web3Util.getTokenBalance(CST.TOKEN_WETH, address);
+			if (wEthBalance < CST.MIN_WETH_BALANCE) {
+				util.logDebug(
+					`the address ${address} current weth balance is ${wEthBalance}, wrapping...`
+				);
+				const amtToWrap = CST.MIN_WETH_BALANCE - wEthBalance + 0.1;
 
-	// 			util.logDebug(`start wrapping for ${address} with amt ${amtToWrap}`);
-	// 			await web3Util.wrapEther(util.round(amtToWrap), address);
-	// 		}
+				if (ethBalance < amtToWrap)
+					await dualClassWrapper.web3Wrapper.ethTransferRaw(
+						faucetAccount.address,
+						faucetAccount.privateKey,
+						address,
+						CST.MIN_ETH_BALANCE,
+						await web3Util.getTransactionCount(faucetAccount.address)
+					);
 
-	// 		// wETHallowance
-	// 		const wethAllowance = await web3Util.getProxyTokenAllowance(code2, address);
-	// 		util.logDebug(`tokenAllowande of token ${code2} is ${wethAllowance}`);
-	// 		if (wethAllowance <= 0) {
-	// 			util.logDebug(
-	// 				`the address ${address} token allowance of ${code2} is 0, approvaing.....`
-	// 			);
-	// 			await web3Util.setUnlimitedTokenAllowance(code2, address);
-	// 		}
+				util.logDebug(`start wrapping for ${address} with amt ${amtToWrap}`);
+				await web3Util.wrapEther(util.round(amtToWrap), address);
+			}
 
-	// 		// tokenBalance
-	// 		const tokenBalance = await web3Util.getTokenBalance(code1, address);
-	// 		util.logDebug(`the ${code1} tokenBalance of ${address} is ${tokenBalance}`);
-	// 		const accountsBot: IAccounts[] = require('../keys/accountsBot.json');
-	// 		const account = accountsBot.find(a => a.address === address);
-	// 		const gasPrice = Math.max(
-	// 			await web3Util.getGasPrice(),
-	// 			CST.DEFAULT_GAS_PRICE * Math.pow(10, 9)
-	// 		);
-	// 		if (tokenBalance < CST.MIN_TOKEN_BALANCE) {
-	// 			util.logDebug(
-	// 				`the address ${address} current token balance of ${code1} is ${tokenBalance}, need create more tokens...`
-	// 			);
+			// wETHallowance
+			const wethAllowance = await web3Util.getProxyTokenAllowance(CST.TOKEN_WETH, address);
+			util.logDebug(`tokenAllowande of token ${CST.TOKEN_WETH} is ${wethAllowance}`);
+			if (wethAllowance <= 0) {
+				util.logDebug(
+					`the address ${address} token allowance of ${
+						CST.TOKEN_WETH
+					} is 0, approvaing.....`
+				);
+				await web3Util.setUnlimitedTokenAllowance(CST.TOKEN_WETH, address);
+			}
 
-	// 			const tokenAmtToCreate = await estimateDualTokenCreateAmt(
-	// 				ethBalance - CST.MIN_ETH_BALANCE - 0.1
-	// 			);
-	// 			if (tokenAmtToCreate[tokenIndex] + tokenBalance <= CST.MIN_TOKEN_BALANCE)
-	// 				await dualClassWrapper.web3Wrapper.ethTransferRaw(
-	// 					faucetAccount.address,
-	// 					faucetAccount.privateKey,
-	// 					address,
-	// 					CST.MIN_ETH_BALANCE,
-	// 					await web3Util.getTransactionCount(faucetAccount.address)
-	// 				);
+			// a tokenBalance
+			const balanceOfTokenA = await web3Util.getTokenBalance(this.tokens[0].code, address);
+			const balanceOfTokenB = await web3Util.getTokenBalance(this.tokens[1].code, address);
+			const effBalanceOfTokenB = Math.min(balanceOfTokenA / states.alpha, balanceOfTokenB);
 
-	// 			util.logDebug(`creating token ${code1}`);
-	// 			if (account)
-	// 				await dualClassWrapper.web3Wrapper.createRaw(
-	// 					address,
-	// 					account.privateKey,
-	// 					gasPrice,
-	// 					CST.CREATE_GAS,
-	// 					CST.MIN_ETH_BALANCE
-	// 				);
-	// 			else {
-	// 				util.logDebug(`the address ${address} cannot create, skip...`);
-	// 				addresses = addresses.filter(addr => addr !== address);
-	// 				continue;
-	// 			}
-	// 		} else if (tokenBalance >= CST.MAX_TOKEN_BALANCE) {
-	// 			util.logDebug(
-	// 				`the address ${address} current token balance of ${code1} is ${tokenBalance}, need redeem back...`
-	// 			);
-	// 			if (account) {
-	// 				const states = await dualClassWrapper.getStates();
-	// 				await dualClassWrapper.redeemRaw(
-	// 					address,
-	// 					account.privateKey,
-	// 					tokenBalance - CST.MAX_TOKEN_BALANCE,
-	// 					(tokenBalance - CST.MAX_TOKEN_BALANCE) / states.alpha,
-	// 					gasPrice,
-	// 					CST.REDEEM_GAS
-	// 				);
-	// 			}
-	// 		}
+			const accountsBot: IAccounts[] = require('../keys/accountsBot.json');
+			const account = accountsBot.find(a => a.address === address);
+			const gasPrice = Math.max(
+				await web3Util.getGasPrice(),
+				CST.DEFAULT_GAS_PRICE * Math.pow(10, 9)
+			);
+			if (effBalanceOfTokenB < CST.MIN_TOKEN_BALANCE) {
+				const tokenAmtToCreate =
+					DualClassWrapper.getTokensPerEth(states)[1] *
+					(ethBalance - CST.MIN_ETH_BALANCE - 0.1);
 
-	// 		const tokenAllowance = await web3Util.getProxyTokenAllowance(code1, address);
-	// 		util.logInfo(`tokenAllowande of token ${code1} is ${tokenAllowance}`);
-	// 		if (tokenAllowance <= 0) {
-	// 			util.logInfo(
-	// 				`the address ${address} token allowance of ${code1} is 0, approvaing.....`
-	// 			);
-	// 			await web3Util.setUnlimitedTokenAllowance(code1, address);
-	// 		}
-	// 	}
+				if (tokenAmtToCreate + effBalanceOfTokenB <= CST.MIN_TOKEN_BALANCE)
+					await dualClassWrapper.web3Wrapper.ethTransferRaw(
+						faucetAccount.address,
+						faucetAccount.privateKey,
+						address,
+						CST.MIN_ETH_BALANCE,
+						await web3Util.getTransactionCount(faucetAccount.address)
+					);
 
-	// 	return addresses;
-	// }
+				if (account)
+					await dualClassWrapper.createRaw(
+						address,
+						account.privateKey,
+						gasPrice,
+						CST.CREATE_GAS,
+						CST.MIN_ETH_BALANCE
+					);
+				else {
+					util.logDebug(`the address ${address} cannot create, skip...`);
+					addresses = addresses.filter(addr => addr !== address);
+					continue;
+				}
+			} else if (effBalanceOfTokenB >= CST.MAX_TOKEN_BALANCE)
+				if (account)
+					await dualClassWrapper.redeemRaw(
+						address,
+						account.privateKey,
+						effBalanceOfTokenB - CST.MAX_TOKEN_BALANCE,
+						(effBalanceOfTokenB - CST.MAX_TOKEN_BALANCE) / states.alpha,
+						gasPrice,
+						CST.REDEEM_GAS
+					);
+
+			for (const token of this.tokens) {
+				const tokenAllowance = await web3Util.getProxyTokenAllowance(token.code, address);
+				util.logInfo(`tokenAllowande of token ${token.code} is ${tokenAllowance}`);
+				if (tokenAllowance <= 0) {
+					util.logInfo(
+						`the address ${address} token allowance of ${
+							token.code
+						} is 0, approvaing.....`
+					);
+					await web3Util.setUnlimitedTokenAllowance(token.code, address);
+				}
+			}
+		}
+
+		return addresses;
+	}
 
 	// private getSideTotalLiquidity(side: IOrderBookSnapshotLevel[]): number {
 	// 	return side.length
@@ -367,10 +370,8 @@ class MarketMaker {
 	public async startProcessing(option: IOption) {
 		const mnemonic = require('../keys/mnemomicBot.json');
 		const live = option.env === CST.DB_LIVE;
-		this.relayerClient = new RelayerClient(
-			new Web3Util(null, live, mnemonic.mnemomic, false),
-			option.env
-		);
+		const web3Util = new Web3Util(null, live, mnemonic.mnemomic, false);
+		this.relayerClient = new RelayerClient(web3Util, option.env);
 
 		this.relayerClient.onInfoUpdate((tokens, status, acceptedPrices) => {
 			if (!this.dualClassWrapper) {
@@ -402,6 +403,18 @@ class MarketMaker {
 			}
 
 			this.acceptedPrices = acceptedPrices[this.dualClassWrapper.address] || [];
+
+			if (!this.orderBookSubscribed && this.relayerClient) {
+				this.relayerClient.subscribeOrderBook(this.tokens[0].code + '|' + CST.TOKEN_WETH);
+				this.relayerClient.subscribeOrderBook(this.tokens[1].code + '|' + CST.TOKEN_WETH);
+				this.orderBookSubscribed = true;
+			}
+			if (!this.orderSubscribed && this.relayerClient) {
+				for (const address of orderMakerUtil.availableAddrs)
+					this.relayerClient.subscribeOrderHistory(address);
+
+				this.orderSubscribed = true;
+			}
 		});
 
 		this.relayerClient.onOrder(
@@ -438,40 +451,32 @@ class MarketMaker {
 		);
 		this.relayerClient.connectToRelayer();
 
-		// const orderMakerUtil: OrderMakerUtil = new OrderMakerUtil(web3Util, contractUtil);
-		// util.logInfo(`makeDepth for ${this.pair}`);
-		// await this.orderMakerUtil.setAvailableAddrs(option);
-		// util.logDebug(
-		// 	`avaialbel address are ${JSON.stringify(this.orderMakerUtil.availableAddrs)}`
-		// );
+		const orderMakerUtil: OrderMakerUtil = new OrderMakerUtil(web3Util);
 
-		// await this.connectToRelayer();
-		// if (!this.ws) throw new Error('no ws client initied');
+		await orderMakerUtil.setAvailableAddrs(option);
 
-		// let waitNums = 0;
-		// while (!this.isTokenSet && waitNums < 6) {
-		// 	util.logDebug(`wait tokens to be set`);
-		// 	util.sleep(1000);
-		// 	waitNums++;
-		// }
+		if (!this.relayerClient.ws) throw new Error('no ws client initied');
 
-		// const availableAddrs = this.orderMakerUtil.availableAddrs;
+		let waitNums = 0;
+		while (!this.dualClassWrapper && waitNums < 6) {
+			util.logDebug(`wait tokens to be set`);
+			util.sleep(1000);
+			waitNums++;
+		}
 
-		// if (this.isTokenSet) {
-		// 	this.orderMakerUtil.availableAddrs = await contractUtil.checkBalance(
-		// 		this.pair,
-		// 		this.tokenIndex,
-		// 		availableAddrs
-		// 	);
+		if (this.dualClassWrapper) {
+			if (!orderMakerUtil.availableAddrs.length) throw new Error('no available accounts');
+			orderMakerUtil.availableAddrs = await this.checkBalance(
+				web3Util,
+				this.dualClassWrapper,
+				orderMakerUtil.availableAddrs
+			);
+		} else throw new Error('tokens data have not been received, pls check relayer...');
 
-		// 	if (!this.orderMakerUtil.availableAddrs.length)
-		// 		throw new Error('no available accounts');
-		// } else throw new Error('tokens data have not been received, pls check relayer...');
-
-		// setInterval(
-		// 	() => contractUtil.checkBalance(this.pair, this.tokenIndex, availableAddrs),
-		// 	CST.ONE_MINUTE_MS * 20
-		// );
+		setInterval(
+			() => this.checkBalance(web3Util, this.dualClassWrapper, orderMakerUtil.availableAddrs),
+			CST.ONE_MINUTE_MS * 20
+		);
 	}
 }
 
