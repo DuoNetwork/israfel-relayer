@@ -1,6 +1,5 @@
 import WebSocket from 'isomorphic-ws';
 import * as CST from '../common/constants';
-
 import {
 	IAcceptedPrice,
 	IOrderBookSnapshot,
@@ -21,6 +20,7 @@ import {
 	IWsTerminateOrderRequest,
 	IWsUserOrderResponse
 } from '../common/types';
+import orderBookUtil from '../utils/orderBookUtil';
 import orderUtil from '../utils/orderUtil';
 import Web3Util from '../utils/Web3Util';
 
@@ -44,10 +44,11 @@ export default class RelayerClient {
 		error: string
 	) => any = () => ({});
 	private handleOrderBookSnapshot: (orderBookSnapshot: IOrderBookSnapshot) => any = () => ({});
-	private handleOrderBookUpdate: (orderBookUpdate: IOrderBookSnapshotUpdate) => any = () => ({});
 	private handleOrderBookError: (method: string, pair: string, error: string) => any = () => ({});
 	public reconnectionNumber: number = 0;
-	public latestVersionNumber: number = 0;
+	public orderBookSnapshots: { [pair: string]: IOrderBookSnapshot } = {};
+	public pendingOrderBookUpdates: { [pair: string]: IOrderBookSnapshotUpdate[] } = {};
+	public orderBookSnapshotAvailable: { [pair: string]: boolean } = {};
 
 	constructor(web3Util: Web3Util, env: string) {
 		this.web3Util = web3Util;
@@ -99,25 +100,30 @@ export default class RelayerClient {
 				orderBookResponse.status
 			);
 		else if (orderBookResponse.method === CST.DB_SNAPSHOT) {
-			if (
-				(orderBookResponse as IWsOrderBookResponse).orderBookSnapshot.version <
-				this.latestVersionNumber
-			) {
-				this.subscribeOrderBook(
-					(orderBookResponse as IWsOrderBookResponse).orderBookSnapshot.pair
-				);
-				this.latestVersionNumber = (orderBookResponse as IWsOrderBookResponse).orderBookSnapshot.version;
+			const {pair, orderBookSnapshot} = orderBookResponse as IWsOrderBookResponse;
+			this.orderBookSnapshots[pair] = orderBookSnapshot;
+			const pendingUpdates = this.pendingOrderBookUpdates[pair];
+			if (pendingUpdates && pendingUpdates.length) {
+				pendingUpdates.sort((a, b) => a.version - b.version);
+				pendingUpdates.forEach(update => {
+					if (update.version > orderBookSnapshot.version)
+						orderBookUtil.updateOrderBookSnapshot(orderBookSnapshot, update);
+				});
+				this.pendingOrderBookUpdates[pair] = [];
+				this.orderBookSnapshotAvailable[pair] = true;
 			}
-			this.handleOrderBookSnapshot(
-				(orderBookResponse as IWsOrderBookResponse).orderBookSnapshot
-			);
+			this.handleOrderBookSnapshot(orderBookSnapshot);
 		} else {
-			this.latestVersionNumber = (orderBookResponse as IWsOrderBookResponse).orderBookSnapshot
-				? (orderBookResponse as IWsOrderBookResponse).orderBookSnapshot.version
-				: 0;
-			this.handleOrderBookUpdate(
-				(orderBookResponse as IWsOrderBookUpdateResponse).orderBookUpdate
-			);
+			const {pair, orderBookUpdate} = orderBookResponse as IWsOrderBookUpdateResponse;
+			if (!this.orderBookSnapshotAvailable[pair]) {
+				if (!this.pendingOrderBookUpdates[pair])
+					this.pendingOrderBookUpdates[pair] = [];
+				this.pendingOrderBookUpdates[pair].push(orderBookUpdate);
+			} else {
+				const orderBookSnapshot = this.orderBookSnapshots[pair];
+				orderBookUtil.updateOrderBookSnapshot(orderBookSnapshot, orderBookUpdate);
+				this.handleOrderBookSnapshot(orderBookSnapshot);
+			}
 		}
 	}
 
@@ -263,11 +269,9 @@ export default class RelayerClient {
 
 	public onOrderBook(
 		handleSnapshot: (orderBookSnapshot: IOrderBookSnapshot) => any,
-		handleUpdate: (orderBookUpdate: IOrderBookSnapshotUpdate) => any,
 		handleError: (method: string, pair: string, error: string) => any
 	) {
 		this.handleOrderBookSnapshot = handleSnapshot;
-		this.handleOrderBookUpdate = handleUpdate;
 		this.handleOrderBookError = handleError;
 	}
 

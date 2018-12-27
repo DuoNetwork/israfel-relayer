@@ -1,4 +1,3 @@
-import { BEETHOVEN, MOZART, TENOR_M19, TENOR_PPT } from '../../../duo-admin/src/common/constants';
 export {
 	BEETHOVEN,
 	MOZART,
@@ -161,13 +160,6 @@ export const BASE_DERIVATION_PATH = `44'/60'/0'/0`;
 
 export const TERMINATE_SIGN_MSG =
 	'By signing this message, your are confirming to cancel this order (no gas cost involved): ';
-
-export const AVAILABLE_ADDR_IDX: { [key: string]: number[] } = {
-	[BEETHOVEN + '|' + TENOR_PPT]: [0, 1],
-	[BEETHOVEN + '|' + TENOR_M19]: [2, 3],
-	[MOZART + '|' + TENOR_PPT]: [4, 5],
-	[MOZART + '|' + TENOR_M19]: [6, 7]
-};
 
 export const MIN_ORDER_BOOK_LEVELS = 3;
 export const MIN_SIDE_LIQUIDITY = 50;

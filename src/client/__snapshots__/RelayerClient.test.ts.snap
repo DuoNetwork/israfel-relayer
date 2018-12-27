@@ -123,20 +123,55 @@ Array [
 ]
 `;
 
-exports[`handleOrderBookResponse snapshot 1`] = `
+exports[`handleOrderBookResponse snapshot older than pending updates 1`] = `
 Array [
   Array [
-    "orderBookSnapshot",
+    Object {
+      "asks": Array [],
+      "bids": Array [],
+      "pair": "pair",
+      "version": 122,
+    },
+    Object {
+      "pair": "pair",
+      "prevVersion": 122,
+      "updates": Array [],
+      "version": 123,
+    },
   ],
 ]
 `;
 
-exports[`handleOrderBookResponse update 1`] = `
+exports[`handleOrderBookResponse update after snapshot 1`] = `
 Array [
   Array [
-    "orderBookUpdate",
+    Object {
+      "asks": Array [],
+      "bids": Array [],
+      "pair": "pair",
+      "version": 122,
+    },
+    Object {
+      "pair": "pair",
+      "prevVersion": 122,
+      "updates": Array [],
+      "version": 123,
+    },
   ],
 ]
+`;
+
+exports[`handleOrderBookResponse update before snapshot 1`] = `
+Object {
+  "pair": Array [
+    Object {
+      "pair": "pair",
+      "prevVersion": 122,
+      "updates": Array [],
+      "version": 123,
+    },
+  ],
+}
 `;
 
 exports[`handleOrderResponse history 1`] = `
