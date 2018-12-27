@@ -431,11 +431,11 @@ class MarketMaker {
 		this.makerAddress = (await web3Util.getAvailableAddresses())[0];
 		this.relayerClient = new RelayerClient(web3Util, option.env);
 
-		this.relayerClient.onInfoUpdate(async tokens => {
+		this.relayerClient.onInfoUpdate(async () => {
 			if (!this.dualClassWrapper) {
-				const aToken = tokens.find(t => t.code === option.token);
+				const aToken = web3Util.getTokenByCode(option.token);
 				if (!aToken) return;
-				const bToken = tokens.find(
+				const bToken = web3Util.tokens.find(
 					t => t.code !== aToken.code && t.custodian === aToken.custodian
 				);
 				if (!bToken) return;

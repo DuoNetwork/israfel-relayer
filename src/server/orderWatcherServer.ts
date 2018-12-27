@@ -100,7 +100,8 @@ class OrderWatcherServer {
 			}
 		}
 
-		if (orderPersistRequest.method === CST.DB_TERMINATE) this.removeFromWatch(orderHash);
+		// if (orderPersistRequest.method === CST.DB_TERMINATE)
+		this.removeFromWatch(orderHash);
 
 		return this.updateOrder(orderPersistRequest);
 	}

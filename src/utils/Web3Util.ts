@@ -282,7 +282,7 @@ export default class Web3Util {
 	public getTokenAddressFromCode(code: string): string {
 		if (code === CST.TOKEN_WETH) return this.contractAddresses.etherToken;
 
-		const token = this.tokens.find(t => t.code === code);
+		const token = this.getTokenByCode(code);
 		return token ? token.address : '';
 	}
 
@@ -355,7 +355,7 @@ export default class Web3Util {
 		try {
 			const codes = pair.split('|');
 			if (codes.length !== 2) return false;
-			const token1 = this.tokens.find(t => t.code === codes[0]);
+			const token1 = this.getTokenByCode(codes[0]);
 			if (!token1) return false;
 			if (
 				!token1.precisions[codes[1]] ||
