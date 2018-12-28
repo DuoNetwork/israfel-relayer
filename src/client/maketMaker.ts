@@ -4,7 +4,6 @@ import Web3Util from '../../../israfel-relayer/src/utils/Web3Util';
 import * as CST from '../common/constants';
 import {
 	IAccounts,
-	IAction,
 	IBestPriceChange,
 	IDualClassStates,
 	IOption,
@@ -184,21 +183,6 @@ class MarketMaker {
 			this.isMakingOrder = false;
 			return;
 		}
-
-		const actions: { [key: string]: IAction } = {};
-		this.tokens.forEach(token => {
-			actions[token.code] = {
-				bidAmountToCreate: 0,
-				askAmountToCreate: 0,
-				numOfBidOrdersToPlace: 0,
-				numOfAskOrdersToPlace: 0,
-				expectedMidPrice: this.tokenNavPrices[token.code],
-				existingBidPrices: this.orderBookSnapshots[pair].bids.map(bid => bid.price),
-				existingAskPrices: this.orderBookSnapshots[pair].asks.map(ask => ask.price),
-				currentAskLevels: this.orderBookSnapshots[pair].asks.length,
-				currentBidLevels: this.orderBookSnapshots[pair].bids.length
-			};
-		});
 
 		if (bestPriceChange.changeAmount === 0) {
 			// no bestPriceChange, need to make enough liquidity

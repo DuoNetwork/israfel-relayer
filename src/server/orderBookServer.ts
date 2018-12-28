@@ -179,6 +179,7 @@ class OrderBookServer {
 		if (this.custodianInTrading) {
 			this.loadingOrders = true;
 			this.liveOrders = await orderPersistenceUtil.getAllLiveOrdersInPersistence(this.pair);
+			console.log(JSON.stringify(this.liveOrders));
 			util.logInfo('loaded live orders : ' + Object.keys(this.liveOrders).length);
 			this.updateOrderSequences();
 			this.orderBook = orderBookUtil.constructOrderBook(this.liveOrders);
