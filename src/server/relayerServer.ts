@@ -19,7 +19,6 @@ import {
 	IWsOrderBookUpdateResponse,
 	IWsOrderHistoryRequest,
 	IWsOrderHistoryResponse,
-	IWsOrderRequest,
 	IWsOrderResponse,
 	IWsRequest,
 	IWsResponse,
@@ -53,13 +52,18 @@ class RelayerServer {
 		util.safeWsSend(ws, JSON.stringify(orderResponse));
 	}
 
-	public sendErrorOrderResponse(ws: WebSocket, req: IWsOrderRequest, status: string) {
+	public sendErrorOrderResponse(
+		ws: WebSocket,
+		req: IWsRequest,
+		orderHash: string,
+		status: string
+	) {
 		const orderResponse: IWsOrderResponse = {
 			method: req.method,
 			channel: req.channel,
 			status: status,
 			pair: req.pair,
-			orderHash: req.orderHash
+			orderHash: orderHash
 		};
 		util.safeWsSend(ws, JSON.stringify(orderResponse));
 	}
@@ -78,16 +82,16 @@ class RelayerServer {
 
 	public async handleAddOrderRequest(ws: WebSocket, req: IWsAddOrderRequest) {
 		util.logDebug(`add new order ${req.orderHash}`);
-		if (!this.web3Util) {
-			util.logDebug('no web3Util, ignore');
-			this.sendErrorOrderResponse(ws, req, CST.WS_INVALID_REQ);
+		if (!req.orderHash || !this.web3Util) {
+			util.logDebug('invalid request, ignore');
+			this.sendResponse(ws, req, CST.WS_INVALID_REQ);
 			return;
 		}
 		const stringSignedOrder = req.order as IStringSignedOrder;
 		const token = this.web3Util.getTokenByCode(req.pair.split('|')[0]);
 		if (!token) {
 			util.logDebug('invalid token, ignore');
-			this.sendErrorOrderResponse(ws, req, CST.WS_INVALID_ORDER);
+			this.sendErrorOrderResponse(ws, req, req.orderHash, CST.WS_INVALID_ORDER);
 			return;
 		}
 
@@ -111,47 +115,49 @@ class RelayerServer {
 					signedOrder: stringSignedOrder
 				});
 				if (userOrder) this.sendUserOrderResponse(ws, userOrder, req.method);
-				else this.sendErrorOrderResponse(ws, req, CST.WS_INVALID_ORDER);
+				else this.sendErrorOrderResponse(ws, req, req.orderHash, CST.WS_INVALID_ORDER);
 			} else {
 				util.logDebug('invalid orderHash, ignore');
-				this.sendErrorOrderResponse(ws, req, orderHash);
+				this.sendErrorOrderResponse(ws, req, req.orderHash, CST.WS_INVALID_ORDER);
 			}
 		} catch (error) {
 			util.logError(error);
-			this.sendErrorOrderResponse(ws, req, CST.WS_ERROR);
+			this.sendErrorOrderResponse(ws, req, req.orderHash, CST.WS_ERROR);
 		}
 	}
 
 	public async handleTerminateOrderRequest(ws: WebSocket, req: IWsTerminateOrderRequest) {
-		util.logDebug(`terminate order ${req.orderHash}`);
-		if (!this.web3Util) {
-			util.logDebug('no web3Util, ignore');
-			this.sendErrorOrderResponse(ws, req, CST.WS_INVALID_REQ);
+		util.logDebug(`terminate order ${req.orderHashes.join(',')}`);
+		if (!req.orderHashes.length || !this.web3Util) {
+			util.logDebug('invalid request, ignore');
+			this.sendResponse(ws, req, CST.WS_INVALID_REQ);
 			return;
 		}
-		const { pair, orderHash, signature } = req;
+		const { pair, orderHashes, signature } = req;
 		const account = this.web3Util
-			.web3AccountsRecover(CST.TERMINATE_SIGN_MSG + orderHash, signature)
+			.web3AccountsRecover(CST.TERMINATE_SIGN_MSG + orderHashes.join(','), signature)
 			.toLowerCase();
-		const liveOrder = await orderPersistenceUtil.getLiveOrderInPersistence(pair, orderHash);
-		if (account && liveOrder && liveOrder.account === account)
-			try {
-				const userOrder = await orderPersistenceUtil.persistOrder({
-					method: req.method,
-					status: CST.DB_CONFIRMED,
-					requestor: CST.DB_RELAYER,
-					pair: req.pair,
-					orderHash: req.orderHash
-				});
-				if (userOrder) this.sendUserOrderResponse(ws, userOrder, req.method);
-				else this.sendErrorOrderResponse(ws, req, CST.WS_INVALID_ORDER);
-			} catch (error) {
-				util.logError(error);
-				this.sendErrorOrderResponse(ws, req, CST.WS_ERROR);
+		for (const orderHash of orderHashes) {
+			const liveOrder = await orderPersistenceUtil.getLiveOrderInPersistence(pair, orderHash);
+			if (account && liveOrder && liveOrder.account === account)
+				try {
+					const userOrder = await orderPersistenceUtil.persistOrder({
+						method: req.method,
+						status: CST.DB_CONFIRMED,
+						requestor: CST.DB_RELAYER,
+						pair: req.pair,
+						orderHash: orderHash
+					});
+					if (userOrder) this.sendUserOrderResponse(ws, userOrder, req.method);
+					else this.sendErrorOrderResponse(ws, req, orderHash, CST.WS_INVALID_ORDER);
+				} catch (error) {
+					util.logError(error);
+					this.sendErrorOrderResponse(ws, req, orderHash, CST.WS_ERROR);
+				}
+			else {
+				util.logDebug('invalid request, ignore');
+				this.sendErrorOrderResponse(ws, req, orderHash, CST.WS_INVALID_REQ);
 			}
-		else {
-			util.logDebug('invalid request, ignore');
-			this.sendErrorOrderResponse(ws, req, CST.WS_INVALID_REQ);
 		}
 	}
 
@@ -216,11 +222,9 @@ class RelayerServer {
 
 		if (
 			[CST.DB_ADD, CST.DB_TERMINATE].includes(req.method) &&
-			(!this.web3Util ||
-				!this.web3Util.isValidPair(req.pair) ||
-				!(req as IWsOrderRequest).orderHash)
+			(!this.web3Util || !this.web3Util.isValidPair(req.pair))
 		) {
-			this.sendErrorOrderResponse(ws, req as IWsOrderRequest, CST.WS_INVALID_REQ);
+			this.sendResponse(ws, req, CST.WS_INVALID_REQ);
 			return Promise.resolve();
 		}
 

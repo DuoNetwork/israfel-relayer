@@ -155,19 +155,17 @@ export interface IWsResponse {
 	pair: string;
 }
 
-export interface IWsOrderRequest extends IWsRequest {
-	orderHash: string;
-}
-
 export interface IWsOrderHistoryRequest extends IWsRequest {
 	account: string;
 }
 
-export interface IWsAddOrderRequest extends IWsOrderRequest {
+export interface IWsAddOrderRequest extends IWsRequest {
+	orderHash: string;
 	order: IStringSignedOrder | SignedOrder;
 }
 
-export interface IWsTerminateOrderRequest extends IWsOrderRequest {
+export interface IWsTerminateOrderRequest extends IWsRequest {
+	orderHashes: string[];
 	signature: string;
 }
 

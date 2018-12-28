@@ -159,7 +159,7 @@ export const PRICE_PRECISION = 8;
 export const BASE_DERIVATION_PATH = `44'/60'/0'/0`;
 
 export const TERMINATE_SIGN_MSG =
-	'By signing this message, your are confirming to cancel this order (no gas cost involved): ';
+	'By signing this message, your are confirming to cancel following orders (no gas cost involved): ';
 
 export const MIN_ORDER_BOOK_LEVELS = 3;
 export const MIN_SIDE_LIQUIDITY = 50;

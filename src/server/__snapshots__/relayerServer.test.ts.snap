@@ -66,7 +66,7 @@ Array [
         "takerAssetData": "takerAssetData",
         "takerFee": "0",
       },
-      "orderHash": "0xOrderHash",
+      "orderHash": "",
       "pair": "pair",
     },
     "invalid request",
@@ -93,8 +93,40 @@ Array [
         "takerFee": "0",
       },
       "orderHash": "0xOrderHash",
+      "pair": "pair",
+    },
+    "invalid request",
+  ],
+]
+`;
+
+exports[`handleAddOrderRequest invalid order 2`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "channel": "orders",
+      "method": "add",
+      "order": Object {
+        "exchangeAddress": "exchangeAddress",
+        "expirationTimeSeconds": "1234567890",
+        "feeRecipientAddress": "feeRecipientAddress",
+        "makerAddress": "makerAddress",
+        "makerAssetAmount": "123",
+        "makerAssetData": "makerAssetData",
+        "makerFee": "0",
+        "salt": "789",
+        "senderAddress": "senderAddress",
+        "signature": "signature",
+        "takerAddress": "takerAddress",
+        "takerAssetAmount": "456",
+        "takerAssetData": "takerAssetData",
+        "takerFee": "0",
+      },
+      "orderHash": "0xOrderHash",
       "pair": "code1|code2",
     },
+    "0xOrderHash",
     "invalid order",
   ],
   Array [
@@ -121,7 +153,8 @@ Array [
       "orderHash": "0xOrderHash",
       "pair": "code1|code2",
     },
-    "",
+    "0xOrderHash",
+    "invalid order",
   ],
   Array [
     Object {},
@@ -147,7 +180,8 @@ Array [
       "orderHash": "0xInvalidOrderHash",
       "pair": "code1|code2",
     },
-    "0xOrderHash",
+    "0xInvalidOrderHash",
+    "invalid order",
   ],
 ]
 `;
@@ -178,6 +212,7 @@ Array [
       "orderHash": "0xOrderHash",
       "pair": "code1|code2",
     },
+    "0xOrderHash",
     "invalid order",
   ],
 ]
@@ -209,6 +244,7 @@ Array [
       "orderHash": "0xOrderHash",
       "pair": "code1|code2",
     },
+    "0xOrderHash",
     "error",
   ],
 ]
@@ -607,7 +643,6 @@ Array [
     Object {
       "channel": "orders",
       "method": "add",
-      "orderHash": "0xOrderHash",
       "pair": "pair",
     },
   ],
@@ -616,6 +651,24 @@ Array [
 
 exports[`handleOrderRequest invalid requests 1`] = `
 Array [
+  Array [
+    "ws",
+    Object {
+      "channel": "orders",
+      "method": "add",
+      "pair": "pair",
+    },
+    "invalid request",
+  ],
+  Array [
+    "ws",
+    Object {
+      "channel": "orders",
+      "method": "add",
+      "pair": "pair",
+    },
+    "invalid request",
+  ],
   Array [
     "ws",
     Object {
@@ -659,7 +712,6 @@ Array [
     Object {
       "channel": "orders",
       "method": "terminate",
-      "orderHash": "0xOrderHash",
       "pair": "pair",
     },
   ],
@@ -726,10 +778,42 @@ Array [
     Object {
       "channel": "orders",
       "method": "terminate",
-      "orderHash": "0xOrderHash",
+      "orderHashes": Array [],
       "pair": "pair",
       "signature": "signature",
     },
+    "invalid request",
+  ],
+  Array [
+    Object {},
+    Object {
+      "channel": "orders",
+      "method": "terminate",
+      "orderHashes": Array [
+        "0xOrderHash",
+      ],
+      "pair": "pair",
+      "signature": "signature",
+    },
+    "invalid request",
+  ],
+]
+`;
+
+exports[`handleTerminateOrderRequest invalid request and liveOrder does not exist 2`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "channel": "orders",
+      "method": "terminate",
+      "orderHashes": Array [
+        "0xOrderHash",
+      ],
+      "pair": "pair",
+      "signature": "signature",
+    },
+    "0xOrderHash",
     "invalid request",
   ],
 ]
@@ -742,10 +826,13 @@ Array [
     Object {
       "channel": "orders",
       "method": "terminate",
-      "orderHash": "0xOrderHash",
+      "orderHashes": Array [
+        "0xOrderHash",
+      ],
       "pair": "pair",
       "signature": "signature",
     },
+    "0xOrderHash",
     "error",
   ],
 ]
@@ -772,10 +859,13 @@ Array [
     Object {
       "channel": "orders",
       "method": "terminate",
-      "orderHash": "0xOrderHash",
+      "orderHashes": Array [
+        "0xOrderHash",
+      ],
       "pair": "pair",
       "signature": "signature",
     },
+    "0xOrderHash",
     "invalid order",
   ],
 ]
@@ -802,10 +892,13 @@ Array [
     Object {
       "channel": "orders",
       "method": "terminate",
-      "orderHash": "0xOrderHash",
+      "orderHashes": Array [
+        "0xOrderHash",
+      ],
       "pair": "pair",
       "signature": "siganature",
     },
+    "0xOrderHash",
     "invalid request",
   ],
 ]

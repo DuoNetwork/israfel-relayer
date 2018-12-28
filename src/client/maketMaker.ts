@@ -9,7 +9,6 @@ import {
 	IOption,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotLevel,
-	IOrderBookSnapshotUpdate,
 	IToken,
 	IUserOrder
 } from '../common/types';
@@ -17,8 +16,6 @@ import util from '../utils/util';
 import RelayerClient from './RelayerClient';
 
 class MarketMaker {
-	public orderBookSnapshots: { [pair: string]: IOrderBookSnapshot } = {};
-	public pendingOrderBookUpdates: { [pair: string]: IOrderBookSnapshotUpdate[] } = {};
 	public tokens: IToken[] = [];
 	private dualClassWrapper: DualClassWrapper | null = null;
 	private relayerClient: RelayerClient | null = null;
@@ -175,7 +172,7 @@ class MarketMaker {
 		orderBookSnapshot: IOrderBookSnapshot,
 		bestPriceChange: IBestPriceChange
 	) {
-		if (!this.dualClassWrapper) return;
+		if (!this.dualClassWrapper || !this.relayerClient) return;
 		this.custodianStates = await this.dualClassWrapper.getStates();
 		const ethNav = this.custodianStates.lastPrice / this.custodianStates.resetPrice;
 		const thisToken = this.tokens.find(t => t.code === pair.split('|')[0]);
@@ -211,7 +208,7 @@ class MarketMaker {
 			await this.takeOneSideOrders(
 				pair,
 				true,
-				this.orderBookSnapshots[otherToken.code].bids.filter(
+				this.relayerClient.orderBookSnapshots[otherToken.code].bids.filter(
 					bid => bid.price > otherTokenBestBidPrice
 				)
 			);
@@ -239,7 +236,7 @@ class MarketMaker {
 			await this.takeOneSideOrders(
 				pair,
 				false,
-				this.orderBookSnapshots[otherToken.code].asks.filter(
+				this.relayerClient.orderBookSnapshots[otherToken.code].asks.filter(
 					ask => ask.price < otherTokenBestAskPrice
 				)
 			);
@@ -335,8 +332,8 @@ class MarketMaker {
 	}
 
 	public async handleOrderBookUpdate(orderBookSnapshot: IOrderBookSnapshot) {
+		if (!this.relayerClient) return;
 		const pair = orderBookSnapshot.pair;
-		this.orderBookSnapshots[pair] = orderBookSnapshot;
 		if (this.isMakingOrder) return;
 
 		if (
@@ -351,13 +348,16 @@ class MarketMaker {
 				isBidChange: true,
 				changeAmount:
 					(orderBookSnapshot.bids[0].price || 0) -
-					(this.orderBookSnapshots[pair].bids[0].price || 0)
+					(this.relayerClient.orderBookSnapshots[pair].bids[0].price || 0)
 			};
-			if (orderBookSnapshot.asks[0].price !== this.orderBookSnapshots[pair].asks[0].price) {
+			if (
+				orderBookSnapshot.asks[0].price !==
+				this.relayerClient.orderBookSnapshots[pair].asks[0].price
+			) {
 				bestPriceChange.isBidChange = false;
 				bestPriceChange.changeAmount =
 					(orderBookSnapshot.asks[0].price || 0) -
-					(this.orderBookSnapshots[pair].asks[0].price || 0);
+					(this.relayerClient.orderBookSnapshots[pair].asks[0].price || 0);
 			}
 
 			await this.startMakingOrders(pair, orderBookSnapshot, bestPriceChange);
