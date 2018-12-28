@@ -75,7 +75,7 @@ exports[`addOrder missing token 1`] = `[Error: invalid pair]`;
 exports[`deleteOrder 1`] = `
 Array [
   Array [
-    "{\\"method\\":\\"terminate\\",\\"channel\\":\\"orders\\",\\"pair\\":\\"pair\\",\\"orderHash\\":\\"orderHash\\",\\"signature\\":\\"signature\\"}",
+    "{\\"method\\":\\"terminate\\",\\"channel\\":\\"orders\\",\\"pair\\":\\"pair\\",\\"orderHashes\\":[\\"orderHash\\"],\\"signature\\":\\"signature\\"}",
   ],
 ]
 `;

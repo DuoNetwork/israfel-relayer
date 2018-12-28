@@ -615,6 +615,6 @@ test('addOrder ask', async () => {
 test('deleteOrder', () => {
 	const send = jest.fn();
 	relayerClient.ws = { send } as any;
-	relayerClient.deleteOrder('pair', 'orderHash', 'signature');
+	relayerClient.deleteOrder('pair', ['orderHash'], 'signature');
 	expect(send.mock.calls).toMatchSnapshot();
 });

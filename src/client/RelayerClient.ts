@@ -256,14 +256,14 @@ export default class RelayerClient {
 		this.ws.send(JSON.stringify(msg));
 	}
 
-	public deleteOrder(pair: string, orderHash: string, signature: string) {
+	public deleteOrder(pair: string, orderHashes: string[], signature: string) {
 		if (!this.ws) return;
 
 		const msg: IWsTerminateOrderRequest = {
 			method: CST.DB_TERMINATE,
 			channel: CST.DB_ORDERS,
 			pair: pair,
-			orderHash: orderHash,
+			orderHashes: orderHashes,
 			signature: signature
 		};
 		this.ws.send(JSON.stringify(msg));
