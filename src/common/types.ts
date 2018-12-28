@@ -271,6 +271,6 @@ export interface IAction {
 }
 
 export interface IBestPriceChange {
-	bidChange: number;
-	askChange: number;
+	isBidChange: boolean;
+	changeAmount: number;
 }

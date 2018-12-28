@@ -172,3 +172,9 @@ export const MAX_TOKEN_BALANCE = 400;
 export const PRICE_STEP = 0.0005;
 export const PRICE_ROUND = 4;
 export const PRICE_LEVEL = 5;
+
+export const ORDER_BOOK_LEVEL_AMT: { [key: number]: number } = {
+	0: 10,
+	1: 20,
+	2: 20
+};
