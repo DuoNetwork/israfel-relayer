@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 import * as CST from '../common/constants';
-import {  IOrderBookSnapshotUpdate, IOrderQueueItem } from '../common/types';
+import { IOrderBookSnapshotUpdate, IOrderQueueItem } from '../common/types';
 import util from './util';
 
 class RedisUtil {
@@ -102,6 +102,12 @@ class RedisUtil {
 
 	public hashDelete(key: string, field: string) {
 		if (this.redisPub) return this.redisPub.hdel(key, field);
+	}
+
+	public async hashDeleteAll(key: string) {
+		const hashMap = await this.hashGetAll(key);
+
+		if (this.redisPub) for (const field of hashMap) await this.redisPub.hdel(key, field);
 	}
 
 	public subscribe(channel: string) {
