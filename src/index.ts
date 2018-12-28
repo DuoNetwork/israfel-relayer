@@ -62,9 +62,6 @@ switch (tool) {
 	case CST.DB_MKT_MAKER:
 		marketMaker.startProcessing(option);
 		break;
-	case 'hashDelete':
-		redisUtil.hashDeleteAll(`${CST.DB_ORDERS}|${CST.DB_CACHE}|${option.token}|${CST.TOKEN_WETH}`);
-		break;
 	default:
 		break;
 }
