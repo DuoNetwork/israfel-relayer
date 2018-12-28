@@ -1,5 +1,19 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`addIntoWatch expired 1`] = `
+Array [
+  Array [
+    Object {
+      "method": "terminate",
+      "orderHash": "orderHash",
+      "pair": "pair",
+      "requestor": "orderWatcher",
+      "status": "terminate",
+    },
+  ],
+]
+`;
+
 exports[`addIntoWatch no signed order fillable 1`] = `
 Array [
   Array [

@@ -7,6 +7,7 @@ import dynamoUtil from '../utils/dynamoUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import Web3Util from '../utils/Web3Util';
 import orderWatcherServer from './orderWatcherServer';
+import util from '../utils/util';
 
 test('remove from watch, not a existing order', async () => {
 	const removeOrder = jest.fn(() => Promise.resolve());
@@ -93,7 +94,28 @@ const signedOrder = {
 	signature: 'signature'
 };
 
+test('addIntoWatch expired', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	const addOrderAsync = jest.fn(() => Promise.resolve());
+	orderWatcherServer.orderWatcher = {} as any;
+	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({}));
+	orderWatcherServer.watchingOrders = {};
+	orderWatcherServer.web3Util = {
+		validateOrderFillable: jest.fn(() => Promise.resolve(true))
+	} as any;
+	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
+	await orderWatcherServer.addIntoWatch(
+		{ orderHash: 'orderHash', pair: 'pair', expiry: 1234567890 - 3 * 60000 } as any,
+		signedOrder
+	);
+	expect(dynamoUtil.getRawOrder as jest.Mock).not.toBeCalled();
+	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(addOrderAsync).not.toBeCalled();
+	expect(orderWatcherServer.watchingOrders).toEqual({});
+});
+
 test('addIntoWatch with signed order fillable', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	const addOrderAsync = jest.fn(() => Promise.resolve());
 	orderWatcherServer.orderWatcher = {
 		addOrderAsync: addOrderAsync
@@ -105,7 +127,7 @@ test('addIntoWatch with signed order fillable', async () => {
 	} as any;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	await orderWatcherServer.addIntoWatch(
-		{ orderHash: 'orderHash', pair: 'pair' } as any,
+		{ orderHash: 'orderHash', pair: 'pair', expiry: 2345678901 } as any,
 		signedOrder
 	);
 	expect(dynamoUtil.getRawOrder as jest.Mock).not.toBeCalled();
@@ -115,6 +137,7 @@ test('addIntoWatch with signed order fillable', async () => {
 });
 
 test('addIntoWatch with signed order non fillable', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	const addOrderAsync = jest.fn(() => Promise.resolve());
 	orderWatcherServer.orderWatcher = {
 		addOrderAsync: addOrderAsync
@@ -127,7 +150,7 @@ test('addIntoWatch with signed order non fillable', async () => {
 	} as any;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	await orderWatcherServer.addIntoWatch(
-		{ orderHash: 'orderHash', pair: 'pair' } as any,
+		{ orderHash: 'orderHash', pair: 'pair', expiry: 2345678901 } as any,
 		signedOrder
 	);
 	expect(dynamoUtil.getRawOrder as jest.Mock).not.toBeCalled();
@@ -137,6 +160,7 @@ test('addIntoWatch with signed order non fillable', async () => {
 });
 
 test('addIntoWatch no signed order fillable', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	const addOrderAsync = jest.fn(() => Promise.resolve());
 	orderWatcherServer.orderWatcher = {
 		addOrderAsync: addOrderAsync
@@ -152,7 +176,11 @@ test('addIntoWatch no signed order fillable', async () => {
 		})
 	);
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
-	await orderWatcherServer.addIntoWatch({ orderHash: 'orderHash', pair: 'pair' } as any);
+	await orderWatcherServer.addIntoWatch({
+		orderHash: 'orderHash',
+		pair: 'pair',
+		expiry: 2345678901
+	} as any);
 	expect(addOrderAsync.mock.calls).toMatchSnapshot();
 	expect((dynamoUtil.getRawOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(orderWatcherServer.updateOrder as jest.Mock).not.toBeCalled();
@@ -160,6 +188,7 @@ test('addIntoWatch no signed order fillable', async () => {
 });
 
 test('addIntoWatch no signed order and no rawOrder', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	const addOrderAsync = jest.fn(() => Promise.resolve());
 	orderWatcherServer.orderWatcher = {
 		addOrderAsync: addOrderAsync
@@ -170,7 +199,11 @@ test('addIntoWatch no signed order and no rawOrder', async () => {
 	} as any;
 
 	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve());
-	await orderWatcherServer.addIntoWatch({ orderHash: 'orderHash', pair: 'pair' } as any);
+	await orderWatcherServer.addIntoWatch({
+		orderHash: 'orderHash',
+		pair: 'pair',
+		expiry: 2345678901
+	} as any);
 	expect(addOrderAsync).not.toBeCalled();
 	expect((orderWatcherServer.web3Util as any).validateOrderFillable).not.toBeCalled();
 	expect(orderWatcherServer.watchingOrders).toEqual({});
