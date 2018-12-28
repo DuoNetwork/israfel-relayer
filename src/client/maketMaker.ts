@@ -132,7 +132,7 @@ class MarketMaker {
 			}
 	}
 
-	public async checkBalance(
+	public async checkAllowanceAndEthBalance(
 		web3Util: Web3Util,
 		dualClassWrapper: DualClassWrapper | null,
 		address: string
@@ -500,7 +500,7 @@ class MarketMaker {
 				);
 
 				// check initial balance here
-				this.checkBalance(web3Util, this.dualClassWrapper, this.makerAddress);
+				this.checkAllowanceAndEthBalance(web3Util, this.dualClassWrapper, this.makerAddress);
 				if (this.relayerClient) this.relayerClient.subscribeOrderHistory(this.makerAddress);
 			}
 		});
