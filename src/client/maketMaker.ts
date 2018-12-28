@@ -24,6 +24,7 @@ class MarketMaker {
 	public makerAddress: string = '';
 	public custodianStates: IDualClassStates | null = null;
 	public priceStep: number = 0.0005;
+	public availableTokenBalance: { [key: string]: number } = {};
 
 	public getMainAccount() {
 		const faucetAccount = require('../keys/faucetAccount.json');
@@ -33,130 +34,160 @@ class MarketMaker {
 		};
 	}
 
-	public async checkBalance(
+	public async checkTokenBalance(
+		states: IDualClassStates,
+		ethBalance: number,
+		faucetAccount: IAccounts,
 		web3Util: Web3Util,
-		dualClassWrapper: DualClassWrapper | null,
-		addresses: string[]
-	): Promise<string[]> {
-		if (!dualClassWrapper) return [];
-		const states: IDualClassStates = await dualClassWrapper.getStates();
+		dualClassWrapper: DualClassWrapper,
+		address: string
+	) {
+		// wEthBalance
+		const wEthBalance = await web3Util.getTokenBalance(CST.TOKEN_WETH, address);
+		this.availableTokenBalance[CST.TOKEN_WETH] = wEthBalance;
+		if (wEthBalance < CST.MIN_WETH_BALANCE) {
+			util.logDebug(
+				`the address ${address} current weth balance is ${wEthBalance}, wrapping...`
+			);
+			const amtToWrap = CST.MIN_WETH_BALANCE - wEthBalance + 0.1;
 
-		for (const address of addresses) {
-			const faucetAccount: IAccounts = this.getMainAccount();
-			// ethBalance
-			const ethBalance = await web3Util.getEthBalance(address);
-			util.logInfo(`the ethBalance of ${address} is ${ethBalance}`);
-			if (ethBalance < CST.MIN_ETH_BALANCE) {
-				util.logDebug(
-					`the address ${address} current eth balance is ${ethBalance}, make transfer...`
-				);
-
+			if (ethBalance < amtToWrap) {
 				await dualClassWrapper.web3Wrapper.ethTransferRaw(
 					faucetAccount.address,
 					faucetAccount.privateKey,
 					address,
-					util.round(CST.MIN_ETH_BALANCE),
+					CST.MIN_ETH_BALANCE,
 					await web3Util.getTransactionCount(faucetAccount.address)
 				);
+				this.availableTokenBalance[CST.ETH] += CST.MIN_ETH_BALANCE;
 			}
+			util.logDebug(`start wrapping for ${address} with amt ${amtToWrap}`);
+			await web3Util.wrapEther(util.round(amtToWrap), address);
+			this.availableTokenBalance[CST.TOKEN_WETH] += util.round(amtToWrap);
+			this.availableTokenBalance[CST.ETH] -= util.round(amtToWrap);
+		}
 
-			// wEthBalance
-			const wEthBalance = await web3Util.getTokenBalance(CST.TOKEN_WETH, address);
-			if (wEthBalance < CST.MIN_WETH_BALANCE) {
-				util.logDebug(
-					`the address ${address} current weth balance is ${wEthBalance}, wrapping...`
+		// a tokenBalance
+		const balanceOfTokenA = await web3Util.getTokenBalance(this.tokens[0].code, address);
+		const balanceOfTokenB = await web3Util.getTokenBalance(this.tokens[1].code, address);
+		this.availableTokenBalance[this.tokens[0].code] = balanceOfTokenA;
+		this.availableTokenBalance[this.tokens[1].code] = balanceOfTokenB;
+		const effBalanceOfTokenB = Math.min(balanceOfTokenA / states.alpha, balanceOfTokenB);
+		const accountsBot: IAccounts[] = require('../keys/accountsBot.json');
+		const account = accountsBot.find(a => a.address === address);
+		const gasPrice = Math.max(
+			await web3Util.getGasPrice(),
+			CST.DEFAULT_GAS_PRICE * Math.pow(10, 9)
+		);
+		if (effBalanceOfTokenB < CST.MIN_TOKEN_BALANCE) {
+			const tokenAmtToCreate =
+				DualClassWrapper.getTokensPerEth(states)[1] *
+				(ethBalance - CST.MIN_ETH_BALANCE - 0.1);
+
+			if (tokenAmtToCreate + effBalanceOfTokenB <= CST.MIN_TOKEN_BALANCE) {
+				await dualClassWrapper.web3Wrapper.ethTransferRaw(
+					faucetAccount.address,
+					faucetAccount.privateKey,
+					address,
+					CST.MIN_ETH_BALANCE,
+					await web3Util.getTransactionCount(faucetAccount.address)
 				);
-				const amtToWrap = CST.MIN_WETH_BALANCE - wEthBalance + 0.1;
-
-				if (ethBalance < amtToWrap)
-					await dualClassWrapper.web3Wrapper.ethTransferRaw(
-						faucetAccount.address,
-						faucetAccount.privateKey,
-						address,
-						CST.MIN_ETH_BALANCE,
-						await web3Util.getTransactionCount(faucetAccount.address)
-					);
-
-				util.logDebug(`start wrapping for ${address} with amt ${amtToWrap}`);
-				await web3Util.wrapEther(util.round(amtToWrap), address);
+				this.availableTokenBalance[CST.ETH] += CST.MIN_ETH_BALANCE;
 			}
 
-			// wETHallowance
-			const wethAllowance = await web3Util.getProxyTokenAllowance(CST.TOKEN_WETH, address);
-			util.logDebug(`tokenAllowande of token ${CST.TOKEN_WETH} is ${wethAllowance}`);
-			if (wethAllowance <= 0) {
-				util.logDebug(
-					`the address ${address} token allowance of ${
-						CST.TOKEN_WETH
-					} is 0, approvaing.....`
+			if (account) {
+				await dualClassWrapper.createRaw(
+					address,
+					account.privateKey,
+					gasPrice,
+					CST.CREATE_GAS,
+					CST.MIN_ETH_BALANCE
 				);
-				await web3Util.setUnlimitedTokenAllowance(CST.TOKEN_WETH, address);
+
+				this.availableTokenBalance[this.tokens[0].code] +=
+					DualClassWrapper.getTokensPerEth(states)[0] * CST.MIN_ETH_BALANCE;
+				this.availableTokenBalance[this.tokens[1].code] +=
+					DualClassWrapper.getTokensPerEth(states)[1] * CST.MIN_ETH_BALANCE;
+				this.availableTokenBalance[CST.ETH] -= CST.MIN_ETH_BALANCE;
 			}
+		} else if (effBalanceOfTokenB >= CST.MAX_TOKEN_BALANCE)
+			if (account) {
+				await dualClassWrapper.redeemRaw(
+					address,
+					account.privateKey,
+					effBalanceOfTokenB - CST.MAX_TOKEN_BALANCE,
+					(effBalanceOfTokenB - CST.MAX_TOKEN_BALANCE) / states.alpha,
+					gasPrice,
+					CST.REDEEM_GAS
+				);
+				this.availableTokenBalance[this.tokens[0].code] -=
+					effBalanceOfTokenB - CST.MAX_TOKEN_BALANCE;
+				this.availableTokenBalance[this.tokens[1].code] -=
+					(effBalanceOfTokenB - CST.MAX_TOKEN_BALANCE) / states.alpha;
+				this.availableTokenBalance[CST.ETH] += DualClassWrapper.getEthWithTokens(
+					states,
+					effBalanceOfTokenB - CST.MAX_TOKEN_BALANCE,
+					(effBalanceOfTokenB - CST.MAX_TOKEN_BALANCE) / states.alpha
+				);
+			}
+	}
 
-			// a tokenBalance
-			const balanceOfTokenA = await web3Util.getTokenBalance(this.tokens[0].code, address);
-			const balanceOfTokenB = await web3Util.getTokenBalance(this.tokens[1].code, address);
-			const effBalanceOfTokenB = Math.min(balanceOfTokenA / states.alpha, balanceOfTokenB);
+	public async checkBalance(
+		web3Util: Web3Util,
+		dualClassWrapper: DualClassWrapper | null,
+		address: string
+	) {
+		if (!dualClassWrapper) return;
+		const states: IDualClassStates = await dualClassWrapper.getStates();
 
-			const accountsBot: IAccounts[] = require('../keys/accountsBot.json');
-			const account = accountsBot.find(a => a.address === address);
-			const gasPrice = Math.max(
-				await web3Util.getGasPrice(),
-				CST.DEFAULT_GAS_PRICE * Math.pow(10, 9)
+		// wETHallowance
+		const wethAllowance = await web3Util.getProxyTokenAllowance(CST.TOKEN_WETH, address);
+		util.logDebug(`tokenAllowande of token ${CST.TOKEN_WETH} is ${wethAllowance}`);
+		if (wethAllowance <= 0) {
+			util.logDebug(
+				`the address ${address} token allowance of ${CST.TOKEN_WETH} is 0, approvaing.....`
 			);
-			if (effBalanceOfTokenB < CST.MIN_TOKEN_BALANCE) {
-				const tokenAmtToCreate =
-					DualClassWrapper.getTokensPerEth(states)[1] *
-					(ethBalance - CST.MIN_ETH_BALANCE - 0.1);
-
-				if (tokenAmtToCreate + effBalanceOfTokenB <= CST.MIN_TOKEN_BALANCE)
-					await dualClassWrapper.web3Wrapper.ethTransferRaw(
-						faucetAccount.address,
-						faucetAccount.privateKey,
-						address,
-						CST.MIN_ETH_BALANCE,
-						await web3Util.getTransactionCount(faucetAccount.address)
-					);
-
-				if (account)
-					await dualClassWrapper.createRaw(
-						address,
-						account.privateKey,
-						gasPrice,
-						CST.CREATE_GAS,
-						CST.MIN_ETH_BALANCE
-					);
-				else {
-					util.logDebug(`the address ${address} cannot create, skip...`);
-					addresses = addresses.filter(addr => addr !== address);
-					continue;
-				}
-			} else if (effBalanceOfTokenB >= CST.MAX_TOKEN_BALANCE)
-				if (account)
-					await dualClassWrapper.redeemRaw(
-						address,
-						account.privateKey,
-						effBalanceOfTokenB - CST.MAX_TOKEN_BALANCE,
-						(effBalanceOfTokenB - CST.MAX_TOKEN_BALANCE) / states.alpha,
-						gasPrice,
-						CST.REDEEM_GAS
-					);
-
-			for (const token of this.tokens) {
-				const tokenAllowance = await web3Util.getProxyTokenAllowance(token.code, address);
-				util.logInfo(`tokenAllowande of token ${token.code} is ${tokenAllowance}`);
-				if (tokenAllowance <= 0) {
-					util.logInfo(
-						`the address ${address} token allowance of ${
-							token.code
-						} is 0, approvaing.....`
-					);
-					await web3Util.setUnlimitedTokenAllowance(token.code, address);
-				}
+			await web3Util.setUnlimitedTokenAllowance(CST.TOKEN_WETH, address);
+		}
+		// tokenAllowance
+		for (const token of this.tokens) {
+			const tokenAllowance = await web3Util.getProxyTokenAllowance(token.code, address);
+			util.logInfo(`tokenAllowande of token ${token.code} is ${tokenAllowance}`);
+			if (tokenAllowance <= 0) {
+				util.logInfo(
+					`the address ${address} token allowance of ${token.code} is 0, approvaing.....`
+				);
+				await web3Util.setUnlimitedTokenAllowance(token.code, address);
 			}
 		}
 
-		return addresses;
+		const faucetAccount: IAccounts = this.getMainAccount();
+		// ethBalance
+		const ethBalance = await web3Util.getEthBalance(address);
+		this.availableTokenBalance[CST.ETH] = ethBalance;
+		util.logInfo(`the ethBalance of ${address} is ${ethBalance}`);
+		if (ethBalance < CST.MIN_ETH_BALANCE) {
+			util.logDebug(
+				`the address ${address} current eth balance is ${ethBalance}, make transfer...`
+			);
+
+			await dualClassWrapper.web3Wrapper.ethTransferRaw(
+				faucetAccount.address,
+				faucetAccount.privateKey,
+				address,
+				util.round(CST.MIN_ETH_BALANCE),
+				await web3Util.getTransactionCount(faucetAccount.address)
+			);
+			this.availableTokenBalance[CST.ETH] += util.round(CST.MIN_ETH_BALANCE);
+		}
+		await this.checkTokenBalance(
+			states,
+			ethBalance,
+			faucetAccount,
+			web3Util,
+			dualClassWrapper,
+			address
+		);
 	}
 
 	private getSideTotalLiquidity(side: IOrderBookSnapshotLevel[], level?: number): number {
@@ -364,6 +395,75 @@ class MarketMaker {
 		}
 	}
 
+	public async handleOrderHistory(userOrders: IUserOrder[], web3Util: Web3Util) {
+		const processed: { [orderHash: string]: boolean } = {};
+		userOrders.sort(
+			(a, b) => a.pair.localeCompare(b.pair) || -a.currentSequence + b.currentSequence
+		);
+		userOrders.forEach(uo => {
+			if (processed[uo.orderHash]) return;
+			processed[uo.orderHash] = true;
+			if (uo.type === CST.DB_TERMINATE) return;
+			if (!this.liveOrders[uo.pair]) this.liveOrders[uo.pair] = {};
+			this.liveOrders[uo.pair][uo.orderHash] = uo;
+		});
+
+		if (this.relayerClient) {
+			// cancel all live orders
+			for (const pair in this.liveOrders) {
+				const orderHashes = Object.keys(this.liveOrders[pair]);
+				if (orderHashes.length) {
+					const signature = await web3Util.web3PersonalSign(
+						this.makerAddress,
+						CST.TERMINATE_SIGN_MSG + orderHashes.join(',')
+					);
+					this.relayerClient.deleteOrder(pair, orderHashes, signature);
+					this.liveOrders[pair] = {};
+				}
+			}
+
+			this.createOrderBookFromNav();
+			this.relayerClient.subscribeOrderBook(this.tokens[0].code + '|' + CST.TOKEN_WETH);
+			this.relayerClient.subscribeOrderBook(this.tokens[1].code + '|' + CST.TOKEN_WETH);
+		}
+	}
+
+	public async handleUserOrder(userOrder: IUserOrder, web3Util: Web3Util) {
+		const isBid = userOrder.side === CST.DB_BID;
+		const { pair, orderHash } = userOrder;
+		if (userOrder.type === CST.DB_TERMINATE) delete this.liveOrders[pair][userOrder.orderHash];
+
+		if (userOrder.type === CST.DB_TERMINATE && userOrder.updatedBy !== CST.DB_RELAYER)
+			if (isBid)
+				this.availableTokenBalance[CST.TOKEN_WETH] += userOrder.balance * userOrder.price;
+			else this.availableTokenBalance[pair.split('|')[0]] += userOrder.balance;
+		else if (userOrder.type === CST.DB_ADD) {
+			this.liveOrders[pair][orderHash] = userOrder;
+			if (isBid)
+				this.availableTokenBalance[CST.TOKEN_WETH] -= userOrder.balance * userOrder.price;
+			else this.availableTokenBalance[pair.split('|')[0]] -= userOrder.balance;
+		} else if (userOrder.type === CST.DB_UPDATE) {
+			if (isBid)
+				this.availableTokenBalance[CST.TOKEN_WETH] -=
+					(userOrder.balance - this.liveOrders[pair][orderHash].balance) *
+					userOrder.price;
+			else
+				this.availableTokenBalance[pair.split('|')[0]] -=
+					userOrder.balance - this.liveOrders[pair][orderHash].balance;
+			this.liveOrders[pair][orderHash].balance = userOrder.balance;
+		}
+
+		if (!this.dualClassWrapper) return;
+		await this.checkTokenBalance(
+			await this.dualClassWrapper.getStates(),
+			await web3Util.getEthBalance(this.makerAddress),
+			this.getMainAccount(),
+			web3Util,
+			this.dualClassWrapper,
+			this.makerAddress
+		);
+	}
+
 	public async startProcessing(option: IOption) {
 		const mnemonic = require('../keys/mnemomicBot.json');
 		const live = option.env === CST.DB_LIVE;
@@ -400,45 +500,14 @@ class MarketMaker {
 				);
 
 				// check initial balance here
-
+				this.checkBalance(web3Util, this.dualClassWrapper, this.makerAddress);
 				if (this.relayerClient) this.relayerClient.subscribeOrderHistory(this.makerAddress);
 			}
 		});
 
 		this.relayerClient.onOrder(
-			userOrders => {
-				const processed: { [orderHash: string]: boolean } = {};
-				userOrders.sort(
-					(a, b) => a.pair.localeCompare(b.pair) || -a.currentSequence + b.currentSequence
-				);
-				userOrders.forEach(uo => {
-					if (processed[uo.orderHash]) return;
-					processed[uo.orderHash] = true;
-					if (uo.type === CST.DB_TERMINATE) return;
-					if (!this.liveOrders[uo.pair]) this.liveOrders[uo.pair] = {};
-					this.liveOrders[uo.pair][uo.orderHash] = uo;
-				});
-				// compute available balance by remove amounts from open orders
-
-				// cancel all live orders
-
-				this.createOrderBookFromNav();
-
-				if (this.relayerClient) {
-					this.relayerClient.subscribeOrderBook(
-						this.tokens[0].code + '|' + CST.TOKEN_WETH
-					);
-					this.relayerClient.subscribeOrderBook(
-						this.tokens[1].code + '|' + CST.TOKEN_WETH
-					);
-				}
-			},
-			userOrder => {
-				// adjust balance for each order update
-				if (userOrder.type === CST.DB_TERMINATE)
-					delete this.liveOrders[userOrder.pair][userOrder.orderHash];
-				else this.liveOrders[userOrder.pair][userOrder.orderHash] = userOrder;
-			},
+			async userOrders => this.handleOrderHistory(userOrders, web3Util),
+			userOrder => this.handleUserOrder(userOrder, web3Util),
 			(method, orderHash, error) => util.logError(method + ' ' + orderHash + ' ' + error)
 		);
 		this.relayerClient.onOrderBook(

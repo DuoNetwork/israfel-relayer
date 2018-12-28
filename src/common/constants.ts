@@ -139,6 +139,7 @@ export const WS_TYPE_ORDER_ADD = 'add';
 export const WS_TYPE_ORDER_CANCEL = 'cancel';
 
 export const TOKEN_WETH = 'WETH';
+export const ETH = 'ETH';
 
 export const PRUNE_INTERVAL = 3600000;
 export const ORDER_PRUNE = 'pruneOrder';
