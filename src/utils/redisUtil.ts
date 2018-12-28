@@ -104,10 +104,9 @@ class RedisUtil {
 		if (this.redisPub) return this.redisPub.hdel(key, field);
 	}
 
-	public async hashDeleteAll(key: string) {
-		const hashMap = await this.hashGetAll(key);
-
-		if (this.redisPub) for (const field of hashMap) await this.redisPub.hdel(key, field);
+	public hashDeleteAll(key: string) {
+		if (this.redisPub) return this.redisPub.del(key);
+		return Promise.resolve({});
 	}
 
 	public subscribe(channel: string) {
