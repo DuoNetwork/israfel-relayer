@@ -242,7 +242,7 @@ export interface ISubProcess {
 	failCount: number;
 }
 
-export interface IAccounts {
+export interface IAccount {
 	address: string;
 	privateKey: string;
 }
