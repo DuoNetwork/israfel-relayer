@@ -340,9 +340,12 @@ export default class Web3Util {
 
 	public async validateOrderFillable(signedOrder: SignedOrder): Promise<boolean> {
 		try {
-			await this.contractWrappers.exchange.validateOrderFillableOrThrowAsync(signedOrder, {
-				expectedFillTakerTokenAmount: new BigNumber(0)
-			});
+			await this.contractWrappers.exchange.validateOrderFillableOrThrowAsync(
+				signedOrder
+				// 	, {
+				// 	expectedFillTakerTokenAmount: new BigNumber(0)
+				// }
+			);
 			return true;
 		} catch (err) {
 			util.logDebug('invalid order');
