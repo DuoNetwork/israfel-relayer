@@ -75,6 +75,8 @@ class MarketMaker {
 
 		let bTokenToCreate = 0;
 		let bTokenToRedeem = 0;
+		let ethAmountForCreation = 0;
+		let ethAmountForRedemption = 0;
 		if (
 			this.tokenBalances[2] <= CST.MIN_TOKEN_BALANCE ||
 			this.tokenBalances[1] <= CST.MIN_TOKEN_BALANCE * alpha
@@ -85,6 +87,9 @@ class MarketMaker {
 				CST.TARGET_TOKEN_BALANCE * alpha - this.tokenBalances[1]
 			);
 			bTokenToCreate = Math.max(aTokenShortfall / alpha, bTokenShortfall);
+			ethAmountForCreation =
+				bTokenToCreate / tokensPerEth[1] / (1 - this.custodianStates.createCommRate);
+			impliedWethBalance -= ethAmountForCreation;
 		}
 
 		if (
@@ -97,14 +102,10 @@ class MarketMaker {
 				this.tokenBalances[1] - CST.TARGET_TOKEN_BALANCE * alpha
 			);
 			bTokenToRedeem = Math.min(aTokenSurplus / alpha, bTokenSurplus);
+			ethAmountForRedemption =
+				(bTokenToRedeem / tokensPerEth[1]) * (1 - this.custodianStates.createCommRate);
+			impliedWethBalance += ethAmountForRedemption;
 		}
-
-		const ethAmountForCreation =
-			bTokenToCreate / tokensPerEth[1] / (1 - this.custodianStates.createCommRate);
-		const ethAmountForRedemption =
-			(bTokenToRedeem / tokensPerEth[1]) * (1 - this.custodianStates.createCommRate);
-		if (bTokenToCreate) impliedWethBalance -= ethAmountForCreation;
-		else if (bTokenToRedeem) impliedWethBalance += ethAmountForRedemption;
 
 		if (impliedWethBalance > CST.MAX_WETH_BALANCE)
 			wethSurplus = impliedWethBalance - CST.TARGET_WETH_BALANCE;
@@ -157,7 +158,7 @@ class MarketMaker {
 			this.tokenBalances[1] -= bTokenToCreate * alpha;
 			tx = await web3Util.wrapEther(ethAmountForRedemption, this.makerAccount.address);
 			await web3Util.awaitTransactionSuccessAsync(tx);
-			this.tokenBalances[0] -= ethAmountForRedemption;
+			this.tokenBalances[0] += ethAmountForRedemption;
 		}
 
 		if (wethSurplus) {
@@ -173,7 +174,7 @@ class MarketMaker {
 		}
 	}
 
-	private getSideTotalLiquidity(side: IOrderBookSnapshotLevel[], level?: number): number {
+	public getSideTotalLiquidity(side: IOrderBookSnapshotLevel[], level?: number): number {
 		level = level ? Math.min(side.length, level) : side.length;
 		if (level === 0) return 0;
 		let accumulatedAmt = 0;
@@ -252,11 +253,10 @@ class MarketMaker {
 			const orderHashesToCancel: string[] = [];
 			for (const orderHash in this.liveBidOrders[pairToCancel]) {
 				const liveOrder = this.liveBidOrders[pairToCancel][orderHash];
-				if (liveOrder.price >= otherTokenNoArbAskPrice)
-					orderHashesToCancel.push(orderHash);
+				if (liveOrder.price >= otherTokenNoArbAskPrice) orderHashesToCancel.push(orderHash);
 			}
 			if (orderHashesToCancel.length)
-				await this.cancelOrders(relayerClient, pairToCancel, orderHashesToCancel)
+				await this.cancelOrders(relayerClient, pairToCancel, orderHashesToCancel);
 			await this.takeOneSideOrders(
 				relayerClient,
 				pair,
@@ -269,11 +269,10 @@ class MarketMaker {
 			const orderHashesToCancel: string[] = [];
 			for (const orderHash in this.liveAskOrders[pairToCancel]) {
 				const liveOrder = this.liveAskOrders[pairToCancel][orderHash];
-				if (liveOrder.price <= otherTokenNoArbBidPrice)
-					orderHashesToCancel.push(orderHash);
+				if (liveOrder.price <= otherTokenNoArbBidPrice) orderHashesToCancel.push(orderHash);
 			}
 			if (orderHashesToCancel.length)
-				await this.cancelOrders(relayerClient, pairToCancel, orderHashesToCancel)
+				await this.cancelOrders(relayerClient, pairToCancel, orderHashesToCancel);
 			await this.takeOneSideOrders(
 				relayerClient,
 				pair,
