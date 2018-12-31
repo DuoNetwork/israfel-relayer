@@ -44,25 +44,16 @@ class MarketMaker {
 				const txHash = await web3Util.setUnlimitedTokenAllowance(code, address);
 				await web3Util.awaitTransactionSuccessAsync(txHash);
 			}
-
-		const wethAddress = web3Util.contractAddresses.etherToken;
 		const custodianAddress = dualClassWrapper.address;
-		if (
-			!(await dualClassWrapper.web3Wrapper.getErc20Allowance(
-				wethAddress,
+		if (!(await web3Util.getTokenAllowance(CST.TOKEN_WETH, address, custodianAddress))) {
+			const txHash = await web3Util.setUnlimitedTokenAllowance(
+				CST.TOKEN_WETH,
 				address,
 				custodianAddress
-			))
-		) {
-			const txHash = await dualClassWrapper.web3Wrapper.erc20Approve(
-				wethAddress,
-				address,
-				custodianAddress,
-				0,
-				true
 			);
 			await web3Util.awaitTransactionSuccessAsync(txHash);
 		}
+		console.log('completed allowance checking');
 	}
 
 	public async maintainBalance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
@@ -172,6 +163,7 @@ class MarketMaker {
 			await web3Util.awaitTransactionSuccessAsync(tx);
 			this.tokenBalances[0] -= wethSurplus;
 		}
+		console.log('completed balance maintenance checking');
 	}
 
 	public getSideTotalLiquidity(side: IOrderBookSnapshotLevel[], level?: number): number {
@@ -474,7 +466,9 @@ class MarketMaker {
 		const bip39 = require('bip39');
 		const hdkey = require('ethereumjs-wallet/hdkey');
 		const hdwallet = hdkey.fromMasterSeed(bip39.mnemonicToSeed(mnemomic));
-		const wallet = hdwallet.derivePath(CST.BASE_DERIVATION_PATH + index).getWallet();
+		const wallet = hdwallet
+			.derivePath('m/' + CST.BASE_DERIVATION_PATH + '/' + index)
+			.getWallet();
 		const address = '0x' + wallet.getAddress().toString('hex');
 		const privateKey = wallet.getPrivateKey().toString('hex');
 		return {
