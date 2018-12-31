@@ -19,21 +19,13 @@ import RelayerClient from './RelayerClient';
 class MarketMaker {
 	public tokens: IToken[] = [];
 	public isMakingOrder: boolean = false;
-	public liveOrders: { [pair: string]: { [orderHash: string]: IUserOrder } } = {};
+	public liveBidOrders: { [pair: string]: { [orderHash: string]: IUserOrder } } = {};
+	public liveAskOrders: { [pair: string]: { [orderHash: string]: IUserOrder } } = {};
 	public makerAccount: IAccount = { address: '0x0', privateKey: '' };
 	public custodianStates: IDualClassStates | null = null;
 	public priceStep: number = 0.0005;
-	public availableBalances: { [code: string]: number } = {};
 	public ethBalance: number = 0;
 	public tokenBalances: number[] = [0, 0, 0];
-
-	public getMainAccount() {
-		const faucetAccount = require('../keys/faucetAccount.json');
-		return {
-			address: faucetAccount.publicKey,
-			privateKey: faucetAccount.privateKey
-		};
-	}
 
 	public async checkBalanceAllowance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
 		const address = this.makerAccount.address;
@@ -46,7 +38,7 @@ class MarketMaker {
 
 		for (const code of [CST.TOKEN_WETH, this.tokens[0].code, this.tokens[1].code])
 			if (!(await web3Util.getProxyTokenAllowance(code, address))) {
-				util.logDebug(`${address} ${code} allowance is 0, approvaing.....`);
+				util.logDebug(`${address} ${code} allowance is 0, approving.....`);
 				const txHash = await web3Util.setUnlimitedTokenAllowance(code, address);
 				await web3Util.awaitTransactionSuccessAsync(txHash);
 			}
@@ -90,10 +82,9 @@ class MarketMaker {
 
 		wethShortFall += ethAmountForCreation;
 		if (wethShortFall) {
-			const faucet = this.getMainAccount();
 			const tx = await web3Util.tokenTransfer(
 				CST.TOKEN_WETH,
-				faucet.address,
+				CST.FAUCET_ADDR,
 				this.makerAccount.address,
 				this.makerAccount.address,
 				CST.TARGET_WETH_BALANCE - this.tokenBalances[0]
@@ -328,17 +319,29 @@ class MarketMaker {
 		userOrders.sort(
 			(a, b) => a.pair.localeCompare(b.pair) || -a.currentSequence + b.currentSequence
 		);
+		const codes = this.tokens.map(token => token.code);
 		userOrders.forEach(uo => {
-			if (processed[uo.orderHash]) return;
-			processed[uo.orderHash] = true;
-			if (uo.type === CST.DB_TERMINATE) return;
-			if (!this.liveOrders[uo.pair]) this.liveOrders[uo.pair] = {};
-			this.liveOrders[uo.pair][uo.orderHash] = uo;
+			const { type, pair, side, orderHash, balance, price } = uo;
+			if (processed[orderHash]) return;
+			processed[orderHash] = true;
+			if (type === CST.DB_TERMINATE) return;
+			if (!this.liveBidOrders[pair]) this.liveBidOrders[pair] = {};
+			if (!this.liveAskOrders[pair]) this.liveAskOrders[pair] = {};
+			if (side === CST.DB_BID) this.liveBidOrders[pair][orderHash] = uo;
+			else this.liveAskOrders[pair][orderHash] = uo;
+
+			const code = pair.split('|')[0];
+			const tokenIndex = pair.startsWith(this.tokens[0].code) ? 1 : 2;
+			if (codes.includes(code))
+				if (side === CST.DB_BID) this.tokenBalances[0] -= balance * price;
+				else this.tokenBalances[tokenIndex] -= balance;
 		});
 
-		// TODO: reduce balance first by each order
-		for (const pair in this.liveOrders) {
-			const orderHashes = Object.keys(this.liveOrders[pair]);
+		for (const pair in this.liveBidOrders) {
+			const orderHashes = [
+				...Object.keys(this.liveBidOrders[pair]),
+				...Object.keys(this.liveAskOrders[pair])
+			];
 			if (orderHashes.length) {
 				const signature = await web3Util.web3PersonalSign(
 					this.makerAccount.address,
@@ -346,23 +349,6 @@ class MarketMaker {
 				);
 
 				relayerClient.deleteOrder(pair, orderHashes, signature);
-				const code = pair.split('|')[0];
-
-				for (const orderHash of orderHashes) {
-					const liveOrder = this.liveOrders[code][orderHash];
-					if (this.tokens.map(token => token.code).includes(code))
-						if (liveOrder.side === CST.DB_BID) {
-							this.availableBalances[CST.TOKEN_WETH] +=
-								liveOrder.price * liveOrder.balance;
-							this.availableBalances[code] -= liveOrder.balance;
-						} else {
-							this.availableBalances[CST.TOKEN_WETH] -=
-								liveOrder.price * liveOrder.balance;
-							this.availableBalances[code] += liveOrder.balance;
-						}
-				}
-
-				this.liveOrders[pair] = {};
 			}
 		}
 
@@ -379,25 +365,25 @@ class MarketMaker {
 		const isBid = userOrder.side === CST.DB_BID;
 		const { pair, orderHash } = userOrder;
 		const tokenIndex = pair.startsWith(this.tokens[0].code) ? 1 : 2;
+		const orderCache = isBid ? this.liveBidOrders : this.liveAskOrders;
 		if (userOrder.type === CST.DB_TERMINATE) {
-			const prevVersion = this.liveOrders[pair][userOrder.orderHash];
-			delete this.liveOrders[pair][userOrder.orderHash];
+			const prevVersion = orderCache[pair][userOrder.orderHash];
+			delete orderCache[pair][userOrder.orderHash];
 			if (isBid) this.tokenBalances[0] += prevVersion.balance * prevVersion.price;
 			else this.tokenBalances[tokenIndex] += prevVersion.balance;
 		} else if (userOrder.type === CST.DB_ADD) {
-			this.liveOrders[pair][orderHash] = userOrder;
+			orderCache[pair][orderHash] = userOrder;
 			if (isBid) this.tokenBalances[0] -= userOrder.balance * userOrder.price;
 			else this.tokenBalances[tokenIndex] -= userOrder.balance;
-			this.liveOrders[pair][orderHash] = userOrder;
+			orderCache[pair][orderHash] = userOrder;
 		} else if (userOrder.type === CST.DB_UPDATE && userOrder.status !== CST.DB_MATCHING) {
 			if (isBid)
-				this.availableBalances[CST.TOKEN_WETH] -=
-					(userOrder.balance - this.liveOrders[pair][orderHash].balance) *
-					userOrder.price;
+				this.tokenBalances[0] -=
+					(userOrder.balance - orderCache[pair][orderHash].balance) * userOrder.price;
 			else
-				this.availableBalances[pair.split('|')[0]] -=
-					userOrder.balance - this.liveOrders[pair][orderHash].balance;
-			this.liveOrders[pair][orderHash] = userOrder;
+				this.tokenBalances[tokenIndex] -=
+					userOrder.balance - orderCache[pair][orderHash].balance;
+			orderCache[pair][orderHash] = userOrder;
 		}
 
 		await this.checkBalanceAllowance(web3Util, dualClassWrapper);
@@ -476,7 +462,7 @@ class MarketMaker {
 					orderBookSnapshot
 				),
 			(method, pair, error) => {
-				util.logError(method + ' ' + pair + ' ' + error) // TODO: handle add and terminate error
+				util.logError(method + ' ' + pair + ' ' + error); // TODO: handle add and terminate error
 			}
 		);
 
