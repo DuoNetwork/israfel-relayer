@@ -26,6 +26,8 @@ class MarketMaker {
 	public custodianStates: IDualClassStates | null = null;
 	public priceStep: number = 0.0005;
 	public availableBalances: { [code: string]: number } = {};
+	public ethBalance: number = 0;
+	public tokenBalances: number[] = [0, 0, 0];
 
 	public getMainAccount() {
 		const faucetAccount = require('../keys/faucetAccount.json');
@@ -139,6 +141,56 @@ class MarketMaker {
 				this.custodianStates,
 				effBalanceOfTokenB - CST.MAX_TOKEN_BALANCE,
 				(effBalanceOfTokenB - CST.MAX_TOKEN_BALANCE) / alpha
+			);
+		}
+	}
+
+	public async checkBalanceAllowance(web3Util: Web3Util) {
+		const address = this.makerAccount.address;
+		this.ethBalance = await web3Util.getEthBalance(address);
+		this.tokenBalances = [
+			await web3Util.getTokenBalance(CST.TOKEN_WETH, address),
+			await web3Util.getTokenBalance(this.tokens[0].code, address),
+			await web3Util.getTokenBalance(this.tokens[1].code, address)
+		];
+
+		for (const code of [CST.TOKEN_WETH, this.tokens[0].code, this.tokens[1].code])
+			if (!(await web3Util.getProxyTokenAllowance(code, address))) {
+				util.logDebug(`${address} ${code} allowance is 0, approvaing.....`);
+				const txHash = await web3Util.setUnlimitedTokenAllowance(code, address);
+				await web3Util.awaitTransactionSuccessAsync(txHash);
+			}
+	}
+
+	public async maintainMinimumBalance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
+		this.custodianStates = await dualClassWrapper.getStates();
+		const alpha = this.custodianStates.alpha;
+		let wethShortFall = Math.max(0, CST.MIN_WETH_BALANCE - this.tokenBalances[0]);
+		const aTokenShortFall = Math.max(
+			0,
+			CST.MIN_TOKEN_BALANCE * alpha - this.tokenBalances[1]
+		);
+		const bTokenShortFall = Math.max(0, CST.MIN_TOKEN_BALANCE - this.tokenBalances[2]);
+		const bTokenToCreate = Math.max(aTokenShortFall / alpha, bTokenShortFall);
+		const tokensPerEth = DualClassWrapper.getTokensPerEth(this.custodianStates);
+		const ethAmountForCreation = bTokenToCreate / tokensPerEth[1] / (1 - this.custodianStates.createCommRate);
+		wethShortFall += ethAmountForCreation;
+		if (wethShortFall) {
+			const faucet = this.getMainAccount();
+			const tx = await web3Util.tokenTransfer(CST.TOKEN_WETH, faucet.address, this.makerAccount.address, this.makerAccount.address, wethShortFall);
+			await web3Util.awaitTransactionSuccessAsync(tx);
+		}
+		if (bTokenToCreate) {
+			const gasPrice = Math.max(
+				await web3Util.getGasPrice(),
+				CST.DEFAULT_GAS_PRICE * Math.pow(10, 9)
+			);
+			await dualClassWrapper.createRaw(
+				this.makerAccount.address,
+				this.makerAccount.privateKey,
+				gasPrice,
+				CST.CREATE_GAS,
+				ethAmountForCreation
 			);
 		}
 	}
