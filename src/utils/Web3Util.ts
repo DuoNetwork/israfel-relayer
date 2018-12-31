@@ -286,13 +286,20 @@ export default class Web3Util {
 		return token ? token.address : '';
 	}
 
-	public async setUnlimitedTokenAllowance(code: string, account: string) {
+	public setUnlimitedTokenAllowance(code: string, account: string, spender?: string) {
 		const tokenAddress = this.getTokenAddressFromCode(code);
 		if (tokenAddress)
-			return this.contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
-				tokenAddress,
-				account
-			);
+			if (spender)
+				return this.contractWrappers.erc20Token.setUnlimitedAllowanceAsync(
+					tokenAddress,
+					account,
+					spender
+				);
+			else
+				return this.contractWrappers.erc20Token.setUnlimitedProxyAllowanceAsync(
+					tokenAddress,
+					account
+				);
 		return Promise.reject();
 	}
 
