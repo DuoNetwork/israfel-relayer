@@ -308,10 +308,9 @@ class MarketMaker {
 	) {
 		const precision = this.tokens[0].precisions[CST.TOKEN_WETH];
 		for (let i = 0; i < level; i++) {
-			const levelPrice = Number(util.formatFixedNumber(
-				bestPrice + (isBid ? -1 : 1) * i * this.priceStep,
-				precision
-			));
+			const levelPrice = Number(
+				util.formatFixedNumber(bestPrice + (isBid ? -1 : 1) * i * this.priceStep, precision)
+			);
 			await relayerClient.addOrder(
 				this.makerAccount.address,
 				pair,
@@ -320,7 +319,7 @@ class MarketMaker {
 				isBid,
 				util.getExpiryTimestamp(false)
 			);
-			util.sleep(1000);
+			await util.sleep(1000);
 		}
 	}
 
@@ -337,25 +336,25 @@ class MarketMaker {
 		await this.createOrderBookSide(
 			relayerClient,
 			this.tokens[0].code + '|' + CST.TOKEN_WETH,
-			navPrices[0] - this.priceStep,
+			navPrices[0] / 135 - this.priceStep,
 			true
 		);
 		await this.createOrderBookSide(
 			relayerClient,
 			this.tokens[0].code + '|' + CST.TOKEN_WETH,
-			navPrices[0] + this.priceStep,
+			navPrices[0] / 135 + this.priceStep,
 			false
 		);
 		await this.createOrderBookSide(
 			relayerClient,
 			this.tokens[1].code + '|' + CST.TOKEN_WETH,
-			navPrices[1] - this.priceStep,
+			navPrices[1] / 135 - this.priceStep,
 			true
 		);
 		await this.createOrderBookSide(
 			relayerClient,
 			this.tokens[1].code + '|' + CST.TOKEN_WETH,
-			navPrices[1] + this.priceStep,
+			navPrices[1] / 135 + this.priceStep,
 			false
 		);
 	}
@@ -428,13 +427,13 @@ class MarketMaker {
 			];
 			if (orderHashes.length) {
 				await this.cancelOrders(relayerClient, pair, orderHashes);
-				util.sleep(5000);
+				await util.sleep(5000);
 			}
 		}
 
 		this.createOrderBookFromNav(dualClassWrapper, relayerClient);
-		relayerClient.subscribeOrderBook(this.tokens[0].code + '|' + CST.TOKEN_WETH);
-		relayerClient.subscribeOrderBook(this.tokens[1].code + '|' + CST.TOKEN_WETH);
+		// relayerClient.subscribeOrderBook(this.tokens[0].code + '|' + CST.TOKEN_WETH);
+		// relayerClient.subscribeOrderBook(this.tokens[1].code + '|' + CST.TOKEN_WETH);
 	}
 
 	public async handleUserOrder(
@@ -501,6 +500,10 @@ class MarketMaker {
 				);
 				if (!bToken) return;
 				this.tokens = [aToken, bToken];
+				this.liveAskOrders[aToken.code + '|' + CST.TOKEN_WETH] = {};
+				this.liveBidOrders[aToken.code + '|' + CST.TOKEN_WETH] = {};
+				this.liveAskOrders[bToken.code + '|' + CST.TOKEN_WETH] = {};
+				this.liveBidOrders[bToken.code + '|' + CST.TOKEN_WETH] = {};
 				this.priceStep = aToken.precisions[CST.TOKEN_WETH] * 100;
 				let infura = {
 					token: ''
