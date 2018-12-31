@@ -15,7 +15,6 @@ import {
 import util from '../utils/util';
 import RelayerClient from './RelayerClient';
 
-// TODO: simplify check token Balance
 // change faucet to WETH approve and transfers
 
 class MarketMaker {
@@ -37,115 +36,7 @@ class MarketMaker {
 		};
 	}
 
-	public async checkTokenBalance(
-		dualClassWrapper: DualClassWrapper,
-		ethBalance: number,
-		faucetAccount: IAccount,
-		web3Util: Web3Util
-	) {
-		if (!this.custodianStates) return;
-		const { alpha } = this.custodianStates;
-		// wEthBalance
-		const wEthBalance = await web3Util.getTokenBalance(
-			CST.TOKEN_WETH,
-			this.makerAccount.address
-		);
-		this.availableBalances[CST.TOKEN_WETH] = wEthBalance;
-		if (wEthBalance < CST.MIN_WETH_BALANCE) {
-			util.logDebug(
-				`the address ${
-					this.makerAccount.address
-				} current weth balance is ${wEthBalance}, wrapping...`
-			);
-			const amtToWrap = CST.MIN_WETH_BALANCE - wEthBalance + 0.1;
-
-			if (ethBalance < amtToWrap) {
-				await dualClassWrapper.web3Wrapper.ethTransferRaw(
-					faucetAccount.address,
-					faucetAccount.privateKey,
-					this.makerAccount.address,
-					CST.MIN_ETH_BALANCE,
-					await web3Util.getTransactionCount(faucetAccount.address)
-				);
-				this.availableBalances[CST.ETH] += CST.MIN_ETH_BALANCE;
-			}
-			util.logDebug(`start wrapping for ${this.makerAccount.address} with amt ${amtToWrap}`);
-			await web3Util.wrapEther(util.round(amtToWrap), this.makerAccount.address);
-			this.availableBalances[CST.TOKEN_WETH] += util.round(amtToWrap);
-			this.availableBalances[CST.ETH] -= util.round(amtToWrap);
-		}
-
-		// tokenBalance
-		const balanceOfTokenA = await web3Util.getTokenBalance(
-			this.tokens[0].code,
-			this.makerAccount.address
-		);
-		const balanceOfTokenB = await web3Util.getTokenBalance(
-			this.tokens[1].code,
-			this.makerAccount.address
-		);
-		this.availableBalances[this.tokens[0].code] = balanceOfTokenA;
-		this.availableBalances[this.tokens[1].code] = balanceOfTokenB;
-		const effBalanceOfTokenB = Math.min(
-			balanceOfTokenA / this.custodianStates.alpha,
-			balanceOfTokenB
-		);
-
-		const gasPrice = Math.max(
-			await web3Util.getGasPrice(),
-			CST.DEFAULT_GAS_PRICE * Math.pow(10, 9)
-		);
-		if (effBalanceOfTokenB < CST.MIN_TOKEN_BALANCE) {
-			const [aTokenPerEth, bTokenPerEth] = DualClassWrapper.getTokensPerEth(
-				this.custodianStates
-			);
-
-			const tokenAmtToCreate = bTokenPerEth * (ethBalance - CST.MIN_ETH_BALANCE - 0.1);
-
-			if (tokenAmtToCreate + effBalanceOfTokenB <= CST.MIN_TOKEN_BALANCE) {
-				await dualClassWrapper.web3Wrapper.ethTransferRaw(
-					faucetAccount.address,
-					faucetAccount.privateKey,
-					this.makerAccount.address,
-					CST.MIN_ETH_BALANCE,
-					await web3Util.getTransactionCount(faucetAccount.address)
-				);
-				this.availableBalances[CST.ETH] += CST.MIN_ETH_BALANCE;
-			}
-
-			await dualClassWrapper.createRaw(
-				this.makerAccount.address,
-				this.makerAccount.privateKey,
-				gasPrice,
-				CST.CREATE_GAS,
-				CST.MIN_ETH_BALANCE
-			);
-
-			this.availableBalances[this.tokens[0].code] += aTokenPerEth * CST.MIN_ETH_BALANCE;
-			this.availableBalances[this.tokens[1].code] += bTokenPerEth * CST.MIN_ETH_BALANCE;
-			this.availableBalances[CST.ETH] -= CST.MIN_ETH_BALANCE;
-		} else {
-			await dualClassWrapper.redeemRaw(
-				this.makerAccount.address,
-				this.makerAccount.privateKey,
-				(effBalanceOfTokenB - CST.MAX_TOKEN_BALANCE) * alpha,
-				effBalanceOfTokenB - CST.MAX_TOKEN_BALANCE,
-				gasPrice,
-				CST.REDEEM_GAS
-			);
-			this.availableBalances[this.tokens[0].code] -=
-				effBalanceOfTokenB - CST.MAX_TOKEN_BALANCE;
-			this.availableBalances[this.tokens[1].code] -=
-				(effBalanceOfTokenB - CST.MAX_TOKEN_BALANCE) / alpha;
-			this.availableBalances[CST.ETH] += DualClassWrapper.getEthWithTokens(
-				this.custodianStates,
-				effBalanceOfTokenB - CST.MAX_TOKEN_BALANCE,
-				(effBalanceOfTokenB - CST.MAX_TOKEN_BALANCE) / alpha
-			);
-		}
-	}
-
-	public async checkBalanceAllowance(web3Util: Web3Util) {
+	public async checkBalanceAllowance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
 		const address = this.makerAccount.address;
 		this.ethBalance = await web3Util.getEthBalance(address);
 		this.tokenBalances = [
@@ -160,24 +51,49 @@ class MarketMaker {
 				const txHash = await web3Util.setUnlimitedTokenAllowance(code, address);
 				await web3Util.awaitTransactionSuccessAsync(txHash);
 			}
+
+		const wethAddress = web3Util.contractAddresses.etherToken;
+		const custodianAddress = dualClassWrapper.address;
+		if (
+			!(await dualClassWrapper.web3Wrapper.getErc20Allowance(
+				wethAddress,
+				address,
+				custodianAddress
+			))
+		) {
+			const txHash = await dualClassWrapper.web3Wrapper.erc20Approve(
+				wethAddress,
+				address,
+				custodianAddress,
+				0,
+				true
+			);
+			await web3Util.awaitTransactionSuccessAsync(txHash);
+		}
+
+		return this.maintainMinimumBalance(web3Util, dualClassWrapper);
 	}
 
 	public async maintainMinimumBalance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
 		this.custodianStates = await dualClassWrapper.getStates();
 		const alpha = this.custodianStates.alpha;
 		let wethShortFall = Math.max(0, CST.MIN_WETH_BALANCE - this.tokenBalances[0]);
-		const aTokenShortFall = Math.max(
-			0,
-			CST.MIN_TOKEN_BALANCE * alpha - this.tokenBalances[1]
-		);
+		const aTokenShortFall = Math.max(0, CST.MIN_TOKEN_BALANCE * alpha - this.tokenBalances[1]);
 		const bTokenShortFall = Math.max(0, CST.MIN_TOKEN_BALANCE - this.tokenBalances[2]);
 		const bTokenToCreate = Math.max(aTokenShortFall / alpha, bTokenShortFall);
 		const tokensPerEth = DualClassWrapper.getTokensPerEth(this.custodianStates);
-		const ethAmountForCreation = bTokenToCreate / tokensPerEth[1] / (1 - this.custodianStates.createCommRate);
+		const ethAmountForCreation =
+			bTokenToCreate / tokensPerEth[1] / (1 - this.custodianStates.createCommRate);
 		wethShortFall += ethAmountForCreation;
 		if (wethShortFall) {
 			const faucet = this.getMainAccount();
-			const tx = await web3Util.tokenTransfer(CST.TOKEN_WETH, faucet.address, this.makerAccount.address, this.makerAccount.address, wethShortFall);
+			const tx = await web3Util.tokenTransfer(
+				CST.TOKEN_WETH,
+				faucet.address,
+				this.makerAccount.address,
+				this.makerAccount.address,
+				wethShortFall
+			);
 			await web3Util.awaitTransactionSuccessAsync(tx);
 		}
 		if (bTokenToCreate) {
@@ -185,73 +101,21 @@ class MarketMaker {
 				await web3Util.getGasPrice(),
 				CST.DEFAULT_GAS_PRICE * Math.pow(10, 9)
 			);
-			await dualClassWrapper.createRaw(
+			const tx = await dualClassWrapper.createRaw(
 				this.makerAccount.address,
 				this.makerAccount.privateKey,
 				gasPrice,
 				CST.CREATE_GAS,
-				ethAmountForCreation
+				ethAmountForCreation,
+				web3Util.contractAddresses.etherToken
 			);
+			await web3Util.awaitTransactionSuccessAsync(tx);
 		}
-	}
-
-	public async checkAllowanceAndEthBalance(
-		dualClassWrapper: DualClassWrapper,
-		web3Util: Web3Util
-	) {
-		// wETHallowance
-		const wethAllowance = await web3Util.getProxyTokenAllowance(
-			CST.TOKEN_WETH,
-			this.makerAccount.address
-		);
-		util.logDebug(`tokenAllowande of token ${CST.TOKEN_WETH} is ${wethAllowance}`);
-		if (wethAllowance <= 0) {
-			util.logDebug(
-				`the address ${this.makerAccount.address} token allowance of ${
-					CST.TOKEN_WETH
-				} is 0, approvaing.....`
-			);
-			await web3Util.setUnlimitedTokenAllowance(CST.TOKEN_WETH, this.makerAccount.address);
+		if (wethShortFall) this.tokenBalances[0] = CST.MIN_WETH_BALANCE;
+		if (bTokenToCreate) {
+			this.tokenBalances[2] = CST.MIN_TOKEN_BALANCE;
+			this.tokenBalances[1] += bTokenToCreate * alpha;
 		}
-		// tokenAllowance
-		for (const token of this.tokens) {
-			const tokenAllowance = await web3Util.getProxyTokenAllowance(
-				token.code,
-				this.makerAccount.address
-			);
-			util.logInfo(`tokenAllowande of token ${token.code} is ${tokenAllowance}`);
-			if (tokenAllowance <= 0) {
-				util.logInfo(
-					`the address ${this.makerAccount.address} token allowance of ${
-						token.code
-					} is 0, approvaing.....`
-				);
-				await web3Util.setUnlimitedTokenAllowance(token.code, this.makerAccount.address);
-			}
-		}
-
-		const faucetAccount: IAccount = this.getMainAccount();
-		// ethBalance
-		const ethBalance = await web3Util.getEthBalance(this.makerAccount.address);
-		this.availableBalances[CST.ETH] = ethBalance;
-		util.logInfo(`the ethBalance of ${this.makerAccount.address} is ${ethBalance}`);
-		if (ethBalance < CST.MIN_ETH_BALANCE) {
-			util.logDebug(
-				`the address ${
-					this.makerAccount.address
-				} current eth balance is ${ethBalance}, make transfer...`
-			);
-
-			await dualClassWrapper.web3Wrapper.ethTransferRaw(
-				faucetAccount.address,
-				faucetAccount.privateKey,
-				this.makerAccount.address,
-				util.round(CST.MIN_ETH_BALANCE),
-				await web3Util.getTransactionCount(faucetAccount.address)
-			);
-			this.availableBalances[CST.ETH] += util.round(CST.MIN_ETH_BALANCE);
-		}
-		await this.checkTokenBalance(dualClassWrapper, ethBalance, faucetAccount, web3Util);
 	}
 
 	private getSideTotalLiquidity(side: IOrderBookSnapshotLevel[], level?: number): number {
@@ -521,9 +385,9 @@ class MarketMaker {
 	}
 
 	public async handleUserOrder(
-		dualClassWrapper: DualClassWrapper,
 		userOrder: IUserOrder,
-		web3Util: Web3Util
+		web3Util: Web3Util,
+		dualClassWrapper: DualClassWrapper
 	) {
 		const isBid = userOrder.side === CST.DB_BID;
 		const { pair, orderHash } = userOrder;
@@ -550,12 +414,7 @@ class MarketMaker {
 		}
 
 		this.custodianStates = await dualClassWrapper.getStates();
-		await this.checkTokenBalance(
-			dualClassWrapper,
-			await web3Util.getEthBalance(this.makerAccount.address),
-			this.getMainAccount(),
-			web3Util
-		);
+		await this.checkBalanceAllowance(web3Util, dualClassWrapper);
 	}
 
 	private getMakerAccount(mnemomic: string, index: number): IAccount {
@@ -606,8 +465,7 @@ class MarketMaker {
 					new Web3Wrapper(null, 'source', infuraProvider, live),
 					aToken.custodian
 				);
-				this.custodianStates = await dualClassWrapper.getStates();
-				await this.checkAllowanceAndEthBalance(dualClassWrapper, web3Util);
+				await this.checkBalanceAllowance(web3Util, dualClassWrapper);
 				relayerClient.subscribeOrderHistory(this.makerAccount.address);
 			}
 		});
@@ -621,7 +479,7 @@ class MarketMaker {
 					web3Util
 				),
 			userOrder =>
-				this.handleUserOrder(dualClassWrapper as DualClassWrapper, userOrder, web3Util),
+				this.handleUserOrder(userOrder, web3Util, dualClassWrapper as DualClassWrapper),
 			(method, orderHash, error) => util.logError(method + ' ' + orderHash + ' ' + error)
 		);
 		relayerClient.onOrderBook(
