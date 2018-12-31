@@ -367,6 +367,7 @@ class MarketMaker {
 			this.liveOrders[uo.pair][uo.orderHash] = uo;
 		});
 
+		// TODO: reduce balance first by each order
 		for (const pair in this.liveOrders) {
 			const orderHashes = Object.keys(this.liveOrders[pair]);
 			if (orderHashes.length) {
@@ -391,18 +392,18 @@ class MarketMaker {
 	) {
 		const isBid = userOrder.side === CST.DB_BID;
 		const { pair, orderHash } = userOrder;
-		if (userOrder.type === CST.DB_TERMINATE) delete this.liveOrders[pair][userOrder.orderHash];
-
-		if (userOrder.type === CST.DB_TERMINATE && userOrder.updatedBy !== CST.DB_RELAYER)
-			if (isBid)
-				this.availableBalances[CST.TOKEN_WETH] += userOrder.balance * userOrder.price;
-			else this.availableBalances[pair.split('|')[0]] += userOrder.balance;
-		else if (userOrder.type === CST.DB_ADD) {
+		const tokenIndex = pair.startsWith(this.tokens[0].code) ? 1 : 2;
+		if (userOrder.type === CST.DB_TERMINATE) {
+			const prevVersion = this.liveOrders[pair][userOrder.orderHash];
+			delete this.liveOrders[pair][userOrder.orderHash];
+			if (isBid) this.tokenBalances[0] += prevVersion.balance * prevVersion.price;
+			else this.tokenBalances[tokenIndex] += prevVersion.balance;
+		} else if (userOrder.type === CST.DB_ADD) {
 			this.liveOrders[pair][orderHash] = userOrder;
-			if (isBid)
-				this.availableBalances[CST.TOKEN_WETH] -= userOrder.balance * userOrder.price;
-			else this.availableBalances[pair.split('|')[0]] -= userOrder.balance;
-		} else if (userOrder.type === CST.DB_UPDATE) {
+			if (isBid) this.tokenBalances[0] -= userOrder.balance * userOrder.price;
+			else this.tokenBalances[tokenIndex] -= userOrder.balance;
+			this.liveOrders[pair][orderHash] = userOrder;
+		} else if (userOrder.type === CST.DB_UPDATE && userOrder.status !== CST.DB_MATCHING) {
 			if (isBid)
 				this.availableBalances[CST.TOKEN_WETH] -=
 					(userOrder.balance - this.liveOrders[pair][orderHash].balance) *
@@ -410,10 +411,9 @@ class MarketMaker {
 			else
 				this.availableBalances[pair.split('|')[0]] -=
 					userOrder.balance - this.liveOrders[pair][orderHash].balance;
-			this.liveOrders[pair][orderHash].balance = userOrder.balance;
+			this.liveOrders[pair][orderHash] = userOrder;
 		}
 
-		this.custodianStates = await dualClassWrapper.getStates();
 		await this.checkBalanceAllowance(web3Util, dualClassWrapper);
 	}
 
@@ -489,12 +489,12 @@ class MarketMaker {
 					relayerClient,
 					orderBookSnapshot
 				),
-			(method, pair, error) => util.logError(method + ' ' + pair + ' ' + error)
+			(method, pair, error) => util.logError(method + ' ' + pair + ' ' + error) // TODO: handle add and terminate error
 		);
 
 		relayerClient.onConnection(
 			() => util.logDebug('connected'),
-			() => util.logDebug('reconnecting')
+			() => util.logDebug('reconnecting') // TODO: handle reconnect
 		);
 		relayerClient.connectToRelayer();
 	}
