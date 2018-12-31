@@ -39,7 +39,7 @@ class MarketMaker {
 		const address = this.makerAccount.address;
 
 		for (const code of [CST.TOKEN_WETH, this.tokens[0].code, this.tokens[1].code])
-			if (!(await web3Util.getProxyTokenAllowance(code, address))) {
+			if (!(await web3Util.getTokenAllowance(code, address))) {
 				util.logDebug(`${address} ${code} allowance is 0, approving.....`);
 				const txHash = await web3Util.setUnlimitedTokenAllowance(code, address);
 				await web3Util.awaitTransactionSuccessAsync(txHash);

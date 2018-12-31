@@ -303,16 +303,25 @@ export default class Web3Util {
 		return Promise.reject();
 	}
 
-	public async getProxyTokenAllowance(code: string, ownerAddr: string) {
+	public async getTokenAllowance(code: string, ownerAddr: string, spender?: string) {
 		const tokenAddress = this.getTokenAddressFromCode(code);
 
 		if (tokenAddress)
-			return Web3Util.fromWei(
-				await this.contractWrappers.erc20Token.getProxyAllowanceAsync(
-					tokenAddress,
-					ownerAddr.toLowerCase()
-				)
-			);
+			if (spender)
+				return Web3Util.fromWei(
+					await this.contractWrappers.erc20Token.getAllowanceAsync(
+						tokenAddress,
+						ownerAddr.toLowerCase(),
+						spender
+					)
+				);
+			else
+				return Web3Util.fromWei(
+					await this.contractWrappers.erc20Token.getProxyAllowanceAsync(
+						tokenAddress,
+						ownerAddr.toLowerCase()
+					)
+				);
 		return 0;
 	}
 
