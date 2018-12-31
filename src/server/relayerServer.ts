@@ -118,6 +118,7 @@ class RelayerServer {
 				else this.sendErrorOrderResponse(ws, req, req.orderHash, CST.WS_INVALID_ORDER);
 			} else {
 				util.logDebug('invalid orderHash, ignore');
+				util.logDebug(orderHash);
 				this.sendErrorOrderResponse(ws, req, req.orderHash, CST.WS_INVALID_ORDER);
 			}
 		} catch (error) {
