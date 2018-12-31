@@ -3,8 +3,7 @@ import Web3Wrapper from '../../../duo-contract-wrapper/src/Web3Wrapper';
 import Web3Util from '../../../israfel-relayer/src/utils/Web3Util';
 import * as CST from '../common/constants';
 import {
-	IAccounts,
-	IBestPriceChange,
+	IAccount,
 	IDualClassStates,
 	IOption,
 	IOrderBookSnapshot,
@@ -15,15 +14,18 @@ import {
 import util from '../utils/util';
 import RelayerClient from './RelayerClient';
 
+// change faucet to WETH approve and transfers
+
 class MarketMaker {
 	public tokens: IToken[] = [];
-	private dualClassWrapper: DualClassWrapper | null = null;
-	private relayerClient: RelayerClient | null = null;
 	public isMakingOrder: boolean = false;
 	public liveOrders: { [pair: string]: { [orderHash: string]: IUserOrder } } = {};
-	public makerAddress: string = '';
+	public makerAccount: IAccount = { address: '0x0', privateKey: '' };
 	public custodianStates: IDualClassStates | null = null;
 	public priceStep: number = 0.0005;
+	public availableBalances: { [code: string]: number } = {};
+	public ethBalance: number = 0;
+	public tokenBalances: number[] = [0, 0, 0];
 
 	public getMainAccount() {
 		const faucetAccount = require('../keys/faucetAccount.json');
@@ -33,130 +35,86 @@ class MarketMaker {
 		};
 	}
 
-	public async checkBalance(
-		web3Util: Web3Util,
-		dualClassWrapper: DualClassWrapper | null,
-		addresses: string[]
-	): Promise<string[]> {
-		if (!dualClassWrapper) return [];
-		const states: IDualClassStates = await dualClassWrapper.getStates();
+	public async checkBalanceAllowance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
+		const address = this.makerAccount.address;
+		this.ethBalance = await web3Util.getEthBalance(address);
+		this.tokenBalances = [
+			await web3Util.getTokenBalance(CST.TOKEN_WETH, address),
+			await web3Util.getTokenBalance(this.tokens[0].code, address),
+			await web3Util.getTokenBalance(this.tokens[1].code, address)
+		];
 
-		for (const address of addresses) {
-			const faucetAccount: IAccounts = this.getMainAccount();
-			// ethBalance
-			const ethBalance = await web3Util.getEthBalance(address);
-			util.logInfo(`the ethBalance of ${address} is ${ethBalance}`);
-			if (ethBalance < CST.MIN_ETH_BALANCE) {
-				util.logDebug(
-					`the address ${address} current eth balance is ${ethBalance}, make transfer...`
-				);
-
-				await dualClassWrapper.web3Wrapper.ethTransferRaw(
-					faucetAccount.address,
-					faucetAccount.privateKey,
-					address,
-					util.round(CST.MIN_ETH_BALANCE),
-					await web3Util.getTransactionCount(faucetAccount.address)
-				);
+		for (const code of [CST.TOKEN_WETH, this.tokens[0].code, this.tokens[1].code])
+			if (!(await web3Util.getProxyTokenAllowance(code, address))) {
+				util.logDebug(`${address} ${code} allowance is 0, approvaing.....`);
+				const txHash = await web3Util.setUnlimitedTokenAllowance(code, address);
+				await web3Util.awaitTransactionSuccessAsync(txHash);
 			}
 
-			// wEthBalance
-			const wEthBalance = await web3Util.getTokenBalance(CST.TOKEN_WETH, address);
-			if (wEthBalance < CST.MIN_WETH_BALANCE) {
-				util.logDebug(
-					`the address ${address} current weth balance is ${wEthBalance}, wrapping...`
-				);
-				const amtToWrap = CST.MIN_WETH_BALANCE - wEthBalance + 0.1;
+		const wethAddress = web3Util.contractAddresses.etherToken;
+		const custodianAddress = dualClassWrapper.address;
+		if (
+			!(await dualClassWrapper.web3Wrapper.getErc20Allowance(
+				wethAddress,
+				address,
+				custodianAddress
+			))
+		) {
+			const txHash = await dualClassWrapper.web3Wrapper.erc20Approve(
+				wethAddress,
+				address,
+				custodianAddress,
+				0,
+				true
+			);
+			await web3Util.awaitTransactionSuccessAsync(txHash);
+		}
 
-				if (ethBalance < amtToWrap)
-					await dualClassWrapper.web3Wrapper.ethTransferRaw(
-						faucetAccount.address,
-						faucetAccount.privateKey,
-						address,
-						CST.MIN_ETH_BALANCE,
-						await web3Util.getTransactionCount(faucetAccount.address)
-					);
+		return this.maintainMinimumBalance(web3Util, dualClassWrapper);
+	}
 
-				util.logDebug(`start wrapping for ${address} with amt ${amtToWrap}`);
-				await web3Util.wrapEther(util.round(amtToWrap), address);
-			}
-
-			// wETHallowance
-			const wethAllowance = await web3Util.getProxyTokenAllowance(CST.TOKEN_WETH, address);
-			util.logDebug(`tokenAllowande of token ${CST.TOKEN_WETH} is ${wethAllowance}`);
-			if (wethAllowance <= 0) {
-				util.logDebug(
-					`the address ${address} token allowance of ${
-						CST.TOKEN_WETH
-					} is 0, approvaing.....`
-				);
-				await web3Util.setUnlimitedTokenAllowance(CST.TOKEN_WETH, address);
-			}
-
-			// a tokenBalance
-			const balanceOfTokenA = await web3Util.getTokenBalance(this.tokens[0].code, address);
-			const balanceOfTokenB = await web3Util.getTokenBalance(this.tokens[1].code, address);
-			const effBalanceOfTokenB = Math.min(balanceOfTokenA / states.alpha, balanceOfTokenB);
-
-			const accountsBot: IAccounts[] = require('../keys/accountsBot.json');
-			const account = accountsBot.find(a => a.address === address);
+	public async maintainMinimumBalance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
+		this.custodianStates = await dualClassWrapper.getStates();
+		const alpha = this.custodianStates.alpha;
+		let wethShortFall = Math.max(0, CST.MIN_WETH_BALANCE - this.tokenBalances[0]);
+		const aTokenShortFall = Math.max(0, CST.MIN_TOKEN_BALANCE * alpha - this.tokenBalances[1]);
+		const bTokenShortFall = Math.max(0, CST.MIN_TOKEN_BALANCE - this.tokenBalances[2]);
+		const bTokenToCreate = Math.max(aTokenShortFall / alpha, bTokenShortFall);
+		const tokensPerEth = DualClassWrapper.getTokensPerEth(this.custodianStates);
+		const ethAmountForCreation =
+			bTokenToCreate / tokensPerEth[1] / (1 - this.custodianStates.createCommRate);
+		wethShortFall += ethAmountForCreation;
+		if (wethShortFall) {
+			const faucet = this.getMainAccount();
+			const tx = await web3Util.tokenTransfer(
+				CST.TOKEN_WETH,
+				faucet.address,
+				this.makerAccount.address,
+				this.makerAccount.address,
+				wethShortFall
+			);
+			await web3Util.awaitTransactionSuccessAsync(tx);
+		}
+		if (bTokenToCreate) {
 			const gasPrice = Math.max(
 				await web3Util.getGasPrice(),
 				CST.DEFAULT_GAS_PRICE * Math.pow(10, 9)
 			);
-			if (effBalanceOfTokenB < CST.MIN_TOKEN_BALANCE) {
-				const tokenAmtToCreate =
-					DualClassWrapper.getTokensPerEth(states)[1] *
-					(ethBalance - CST.MIN_ETH_BALANCE - 0.1);
-
-				if (tokenAmtToCreate + effBalanceOfTokenB <= CST.MIN_TOKEN_BALANCE)
-					await dualClassWrapper.web3Wrapper.ethTransferRaw(
-						faucetAccount.address,
-						faucetAccount.privateKey,
-						address,
-						CST.MIN_ETH_BALANCE,
-						await web3Util.getTransactionCount(faucetAccount.address)
-					);
-
-				if (account)
-					await dualClassWrapper.createRaw(
-						address,
-						account.privateKey,
-						gasPrice,
-						CST.CREATE_GAS,
-						CST.MIN_ETH_BALANCE
-					);
-				else {
-					util.logDebug(`the address ${address} cannot create, skip...`);
-					addresses = addresses.filter(addr => addr !== address);
-					continue;
-				}
-			} else if (effBalanceOfTokenB >= CST.MAX_TOKEN_BALANCE)
-				if (account)
-					await dualClassWrapper.redeemRaw(
-						address,
-						account.privateKey,
-						effBalanceOfTokenB - CST.MAX_TOKEN_BALANCE,
-						(effBalanceOfTokenB - CST.MAX_TOKEN_BALANCE) / states.alpha,
-						gasPrice,
-						CST.REDEEM_GAS
-					);
-
-			for (const token of this.tokens) {
-				const tokenAllowance = await web3Util.getProxyTokenAllowance(token.code, address);
-				util.logInfo(`tokenAllowande of token ${token.code} is ${tokenAllowance}`);
-				if (tokenAllowance <= 0) {
-					util.logInfo(
-						`the address ${address} token allowance of ${
-							token.code
-						} is 0, approvaing.....`
-					);
-					await web3Util.setUnlimitedTokenAllowance(token.code, address);
-				}
-			}
+			const tx = await dualClassWrapper.createRaw(
+				this.makerAccount.address,
+				this.makerAccount.privateKey,
+				gasPrice,
+				CST.CREATE_GAS,
+				ethAmountForCreation,
+				web3Util.contractAddresses.etherToken
+			);
+			await web3Util.awaitTransactionSuccessAsync(tx);
 		}
-
-		return addresses;
+		if (wethShortFall) this.tokenBalances[0] = CST.MIN_WETH_BALANCE;
+		if (bTokenToCreate) {
+			this.tokenBalances[2] = CST.MIN_TOKEN_BALANCE;
+			this.tokenBalances[1] += bTokenToCreate * alpha;
+		}
 	}
 
 	private getSideTotalLiquidity(side: IOrderBookSnapshotLevel[], level?: number): number {
@@ -168,104 +126,103 @@ class MarketMaker {
 	}
 
 	public async startMakingOrders(
-		pair: string,
-		orderBookSnapshot: IOrderBookSnapshot,
-		bestPriceChange: IBestPriceChange
+		relayerClient: RelayerClient,
+		dualClassWrapper: DualClassWrapper,
+		pair: string
 	) {
-		if (!this.dualClassWrapper || !this.relayerClient) return;
-		this.custodianStates = await this.dualClassWrapper.getStates();
+		this.custodianStates = await dualClassWrapper.getStates();
 		const ethNav = this.custodianStates.lastPrice / this.custodianStates.resetPrice;
-		const thisToken = this.tokens.find(t => t.code === pair.split('|')[0]);
-		const otherToken = this.tokens.find(t => t.code !== pair.split('|')[0]);
-		if (!thisToken || !otherToken) {
-			this.isMakingOrder = false;
-			return;
-		}
+		const isA = this.tokens[0].code === pair.split('|')[0];
+		const tokenNav = isA ? this.custodianStates.navA : this.custodianStates.navB;
+		const orderBookSnapshot = relayerClient.orderBookSnapshots[pair];
 
-		if (bestPriceChange.changeAmount === 0) {
-			// no bestPriceChange, need to make enough liquidity
-			await this.createOrderBookSide(pair, orderBookSnapshot.bids[0].price, true);
-			await this.createOrderBookSide(pair, orderBookSnapshot.asks[0].price, false);
-		} else if (
-			(bestPriceChange.isBidChange && bestPriceChange.changeAmount < 0) ||
-			(!bestPriceChange.isBidChange && bestPriceChange.changeAmount > 0)
-		) {
+		const newBids = orderBookSnapshot.bids;
+		const newAsks = orderBookSnapshot.asks;
+		const bestBidPrice = newBids.length
+			? newBids[0].price
+			: newAsks.length
+			? newAsks[0].price - this.priceStep
+			: tokenNav - this.priceStep;
+		const bestAskPrice = newAsks.length
+			? newAsks[0].price
+			: newBids.length
+			? newBids[0].price + this.priceStep
+			: tokenNav + this.priceStep;
+		// make orders for this side
+		if (
+			orderBookSnapshot.bids.length < CST.MIN_ORDER_BOOK_LEVELS ||
+			this.getSideTotalLiquidity(orderBookSnapshot.bids, 3) < CST.MIN_SIDE_LIQUIDITY
+		)
 			await this.createOrderBookSide(
+				relayerClient,
 				pair,
-				orderBookSnapshot.bids[0].price,
+				bestBidPrice,
 				true,
-				Math.min(3 - orderBookSnapshot.bids.length, 3)
+				Math.min(3 - newBids.length, 3)
 			);
 
-			const otherTokenBestBidPrice =
-				ethNav * (1 + this.custodianStates.alpha) -
-				(this.tokens.indexOf(thisToken) === 0
-					? this.custodianStates.alpha * orderBookSnapshot.bids[0].price
-					: orderBookSnapshot.bids[0].price);
+		if (
+			newAsks.length < CST.MIN_ORDER_BOOK_LEVELS ||
+			this.getSideTotalLiquidity(newAsks, 3) < CST.MIN_SIDE_LIQUIDITY
+		)
+			await this.createOrderBookSide(
+				relayerClient,
+				pair,
+				bestAskPrice,
+				false,
+				Math.min(3 - newAsks.length, 3)
+			);
 
-			// TODO: cancel self make order with bid price > otherTokenBestBidPrice
-			// currently, take all orders with bid price > otherTokenBestBidPrice, including self
+		const otherTokenNoArbBidPrice =
+			ethNav * (1 + this.custodianStates.alpha) -
+			(isA ? this.custodianStates.alpha : 1) * bestBidPrice;
+
+		const otherTokenNoArbAskPrice =
+			ethNav * (1 + this.custodianStates.alpha) -
+			(isA ? this.custodianStates.alpha : 1) * bestAskPrice;
+		// TODO: cancel self make order with bid price > otherTokenBestBidPrice
+		// currently, take all orders with bid price > otherTokenBestBidPrice, including self
+		const otherTokenOrderBook =
+			relayerClient.orderBookSnapshots[this.tokens[isA ? 1 : 0].code + '|' + CST.TOKEN_WETH];
+		const otherTokenBestBid = otherTokenOrderBook.bids.length
+			? otherTokenOrderBook.bids[0].price
+			: 0;
+		const otherTokenBestAsk = otherTokenOrderBook.asks.length
+			? otherTokenOrderBook.asks[0].price
+			: Number.MAX_VALUE;
+
+		if (otherTokenBestBid > otherTokenNoArbAskPrice)
 			await this.takeOneSideOrders(
+				relayerClient,
 				pair,
 				true,
-				this.relayerClient.orderBookSnapshots[otherToken.code].bids.filter(
-					bid => bid.price > otherTokenBestBidPrice
-				)
+				otherTokenOrderBook.bids.filter(bid => bid.price >= otherTokenNoArbAskPrice)
 			);
-			await this.createOrderBookSide(
-				otherToken.code + '|' + CST.TOKEN_WETH,
-				otherTokenBestBidPrice,
-				true
-			);
-		} else if (
-			(bestPriceChange.isBidChange && bestPriceChange.changeAmount > 0) ||
-			(!bestPriceChange.isBidChange && bestPriceChange.changeAmount < 0)
-		) {
-			await this.createOrderBookSide(
-				pair,
-				orderBookSnapshot.asks[0].price,
-				false,
-				Math.min(3 - orderBookSnapshot.asks.length, 3)
-			);
-			const otherTokenBestAskPrice =
-				ethNav * (1 + this.custodianStates.alpha) -
-				(this.tokens.indexOf(thisToken) === 0
-					? this.custodianStates.alpha * orderBookSnapshot.asks[0].price
-					: orderBookSnapshot.asks[0].price);
 
+		if (otherTokenBestAsk < otherTokenNoArbBidPrice)
 			await this.takeOneSideOrders(
+				relayerClient,
 				pair,
 				false,
-				this.relayerClient.orderBookSnapshots[otherToken.code].asks.filter(
-					ask => ask.price < otherTokenBestAskPrice
-				)
+				otherTokenOrderBook.asks.filter(ask => ask.price <= otherTokenNoArbBidPrice)
 			);
-			await this.createOrderBookSide(
-				otherToken.code + '|' + CST.TOKEN_WETH,
-				otherTokenBestAskPrice,
-				false
-			);
-		}
 		this.isMakingOrder = false;
 	}
 
 	public async takeOneSideOrders(
+		relayerClient: RelayerClient,
 		pair: string,
 		isBid: boolean,
 		orderBookSide: IOrderBookSnapshotLevel[]
 	) {
-		if (!this.relayerClient) {
-			util.logDebug('no relayer client, ignore');
-			return;
-		}
 		for (const orderLevel of orderBookSide) {
 			util.logDebug(
 				`taking an  ${isBid ? 'bid' : 'ask'} order with price ${orderLevel.price} amount ${
 					orderLevel.balance
 				}`
 			);
-			await this.relayerClient.addOrder(
-				this.makerAddress,
+			await relayerClient.addOrder(
+				this.makerAccount.address,
 				pair,
 				orderLevel.price,
 				orderLevel.balance,
@@ -277,63 +234,73 @@ class MarketMaker {
 	}
 
 	public async createOrderBookSide(
+		relayerClient: RelayerClient,
 		pair: string,
 		bestPrice: number,
 		isBid: boolean,
 		level: number = 3
 	) {
-		if (!this.relayerClient) {
-			util.logDebug('no relayer client, ignore');
-			return;
-		}
 		for (let i = 0; i < level; i++) {
 			const levelPrice = util.round(bestPrice + (isBid ? -1 : 1) * i * this.priceStep);
-			const levelAmount = CST.ORDER_BOOK_LEVEL_AMT[i];
-			if (levelAmount > 0)
-				await this.relayerClient.addOrder(
-					this.makerAddress,
-					pair,
-					levelPrice,
-					levelAmount,
-					isBid,
-					util.getExpiryTimestamp(false)
-				);
+			await relayerClient.addOrder(
+				this.makerAccount.address,
+				pair,
+				levelPrice,
+				20,
+				isBid,
+				util.getExpiryTimestamp(false)
+			);
 		}
 	}
 
-	public async getNav() {
-		if (!this.dualClassWrapper) return [1, 1];
-		this.custodianStates = await this.dualClassWrapper.getStates();
+	public async getNav(dualClassWrapper: DualClassWrapper) {
+		this.custodianStates = await dualClassWrapper.getStates();
 		return [this.custodianStates.navA, this.custodianStates.navB];
 	}
 
-	public async createOrderBookFromNav() {
-		const navPrices = await this.getNav();
+	public async createOrderBookFromNav(
+		dualClassWrapper: DualClassWrapper,
+		relayerClient: RelayerClient
+	) {
+		const navPrices = await this.getNav(dualClassWrapper);
 		await this.createOrderBookSide(
+			relayerClient,
 			this.tokens[0].code + '|' + CST.TOKEN_WETH,
 			navPrices[0] - this.priceStep,
 			true
 		);
 		await this.createOrderBookSide(
+			relayerClient,
 			this.tokens[0].code + '|' + CST.TOKEN_WETH,
 			navPrices[0] + this.priceStep,
 			false
 		);
 		await this.createOrderBookSide(
+			relayerClient,
 			this.tokens[1].code + '|' + CST.TOKEN_WETH,
 			navPrices[1] - this.priceStep,
 			true
 		);
 		await this.createOrderBookSide(
+			relayerClient,
 			this.tokens[1].code + '|' + CST.TOKEN_WETH,
 			navPrices[1] + this.priceStep,
 			false
 		);
 	}
 
-	public async handleOrderBookUpdate(orderBookSnapshot: IOrderBookSnapshot) {
-		if (!this.relayerClient) return;
+	public async handleOrderBookUpdate(
+		dualClassWrapper: DualClassWrapper,
+		relayerClient: RelayerClient,
+		orderBookSnapshot: IOrderBookSnapshot
+	) {
 		const pair = orderBookSnapshot.pair;
+		if (
+			!relayerClient.orderBookSnapshots[this.tokens[0].code + '|' + CST.TOKEN_WETH] ||
+			!relayerClient.orderBookSnapshots[this.tokens[1].code + '|' + CST.TOKEN_WETH]
+		)
+			return;
+
 		if (this.isMakingOrder) return;
 
 		if (
@@ -344,35 +311,101 @@ class MarketMaker {
 		) {
 			this.isMakingOrder = true;
 
-			const bestPriceChange: IBestPriceChange = {
-				isBidChange: true,
-				changeAmount:
-					(orderBookSnapshot.bids[0].price || 0) -
-					(this.relayerClient.orderBookSnapshots[pair].bids[0].price || 0)
-			};
-			if (
-				orderBookSnapshot.asks[0].price !==
-				this.relayerClient.orderBookSnapshots[pair].asks[0].price
-			) {
-				bestPriceChange.isBidChange = false;
-				bestPriceChange.changeAmount =
-					(orderBookSnapshot.asks[0].price || 0) -
-					(this.relayerClient.orderBookSnapshots[pair].asks[0].price || 0);
-			}
-
-			await this.startMakingOrders(pair, orderBookSnapshot, bestPriceChange);
+			await this.startMakingOrders(relayerClient, dualClassWrapper, pair);
 		}
+	}
+
+	public async handleOrderHistory(
+		dualClassWrapper: DualClassWrapper,
+		relayerClient: RelayerClient,
+		userOrders: IUserOrder[],
+		web3Util: Web3Util
+	) {
+		const processed: { [orderHash: string]: boolean } = {};
+		userOrders.sort(
+			(a, b) => a.pair.localeCompare(b.pair) || -a.currentSequence + b.currentSequence
+		);
+		userOrders.forEach(uo => {
+			if (processed[uo.orderHash]) return;
+			processed[uo.orderHash] = true;
+			if (uo.type === CST.DB_TERMINATE) return;
+			if (!this.liveOrders[uo.pair]) this.liveOrders[uo.pair] = {};
+			this.liveOrders[uo.pair][uo.orderHash] = uo;
+		});
+
+		// TODO: reduce balance first by each order
+		for (const pair in this.liveOrders) {
+			const orderHashes = Object.keys(this.liveOrders[pair]);
+			if (orderHashes.length) {
+				const signature = await web3Util.web3PersonalSign(
+					this.makerAccount.address,
+					CST.TERMINATE_SIGN_MSG + orderHashes.join(',')
+				);
+				relayerClient.deleteOrder(pair, orderHashes, signature);
+				this.liveOrders[pair] = {};
+			}
+		}
+
+		this.createOrderBookFromNav(dualClassWrapper, relayerClient);
+		relayerClient.subscribeOrderBook(this.tokens[0].code + '|' + CST.TOKEN_WETH);
+		relayerClient.subscribeOrderBook(this.tokens[1].code + '|' + CST.TOKEN_WETH);
+	}
+
+	public async handleUserOrder(
+		userOrder: IUserOrder,
+		web3Util: Web3Util,
+		dualClassWrapper: DualClassWrapper
+	) {
+		const isBid = userOrder.side === CST.DB_BID;
+		const { pair, orderHash } = userOrder;
+		const tokenIndex = pair.startsWith(this.tokens[0].code) ? 1 : 2;
+		if (userOrder.type === CST.DB_TERMINATE) {
+			const prevVersion = this.liveOrders[pair][userOrder.orderHash];
+			delete this.liveOrders[pair][userOrder.orderHash];
+			if (isBid) this.tokenBalances[0] += prevVersion.balance * prevVersion.price;
+			else this.tokenBalances[tokenIndex] += prevVersion.balance;
+		} else if (userOrder.type === CST.DB_ADD) {
+			this.liveOrders[pair][orderHash] = userOrder;
+			if (isBid) this.tokenBalances[0] -= userOrder.balance * userOrder.price;
+			else this.tokenBalances[tokenIndex] -= userOrder.balance;
+			this.liveOrders[pair][orderHash] = userOrder;
+		} else if (userOrder.type === CST.DB_UPDATE && userOrder.status !== CST.DB_MATCHING) {
+			if (isBid)
+				this.availableBalances[CST.TOKEN_WETH] -=
+					(userOrder.balance - this.liveOrders[pair][orderHash].balance) *
+					userOrder.price;
+			else
+				this.availableBalances[pair.split('|')[0]] -=
+					userOrder.balance - this.liveOrders[pair][orderHash].balance;
+			this.liveOrders[pair][orderHash] = userOrder;
+		}
+
+		await this.checkBalanceAllowance(web3Util, dualClassWrapper);
+	}
+
+	private getMakerAccount(mnemomic: string, index: number): IAccount {
+		const bip39 = require('bip39');
+		const hdkey = require('ethereumjs-wallet/hdkey');
+		const hdwallet = hdkey.fromMasterSeed(bip39.mnemonicToSeed(mnemomic));
+		const wallet = hdwallet.derivePath(CST.BASE_DERIVATION_PATH + index).getWallet();
+		const address = '0x' + wallet.getAddress().toString('hex');
+		const privateKey = wallet.getPrivateKey().toString('hex');
+		return {
+			address: address,
+			privateKey: privateKey
+		};
 	}
 
 	public async startProcessing(option: IOption) {
 		const mnemonic = require('../keys/mnemomicBot.json');
 		const live = option.env === CST.DB_LIVE;
 		const web3Util = new Web3Util(null, live, mnemonic[option.token], false);
-		this.makerAddress = (await web3Util.getAvailableAddresses())[0];
-		this.relayerClient = new RelayerClient(web3Util, option.env);
+		this.makerAccount = this.getMakerAccount(mnemonic[option.token], 0);
+		const relayerClient = new RelayerClient(web3Util, option.env);
+		let dualClassWrapper: DualClassWrapper | null = null;
 
-		this.relayerClient.onInfoUpdate(async () => {
-			if (!this.dualClassWrapper) {
+		relayerClient.onInfoUpdate(async () => {
+			if (!dualClassWrapper) {
 				const aToken = web3Util.getTokenByCode(option.token);
 				if (!aToken) return;
 				const bToken = web3Util.tokens.find(
@@ -394,63 +427,42 @@ class MarketMaker {
 					'/' +
 					infura.token;
 
-				this.dualClassWrapper = new DualClassWrapper(
+				dualClassWrapper = new DualClassWrapper(
 					new Web3Wrapper(null, 'source', infuraProvider, live),
 					aToken.custodian
 				);
-
-				// check initial balance here
-
-				if (this.relayerClient) this.relayerClient.subscribeOrderHistory(this.makerAddress);
+				await this.checkBalanceAllowance(web3Util, dualClassWrapper);
+				relayerClient.subscribeOrderHistory(this.makerAccount.address);
 			}
 		});
 
-		this.relayerClient.onOrder(
-			userOrders => {
-				const processed: { [orderHash: string]: boolean } = {};
-				userOrders.sort(
-					(a, b) => a.pair.localeCompare(b.pair) || -a.currentSequence + b.currentSequence
-				);
-				userOrders.forEach(uo => {
-					if (processed[uo.orderHash]) return;
-					processed[uo.orderHash] = true;
-					if (uo.type === CST.DB_TERMINATE) return;
-					if (!this.liveOrders[uo.pair]) this.liveOrders[uo.pair] = {};
-					this.liveOrders[uo.pair][uo.orderHash] = uo;
-				});
-				// compute available balance by remove amounts from open orders
-
-				// cancel all live orders
-
-				this.createOrderBookFromNav();
-
-				if (this.relayerClient) {
-					this.relayerClient.subscribeOrderBook(
-						this.tokens[0].code + '|' + CST.TOKEN_WETH
-					);
-					this.relayerClient.subscribeOrderBook(
-						this.tokens[1].code + '|' + CST.TOKEN_WETH
-					);
-				}
-			},
-			userOrder => {
-				// adjust balance for each order update
-				if (userOrder.type === CST.DB_TERMINATE)
-					delete this.liveOrders[userOrder.pair][userOrder.orderHash];
-				else this.liveOrders[userOrder.pair][userOrder.orderHash] = userOrder;
-			},
+		relayerClient.onOrder(
+			async userOrders =>
+				this.handleOrderHistory(
+					dualClassWrapper as DualClassWrapper,
+					relayerClient,
+					userOrders,
+					web3Util
+				),
+			userOrder =>
+				this.handleUserOrder(userOrder, web3Util, dualClassWrapper as DualClassWrapper),
 			(method, orderHash, error) => util.logError(method + ' ' + orderHash + ' ' + error)
 		);
-		this.relayerClient.onOrderBook(
-			orderBookSnapshot => this.handleOrderBookUpdate(orderBookSnapshot),
-			(method, pair, error) => util.logError(method + ' ' + pair + ' ' + error)
+		relayerClient.onOrderBook(
+			orderBookSnapshot =>
+				this.handleOrderBookUpdate(
+					dualClassWrapper as DualClassWrapper,
+					relayerClient,
+					orderBookSnapshot
+				),
+			(method, pair, error) => util.logError(method + ' ' + pair + ' ' + error) // TODO: handle add and terminate error
 		);
 
-		this.relayerClient.onConnection(
+		relayerClient.onConnection(
 			() => util.logDebug('connected'),
-			() => util.logDebug('reconnecting')
+			() => util.logDebug('reconnecting') // TODO: handle reconnect
 		);
-		this.relayerClient.connectToRelayer();
+		relayerClient.connectToRelayer();
 	}
 }
 

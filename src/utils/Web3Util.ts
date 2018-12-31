@@ -393,4 +393,30 @@ export default class Web3Util {
 	public static toChecksumAddress(address: string): string {
 		return Web3Utils.toChecksumAddress(address);
 	}
+
+	public async tokenTransfer(
+		code: string,
+		fromAddress: string,
+		toAddress: string,
+		senderAddress: string,
+		amount: number
+	) {
+		const tokenAddress = this.getTokenAddressFromCode(code);
+		const amountInWei = Web3Wrapper.toBaseUnitAmount(new BigNumber(amount), 18);
+		if (senderAddress === fromAddress)
+			return this.contractWrappers.erc20Token.transferAsync(
+				tokenAddress,
+				fromAddress,
+				toAddress,
+				amountInWei
+			);
+		else
+			return this.contractWrappers.erc20Token.transferFromAsync(
+				tokenAddress,
+				fromAddress,
+				toAddress,
+				senderAddress,
+				amountInWei
+			);
+	}
 }

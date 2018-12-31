@@ -242,7 +242,7 @@ export interface ISubProcess {
 	failCount: number;
 }
 
-export interface IAccounts {
+export interface IAccount {
 	address: string;
 	privateKey: string;
 }
@@ -266,9 +266,4 @@ export interface IAction {
 	existingAskPrices: number[];
 	currentAskLevels: number;
 	currentBidLevels: number;
-}
-
-export interface IBestPriceChange {
-	isBidChange: boolean;
-	changeAmount: number;
 }
