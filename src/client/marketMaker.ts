@@ -1,6 +1,5 @@
 import DualClassWrapper from '../../../duo-contract-wrapper/src/DualClassWrapper';
 import Web3Wrapper from '../../../duo-contract-wrapper/src/Web3Wrapper';
-import Web3Util from '../../../israfel-relayer/src/utils/Web3Util';
 import * as CST from '../common/constants';
 import {
 	IAccount,
@@ -12,41 +11,36 @@ import {
 	IUserOrder
 } from '../common/types';
 import util from '../utils/util';
+import Web3Util from '../utils/Web3Util';
 import RelayerClient from './RelayerClient';
-
-// change faucet to WETH approve and transfers
 
 class MarketMaker {
 	public tokens: IToken[] = [];
 	public isMakingOrder: boolean = false;
-	public liveOrders: { [pair: string]: { [orderHash: string]: IUserOrder } } = {};
+	public liveBidOrders: { [pair: string]: { [orderHash: string]: IUserOrder } } = {};
+	public liveAskOrders: { [pair: string]: { [orderHash: string]: IUserOrder } } = {};
 	public makerAccount: IAccount = { address: '0x0', privateKey: '' };
 	public custodianStates: IDualClassStates | null = null;
 	public priceStep: number = 0.0005;
-	public availableBalances: { [code: string]: number } = {};
-	public ethBalance: number = 0;
 	public tokenBalances: number[] = [0, 0, 0];
 
-	public getMainAccount() {
-		const faucetAccount = require('../keys/faucetAccount.json');
-		return {
-			address: faucetAccount.publicKey,
-			privateKey: faucetAccount.privateKey
-		};
-	}
-
-	public async checkBalanceAllowance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
+	public async checkBalance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
 		const address = this.makerAccount.address;
-		this.ethBalance = await web3Util.getEthBalance(address);
 		this.tokenBalances = [
 			await web3Util.getTokenBalance(CST.TOKEN_WETH, address),
 			await web3Util.getTokenBalance(this.tokens[0].code, address),
 			await web3Util.getTokenBalance(this.tokens[1].code, address)
 		];
 
+		return this.maintainBalance(web3Util, dualClassWrapper);
+	}
+
+	public async checkAllowance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
+		const address = this.makerAccount.address;
+
 		for (const code of [CST.TOKEN_WETH, this.tokens[0].code, this.tokens[1].code])
 			if (!(await web3Util.getProxyTokenAllowance(code, address))) {
-				util.logDebug(`${address} ${code} allowance is 0, approvaing.....`);
+				util.logDebug(`${address} ${code} allowance is 0, approving.....`);
 				const txHash = await web3Util.setUnlimitedTokenAllowance(code, address);
 				await web3Util.awaitTransactionSuccessAsync(txHash);
 			}
@@ -69,37 +63,73 @@ class MarketMaker {
 			);
 			await web3Util.awaitTransactionSuccessAsync(txHash);
 		}
-
-		return this.maintainMinimumBalance(web3Util, dualClassWrapper);
 	}
 
-	public async maintainMinimumBalance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
+	public async maintainBalance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
 		this.custodianStates = await dualClassWrapper.getStates();
 		const alpha = this.custodianStates.alpha;
-		let wethShortFall = Math.max(0, CST.MIN_WETH_BALANCE - this.tokenBalances[0]);
-		const aTokenShortFall = Math.max(0, CST.MIN_TOKEN_BALANCE * alpha - this.tokenBalances[1]);
-		const bTokenShortFall = Math.max(0, CST.MIN_TOKEN_BALANCE - this.tokenBalances[2]);
-		const bTokenToCreate = Math.max(aTokenShortFall / alpha, bTokenShortFall);
+		let impliedWethBalance = this.tokenBalances[0];
+		let wethShortfall = 0;
+		let wethSurplus = 0;
 		const tokensPerEth = DualClassWrapper.getTokensPerEth(this.custodianStates);
-		const ethAmountForCreation =
-			bTokenToCreate / tokensPerEth[1] / (1 - this.custodianStates.createCommRate);
-		wethShortFall += ethAmountForCreation;
-		if (wethShortFall) {
-			const faucet = this.getMainAccount();
+
+		let bTokenToCreate = 0;
+		let bTokenToRedeem = 0;
+		let ethAmountForCreation = 0;
+		let ethAmountForRedemption = 0;
+		if (
+			this.tokenBalances[2] <= CST.MIN_TOKEN_BALANCE ||
+			this.tokenBalances[1] <= CST.MIN_TOKEN_BALANCE * alpha
+		) {
+			const bTokenShortfall = Math.max(0, CST.TARGET_TOKEN_BALANCE - this.tokenBalances[2]);
+			const aTokenShortfall = Math.max(
+				0,
+				CST.TARGET_TOKEN_BALANCE * alpha - this.tokenBalances[1]
+			);
+			bTokenToCreate = Math.max(aTokenShortfall / alpha, bTokenShortfall);
+			ethAmountForCreation =
+				bTokenToCreate / tokensPerEth[1] / (1 - this.custodianStates.createCommRate);
+			impliedWethBalance -= ethAmountForCreation;
+		}
+
+		if (
+			this.tokenBalances[2] >= CST.MAX_TOKEN_BALANCE &&
+			this.tokenBalances[1] >= CST.MAX_TOKEN_BALANCE * alpha
+		) {
+			const bTokenSurplus = Math.max(0, this.tokenBalances[2] - CST.TARGET_TOKEN_BALANCE);
+			const aTokenSurplus = Math.max(
+				0,
+				this.tokenBalances[1] - CST.TARGET_TOKEN_BALANCE * alpha
+			);
+			bTokenToRedeem = Math.min(aTokenSurplus / alpha, bTokenSurplus);
+			ethAmountForRedemption =
+				(bTokenToRedeem / tokensPerEth[1]) * (1 - this.custodianStates.createCommRate);
+			impliedWethBalance += ethAmountForRedemption;
+		}
+
+		if (impliedWethBalance > CST.MAX_WETH_BALANCE)
+			wethSurplus = impliedWethBalance - CST.TARGET_WETH_BALANCE;
+		else if (impliedWethBalance < CST.MIN_WETH_BALANCE)
+			wethShortfall = CST.TARGET_WETH_BALANCE - impliedWethBalance;
+
+		const gasPrice = Math.max(
+			await web3Util.getGasPrice(),
+			CST.DEFAULT_GAS_PRICE * Math.pow(10, 9)
+		);
+
+		if (wethShortfall) {
 			const tx = await web3Util.tokenTransfer(
 				CST.TOKEN_WETH,
-				faucet.address,
+				CST.FAUCET_ADDR,
 				this.makerAccount.address,
 				this.makerAccount.address,
-				wethShortFall
+				wethShortfall
 			);
 			await web3Util.awaitTransactionSuccessAsync(tx);
+			this.tokenBalances[0] += wethShortfall;
 		}
+
 		if (bTokenToCreate) {
-			const gasPrice = Math.max(
-				await web3Util.getGasPrice(),
-				CST.DEFAULT_GAS_PRICE * Math.pow(10, 9)
-			);
 			const tx = await dualClassWrapper.createRaw(
 				this.makerAccount.address,
 				this.makerAccount.privateKey,
@@ -109,15 +139,42 @@ class MarketMaker {
 				web3Util.contractAddresses.etherToken
 			);
 			await web3Util.awaitTransactionSuccessAsync(tx);
-		}
-		if (wethShortFall) this.tokenBalances[0] = CST.MIN_WETH_BALANCE;
-		if (bTokenToCreate) {
-			this.tokenBalances[2] = CST.MIN_TOKEN_BALANCE;
+			this.tokenBalances[2] += bTokenToCreate;
 			this.tokenBalances[1] += bTokenToCreate * alpha;
+			this.tokenBalances[0] -= ethAmountForCreation;
+		}
+
+		if (bTokenToRedeem) {
+			let tx = await dualClassWrapper.redeemRaw(
+				this.makerAccount.address,
+				this.makerAccount.privateKey,
+				bTokenToRedeem * alpha,
+				bTokenToRedeem,
+				gasPrice,
+				CST.CREATE_GAS
+			);
+			await web3Util.awaitTransactionSuccessAsync(tx);
+			this.tokenBalances[2] -= bTokenToCreate;
+			this.tokenBalances[1] -= bTokenToCreate * alpha;
+			tx = await web3Util.wrapEther(ethAmountForRedemption, this.makerAccount.address);
+			await web3Util.awaitTransactionSuccessAsync(tx);
+			this.tokenBalances[0] += ethAmountForRedemption;
+		}
+
+		if (wethSurplus) {
+			const tx = await web3Util.tokenTransfer(
+				CST.TOKEN_WETH,
+				this.makerAccount.address,
+				CST.FAUCET_ADDR,
+				this.makerAccount.address,
+				wethSurplus
+			);
+			await web3Util.awaitTransactionSuccessAsync(tx);
+			this.tokenBalances[0] -= wethSurplus;
 		}
 	}
 
-	private getSideTotalLiquidity(side: IOrderBookSnapshotLevel[], level?: number): number {
+	public getSideTotalLiquidity(side: IOrderBookSnapshotLevel[], level?: number): number {
 		level = level ? Math.min(side.length, level) : side.length;
 		if (level === 0) return 0;
 		let accumulatedAmt = 0;
@@ -191,21 +248,38 @@ class MarketMaker {
 			? otherTokenOrderBook.asks[0].price
 			: Number.MAX_VALUE;
 
-		if (otherTokenBestBid > otherTokenNoArbAskPrice)
+		const pairToCancel = this.tokens[isA ? 1 : 0].code + '|' + CST.TOKEN_WETH;
+		if (otherTokenBestBid >= otherTokenNoArbAskPrice) {
+			const orderHashesToCancel: string[] = [];
+			for (const orderHash in this.liveBidOrders[pairToCancel]) {
+				const liveOrder = this.liveBidOrders[pairToCancel][orderHash];
+				if (liveOrder.price >= otherTokenNoArbAskPrice) orderHashesToCancel.push(orderHash);
+			}
+			if (orderHashesToCancel.length)
+				await this.cancelOrders(relayerClient, pairToCancel, orderHashesToCancel);
 			await this.takeOneSideOrders(
 				relayerClient,
 				pair,
 				true,
 				otherTokenOrderBook.bids.filter(bid => bid.price >= otherTokenNoArbAskPrice)
 			);
+		}
 
-		if (otherTokenBestAsk < otherTokenNoArbBidPrice)
+		if (otherTokenBestAsk <= otherTokenNoArbBidPrice) {
+			const orderHashesToCancel: string[] = [];
+			for (const orderHash in this.liveAskOrders[pairToCancel]) {
+				const liveOrder = this.liveAskOrders[pairToCancel][orderHash];
+				if (liveOrder.price <= otherTokenNoArbBidPrice) orderHashesToCancel.push(orderHash);
+			}
+			if (orderHashesToCancel.length)
+				await this.cancelOrders(relayerClient, pairToCancel, orderHashesToCancel);
 			await this.takeOneSideOrders(
 				relayerClient,
 				pair,
 				false,
 				otherTokenOrderBook.asks.filter(ask => ask.price <= otherTokenNoArbBidPrice)
 			);
+		}
 		this.isMakingOrder = false;
 	}
 
@@ -315,35 +389,48 @@ class MarketMaker {
 		}
 	}
 
+	public async cancelOrders(relayerClient: RelayerClient, pair: string, orderHashes: string[]) {
+		const signature = await relayerClient.web3Util.web3PersonalSign(
+			this.makerAccount.address,
+			CST.TERMINATE_SIGN_MSG + orderHashes.join(',')
+		);
+
+		relayerClient.deleteOrder(pair, orderHashes, signature);
+	}
+
 	public async handleOrderHistory(
-		dualClassWrapper: DualClassWrapper,
 		relayerClient: RelayerClient,
-		userOrders: IUserOrder[],
-		web3Util: Web3Util
+		dualClassWrapper: DualClassWrapper,
+		userOrders: IUserOrder[]
 	) {
 		const processed: { [orderHash: string]: boolean } = {};
 		userOrders.sort(
 			(a, b) => a.pair.localeCompare(b.pair) || -a.currentSequence + b.currentSequence
 		);
+		const codes = this.tokens.map(token => token.code);
 		userOrders.forEach(uo => {
-			if (processed[uo.orderHash]) return;
-			processed[uo.orderHash] = true;
-			if (uo.type === CST.DB_TERMINATE) return;
-			if (!this.liveOrders[uo.pair]) this.liveOrders[uo.pair] = {};
-			this.liveOrders[uo.pair][uo.orderHash] = uo;
+			const { type, pair, side, orderHash, balance, price } = uo;
+			if (processed[orderHash]) return;
+			processed[orderHash] = true;
+			if (type === CST.DB_TERMINATE) return;
+			if (!this.liveBidOrders[pair]) this.liveBidOrders[pair] = {};
+			if (!this.liveAskOrders[pair]) this.liveAskOrders[pair] = {};
+			if (side === CST.DB_BID) this.liveBidOrders[pair][orderHash] = uo;
+			else this.liveAskOrders[pair][orderHash] = uo;
+
+			const code = pair.split('|')[0];
+			const tokenIndex = pair.startsWith(this.tokens[0].code) ? 1 : 2;
+			if (codes.includes(code))
+				if (side === CST.DB_BID) this.tokenBalances[0] -= balance * price;
+				else this.tokenBalances[tokenIndex] -= balance;
 		});
 
-		// TODO: reduce balance first by each order
-		for (const pair in this.liveOrders) {
-			const orderHashes = Object.keys(this.liveOrders[pair]);
-			if (orderHashes.length) {
-				const signature = await web3Util.web3PersonalSign(
-					this.makerAccount.address,
-					CST.TERMINATE_SIGN_MSG + orderHashes.join(',')
-				);
-				relayerClient.deleteOrder(pair, orderHashes, signature);
-				this.liveOrders[pair] = {};
-			}
+		for (const pair in this.liveBidOrders) {
+			const orderHashes = [
+				...Object.keys(this.liveBidOrders[pair]),
+				...Object.keys(this.liveAskOrders[pair])
+			];
+			if (orderHashes.length) this.cancelOrders(relayerClient, pair, orderHashes);
 		}
 
 		this.createOrderBookFromNav(dualClassWrapper, relayerClient);
@@ -359,28 +446,28 @@ class MarketMaker {
 		const isBid = userOrder.side === CST.DB_BID;
 		const { pair, orderHash } = userOrder;
 		const tokenIndex = pair.startsWith(this.tokens[0].code) ? 1 : 2;
+		const orderCache = isBid ? this.liveBidOrders : this.liveAskOrders;
 		if (userOrder.type === CST.DB_TERMINATE) {
-			const prevVersion = this.liveOrders[pair][userOrder.orderHash];
-			delete this.liveOrders[pair][userOrder.orderHash];
+			const prevVersion = orderCache[pair][userOrder.orderHash];
+			delete orderCache[pair][userOrder.orderHash];
 			if (isBid) this.tokenBalances[0] += prevVersion.balance * prevVersion.price;
 			else this.tokenBalances[tokenIndex] += prevVersion.balance;
 		} else if (userOrder.type === CST.DB_ADD) {
-			this.liveOrders[pair][orderHash] = userOrder;
+			orderCache[pair][orderHash] = userOrder;
 			if (isBid) this.tokenBalances[0] -= userOrder.balance * userOrder.price;
 			else this.tokenBalances[tokenIndex] -= userOrder.balance;
-			this.liveOrders[pair][orderHash] = userOrder;
+			orderCache[pair][orderHash] = userOrder;
 		} else if (userOrder.type === CST.DB_UPDATE && userOrder.status !== CST.DB_MATCHING) {
 			if (isBid)
-				this.availableBalances[CST.TOKEN_WETH] -=
-					(userOrder.balance - this.liveOrders[pair][orderHash].balance) *
-					userOrder.price;
+				this.tokenBalances[0] -=
+					(userOrder.balance - orderCache[pair][orderHash].balance) * userOrder.price;
 			else
-				this.availableBalances[pair.split('|')[0]] -=
-					userOrder.balance - this.liveOrders[pair][orderHash].balance;
-			this.liveOrders[pair][orderHash] = userOrder;
+				this.tokenBalances[tokenIndex] -=
+					userOrder.balance - orderCache[pair][orderHash].balance;
+			orderCache[pair][orderHash] = userOrder;
 		}
 
-		await this.checkBalanceAllowance(web3Util, dualClassWrapper);
+		await this.checkBalance(web3Util, dualClassWrapper);
 	}
 
 	private getMakerAccount(mnemomic: string, index: number): IAccount {
@@ -431,7 +518,8 @@ class MarketMaker {
 					new Web3Wrapper(null, 'source', infuraProvider, live),
 					aToken.custodian
 				);
-				await this.checkBalanceAllowance(web3Util, dualClassWrapper);
+				await this.checkAllowance(web3Util, dualClassWrapper);
+				await this.checkBalance(web3Util, dualClassWrapper);
 				relayerClient.subscribeOrderHistory(this.makerAccount.address);
 			}
 		});
@@ -439,10 +527,9 @@ class MarketMaker {
 		relayerClient.onOrder(
 			async userOrders =>
 				this.handleOrderHistory(
-					dualClassWrapper as DualClassWrapper,
 					relayerClient,
-					userOrders,
-					web3Util
+					dualClassWrapper as DualClassWrapper,
+					userOrders
 				),
 			userOrder =>
 				this.handleUserOrder(userOrder, web3Util, dualClassWrapper as DualClassWrapper),
@@ -455,7 +542,9 @@ class MarketMaker {
 					relayerClient,
 					orderBookSnapshot
 				),
-			(method, pair, error) => util.logError(method + ' ' + pair + ' ' + error) // TODO: handle add and terminate error
+			(method, pair, error) => {
+				util.logError(method + ' ' + pair + ' ' + error); // TODO: handle add and terminate error
+			}
 		);
 
 		relayerClient.onConnection(

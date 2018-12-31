@@ -166,12 +166,11 @@ export const MIN_ORDER_BOOK_LEVELS = 3;
 export const MIN_SIDE_LIQUIDITY = 50;
 
 export const MIN_ETH_BALANCE = 3;
-export const MIN_WETH_BALANCE = 3;
-export const MIN_TOKEN_BALANCE = 150;
+export const MIN_WETH_BALANCE = 2;
+export const TARGET_WETH_BALANCE = 6;
+export const MAX_WETH_BALANCE = 8;
+export const MIN_TOKEN_BALANCE = 100;
+export const TARGET_TOKEN_BALANCE = 300;
 export const MAX_TOKEN_BALANCE = 400;
 
-export const ORDER_BOOK_LEVEL_AMT: { [key: number]: number } = {
-	0: 10,
-	1: 20,
-	2: 20
-};
+export const FAUCET_ADDR = '0x00D8d0660b243452fC2f996A892D3083A903576F';
