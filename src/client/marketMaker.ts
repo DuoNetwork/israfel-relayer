@@ -22,17 +22,21 @@ class MarketMaker {
 	public makerAccount: IAccount = { address: '0x0', privateKey: '' };
 	public custodianStates: IDualClassStates | null = null;
 	public priceStep: number = 0.0005;
-	public ethBalance: number = 0;
 	public tokenBalances: number[] = [0, 0, 0];
 
-	public async checkBalanceAllowance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
+	public async checkBalance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
 		const address = this.makerAccount.address;
-		this.ethBalance = await web3Util.getEthBalance(address);
 		this.tokenBalances = [
 			await web3Util.getTokenBalance(CST.TOKEN_WETH, address),
 			await web3Util.getTokenBalance(this.tokens[0].code, address),
 			await web3Util.getTokenBalance(this.tokens[1].code, address)
 		];
+
+		return this.maintainBalance(web3Util, dualClassWrapper);
+	}
+
+	public async checkAllowance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
+		const address = this.makerAccount.address;
 
 		for (const code of [CST.TOKEN_WETH, this.tokens[0].code, this.tokens[1].code])
 			if (!(await web3Util.getProxyTokenAllowance(code, address))) {
@@ -59,8 +63,6 @@ class MarketMaker {
 			);
 			await web3Util.awaitTransactionSuccessAsync(txHash);
 		}
-
-		return this.maintainBalance(web3Util, dualClassWrapper);
 	}
 
 	public async maintainBalance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
@@ -466,7 +468,7 @@ class MarketMaker {
 			orderCache[pair][orderHash] = userOrder;
 		}
 
-		await this.checkBalanceAllowance(web3Util, dualClassWrapper);
+		await this.checkBalance(web3Util, dualClassWrapper);
 	}
 
 	private getMakerAccount(mnemomic: string, index: number): IAccount {
@@ -517,7 +519,8 @@ class MarketMaker {
 					new Web3Wrapper(null, 'source', infuraProvider, live),
 					aToken.custodian
 				);
-				await this.checkBalanceAllowance(web3Util, dualClassWrapper);
+				await this.checkAllowance(web3Util, dualClassWrapper);
+				await this.checkBalance(web3Util, dualClassWrapper);
 				relayerClient.subscribeOrderHistory(this.makerAccount.address);
 			}
 		});
