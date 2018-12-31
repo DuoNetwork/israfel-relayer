@@ -4,7 +4,6 @@ import Web3Util from '../../../israfel-relayer/src/utils/Web3Util';
 import * as CST from '../common/constants';
 import {
 	IAccount,
-	IBestPriceChange,
 	IDualClassStates,
 	IOption,
 	IOrderBookSnapshot,
@@ -127,101 +126,86 @@ class MarketMaker {
 	}
 
 	public async startMakingOrders(
-		dualClassWrapper: DualClassWrapper,
 		relayerClient: RelayerClient,
-		pair: string,
-		orderBookSnapshot: IOrderBookSnapshot,
-		bestPriceChange: IBestPriceChange
+		dualClassWrapper: DualClassWrapper,
+		pair: string
 	) {
 		this.custodianStates = await dualClassWrapper.getStates();
 		const ethNav = this.custodianStates.lastPrice / this.custodianStates.resetPrice;
-		const thisToken = this.tokens.find(t => t.code === pair.split('|')[0]);
-		const otherToken = this.tokens.find(t => t.code !== pair.split('|')[0]);
-		if (!thisToken || !otherToken) {
-			this.isMakingOrder = false;
-			return;
-		}
+		const isA = this.tokens[0].code === pair.split('|')[0];
+		const tokenNav = isA ? this.custodianStates.navA : this.custodianStates.navB;
+		const orderBookSnapshot = relayerClient.orderBookSnapshots[pair];
 
-		if (bestPriceChange.changeAmount === 0) {
-			// no bestPriceChange, need to make enough liquidity
+		const newBids = orderBookSnapshot.bids;
+		const newAsks = orderBookSnapshot.asks;
+		const bestBidPrice = newBids.length
+			? newBids[0].price
+			: newAsks.length
+			? newAsks[0].price - this.priceStep
+			: tokenNav - this.priceStep;
+		const bestAskPrice = newAsks.length
+			? newAsks[0].price
+			: newBids.length
+			? newBids[0].price + this.priceStep
+			: tokenNav + this.priceStep;
+		// make orders for this side
+		if (
+			orderBookSnapshot.bids.length < CST.MIN_ORDER_BOOK_LEVELS ||
+			this.getSideTotalLiquidity(orderBookSnapshot.bids, 3) < CST.MIN_SIDE_LIQUIDITY
+		)
 			await this.createOrderBookSide(
 				relayerClient,
 				pair,
-				orderBookSnapshot.bids[0].price,
-				true
-			);
-			await this.createOrderBookSide(
-				relayerClient,
-				pair,
-				orderBookSnapshot.asks[0].price,
-				false
-			);
-		} else if (
-			(bestPriceChange.isBidChange && bestPriceChange.changeAmount < 0) ||
-			(!bestPriceChange.isBidChange && bestPriceChange.changeAmount > 0)
-		) {
-			await this.createOrderBookSide(
-				relayerClient,
-				pair,
-				orderBookSnapshot.bids[0].price,
+				bestBidPrice,
 				true,
-				Math.min(3 - orderBookSnapshot.bids.length, 3)
+				Math.min(3 - newBids.length, 3)
 			);
 
-			const otherTokenBestBidPrice =
-				ethNav * (1 + this.custodianStates.alpha) -
-				(this.tokens.indexOf(thisToken) === 0
-					? this.custodianStates.alpha * orderBookSnapshot.bids[0].price
-					: orderBookSnapshot.bids[0].price);
+		if (
+			newAsks.length < CST.MIN_ORDER_BOOK_LEVELS ||
+			this.getSideTotalLiquidity(newAsks, 3) < CST.MIN_SIDE_LIQUIDITY
+		)
+			await this.createOrderBookSide(
+				relayerClient,
+				pair,
+				bestAskPrice,
+				false,
+				Math.min(3 - newAsks.length, 3)
+			);
 
-			// TODO: cancel self make order with bid price > otherTokenBestBidPrice
-			// currently, take all orders with bid price > otherTokenBestBidPrice, including self
+		const otherTokenNoArbBidPrice =
+			ethNav * (1 + this.custodianStates.alpha) -
+			(isA ? this.custodianStates.alpha : 1) * bestBidPrice;
+
+		const otherTokenNoArbAskPrice =
+			ethNav * (1 + this.custodianStates.alpha) -
+			(isA ? this.custodianStates.alpha : 1) * bestAskPrice;
+		// TODO: cancel self make order with bid price > otherTokenBestBidPrice
+		// currently, take all orders with bid price > otherTokenBestBidPrice, including self
+		const otherTokenOrderBook =
+			relayerClient.orderBookSnapshots[this.tokens[isA ? 1 : 0].code + '|' + CST.TOKEN_WETH];
+		const otherTokenBestBid = otherTokenOrderBook.bids.length
+			? otherTokenOrderBook.bids[0].price
+			: 0;
+		const otherTokenBestAsk = otherTokenOrderBook.asks.length
+			? otherTokenOrderBook.asks[0].price
+			: Number.MAX_VALUE;
+
+		if (otherTokenBestBid > otherTokenNoArbAskPrice)
 			await this.takeOneSideOrders(
 				relayerClient,
 				pair,
 				true,
-				relayerClient.orderBookSnapshots[otherToken.code].bids.filter(
-					bid => bid.price > otherTokenBestBidPrice
-				)
+				otherTokenOrderBook.bids.filter(bid => bid.price >= otherTokenNoArbAskPrice)
 			);
-			await this.createOrderBookSide(
-				relayerClient,
-				otherToken.code + '|' + CST.TOKEN_WETH,
-				otherTokenBestBidPrice,
-				true
-			);
-		} else if (
-			(bestPriceChange.isBidChange && bestPriceChange.changeAmount > 0) ||
-			(!bestPriceChange.isBidChange && bestPriceChange.changeAmount < 0)
-		) {
-			await this.createOrderBookSide(
-				relayerClient,
-				pair,
-				orderBookSnapshot.asks[0].price,
-				false,
-				Math.min(3 - orderBookSnapshot.asks.length, 3)
-			);
-			const otherTokenBestAskPrice =
-				ethNav * (1 + this.custodianStates.alpha) -
-				(this.tokens.indexOf(thisToken) === 0
-					? this.custodianStates.alpha * orderBookSnapshot.asks[0].price
-					: orderBookSnapshot.asks[0].price);
 
+		if (otherTokenBestAsk < otherTokenNoArbBidPrice)
 			await this.takeOneSideOrders(
 				relayerClient,
 				pair,
 				false,
-				relayerClient.orderBookSnapshots[otherToken.code].asks.filter(
-					ask => ask.price < otherTokenBestAskPrice
-				)
+				otherTokenOrderBook.asks.filter(ask => ask.price <= otherTokenNoArbBidPrice)
 			);
-			await this.createOrderBookSide(
-				relayerClient,
-				otherToken.code + '|' + CST.TOKEN_WETH,
-				otherTokenBestAskPrice,
-				false
-			);
-		}
 		this.isMakingOrder = false;
 	}
 
@@ -258,16 +242,14 @@ class MarketMaker {
 	) {
 		for (let i = 0; i < level; i++) {
 			const levelPrice = util.round(bestPrice + (isBid ? -1 : 1) * i * this.priceStep);
-			const levelAmount = CST.ORDER_BOOK_LEVEL_AMT[i];
-			if (levelAmount > 0)
-				await relayerClient.addOrder(
-					this.makerAccount.address,
-					pair,
-					levelPrice,
-					levelAmount,
-					isBid,
-					util.getExpiryTimestamp(false)
-				);
+			await relayerClient.addOrder(
+				this.makerAccount.address,
+				pair,
+				levelPrice,
+				20,
+				isBid,
+				util.getExpiryTimestamp(false)
+			);
 		}
 	}
 
@@ -313,6 +295,12 @@ class MarketMaker {
 		orderBookSnapshot: IOrderBookSnapshot
 	) {
 		const pair = orderBookSnapshot.pair;
+		if (
+			!relayerClient.orderBookSnapshots[this.tokens[0].code + '|' + CST.TOKEN_WETH] ||
+			!relayerClient.orderBookSnapshots[this.tokens[1].code + '|' + CST.TOKEN_WETH]
+		)
+			return;
+
 		if (this.isMakingOrder) return;
 
 		if (
@@ -323,29 +311,7 @@ class MarketMaker {
 		) {
 			this.isMakingOrder = true;
 
-			const bestPriceChange: IBestPriceChange = {
-				isBidChange: true,
-				changeAmount:
-					(orderBookSnapshot.bids[0].price || 0) -
-					(relayerClient.orderBookSnapshots[pair].bids[0].price || 0)
-			};
-			if (
-				orderBookSnapshot.asks[0].price !==
-				relayerClient.orderBookSnapshots[pair].asks[0].price
-			) {
-				bestPriceChange.isBidChange = false;
-				bestPriceChange.changeAmount =
-					(orderBookSnapshot.asks[0].price || 0) -
-					(relayerClient.orderBookSnapshots[pair].asks[0].price || 0);
-			}
-
-			await this.startMakingOrders(
-				dualClassWrapper,
-				relayerClient,
-				pair,
-				orderBookSnapshot,
-				bestPriceChange
-			);
+			await this.startMakingOrders(relayerClient, dualClassWrapper, pair);
 		}
 	}
 

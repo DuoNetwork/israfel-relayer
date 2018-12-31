@@ -267,8 +267,3 @@ export interface IAction {
 	currentAskLevels: number;
 	currentBidLevels: number;
 }
-
-export interface IBestPriceChange {
-	isBidChange: boolean;
-	changeAmount: number;
-}
