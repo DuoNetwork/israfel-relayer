@@ -154,7 +154,7 @@ Array [
       "pair": "code1|code2",
     },
     "0xOrderHash",
-    "invalid order",
+    "",
   ],
   Array [
     Object {},
@@ -181,7 +181,7 @@ Array [
       "pair": "code1|code2",
     },
     "0xInvalidOrderHash",
-    "invalid order",
+    "0xOrderHash",
   ],
 ]
 `;
