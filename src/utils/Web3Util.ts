@@ -78,6 +78,7 @@ export default class Web3Util {
 			pe.start();
 			this.web3Wrapper = new Web3Wrapper(pe);
 			this.web3Accounts = new Web3Accounts(this.web3Wrapper.getProvider());
+			this.web3Personal = new Web3Personal(this.web3Wrapper.getProvider());
 			this.wallet = local || (!window && mnemonic) ? Wallet.Local : Wallet.None;
 		}
 
@@ -130,7 +131,7 @@ export default class Web3Util {
 	}
 
 	public web3PersonalSign(account: string, message: string): Promise<string> {
-		if (this.wallet !== Wallet.MetaMask) return Promise.reject();
+		if (this.wallet === Wallet.None) return Promise.reject();
 		return this.web3Personal.sign(message, account);
 	}
 

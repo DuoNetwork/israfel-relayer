@@ -159,6 +159,12 @@ class Util {
 			return todayExpiry;
 		}
 	}
+
+	public formatFixedNumber(num: number, precision: number) {
+		const decimal = precision && precision < 1 ? (precision + '').length - 2 : 0;
+		const roundedNumber = Math.round(Number(num) / precision) * precision;
+		return precision ? roundedNumber.toFixed(decimal) : num + '';
+	}
 }
 
 const util = new Util();

@@ -306,8 +306,12 @@ class MarketMaker {
 		isBid: boolean,
 		level: number = 3
 	) {
+		const precision = this.tokens[0].precisions[CST.TOKEN_WETH];
 		for (let i = 0; i < level; i++) {
-			const levelPrice = util.round(bestPrice + (isBid ? -1 : 1) * i * this.priceStep);
+			const levelPrice = Number(util.formatFixedNumber(
+				bestPrice + (isBid ? -1 : 1) * i * this.priceStep,
+				precision
+			));
 			await relayerClient.addOrder(
 				this.makerAccount.address,
 				pair,
@@ -316,6 +320,7 @@ class MarketMaker {
 				isBid,
 				util.getExpiryTimestamp(false)
 			);
+			util.sleep(1000);
 		}
 	}
 
@@ -386,7 +391,6 @@ class MarketMaker {
 			this.makerAccount.address,
 			CST.TERMINATE_SIGN_MSG + orderHashes.join(',')
 		);
-
 		relayerClient.deleteOrder(pair, orderHashes, signature);
 	}
 
@@ -422,7 +426,10 @@ class MarketMaker {
 				...Object.keys(this.liveBidOrders[pair]),
 				...Object.keys(this.liveAskOrders[pair])
 			];
-			if (orderHashes.length) this.cancelOrders(relayerClient, pair, orderHashes);
+			if (orderHashes.length) {
+				await this.cancelOrders(relayerClient, pair, orderHashes);
+				util.sleep(5000);
+			}
 		}
 
 		this.createOrderBookFromNav(dualClassWrapper, relayerClient);
