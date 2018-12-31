@@ -82,7 +82,12 @@ class MarketMaker {
 		const bTokenToCreate = Math.max(aTokenShortFall / alpha, bTokenShortFall);
 		const tokensPerEth = DualClassWrapper.getTokensPerEth(this.custodianStates);
 		const ethAmountForCreation =
-			bTokenToCreate / tokensPerEth[1] / (1 - this.custodianStates.createCommRate);
+			(bTokenToCreate
+				? bTokenToCreate + CST.TARGET_TOKEN_BALANCE - CST.MIN_TOKEN_BALANCE
+				: 0) /
+			tokensPerEth[1] /
+			(1 - this.custodianStates.createCommRate);
+
 		wethShortFall += ethAmountForCreation;
 		if (wethShortFall) {
 			const faucet = this.getMainAccount();
@@ -91,9 +96,10 @@ class MarketMaker {
 				faucet.address,
 				this.makerAccount.address,
 				this.makerAccount.address,
-				wethShortFall
+				CST.TARGET_WETH_BALANCE - this.tokenBalances[0]
 			);
 			await web3Util.awaitTransactionSuccessAsync(tx);
+			this.tokenBalances[0] = CST.MIN_WETH_BALANCE;
 		}
 		if (bTokenToCreate) {
 			const gasPrice = Math.max(
@@ -109,9 +115,6 @@ class MarketMaker {
 				web3Util.contractAddresses.etherToken
 			);
 			await web3Util.awaitTransactionSuccessAsync(tx);
-		}
-		if (wethShortFall) this.tokenBalances[0] = CST.MIN_WETH_BALANCE;
-		if (bTokenToCreate) {
 			this.tokenBalances[2] = CST.MIN_TOKEN_BALANCE;
 			this.tokenBalances[1] += bTokenToCreate * alpha;
 		}
@@ -341,7 +344,24 @@ class MarketMaker {
 					this.makerAccount.address,
 					CST.TERMINATE_SIGN_MSG + orderHashes.join(',')
 				);
+
 				relayerClient.deleteOrder(pair, orderHashes, signature);
+				const code = pair.split('|')[0];
+
+				for (const orderHash of orderHashes) {
+					const liveOrder = this.liveOrders[code][orderHash];
+					if (this.tokens.map(token => token.code).includes(code))
+						if (liveOrder.side === CST.DB_BID) {
+							this.availableBalances[CST.TOKEN_WETH] +=
+								liveOrder.price * liveOrder.balance;
+							this.availableBalances[code] -= liveOrder.balance;
+						} else {
+							this.availableBalances[CST.TOKEN_WETH] -=
+								liveOrder.price * liveOrder.balance;
+							this.availableBalances[code] += liveOrder.balance;
+						}
+				}
+
 				this.liveOrders[pair] = {};
 			}
 		}
@@ -455,7 +475,9 @@ class MarketMaker {
 					relayerClient,
 					orderBookSnapshot
 				),
-			(method, pair, error) => util.logError(method + ' ' + pair + ' ' + error) // TODO: handle add and terminate error
+			(method, pair, error) => {
+				util.logError(method + ' ' + pair + ' ' + error) // TODO: handle add and terminate error
+			}
 		);
 
 		relayerClient.onConnection(
