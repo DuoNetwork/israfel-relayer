@@ -48,6 +48,40 @@ jobs:
             - run:
                 name: test
                 command: npm test -- -w 1
+    test-coverage:
+        working_directory: /home/circleci/israfel-relayer   
+        docker: 
+            - image: circleci/node:8.11.1 
+        steps:
+            - checkout
+            - restore_cache:
+                key: dependency-cache-{{ .Environment.CIRCLE_SHA1 }}
+            - restore_cache:
+                key: dependency-assets-{{ .Environment.CIRCLE_SHA1 }}
+            - run:
+                name: Install npm
+                command: npm install
+            - run:
+                name: test
+                command: npm test -- -w 1
+            - run:
+                name: coverage
+                command: npm test -- -w 1 --coverage --forceExit --detectOpenHandles
+            - save_cache:
+                  key: dependency-test-{{ .Environment.CIRCLE_SHA1 }}
+                  paths:
+                      - /home/circleci/israfel-relayer
+    deploy:
+        docker:
+            - image: circleci/python:2.7-jessie
+        working_directory: /home/circleci/test
+        steps:
+            - run:
+                  name: Install awscli
+                  command: sudo pip install awscli
+            - restore_cache:
+                  key: dependency-test-{{ .Environment.CIRCLE_SHA1 }}
+            - run: aws s3 sync /home/circleci/israfel-relayer/coverage/lcov-report s3://israfel-relayer
 workflows:
     version: 2
     build_and_test:
@@ -61,3 +95,33 @@ workflows:
                 filters:
                     branches:
                         only: master
+            - test-coverage:
+                requires:
+                    - build-duo-contract-wrapper
+                    - build-duo-admin
+                filters:
+                    branches:
+                        only: master
+            - deploy:
+                  requires:
+                      - test-coverage
+    schedule_deploy:
+        triggers:
+            - schedule:
+                  cron: '0 4 * * *'
+                  filters:
+                      branches:
+                          only: master
+        jobs:
+            - build-duo-contract-wrapper
+            - build-duo-admin
+            - test-coverage:
+                requires:
+                    - build-duo-contract-wrapper
+                    - build-duo-admin
+                filters:
+                    branches:
+                        only: master
+            - deploy:
+                  requires:
+                      - test-coverage
