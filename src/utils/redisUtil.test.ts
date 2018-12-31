@@ -176,26 +176,6 @@ test('pop', async () => {
 	expect(((redisUtil.redisPub as any).rpop as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('multi', async () => {
-	redisUtil.redisPub = null;
-	expect(await redisUtil.multi()).toBe('');
-	redisUtil.redisPub = {
-		multi: jest.fn()
-	} as any;
-	await redisUtil.multi();
-	expect(((redisUtil.redisPub as any).multi as jest.Mock).mock.calls).toMatchSnapshot();
-});
-
-test('exec', async () => {
-	redisUtil.redisPub = null;
-	expect(await redisUtil.exec()).toBe('');
-	redisUtil.redisPub = {
-		exec: jest.fn()
-	} as any;
-	await redisUtil.exec();
-	expect(((redisUtil.redisPub as any).exec as jest.Mock).mock.calls).toMatchSnapshot();
-});
-
 test('getQueueLength', async () => {
 	redisUtil.redisPub = null;
 	expect(await redisUtil.getQueueLength('key')).toBe(0);

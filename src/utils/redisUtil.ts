@@ -138,16 +138,6 @@ class RedisUtil {
 		return Promise.resolve('');
 	}
 
-	public multi() {
-		if (this.redisPub) return this.redisPub.multi({ pipeline: false });
-		return Promise.resolve('');
-	}
-
-	public exec() {
-		if (this.redisPub) return this.redisPub.exec();
-		return Promise.resolve('');
-	}
-
 	public getQueueLength(key: string) {
 		if (this.redisPub) return this.redisPub.llen(key);
 		return Promise.resolve(0);

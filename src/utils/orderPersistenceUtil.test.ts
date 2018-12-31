@@ -142,8 +142,6 @@ test('getLiveOrderInPersistence only in db', async () => {
 test('persistOrder add missing token', async () => {
 	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
 	redisUtil.increment = jest.fn(() => Promise.resolve(123));
-	redisUtil.multi = jest.fn(() => Promise.resolve());
-	redisUtil.exec = jest.fn(() => Promise.resolve());
 	redisUtil.hashSet = jest.fn(() => Promise.resolve());
 	redisUtil.push = jest.fn();
 	redisUtil.publish = jest.fn(() => Promise.resolve());
@@ -170,8 +168,6 @@ test('persistOrder add missing token', async () => {
 test('persistOrder add', async () => {
 	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
 	redisUtil.increment = jest.fn(() => Promise.resolve(123));
-	redisUtil.multi = jest.fn(() => Promise.resolve());
-	redisUtil.exec = jest.fn(() => Promise.resolve());
 	redisUtil.hashSet = jest.fn(() => Promise.resolve());
 	redisUtil.push = jest.fn();
 	redisUtil.publish = jest.fn(() => Promise.resolve());
@@ -205,8 +201,6 @@ test('persistOrder not add fill', async () => {
 		})
 	);
 	redisUtil.increment = jest.fn(() => Promise.resolve(123));
-	redisUtil.multi = jest.fn(() => Promise.resolve());
-	redisUtil.exec = jest.fn(() => Promise.resolve());
 	redisUtil.hashSet = jest.fn(() => Promise.resolve());
 	redisUtil.push = jest.fn();
 	redisUtil.publish = jest.fn(() => Promise.resolve());
@@ -239,8 +233,6 @@ test('persistOrder not add match', async () => {
 		})
 	);
 	redisUtil.increment = jest.fn(() => Promise.resolve(123));
-	redisUtil.multi = jest.fn(() => Promise.resolve());
-	redisUtil.exec = jest.fn(() => Promise.resolve());
 	redisUtil.hashSet = jest.fn(() => Promise.resolve());
 	redisUtil.push = jest.fn();
 	redisUtil.publish = jest.fn(() => Promise.resolve());
@@ -266,8 +258,6 @@ test('persistOrder not add match', async () => {
 
 test('persistOrder add existing', async () => {
 	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve({}));
-	redisUtil.multi = jest.fn(() => Promise.resolve());
-	redisUtil.exec = jest.fn(() => Promise.resolve());
 	redisUtil.hashSet = jest.fn(() => Promise.resolve());
 	redisUtil.push = jest.fn();
 	redisUtil.publish = jest.fn(() => Promise.resolve());
@@ -292,8 +282,6 @@ test('persistOrder add existing', async () => {
 
 test('persistOrder not add not existing', async () => {
 	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
-	redisUtil.multi = jest.fn(() => Promise.resolve());
-	redisUtil.exec = jest.fn(() => Promise.resolve());
 	redisUtil.hashSet = jest.fn(() => Promise.resolve());
 	redisUtil.push = jest.fn();
 	redisUtil.publish = jest.fn(() => Promise.resolve());
@@ -322,8 +310,6 @@ test('persistOrder terminate fill', async () => {
 		})
 	);
 	redisUtil.increment = jest.fn(() => Promise.resolve(123));
-	redisUtil.multi = jest.fn(() => Promise.resolve());
-	redisUtil.exec = jest.fn(() => Promise.resolve());
 	redisUtil.hashSet = jest.fn(() => Promise.resolve());
 	redisUtil.push = jest.fn();
 	redisUtil.publish = jest.fn(() => Promise.resolve());
@@ -470,8 +456,6 @@ test('processOrderQueue terminate', async () => {
 });
 
 test('processOrderQueue failed', async () => {
-	redisUtil.multi = jest.fn(() => Promise.resolve());
-	redisUtil.exec = jest.fn(() => Promise.resolve());
 	redisUtil.pop = jest.fn(() => Promise.resolve('code1|code2|add|0xOrderHash'));
 	redisUtil.hashGet = jest.fn(() => Promise.resolve(JSON.stringify(addOrderQueueItem)));
 	redisUtil.hashDelete = jest.fn(() => Promise.resolve());

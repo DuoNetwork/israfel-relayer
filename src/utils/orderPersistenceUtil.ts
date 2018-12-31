@@ -242,13 +242,11 @@ class OrderPersistenceUtil {
 
 		const orderQueueItemString = JSON.stringify(orderQueueItem);
 		util.logDebug(`storing order queue item in redis ${orderHash}: ${orderQueueItemString}`);
-		await redisUtil.multi();
 		const key = this.getCacheMapField(pair, method, orderHash);
 		// store order in hash map
-		redisUtil.hashSet(this.getOrderCacheMapKey(pair), key, orderQueueItemString);
+		await redisUtil.hashSet(this.getOrderCacheMapKey(pair), key, orderQueueItemString);
 		// push orderhash into queue
 		redisUtil.push(this.getOrderQueueKey(), key);
-		await redisUtil.exec();
 		util.logDebug(`done`);
 
 		try {
@@ -305,10 +303,8 @@ class OrderPersistenceUtil {
 		} catch (err) {
 			util.logError(`error in processing for ${queueKey}`);
 			util.logError(err);
-			await redisUtil.multi();
-			redisUtil.hashSet(this.getOrderCacheMapKey(pair), queueKey, queueItemString);
+			await redisUtil.hashSet(this.getOrderCacheMapKey(pair), queueKey, queueItemString);
 			redisUtil.putBack(this.getOrderQueueKey(), queueKey);
-			await redisUtil.exec();
 			return false;
 		}
 

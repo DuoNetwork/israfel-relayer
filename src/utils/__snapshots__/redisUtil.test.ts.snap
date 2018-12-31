@@ -1,11 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`exec 1`] = `
-Array [
-  Array [],
-]
-`;
-
 exports[`get 1`] = `
 Array [
   Array [
@@ -71,16 +65,6 @@ exports[`increment 1`] = `
 Array [
   Array [
     "key",
-  ],
-]
-`;
-
-exports[`multi 1`] = `
-Array [
-  Array [
-    Object {
-      "pipeline": false,
-    },
   ],
 ]
 `;
