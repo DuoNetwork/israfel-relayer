@@ -1,7 +1,7 @@
 // fix for @ledgerhq/hw-transport-u2f 4.28.0
 import '@babel/polyfill';
 import Web3Wrapper from '../../duo-contract-wrapper/src/Web3Wrapper';
-import marketMaker from './client/maketMaker';
+import marketMaker from './client/marketMaker';
 import * as CST from './common/constants';
 import { IOption } from './common/types';
 import orderBookServer from './server/orderBookServer';
