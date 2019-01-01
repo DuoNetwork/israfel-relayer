@@ -7,6 +7,7 @@ import {
 	IOption,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotLevel,
+	IPrice,
 	IToken,
 	IUserOrder
 } from '../common/types';
@@ -23,9 +24,17 @@ class MarketMaker {
 	public priceStep: number = 0.0005;
 	public tokenBalances: number[] = [0, 0, 0];
 	public pendingOrders: { [orderHash: string]: boolean } = {};
+	public exchangePrices: { [source: string]: IPrice[] } = {};
+	public isBeethoven: boolean = true;
 
 	private isA(pair: string) {
 		return this.tokens[0].code === pair.split('|')[0];
+	}
+
+	public getEthPrice() {
+		return this.exchangePrices[CST.API_KRAKEN] && this.exchangePrices[CST.API_KRAKEN].length
+			? this.exchangePrices[CST.API_KRAKEN][0].close
+			: 0;
 	}
 
 	public async checkAllowance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
@@ -188,9 +197,18 @@ class MarketMaker {
 		util.logDebug('start making orders');
 		this.custodianStates = await dualClassWrapper.getStates();
 		const alpha = this.custodianStates.alpha;
-		const ethNav = this.custodianStates.lastPrice / this.custodianStates.resetPrice;
+		const ethPrice = this.getEthPrice();
+		const ethNavInEth = 1 / this.custodianStates.resetPrice;
 		const isA = this.isA(pair);
-		const tokenNav = isA ? this.custodianStates.navA : this.custodianStates.navB;
+		const navPrices = DualClassWrapper.calculateNav(
+			this.custodianStates,
+			this.isBeethoven,
+			ethPrice,
+			util.getUTCNowTimestamp()
+		);
+		const tokenNavInEth = navPrices[isA ? 0 : 1] / ethPrice;
+		util.logDebug(`ethPrice ${ethPrice} token nav ${navPrices[0]} ${navPrices[1]}`);
+		util.logDebug(`eth nav in eth ${ethNavInEth} token nav in eth ${tokenNavInEth}`);
 		const orderBookSnapshot = relayerClient.orderBookSnapshots[pair];
 
 		const newBids = orderBookSnapshot.bids;
@@ -199,12 +217,12 @@ class MarketMaker {
 			? newBids[0].price
 			: newAsks.length
 			? newAsks[0].price - this.priceStep
-			: tokenNav - this.priceStep;
+			: tokenNavInEth - this.priceStep;
 		const bestAskPrice = newAsks.length
 			? newAsks[0].price
 			: newBids.length
 			? newBids[0].price + this.priceStep
-			: tokenNav + this.priceStep;
+			: tokenNavInEth + this.priceStep;
 		util.logDebug(`best bid ${bestBidPrice}, best ask ${bestAskPrice}`);
 		// make orders for this side
 		if (
@@ -236,8 +254,10 @@ class MarketMaker {
 		}
 
 		util.logDebug('checking for arbitrage for the other token');
-		const otherTokenNoArbBidPrice = ethNav * (1 + alpha) - (isA ? alpha : 1) * bestBidPrice;
-		const otherTokenNoArbAskPrice = ethNav * (1 + alpha) - (isA ? alpha : 1) * bestAskPrice;
+		const otherTokenNoArbBidPrice =
+			ethNavInEth * (1 + alpha) - (isA ? alpha : 1) * bestBidPrice;
+		const otherTokenNoArbAskPrice =
+			ethNavInEth * (1 + alpha) - (isA ? alpha : 1) * bestAskPrice;
 		const index = isA ? 1 : 0;
 		const otherPair = this.tokens[index].code + '|' + CST.TOKEN_WETH;
 		const otherTokenOrderBook = relayerClient.orderBookSnapshots[otherPair];
@@ -342,13 +362,19 @@ class MarketMaker {
 		relayerClient: RelayerClient
 	) {
 		this.custodianStates = await dualClassWrapper.getStates();
-		const navPrices = [this.custodianStates.navA, this.custodianStates.navB];
+		const ethPrice = this.getEthPrice();
+		const navPrices = DualClassWrapper.calculateNav(
+			this.custodianStates,
+			this.isBeethoven,
+			ethPrice,
+			util.getUTCNowTimestamp()
+		);
 		for (const index of [0, 1])
 			for (const isBid of [true, false])
 				await this.createOrderBookSide(
 					relayerClient,
 					this.tokens[index].code + '|' + CST.TOKEN_WETH,
-					navPrices[index] / 135 - this.priceStep,
+					navPrices[index] / ethPrice + (isBid ? -1 : 1) * this.priceStep,
 					isBid
 				);
 	}
@@ -529,9 +555,12 @@ class MarketMaker {
 		const web3Util = new Web3Util(null, live, mnemonic[option.token], false);
 		this.makerAccount = this.getMakerAccount(mnemonic[option.token], 0);
 		const relayerClient = new RelayerClient(web3Util, option.env);
+		this.isBeethoven = option.token.startsWith('a');
 		let dualClassWrapper: DualClassWrapper | null = null;
 
-		relayerClient.onInfoUpdate(async () => {
+		relayerClient.onInfoUpdate(async (tokens, status, acceptedPrices, exchangePrices) => {
+			if (tokens && status && acceptedPrices && exchangePrices)
+				this.exchangePrices = exchangePrices;
 			if (!dualClassWrapper) dualClassWrapper = await this.initialize(relayerClient, option);
 		});
 

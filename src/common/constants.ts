@@ -5,7 +5,8 @@ export {
 	TENOR_PPT,
 	REDEEM_GAS,
 	DEFAULT_GAS_PRICE,
-	CREATE_GAS
+	CREATE_GAS,
+	API_KRAKEN
 } from '../../../duo-admin/src/common/constants';
 
 export const DB_ISRAFEL = 'israfel';
