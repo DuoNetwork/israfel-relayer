@@ -498,7 +498,7 @@ test('unsubscribeOrderHistory', () => {
 test('addOrder no ws', async () => {
 	relayerClient.ws = null;
 	web3Util.isValidPair = jest.fn(() => false);
-	await relayerClient.addOrder('account', 'code1|code2', 123, 456, true, 1234567890);
+	expect(await relayerClient.addOrder('account', 'code1|code2', 123, 456, true, 1234567890)).toBe('');
 	expect(web3Util.isValidPair as jest.Mock).not.toBeCalled();
 });
 
@@ -577,7 +577,7 @@ test('addOrder bid', async () => {
 		orderHash: 'orderHash',
 		signedOrder: 'signedOrder'
 	}));
-	await relayerClient.addOrder('account', 'code1|code2', 123, 456, true, 1234567890);
+	expect(await relayerClient.addOrder('account', 'code1|code2', 123, 456, true, 1234567890)).toBe('orderHash');
 	expect(send.mock.calls).toMatchSnapshot();
 	expect((orderUtil.getAmountAfterFee as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((web3Util.createRawOrder as jest.Mock).mock.calls).toMatchSnapshot();
@@ -606,7 +606,7 @@ test('addOrder ask', async () => {
 		orderHash: 'orderHash',
 		signedOrder: 'signedOrder'
 	}));
-	await relayerClient.addOrder('account', 'code1|code2', 123, 456, false, 1234567890);
+	expect(await relayerClient.addOrder('account', 'code1|code2', 123, 456, false, 1234567890)).toBe('orderHash');
 	expect(send.mock.calls).toMatchSnapshot();
 	expect((orderUtil.getAmountAfterFee as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((web3Util.createRawOrder as jest.Mock).mock.calls).toMatchSnapshot();

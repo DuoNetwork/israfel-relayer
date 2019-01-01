@@ -447,10 +447,8 @@ class RelayerServer {
 
 		this.loadDuoAcceptedPrices();
 		this.loadDuoExchangePrices();
-		setInterval(() => {
-			this.loadDuoAcceptedPrices();
-			this.loadDuoExchangePrices();
-		}, 600000);
+		setInterval(() => this.loadDuoAcceptedPrices(), 600000);
+		setInterval(() => this.loadDuoExchangePrices(), 30000);
 		this.processStatus = await dynamoUtil.scanStatus();
 		const port = 8080;
 		const server = https
@@ -466,7 +464,7 @@ class RelayerServer {
 			setInterval(async () => {
 				this.processStatus = await dynamoUtil.scanStatus();
 				this.clients.forEach(ws => this.sendInfo(ws));
-			}, 60000);
+			}, 30000);
 			this.wsServer.on('connection', ws => this.handleWebSocketConnection(ws));
 		}
 

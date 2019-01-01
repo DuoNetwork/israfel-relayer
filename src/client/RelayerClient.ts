@@ -220,7 +220,7 @@ export default class RelayerClient {
 		isBid: boolean,
 		expiry: number
 	) {
-		if (!this.ws) return;
+		if (!this.ws) return '';
 		if (!this.web3Util.isValidPair(pair)) throw new Error('invalid pair');
 		const [code1, code2] = pair.split('|');
 		const token1 = this.web3Util.getTokenByCode(code1);
@@ -254,6 +254,7 @@ export default class RelayerClient {
 			order: rawOrder.signedOrder
 		};
 		this.ws.send(JSON.stringify(msg));
+		return rawOrder.orderHash;
 	}
 
 	public deleteOrder(pair: string, orderHashes: string[], signature: string) {
