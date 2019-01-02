@@ -135,7 +135,7 @@ class MarketMaker {
 				this.makerAccount.privateKey,
 				gasPrice,
 				CST.CREATE_GAS,
-				ethAmountForCreation,
+				util.round(ethAmountForCreation),
 				web3Util.contractAddresses.etherToken
 			);
 			util.logDebug(`tx hash: ${tx}`);
@@ -354,7 +354,7 @@ class MarketMaker {
 				this.makerAccount.address,
 				pair,
 				levelPrice,
-				20,
+				20 + Number((Math.random() * 5).toFixed(1)),
 				isBid,
 				util.getExpiryTimestamp(true)
 			);
@@ -517,7 +517,7 @@ class MarketMaker {
 		// TODO: handle add and terminate error
 	}
 
-	private getMakerAccount(mnemomic: string, index: number): IAccount {
+	public getMakerAccount(mnemomic: string, index: number): IAccount {
 		const bip39 = require('bip39');
 		const hdkey = require('ethereumjs-wallet/hdkey');
 		const hdwallet = hdkey.fromMasterSeed(bip39.mnemonicToSeed(mnemomic));
@@ -553,7 +553,6 @@ class MarketMaker {
 		}
 		const infuraProvider =
 			(live ? CST.PROVIDER_INFURA_MAIN : CST.PROVIDER_INFURA_KOVAN) + '/' + infura.token;
-
 		const dualClassWrapper = new DualClassWrapper(
 			new Web3Wrapper(null, 'source', infuraProvider, live),
 			aToken.custodian

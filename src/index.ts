@@ -17,7 +17,7 @@ import util from './utils/util';
 
 const tool = process.argv[2];
 const option: IOption = util.parseOptions(process.argv);
-util.logInfo(`tool + ${tool} using env ${option.env}`);
+util.logInfo(`tool ${tool} using env ${option.env}`);
 if (option.debug) util.logLevel = CST.LOG_DEBUG;
 
 const redisConfig = require(`./keys/redis.${option.env}.json`);
