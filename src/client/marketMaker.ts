@@ -196,11 +196,7 @@ class MarketMaker {
 		return accumulatedAmt;
 	}
 
-	public async makeOrders(
-		relayerClient: RelayerClient,
-		dualClassWrapper: DualClassWrapper,
-		pair: string
-	) {
+	public canMakeOrder(relayerClient: RelayerClient, pair: string) {
 		const isA = this.isA(pair);
 		const index = isA ? 1 : 0;
 		const otherPair = this.tokens[index].code + '|' + CST.TOKEN_WETH;
@@ -209,13 +205,25 @@ class MarketMaker {
 			!relayerClient.orderBookSnapshots[otherPair]
 		) {
 			util.logDebug('waiting for the other orderbook');
-			return;
+			return false;
 		}
 
 		if (this.isSendingOrder || !util.isEmptyObject(this.pendingOrders)) {
 			util.logDebug(`non empty pending updates ${Object.keys(this.pendingOrders)}`);
-			return;
+			return false;
 		}
+
+		return true;
+	}
+
+	public async makeOrders(
+		relayerClient: RelayerClient,
+		dualClassWrapper: DualClassWrapper,
+		pair: string
+	) {
+		const isA = this.isA(pair);
+		const index = isA ? 1 : 0;
+		const otherPair = this.tokens[index].code + '|' + CST.TOKEN_WETH;
 
 		util.logDebug(`[${pair}] start making orders`);
 		this.custodianStates = await dualClassWrapper.getStates();
@@ -414,7 +422,8 @@ class MarketMaker {
 	) {
 		const pair = orderBookSnapshot.pair;
 		util.logDebug(`received orderBookUpdate ${pair} ${orderBookSnapshot.version}`);
-		await this.makeOrders(relayerClient, dualClassWrapper, pair);
+		if (this.canMakeOrder(relayerClient, pair))
+			return this.makeOrders(relayerClient, dualClassWrapper, pair);
 	}
 
 	public async cancelOrders(relayerClient: RelayerClient, pair: string, orderHashes: string[]) {
@@ -514,7 +523,8 @@ class MarketMaker {
 		}
 
 		await this.maintainBalance(relayerClient.web3Util, dualClassWrapper);
-		return this.makeOrders(relayerClient, dualClassWrapper, pair);
+		if (this.canMakeOrder(relayerClient, pair))
+			return this.makeOrders(relayerClient, dualClassWrapper, pair);
 	}
 
 	public handleOrderError(method: string, orderHash: string, error: string) {
