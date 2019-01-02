@@ -99,8 +99,9 @@ class MarketMaker {
 				this.tokenBalances[1] - CST.TARGET_TOKEN_BALANCE * alpha
 			);
 			bTokenToRedeem = Math.min(aTokenSurplus / alpha, bTokenSurplus);
-			ethAmountForRedemption =
-				(bTokenToRedeem / tokensPerEth[1]) * (1 - this.custodianStates.createCommRate);
+			ethAmountForRedemption = util.round(
+				(bTokenToRedeem / tokensPerEth[1]) * (1 - this.custodianStates.createCommRate)
+			);
 			impliedWethBalance += ethAmountForRedemption;
 		}
 
