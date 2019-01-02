@@ -506,7 +506,9 @@ class MarketMaker {
 			Object.assign(prevVersion, userOrder);
 		}
 
-		return this.maintainBalance(relayerClient.web3Util, dualClassWrapper);
+		await this.maintainBalance(relayerClient.web3Util, dualClassWrapper);
+		if (this.isSendingOrder || !util.isEmptyObject(this.pendingOrders)) return;
+		return this.makeOrders(relayerClient, dualClassWrapper, pair);
 	}
 
 	public handleOrderError(method: string, orderHash: string, error: string) {
