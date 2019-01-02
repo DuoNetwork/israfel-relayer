@@ -29,6 +29,7 @@ class MarketMaker {
 	public isInitialized = false;
 	public isSendingOrder = false;
 	public isMaintainingBalance = false;
+	public isMakingOrders = false;
 
 	private isA(pair: string) {
 		return this.tokens[0].code === pair.split('|')[0];
@@ -221,6 +222,10 @@ class MarketMaker {
 		dualClassWrapper: DualClassWrapper,
 		pair: string
 	) {
+		if (!this.isMakingOrders)
+			return;
+
+		this.isMakingOrders = true;
 		const isA = this.isA(pair);
 		const index = isA ? 1 : 0;
 		const otherPair = this.tokens[index].code + '|' + CST.TOKEN_WETH;
@@ -332,6 +337,8 @@ class MarketMaker {
 			util.logDebug(`[${otherPair}] take arbitrage asks`);
 			await this.takeOneSideOrders(relayerClient, otherPair, false, asksToTake);
 		}
+
+		this.isMakingOrders = false;
 	}
 
 	public async takeOneSideOrders(
