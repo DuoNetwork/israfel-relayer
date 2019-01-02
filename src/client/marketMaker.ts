@@ -225,10 +225,7 @@ class MarketMaker {
 			: tokenNavInEth + this.priceStep;
 		util.logDebug(`[${pair}] best bid ${bestBidPrice}, best ask ${bestAskPrice}`);
 		// make orders for this side
-		if (
-			orderBookSnapshot.bids.length < CST.MIN_ORDER_BOOK_LEVELS ||
-			this.getSideTotalLiquidity(orderBookSnapshot.bids, 3) < CST.MIN_SIDE_LIQUIDITY
-		) {
+		if (newBids.length < CST.MIN_ORDER_BOOK_LEVELS) {
 			util.logDebug(JSON.stringify(newBids));
 			util.logDebug(`[${pair}] bid for ${pair} has insufficient liquidity, make orders`);
 			await this.createOrderBookSide(
@@ -236,14 +233,11 @@ class MarketMaker {
 				pair,
 				bestBidPrice,
 				true,
-				Math.min(3 - newBids.length, 3)
+				3 - newBids.length
 			);
 		}
 
-		if (
-			newAsks.length < CST.MIN_ORDER_BOOK_LEVELS ||
-			this.getSideTotalLiquidity(newAsks, 3) < CST.MIN_SIDE_LIQUIDITY
-		) {
+		if (newAsks.length < CST.MIN_ORDER_BOOK_LEVELS) {
 			util.logDebug(JSON.stringify(newAsks));
 			util.logDebug(`[${pair}] ask for ${pair} has insufficient liquidity, make orders`);
 			await this.createOrderBookSide(
@@ -251,7 +245,7 @@ class MarketMaker {
 				pair,
 				bestAskPrice,
 				false,
-				Math.min(3 - newAsks.length, 3)
+				3 - newAsks.length
 			);
 		}
 
@@ -269,8 +263,12 @@ class MarketMaker {
 			? otherTokenOrderBook.asks[0].price
 			: Number.MAX_VALUE;
 
-		util.logDebug(`[${otherPair}] no arb bid ${otherTokenNoArbBidPrice} vs best bid ${otherTokenBestBid}`);
-		util.logDebug(`[${otherPair}] no arb ask ${otherTokenNoArbAskPrice} vs best ask ${otherTokenBestAsk}`);
+		util.logDebug(
+			`[${otherPair}] no arb bid ${otherTokenNoArbBidPrice} vs best bid ${otherTokenBestBid}`
+		);
+		util.logDebug(
+			`[${otherPair}] no arb ask ${otherTokenNoArbAskPrice} vs best ask ${otherTokenBestAsk}`
+		);
 
 		const orderHashesToCancel: string[] = [];
 		let bidsToTake: IOrderBookSnapshotLevel[] = [];
@@ -317,12 +315,11 @@ class MarketMaker {
 		this.isSendingOrder = true;
 		for (const orderLevel of orderBookSide) {
 			util.logDebug(
-				`${pair} taking an ${isBid ? 'bid' : 'ask'} order with price ${orderLevel.price} amount ${
-					orderLevel.balance
-				}`
+				`${pair} taking an ${isBid ? 'bid' : 'ask'} order with price ${
+					orderLevel.price
+				} amount ${orderLevel.balance}`
 			);
-			if (!orderLevel.balance)
-				continue;
+			if (!orderLevel.balance) continue;
 			const orderHash = await relayerClient.addOrder(
 				this.makerAccount.address,
 				pair,
@@ -348,7 +345,10 @@ class MarketMaker {
 		this.isSendingOrder = true;
 		for (let i = 0; i < level; i++) {
 			const levelPrice = Number(
-				util.formatFixedNumber(bestPrice + (isBid ? -1 : 1) * i * this.priceStep, precision)
+				util.formatFixedNumber(
+					bestPrice + (isBid ? -1 : 1) * (i + 3 - level) * this.priceStep,
+					precision
+				)
 			);
 			const orderHash = await relayerClient.addOrder(
 				this.makerAccount.address,
@@ -398,7 +398,7 @@ class MarketMaker {
 			!relayerClient.orderBookSnapshots[this.tokens[0].code + '|' + CST.TOKEN_WETH] ||
 			!relayerClient.orderBookSnapshots[this.tokens[1].code + '|' + CST.TOKEN_WETH]
 		) {
-			util.logDebug('waiting for the other orderbook')
+			util.logDebug('waiting for the other orderbook');
 			return;
 		}
 
@@ -471,9 +471,9 @@ class MarketMaker {
 		relayerClient.subscribeOrderBook(this.tokens[1].code + '|' + CST.TOKEN_WETH);
 	}
 
-	public handleUserOrder(
+	public async handleUserOrder(
 		userOrder: IUserOrder,
-		web3Util: Web3Util,
+		relayerClient: RelayerClient,
 		dualClassWrapper: DualClassWrapper
 	) {
 		const isBid = userOrder.side === CST.DB_BID;
@@ -493,6 +493,12 @@ class MarketMaker {
 			orderCache[index].sort((a, b) => (isBid ? -a.price + b.price : a.price - b.price));
 			if (isBid) this.tokenBalances[0] -= balance * price;
 			else this.tokenBalances[index + 1] -= balance;
+			// cancel far away orders
+			if (orderCache[index].length > 4) {
+				util.logDebug(pair + ' cancel orders too far away');
+				const ordersToCancel = orderCache[index].slice(4).map(o => o.orderHash);
+				await this.cancelOrders(relayerClient, pair, ordersToCancel);
+			}
 		} else if (type === CST.DB_UPDATE && status !== CST.DB_MATCHING && prevVersion) {
 			if (isBid) this.tokenBalances[0] -= (balance - prevVersion.balance) * price;
 			else this.tokenBalances[index + 1] -= balance - prevVersion.balance;
@@ -500,7 +506,7 @@ class MarketMaker {
 			Object.assign(prevVersion, userOrder);
 		}
 
-		return this.maintainBalance(web3Util, dualClassWrapper);
+		return this.maintainBalance(relayerClient.web3Util, dualClassWrapper);
 	}
 
 	public handleOrderError(method: string, orderHash: string, error: string) {
@@ -591,7 +597,11 @@ class MarketMaker {
 					userOrders
 				),
 			userOrder =>
-				this.handleUserOrder(userOrder, web3Util, dualClassWrapper as DualClassWrapper),
+				this.handleUserOrder(
+					userOrder,
+					relayerClient,
+					dualClassWrapper as DualClassWrapper
+				),
 			(method, orderHash, error) => this.handleOrderError(method, orderHash, error)
 		);
 		relayerClient.onOrderBook(
