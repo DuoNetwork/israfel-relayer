@@ -62,6 +62,9 @@ switch (tool) {
 	case CST.DB_MKT_MAKER:
 		marketMaker.startProcessing(option);
 		break;
+	case CST.DB_HASH_DELETE_ALL:
+		orderPersistenceUtil.hashDeleteAll(option);
+		break;
 	default:
 		break;
 }

@@ -14,7 +14,8 @@
 		"orderBooks": "ts-node ./src/index orderBooks",
 		"orderMatcher": "ts-node ./src/index orderMatcher",
 		"node": "ts-node ./src/index node",
-		"marketMaker": "ts-node ./src/index marketMaker"
+		"marketMaker": "ts-node ./src/index marketMaker",
+		"hashDeleteAll": "ts-node ./src/index hashDeleteAll"
 	},
 	"jest": {
 		"testEnvironment": "node",

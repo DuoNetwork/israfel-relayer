@@ -343,6 +343,13 @@ class OrderPersistenceUtil {
 			});
 		loop();
 	}
+
+	public async hashDeleteAll(option: IOption) {
+		await redisUtil.hashDeleteAll(
+			this.getOrderCacheMapKey(option.token + '|' + CST.TOKEN_WETH)
+		);
+		util.logDebug(`completed delete all cached orders for ${option.token}`);
+	}
 }
 const orderPersistenceUtil = new OrderPersistenceUtil();
 export default orderPersistenceUtil;

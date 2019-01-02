@@ -68,6 +68,7 @@ export const DB_CUSTODIAN = 'custodian';
 export const DB_MATCH = 'match';
 export const DB_TX_HASH = 'transactionHash';
 export const DB_MKT_MAKER = 'marketMaker';
+export const DB_HASH_DELETE_ALL = 'hashDeleteAll';
 
 export const DB_ADD = 'add';
 export const DB_UPDATE = 'update';
