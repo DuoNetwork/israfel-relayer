@@ -69,6 +69,7 @@ class MarketMaker {
 		let wethShortfall = 0;
 		let wethSurplus = 0;
 		const tokensPerEth = DualClassWrapper.getTokensPerEth(this.custodianStates);
+		util.logDebug(`tokens per eth ${JSON.stringify(tokensPerEth)}`);
 
 		let bTokenToCreate = 0;
 		let bTokenToRedeem = 0;
@@ -100,7 +101,7 @@ class MarketMaker {
 			);
 			bTokenToRedeem = Math.min(aTokenSurplus / alpha, bTokenSurplus);
 			ethAmountForRedemption = util.round(
-				(bTokenToRedeem / tokensPerEth[1]) * (1 - this.custodianStates.createCommRate)
+				(bTokenToRedeem / tokensPerEth[1]) * (1 - this.custodianStates.redeemCommRate)
 			);
 			impliedWethBalance += ethAmountForRedemption;
 		}
