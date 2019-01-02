@@ -64,8 +64,7 @@ class MarketMaker {
 	}
 
 	public async maintainBalance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
-		if (this.isMaintainingBalance)
-			return;
+		if (this.isMaintainingBalance) return;
 
 		this.isMaintainingBalance = true;
 		this.custodianStates = await dualClassWrapper.getStates();
@@ -202,12 +201,27 @@ class MarketMaker {
 		dualClassWrapper: DualClassWrapper,
 		pair: string
 	) {
+		const isA = this.isA(pair);
+		const index = isA ? 1 : 0;
+		const otherPair = this.tokens[index].code + '|' + CST.TOKEN_WETH;
+		if (
+			!relayerClient.orderBookSnapshots[pair] ||
+			!relayerClient.orderBookSnapshots[otherPair]
+		) {
+			util.logDebug('waiting for the other orderbook');
+			return;
+		}
+
+		if (this.isSendingOrder || !util.isEmptyObject(this.pendingOrders)) {
+			util.logDebug(`non empty pending updates ${Object.keys(this.pendingOrders)}`);
+			return;
+		}
+
 		util.logDebug(`[${pair}] start making orders`);
 		this.custodianStates = await dualClassWrapper.getStates();
 		const alpha = this.custodianStates.alpha;
 		const ethPrice = this.getEthPrice();
 		const ethNavInEth = 1 / this.custodianStates.resetPrice;
-		const isA = this.isA(pair);
 		const navPrices = DualClassWrapper.calculateNav(
 			this.custodianStates,
 			this.isBeethoven,
@@ -261,8 +275,6 @@ class MarketMaker {
 			(ethNavInEth * (1 + alpha) - (isA ? alpha : 1) * bestAskPrice) / (isA ? 1 : alpha);
 		const otherTokenNoArbAskPrice =
 			(ethNavInEth * (1 + alpha) - (isA ? alpha : 1) * bestBidPrice) / (isA ? 1 : alpha);
-		const index = isA ? 1 : 0;
-		const otherPair = this.tokens[index].code + '|' + CST.TOKEN_WETH;
 		const otherTokenOrderBook = relayerClient.orderBookSnapshots[otherPair];
 		const otherTokenBestBid = otherTokenOrderBook.bids.length
 			? otherTokenOrderBook.bids[0].price
@@ -402,19 +414,6 @@ class MarketMaker {
 	) {
 		const pair = orderBookSnapshot.pair;
 		util.logDebug(`received orderBookUpdate ${pair} ${orderBookSnapshot.version}`);
-		if (
-			!relayerClient.orderBookSnapshots[this.tokens[0].code + '|' + CST.TOKEN_WETH] ||
-			!relayerClient.orderBookSnapshots[this.tokens[1].code + '|' + CST.TOKEN_WETH]
-		) {
-			util.logDebug('waiting for the other orderbook');
-			return;
-		}
-
-		if (this.isSendingOrder || !util.isEmptyObject(this.pendingOrders)) {
-			util.logDebug(`non empty pending updates ${Object.keys(this.pendingOrders)}`);
-			return;
-		}
-
 		await this.makeOrders(relayerClient, dualClassWrapper, pair);
 	}
 
@@ -515,7 +514,6 @@ class MarketMaker {
 		}
 
 		await this.maintainBalance(relayerClient.web3Util, dualClassWrapper);
-		if (this.isSendingOrder || !util.isEmptyObject(this.pendingOrders)) return;
 		return this.makeOrders(relayerClient, dualClassWrapper, pair);
 	}
 
