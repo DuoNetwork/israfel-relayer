@@ -161,7 +161,6 @@ class MarketMaker {
 			this.tokenBalances[2] -= bTokenToCreate;
 			this.tokenBalances[1] -= bTokenToCreate * alpha;
 			util.logDebug(`wrapping ether with amt ${ethAmountForRedemption}`);
-			await util.sleep(10000);
 			tx = await web3Util.wrapEther(ethAmountForRedemption, this.makerAccount.address);
 			util.logDebug(`tx hash: ${tx}`);
 			await web3Util.awaitTransactionSuccessAsync(tx);
