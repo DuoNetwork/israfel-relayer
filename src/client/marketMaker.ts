@@ -21,11 +21,13 @@ class MarketMaker {
 	public liveAskOrders: IUserOrder[][] = [[], []];
 	public makerAccount: IAccount = { address: '0x0', privateKey: '' };
 	public custodianStates: IDualClassStates | null = null;
-	public priceStep: number = 0.0005;
+	public priceStep: number = 0.0001;
 	public tokenBalances: number[] = [0, 0, 0];
 	public pendingOrders: { [orderHash: string]: boolean } = {};
 	public exchangePrices: { [source: string]: IPrice[] } = {};
-	public isBeethoven: boolean = true;
+	public isBeethoven = true;
+	public isInitialized = false;
+	public isSendingOrder = false;
 
 	private isA(pair: string) {
 		return this.tokens[0].code === pair.split('|')[0];
@@ -61,7 +63,6 @@ class MarketMaker {
 	}
 
 	public async maintainBalance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
-		util.logDebug('start balance maintenance');
 		this.custodianStates = await dualClassWrapper.getStates();
 		const alpha = this.custodianStates.alpha;
 		let impliedWethBalance = this.tokenBalances[0];
@@ -178,14 +179,13 @@ class MarketMaker {
 			await web3Util.awaitTransactionSuccessAsync(tx);
 			this.tokenBalances[0] -= wethSurplus;
 		}
-		util.logDebug('completed balance maintenance');
 	}
 
 	public getSideTotalLiquidity(side: IOrderBookSnapshotLevel[], level: number = 0): number {
 		if (!side.length) return 0;
 		level = level || side.length;
 		let accumulatedAmt = 0;
-		for (let i = 0; i++; i < level) accumulatedAmt += side[i].balance;
+		for (let i = 0; i < level; i++) accumulatedAmt += side[i].balance;
 		return accumulatedAmt;
 	}
 
@@ -194,7 +194,7 @@ class MarketMaker {
 		dualClassWrapper: DualClassWrapper,
 		pair: string
 	) {
-		util.logDebug('start making orders');
+		util.logDebug(`[${pair}] start making orders`);
 		this.custodianStates = await dualClassWrapper.getStates();
 		const alpha = this.custodianStates.alpha;
 		const ethPrice = this.getEthPrice();
@@ -207,8 +207,8 @@ class MarketMaker {
 			util.getUTCNowTimestamp()
 		);
 		const tokenNavInEth = navPrices[isA ? 0 : 1] / ethPrice;
-		util.logDebug(`ethPrice ${ethPrice} token nav ${navPrices[0]} ${navPrices[1]}`);
-		util.logDebug(`eth nav in eth ${ethNavInEth} token nav in eth ${tokenNavInEth}`);
+		util.logDebug(`[${pair}] ethPrice ${ethPrice} token nav ${navPrices[0]} ${navPrices[1]}`);
+		util.logDebug(`[${pair}] eth nav in eth ${ethNavInEth} token nav in eth ${tokenNavInEth}`);
 		const orderBookSnapshot = relayerClient.orderBookSnapshots[pair];
 
 		const newBids = orderBookSnapshot.bids;
@@ -223,13 +223,14 @@ class MarketMaker {
 			: newBids.length
 			? newBids[0].price + this.priceStep
 			: tokenNavInEth + this.priceStep;
-		util.logDebug(`best bid ${bestBidPrice}, best ask ${bestAskPrice}`);
+		util.logDebug(`[${pair}] best bid ${bestBidPrice}, best ask ${bestAskPrice}`);
 		// make orders for this side
 		if (
 			orderBookSnapshot.bids.length < CST.MIN_ORDER_BOOK_LEVELS ||
 			this.getSideTotalLiquidity(orderBookSnapshot.bids, 3) < CST.MIN_SIDE_LIQUIDITY
 		) {
-			util.logDebug(`bid for ${pair} has insufficient liquidity, make orders`);
+			util.logDebug(JSON.stringify(newBids));
+			util.logDebug(`[${pair}] bid for ${pair} has insufficient liquidity, make orders`);
 			await this.createOrderBookSide(
 				relayerClient,
 				pair,
@@ -243,7 +244,8 @@ class MarketMaker {
 			newAsks.length < CST.MIN_ORDER_BOOK_LEVELS ||
 			this.getSideTotalLiquidity(newAsks, 3) < CST.MIN_SIDE_LIQUIDITY
 		) {
-			util.logDebug(`ask for ${pair} has insufficient liquidity, make orders`);
+			util.logDebug(JSON.stringify(newAsks));
+			util.logDebug(`[${pair}] ask for ${pair} has insufficient liquidity, make orders`);
 			await this.createOrderBookSide(
 				relayerClient,
 				pair,
@@ -253,11 +255,10 @@ class MarketMaker {
 			);
 		}
 
-		util.logDebug('checking for arbitrage for the other token');
 		const otherTokenNoArbBidPrice =
-			ethNavInEth * (1 + alpha) - (isA ? alpha : 1) * bestBidPrice;
+			(ethNavInEth * (1 + alpha) - (isA ? alpha : 1) * bestAskPrice) / (isA ? 1 : alpha);
 		const otherTokenNoArbAskPrice =
-			ethNavInEth * (1 + alpha) - (isA ? alpha : 1) * bestAskPrice;
+			(ethNavInEth * (1 + alpha) - (isA ? alpha : 1) * bestBidPrice) / (isA ? 1 : alpha);
 		const index = isA ? 1 : 0;
 		const otherPair = this.tokens[index].code + '|' + CST.TOKEN_WETH;
 		const otherTokenOrderBook = relayerClient.orderBookSnapshots[otherPair];
@@ -268,8 +269,8 @@ class MarketMaker {
 			? otherTokenOrderBook.asks[0].price
 			: Number.MAX_VALUE;
 
-		util.logDebug(`no arb bid ${otherTokenNoArbBidPrice} vs best bid ${otherTokenBestBid}`);
-		util.logDebug(`no arb ask ${otherTokenNoArbAskPrice} vs best ask ${otherTokenBestAsk}`);
+		util.logDebug(`[${otherPair}] no arb bid ${otherTokenNoArbBidPrice} vs best bid ${otherTokenBestBid}`);
+		util.logDebug(`[${otherPair}] no arb ask ${otherTokenNoArbAskPrice} vs best ask ${otherTokenBestAsk}`);
 
 		const orderHashesToCancel: string[] = [];
 		let bidsToTake: IOrderBookSnapshotLevel[] = [];
@@ -293,17 +294,17 @@ class MarketMaker {
 		}
 
 		if (orderHashesToCancel.length) {
-			util.logDebug('cancel arbitrage orders');
+			util.logDebug(`[${otherPair}] cancel arbitrage orders`);
 			await this.cancelOrders(relayerClient, otherPair, orderHashesToCancel);
 		}
 
 		if (bidsToTake.length) {
-			util.logDebug('take arbitrage bids');
-			await this.takeOneSideOrders(relayerClient, pair, true, bidsToTake);
+			util.logDebug(`[${otherPair}] take arbitrage bids`);
+			await this.takeOneSideOrders(relayerClient, otherPair, true, bidsToTake);
 		}
 		if (asksToTake.length) {
-			util.logDebug('take arbitrage asks');
-			await this.takeOneSideOrders(relayerClient, pair, false, asksToTake);
+			util.logDebug(`[${otherPair}] take arbitrage asks`);
+			await this.takeOneSideOrders(relayerClient, otherPair, false, asksToTake);
 		}
 	}
 
@@ -313,12 +314,15 @@ class MarketMaker {
 		isBid: boolean,
 		orderBookSide: IOrderBookSnapshotLevel[]
 	) {
+		this.isSendingOrder = true;
 		for (const orderLevel of orderBookSide) {
 			util.logDebug(
-				`taking an  ${isBid ? 'bid' : 'ask'} order with price ${orderLevel.price} amount ${
+				`${pair} taking an ${isBid ? 'bid' : 'ask'} order with price ${orderLevel.price} amount ${
 					orderLevel.balance
 				}`
 			);
+			if (!orderLevel.balance)
+				continue;
 			const orderHash = await relayerClient.addOrder(
 				this.makerAccount.address,
 				pair,
@@ -330,6 +334,7 @@ class MarketMaker {
 			this.pendingOrders[orderHash] = true;
 			await util.sleep(1000);
 		}
+		this.isSendingOrder = false;
 	}
 
 	public async createOrderBookSide(
@@ -340,6 +345,7 @@ class MarketMaker {
 		level: number = 3
 	) {
 		const precision = this.tokens[0].precisions[CST.TOKEN_WETH];
+		this.isSendingOrder = true;
 		for (let i = 0; i < level; i++) {
 			const levelPrice = Number(
 				util.formatFixedNumber(bestPrice + (isBid ? -1 : 1) * i * this.priceStep, precision)
@@ -350,11 +356,12 @@ class MarketMaker {
 				levelPrice,
 				20,
 				isBid,
-				util.getExpiryTimestamp(false)
+				util.getExpiryTimestamp(true)
 			);
 			this.pendingOrders[orderHash] = true;
 			await util.sleep(1000);
 		}
+		this.isSendingOrder = false;
 	}
 
 	public async createOrderBookFromNav(
@@ -363,6 +370,7 @@ class MarketMaker {
 	) {
 		this.custodianStates = await dualClassWrapper.getStates();
 		const ethPrice = this.getEthPrice();
+		util.logDebug(`eth price ${ethPrice}`);
 		const navPrices = DualClassWrapper.calculateNav(
 			this.custodianStates,
 			this.isBeethoven,
@@ -385,24 +393,32 @@ class MarketMaker {
 		orderBookSnapshot: IOrderBookSnapshot
 	) {
 		const pair = orderBookSnapshot.pair;
+		util.logDebug(`received orderBookUpdate ${pair} ${orderBookSnapshot.version}`);
 		if (
 			!relayerClient.orderBookSnapshots[this.tokens[0].code + '|' + CST.TOKEN_WETH] ||
 			!relayerClient.orderBookSnapshots[this.tokens[1].code + '|' + CST.TOKEN_WETH]
-		)
+		) {
+			util.logDebug('waiting for the other orderbook')
 			return;
+		}
 
-		if (!util.isEmptyObject(this.pendingOrders)) return;
+		if (this.isSendingOrder || !util.isEmptyObject(this.pendingOrders)) {
+			util.logDebug(`non empty pending updates ${Object.keys(this.pendingOrders)}`);
+			return;
+		}
 
 		await this.makeOrders(relayerClient, dualClassWrapper, pair);
 	}
 
 	public async cancelOrders(relayerClient: RelayerClient, pair: string, orderHashes: string[]) {
+		this.isSendingOrder = true;
 		orderHashes.forEach(o => (this.pendingOrders[o] = true));
 		const signature = await relayerClient.web3Util.web3PersonalSign(
 			this.makerAccount.address,
 			CST.TERMINATE_SIGN_MSG + orderHashes.join(',')
 		);
 		relayerClient.deleteOrder(pair, orderHashes, signature);
+		this.isSendingOrder = false;
 	}
 
 	public async handleOrderHistory(
@@ -450,9 +466,9 @@ class MarketMaker {
 		}
 
 		util.logDebug('create order book from nav');
-		this.createOrderBookFromNav(dualClassWrapper, relayerClient);
-		// relayerClient.subscribeOrderBook(this.tokens[0].code + '|' + CST.TOKEN_WETH);
-		// relayerClient.subscribeOrderBook(this.tokens[1].code + '|' + CST.TOKEN_WETH);
+		await this.createOrderBookFromNav(dualClassWrapper, relayerClient);
+		relayerClient.subscribeOrderBook(this.tokens[0].code + '|' + CST.TOKEN_WETH);
+		relayerClient.subscribeOrderBook(this.tokens[1].code + '|' + CST.TOKEN_WETH);
 	}
 
 	public handleUserOrder(
@@ -462,7 +478,7 @@ class MarketMaker {
 	) {
 		const isBid = userOrder.side === CST.DB_BID;
 		const { type, status, pair, orderHash, balance, price } = userOrder;
-		util.logDebug(`received order update for ${orderHash} ${type} ${status}`);
+		util.logDebug(`received order update for ${pair} ${orderHash} ${type} ${status}`);
 		if (this.pendingOrders[orderHash]) delete this.pendingOrders[orderHash];
 		const index = this.isA(pair) ? 0 : 1;
 		const orderCache = isBid ? this.liveBidOrders : this.liveAskOrders;
@@ -518,7 +534,7 @@ class MarketMaker {
 		);
 		if (!bToken) return null;
 		this.tokens = [aToken, bToken];
-		this.priceStep = aToken.precisions[CST.TOKEN_WETH] * 100;
+		this.priceStep = aToken.precisions[CST.TOKEN_WETH] * 20;
 		let infura = {
 			token: ''
 		};
@@ -561,7 +577,10 @@ class MarketMaker {
 		relayerClient.onInfoUpdate(async (tokens, status, acceptedPrices, exchangePrices) => {
 			if (tokens && status && acceptedPrices && exchangePrices)
 				this.exchangePrices = exchangePrices;
-			if (!dualClassWrapper) dualClassWrapper = await this.initialize(relayerClient, option);
+			if (!this.isInitialized) {
+				this.isInitialized = true;
+				dualClassWrapper = await this.initialize(relayerClient, option);
+			}
 		});
 
 		relayerClient.onOrder(
@@ -590,6 +609,7 @@ class MarketMaker {
 			() => {
 				util.logDebug('reconnecting');
 				dualClassWrapper = null;
+				this.isInitialized = false;
 			}
 		);
 		relayerClient.connectToRelayer();
