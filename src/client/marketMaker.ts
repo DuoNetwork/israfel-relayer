@@ -121,7 +121,7 @@ class MarketMaker {
 				CST.FAUCET_ADDR,
 				this.makerAccount.address,
 				this.makerAccount.address,
-				wethShortfall
+				util.round(wethShortfall)
 			);
 			util.logDebug(`tx hash: ${tx}`);
 			await web3Util.awaitTransactionSuccessAsync(tx);
@@ -150,8 +150,8 @@ class MarketMaker {
 			let tx = await dualClassWrapper.redeemRaw(
 				this.makerAccount.address,
 				this.makerAccount.privateKey,
-				bTokenToRedeem * alpha,
-				bTokenToRedeem,
+				util.round(bTokenToRedeem) * alpha,
+				util.round(bTokenToRedeem),
 				gasPrice,
 				CST.CREATE_GAS
 			);
@@ -173,7 +173,7 @@ class MarketMaker {
 				this.makerAccount.address,
 				CST.FAUCET_ADDR,
 				this.makerAccount.address,
-				wethSurplus
+				util.round(wethSurplus)
 			);
 			util.logDebug(`tx hash: ${tx}`);
 			await web3Util.awaitTransactionSuccessAsync(tx);
