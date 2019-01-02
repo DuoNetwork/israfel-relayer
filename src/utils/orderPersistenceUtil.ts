@@ -210,7 +210,7 @@ class OrderPersistenceUtil {
 			const matchinAdjust = Math.min(matching || 0, -fill + orderQueueItem.liveOrder.fill);
 			orderQueueItem.liveOrder.matching = util.round(
 				Math.max(orderQueueItem.liveOrder.matching + matchinAdjust, 0)
-			);
+			) || 0;
 			orderQueueItem.liveOrder.fill = util.round(fill);
 			orderQueueItem.liveOrder.balance = util.round(
 				Math.max(
@@ -219,7 +219,7 @@ class OrderPersistenceUtil {
 						orderQueueItem.liveOrder.matching,
 					0
 				)
-			);
+			) || 0;
 		} else if (!fill && matching) {
 			// only from orderMatcher
 			orderQueueItem.liveOrder.matching = util.round(
@@ -227,7 +227,7 @@ class OrderPersistenceUtil {
 					orderQueueItem.liveOrder.amount - orderQueueItem.liveOrder.fill,
 					orderQueueItem.liveOrder.matching + matching
 				)
-			);
+			) || 0;
 			orderQueueItem.liveOrder.balance = util.round(
 				Math.max(
 					orderQueueItem.liveOrder.amount -
@@ -235,7 +235,7 @@ class OrderPersistenceUtil {
 						orderQueueItem.liveOrder.matching,
 					0
 				)
-			);
+			) || 0;
 		}
 
 		if (transactionHash) orderQueueItem.transactionHash = transactionHash;
