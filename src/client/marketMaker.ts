@@ -222,7 +222,7 @@ class MarketMaker {
 		dualClassWrapper: DualClassWrapper,
 		pair: string
 	) {
-		if (!this.isMakingOrders)
+		if (this.isMakingOrders)
 			return;
 
 		this.isMakingOrders = true;
