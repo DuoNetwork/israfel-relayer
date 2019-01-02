@@ -28,6 +28,7 @@ class MarketMaker {
 	public isBeethoven = true;
 	public isInitialized = false;
 	public isSendingOrder = false;
+	public isMaintainingBalance = false;
 
 	private isA(pair: string) {
 		return this.tokens[0].code === pair.split('|')[0];
@@ -63,13 +64,16 @@ class MarketMaker {
 	}
 
 	public async maintainBalance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
+		if (this.isMaintainingBalance)
+			return;
+
+		this.isMaintainingBalance = true;
 		this.custodianStates = await dualClassWrapper.getStates();
 		const alpha = this.custodianStates.alpha;
 		let impliedWethBalance = this.tokenBalances[0];
 		let wethShortfall = 0;
 		let wethSurplus = 0;
 		const tokensPerEth = DualClassWrapper.getTokensPerEth(this.custodianStates);
-		util.logDebug(`tokens per eth ${JSON.stringify(tokensPerEth)}`);
 
 		let bTokenToCreate = 0;
 		let bTokenToRedeem = 0;
@@ -181,6 +185,8 @@ class MarketMaker {
 			await web3Util.awaitTransactionSuccessAsync(tx);
 			this.tokenBalances[0] -= wethSurplus;
 		}
+
+		this.isMaintainingBalance = false;
 	}
 
 	public getSideTotalLiquidity(side: IOrderBookSnapshotLevel[], level: number = 0): number {
