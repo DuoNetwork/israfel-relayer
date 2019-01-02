@@ -261,7 +261,7 @@ class OrderMatchingUtil {
 						matching: -bid.matchingAmount,
 						requestor: CST.DB_ORDER_MATCHER,
 						status: bidFilledAmt >= bid.orderAmount ? CST.DB_FILL : CST.DB_PFILL,
-						transactionHash: receipt.blockHash
+						transactionHash: receipt.transactionHash
 					});
 
 					const askFilledTakerAmt = await web3Util.getFilledTakerAssetAmount(
@@ -287,7 +287,7 @@ class OrderMatchingUtil {
 						matching: -ask.matchingAmount,
 						requestor: CST.DB_ORDER_MATCHER,
 						status: askFilledAmt >= ask.orderAmount ? CST.DB_FILL : CST.DB_PFILL,
-						transactionHash: receipt.blockHash
+						transactionHash: receipt.transactionHash
 					});
 				})
 				.catch(async txError => {
