@@ -37,7 +37,6 @@ class RelayerServer {
 	public web3Util: Web3Util | null = null;
 	public wsServer: WebSocket.Server | null = null;
 	public orderBookPairs: { [pair: string]: WebSocket[] } = {};
-	public clients: WebSocket[] = [];
 	public accountClients: { [account: string]: WebSocket[] } = {};
 	public duoAcceptedPrices: { [custodian: string]: IAcceptedPrice[] } = {};
 	public duoExchangePrices: { [source: string]: IPrice[] } = {};
@@ -378,7 +377,6 @@ class RelayerServer {
 
 	public handleWebSocketConnection(ws: WebSocket) {
 		util.logInfo('new connection');
-		if (!this.clients.includes(ws)) this.clients.push(ws);
 		this.sendInfo(ws);
 		ws.on('message', message => this.handleWebSocketMessage(ws, message.toString()));
 		ws.on('close', () => this.handleWebSocketClose(ws));
@@ -386,7 +384,6 @@ class RelayerServer {
 
 	public handleWebSocketClose(ws: WebSocket) {
 		util.logInfo('connection close');
-		this.clients = this.clients.filter(w => w !== ws);
 		for (const pair in this.orderBookPairs) this.unsubscribeOrderBook(ws, pair);
 		for (const account in this.accountClients) this.unsubscribeOrderHistory(ws, account);
 	}
@@ -463,10 +460,12 @@ class RelayerServer {
 		if (this.wsServer) {
 			setInterval(async () => {
 				this.processStatus = await dynamoUtil.scanStatus();
-				this.clients.forEach(ws => this.sendInfo(ws));
+				if (this.wsServer) this.wsServer.clients.forEach(ws => this.sendInfo(ws));
 			}, 30000);
 			this.wsServer.on('connection', (ws, request) => {
-				util.logInfo(request.headers['x-forwarded-for'] || request.connection.remoteAddress);
+				util.logInfo(
+					request.headers['x-forwarded-for'] || request.connection.remoteAddress
+				);
 				this.handleWebSocketConnection(ws);
 			});
 		}

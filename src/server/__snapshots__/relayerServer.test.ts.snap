@@ -919,24 +919,8 @@ Array [
             "close",
             [Function],
           ],
-          Array [
-            "message",
-            [Function],
-          ],
-          Array [
-            "close",
-            [Function],
-          ],
         ],
         "results": Array [
-          Object {
-            "isThrow": false,
-            "value": undefined,
-          },
-          Object {
-            "isThrow": false,
-            "value": undefined,
-          },
           Object {
             "isThrow": false,
             "value": undefined,
@@ -968,24 +952,8 @@ Array [
             "close",
             [Function],
           ],
-          Array [
-            "message",
-            [Function],
-          ],
-          Array [
-            "close",
-            [Function],
-          ],
         ],
         "results": Array [
-          Object {
-            "isThrow": false,
-            "value": undefined,
-          },
-          Object {
-            "isThrow": false,
-            "value": undefined,
-          },
           Object {
             "isThrow": false,
             "value": undefined,
@@ -1004,103 +972,6 @@ Array [
 
 exports[`handleWebSocketConnection 1`] = `
 Array [
-  Object {
-    "name": "ws",
-    "on": [MockFunction] {
-      "calls": Array [
-        Array [
-          "message",
-          [Function],
-        ],
-        Array [
-          "close",
-          [Function],
-        ],
-      ],
-      "results": Array [
-        Object {
-          "isThrow": false,
-          "value": undefined,
-        },
-        Object {
-          "isThrow": false,
-          "value": undefined,
-        },
-      ],
-    },
-  },
-]
-`;
-
-exports[`handleWebSocketConnection 2`] = `
-Array [
-  Array [
-    "message",
-    [Function],
-  ],
-  Array [
-    "close",
-    [Function],
-  ],
-]
-`;
-
-exports[`handleWebSocketConnection same connection 1`] = `
-Array [
-  Object {
-    "name": "ws",
-    "on": [MockFunction] {
-      "calls": Array [
-        Array [
-          "message",
-          [Function],
-        ],
-        Array [
-          "close",
-          [Function],
-        ],
-        Array [
-          "message",
-          [Function],
-        ],
-        Array [
-          "close",
-          [Function],
-        ],
-      ],
-      "results": Array [
-        Object {
-          "isThrow": false,
-          "value": undefined,
-        },
-        Object {
-          "isThrow": false,
-          "value": undefined,
-        },
-        Object {
-          "isThrow": false,
-          "value": undefined,
-        },
-        Object {
-          "isThrow": false,
-          "value": undefined,
-        },
-      ],
-    },
-  },
-]
-`;
-
-exports[`handleWebSocketConnection same connection 2`] = `
-Array [
-  Array [
-    "message",
-    [Function],
-  ],
-  Array [
-    "close",
-    [Function],
-  ],
   Array [
     "message",
     [Function],
