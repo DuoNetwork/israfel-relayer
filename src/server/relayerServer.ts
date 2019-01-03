@@ -465,7 +465,10 @@ class RelayerServer {
 				this.processStatus = await dynamoUtil.scanStatus();
 				this.clients.forEach(ws => this.sendInfo(ws));
 			}, 30000);
-			this.wsServer.on('connection', ws => this.handleWebSocketConnection(ws));
+			this.wsServer.on('connection', (ws, request) => {
+				util.logInfo(request.connection.remoteAddress);
+				this.handleWebSocketConnection(ws);
+			});
 		}
 
 		if (option.server) {
