@@ -40,6 +40,7 @@ class RelayerServer {
 	public accountClients: { [account: string]: WebSocket[] } = {};
 	public duoAcceptedPrices: { [custodian: string]: IAcceptedPrice[] } = {};
 	public duoExchangePrices: { [source: string]: IPrice[] } = {};
+	public ipBlackList: string[] = ['119.73.164.130'];
 
 	public sendResponse(ws: WebSocket, req: IWsRequest, status: string) {
 		const orderResponse: IWsResponse = {
@@ -463,9 +464,13 @@ class RelayerServer {
 				if (this.wsServer) this.wsServer.clients.forEach(ws => this.sendInfo(ws));
 			}, 30000);
 			this.wsServer.on('connection', (ws, request) => {
-				util.logInfo(
-					request.headers['x-forwarded-for'] || request.connection.remoteAddress
-				);
+				const ip = (request.headers['x-forwarded-for'] || request.connection.remoteAddress) as string;
+				util.logInfo(ip);
+				if (this.ipBlackList.includes(ip)) {
+					util.logDebug(`ip ${ip} in blacklist, close connection`);
+					ws.close();
+					return;
+				}
 				this.handleWebSocketConnection(ws);
 			});
 		}
