@@ -466,7 +466,7 @@ class RelayerServer {
 				this.clients.forEach(ws => this.sendInfo(ws));
 			}, 30000);
 			this.wsServer.on('connection', (ws, request) => {
-				util.logInfo(request.connection.remoteAddress);
+				util.logInfo(request.headers['x-forwarded-for'] || request.connection.remoteAddress);
 				this.handleWebSocketConnection(ws);
 			});
 		}
