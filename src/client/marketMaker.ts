@@ -43,14 +43,15 @@ class MarketMaker {
 
 	public async checkAllowance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
 		util.logDebug('start to check allowance');
+		util.logInfo('start get addresss');
 		const address = this.makerAccount.address;
-
 		for (const code of [CST.TOKEN_WETH, this.tokens[0].code, this.tokens[1].code])
 			if (!(await web3Util.getTokenAllowance(code, address))) {
 				util.logDebug(`${address} ${code} allowance is 0, approving`);
 				const txHash = await web3Util.setUnlimitedTokenAllowance(code, address);
 				await web3Util.awaitTransactionSuccessAsync(txHash);
 			}
+
 		const custodianAddress = dualClassWrapper.address;
 		if (!(await web3Util.getTokenAllowance(CST.TOKEN_WETH, address, custodianAddress))) {
 			util.logDebug(`${address} for custodian allowance is 0, approving`);
@@ -189,13 +190,13 @@ class MarketMaker {
 		this.isMaintainingBalance = false;
 	}
 
-	public getSideTotalLiquidity(side: IOrderBookSnapshotLevel[], level: number = 0): number {
-		if (!side.length) return 0;
-		level = level || side.length;
-		let accumulatedAmt = 0;
-		for (let i = 0; i < level; i++) accumulatedAmt += side[i].balance;
-		return accumulatedAmt;
-	}
+	// public getSideTotalLiquidity(side: IOrderBookSnapshotLevel[], level: number = 0): number {
+	// 	if (!side.length) return 0;
+	// 	level = level || side.length;
+	// 	let accumulatedAmt = 0;
+	// 	for (let i = 0; i < level; i++) accumulatedAmt += side[i].balance;
+	// 	return accumulatedAmt;
+	// }
 
 	public canMakeOrder(relayerClient: RelayerClient, pair: string) {
 		const isA = this.isA(pair);
@@ -222,8 +223,7 @@ class MarketMaker {
 		dualClassWrapper: DualClassWrapper,
 		pair: string
 	) {
-		if (this.isMakingOrders)
-			return;
+		if (this.isMakingOrders) return;
 
 		this.isMakingOrders = true;
 		const isA = this.isA(pair);
@@ -450,6 +450,10 @@ class MarketMaker {
 		userOrders: IUserOrder[]
 	) {
 		util.logDebug('received order history');
+		if (!this.isInitialized) {
+			util.logDebug(`dualClassWrapper not initialized, stop handleOrderHistory`);
+			return;
+		}
 		const processed: { [orderHash: string]: boolean } = {};
 		userOrders.sort(
 			(a, b) => a.pair.localeCompare(b.pair) || -a.currentSequence + b.currentSequence
@@ -559,11 +563,11 @@ class MarketMaker {
 		util.logInfo('initializing dual class wrapper');
 		const live = option.env === CST.DB_LIVE;
 		const aToken = relayerClient.web3Util.getTokenByCode(option.token);
-		if (!aToken) return null;
+		if (!aToken) throw new Error('no aToken');
 		const bToken = relayerClient.web3Util.tokens.find(
 			t => t.code !== aToken.code && t.custodian === aToken.custodian
 		);
-		if (!bToken) return null;
+		if (!bToken) throw new Error('no bToken');
 		this.tokens = [aToken, bToken];
 		this.priceStep = aToken.precisions[CST.TOKEN_WETH] * 20;
 		let infura = {
@@ -572,7 +576,7 @@ class MarketMaker {
 		try {
 			infura = require('../keys/infura.json');
 		} catch (error) {
-			console.log(error);
+			util.logError(`error in loading infura token: ${JSON.stringify(error)}`);
 		}
 		const infuraProvider =
 			(live ? CST.PROVIDER_INFURA_MAIN : CST.PROVIDER_INFURA_KOVAN) + '/' + infura.token;
@@ -580,8 +584,8 @@ class MarketMaker {
 			new Web3Wrapper(null, 'source', infuraProvider, live),
 			aToken.custodian
 		);
-		util.logDebug('updating balance');
 		const address = this.makerAccount.address;
+		util.logDebug(`updating balance for maker address ${address}`);
 		this.tokenBalances = [
 			await relayerClient.web3Util.getTokenBalance(CST.TOKEN_WETH, address),
 			await relayerClient.web3Util.getTokenBalance(this.tokens[0].code, address),

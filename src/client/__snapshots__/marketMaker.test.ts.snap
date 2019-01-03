@@ -1,3 +1,163 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`getSideTotalLiquidity 1`] = `10`;
+exports[`checkAllowance, 0 allowance 1`] = `
+Array [
+  Array [
+    "WETH",
+    "address",
+  ],
+  Array [
+    "aETH",
+    "address",
+  ],
+  Array [
+    "bETH",
+    "address",
+  ],
+  Array [
+    "WETH",
+    "address",
+    "custodianAddr",
+  ],
+]
+`;
+
+exports[`checkAllowance, 0 allowance 2`] = `
+Array [
+  Array [
+    "WETH",
+    "address",
+  ],
+  Array [
+    "aETH",
+    "address",
+  ],
+  Array [
+    "bETH",
+    "address",
+  ],
+  Array [
+    "WETH",
+    "address",
+    "custodianAddr",
+  ],
+]
+`;
+
+exports[`checkAllowance, 0 allowance 3`] = `
+Array [
+  Array [
+    "WETH|
+	address|undefined",
+  ],
+  Array [
+    "aETH|
+	address|undefined",
+  ],
+  Array [
+    "bETH|
+	address|undefined",
+  ],
+  Array [
+    "WETH|
+	address|custodianAddr",
+  ],
+]
+`;
+
+exports[`checkAllowance, already approved 1`] = `
+Array [
+  Array [
+    "WETH",
+    "address",
+  ],
+  Array [
+    "aETH",
+    "address",
+  ],
+  Array [
+    "bETH",
+    "address",
+  ],
+  Array [
+    "WETH",
+    "address",
+    "custodianAddr",
+  ],
+]
+`;
+
+exports[`handleOrderHistory 1`] = `
+Array [
+  99.9868,
+  86,
+  84,
+]
+`;
+
+exports[`handleOrderHistory 2`] = `
+Array [
+  "aETH|WETH",
+  Array [
+    "orderHash3",
+  ],
+]
+`;
+
+exports[`handleOrderHistory 3`] = `
+Array [
+  "bETH|WETH",
+  Array [
+    "orderHash2",
+    "orderHash4",
+  ],
+]
+`;
+
+exports[`handleOrderHistory 4`] = `
+Array [
+  Array [
+    "aETH|WETH",
+  ],
+  Array [
+    "bETH|WETH",
+  ],
+]
+`;
+
+exports[`initialize 1`] = `
+Array [
+  Array [
+    "aETH",
+  ],
+]
+`;
+
+exports[`initialize 2`] = `
+Array [
+  Array [
+    "WETH",
+    "address",
+  ],
+  Array [
+    "aETH",
+    "address",
+  ],
+  Array [
+    "bETH",
+    "address",
+  ],
+]
+`;
+
+exports[`initialize 3`] = `
+Array [
+  Array [
+    "address",
+  ],
+]
+`;
+
+exports[`initialize, no a token 1`] = `[Error: no aToken]`;
+
+exports[`initialize, no b token 1`] = `[Error: no bToken]`;
