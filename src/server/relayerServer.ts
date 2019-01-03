@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as https from 'https';
-import WebSocket from 'ws';
+import WebSocket, { VerifyClientCallbackSync } from 'ws';
 import { API_GDAX, API_GEMINI, API_KRAKEN } from '../../../duo-admin/src/common/constants';
 import duoDynamoUtil from '../../../duo-admin/src/utils/dynamoUtil';
 import * as CST from '../common/constants';
@@ -455,7 +455,20 @@ class RelayerServer {
 				cert: fs.readFileSync(`./src/keys/websocket/cert.${option.env}.pem`, 'utf8')
 			})
 			.listen(port);
-		this.wsServer = new WebSocket.Server({ server: server });
+		const verifyClient: VerifyClientCallbackSync = info => {
+			const ip = (info.req.headers['x-forwarded-for'] ||
+				info.req.connection.remoteAddress) as string;
+			util.logInfo(ip);
+			if (this.ipBlackList.includes(ip)) {
+				util.logDebug(`ip ${ip} in blacklist, close connection`);
+				return false;
+			}
+			return true;
+		};
+		this.wsServer = new WebSocket.Server({
+			server: server,
+			verifyClient: verifyClient
+		});
 		util.logInfo(`started relayer service at port ${port}`);
 
 		if (this.wsServer) {
@@ -463,14 +476,7 @@ class RelayerServer {
 				this.processStatus = await dynamoUtil.scanStatus();
 				if (this.wsServer) this.wsServer.clients.forEach(ws => this.sendInfo(ws));
 			}, 30000);
-			this.wsServer.on('connection', (ws, request) => {
-				const ip = (request.headers['x-forwarded-for'] || request.connection.remoteAddress) as string;
-				util.logInfo(ip);
-				if (this.ipBlackList.includes(ip)) {
-					util.logDebug(`ip ${ip} in blacklist, close connection`);
-					ws.close();
-					return;
-				}
+			this.wsServer.on('connection', ws => {
 				this.handleWebSocketConnection(ws);
 			});
 		}
