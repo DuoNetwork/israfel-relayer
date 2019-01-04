@@ -60,7 +60,7 @@ switch (tool) {
 		);
 		break;
 	case CST.DB_MKT_MAKER:
-		serverMasterUtil.startLaunching(tool, option, () => marketMaker.startProcessing(option));
+		serverMasterUtil.startLaunching(tool, option);
 		break;
 	case CST.DB_HASH_DELETE_ALL:
 		orderPersistenceUtil.hashDeleteAll(option);

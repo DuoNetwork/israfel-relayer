@@ -10,11 +10,11 @@ class ServerMasterUtil {
 	public async startLaunching(
 		tool: string,
 		option: IOption,
-		startServer: (option: IOption) => any
+		startServer?: (option: IOption) => any
 	): Promise<void> {
 		const tokens: IToken[] = await dynamoUtil.scanTokens();
 
-		if (option.token) {
+		if (option.token && startServer) {
 			const rawToken = tokens.find(t => t.code === option.token);
 			if (!rawToken) throw new Error('invalid token specified');
 
