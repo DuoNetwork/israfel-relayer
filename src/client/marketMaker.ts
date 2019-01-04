@@ -277,7 +277,7 @@ class MarketMaker {
 				pair,
 				bestBidPrice,
 				true,
-				3 - newBids.length
+				CST.MIN_ORDER_BOOK_LEVELS - newBids.length
 			);
 		}
 
@@ -289,7 +289,7 @@ class MarketMaker {
 				pair,
 				bestAskPrice,
 				false,
-				3 - newAsks.length
+				CST.MIN_ORDER_BOOK_LEVELS - newAsks.length
 			);
 		}
 
@@ -384,14 +384,14 @@ class MarketMaker {
 		pair: string,
 		bestPrice: number,
 		isBid: boolean,
-		level: number = 3
+		level: number = CST.MIN_ORDER_BOOK_LEVELS
 	) {
 		const precision = this.tokens[0].precisions[CST.TOKEN_WETH];
 		this.isSendingOrder = true;
 		for (let i = 0; i < level; i++) {
 			const levelPrice = Number(
 				util.formatFixedNumber(
-					bestPrice + (isBid ? -1 : 1) * (i + 3 - level) * this.priceStep,
+					bestPrice + (isBid ? -1 : 1) * (i + CST.MIN_ORDER_BOOK_LEVELS - level) * this.priceStep,
 					precision
 				)
 			);

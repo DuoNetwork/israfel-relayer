@@ -169,7 +169,7 @@ export const BASE_DERIVATION_PATH = `44'/60'/0'/0`;
 export const TERMINATE_SIGN_MSG =
 	'By signing this message, your are confirming to cancel following orders (no gas cost involved): ';
 
-export const MIN_ORDER_BOOK_LEVELS = 3;
+export const MIN_ORDER_BOOK_LEVELS = 4;
 export const MIN_SIDE_LIQUIDITY = 50;
 
 export const MIN_ETH_BALANCE = 3;
