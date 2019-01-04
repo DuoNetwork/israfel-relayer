@@ -43,7 +43,6 @@ class MarketMaker {
 
 	public async checkAllowance(web3Util: Web3Util, dualClassWrapper: DualClassWrapper) {
 		util.logDebug('start to check allowance');
-		util.logInfo('start get addresss');
 		const address = this.makerAccount.address;
 		for (const code of [CST.TOKEN_WETH, this.tokens[0].code, this.tokens[1].code])
 			if (!(await web3Util.getTokenAllowance(code, address))) {
@@ -391,7 +390,8 @@ class MarketMaker {
 		for (let i = 0; i < level; i++) {
 			const levelPrice = Number(
 				util.formatFixedNumber(
-					bestPrice + (isBid ? -1 : 1) * (i + CST.MIN_ORDER_BOOK_LEVELS - level) * this.priceStep,
+					bestPrice +
+						(isBid ? -1 : 1) * (i + CST.MIN_ORDER_BOOK_LEVELS - level) * this.priceStep,
 					precision
 				)
 			);
@@ -531,9 +531,11 @@ class MarketMaker {
 			if (isBid) this.tokenBalances[0] -= balance * price;
 			else this.tokenBalances[index + 1] -= balance;
 			// cancel far away orders
-			if (orderCache[index].length > 4) {
+			if (orderCache[index].length > CST.MIN_ORDER_BOOK_LEVELS) {
 				util.logDebug(pair + ' cancel orders too far away');
-				const ordersToCancel = orderCache[index].slice(4).map(o => o.orderHash);
+				const ordersToCancel = orderCache[index]
+					.slice(CST.MIN_ORDER_BOOK_LEVELS)
+					.map(o => o.orderHash);
 				await this.cancelOrders(relayerClient, pair, ordersToCancel);
 			}
 		} else if (type === CST.DB_UPDATE && status !== CST.DB_MATCHING && prevVersion) {
