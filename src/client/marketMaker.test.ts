@@ -184,8 +184,8 @@ test('checkAllowance, already approved', async () => {
 	marketMaker.tokens = tokens;
 	await marketMaker.checkAllowance(web3Util, dualClassWrapper1);
 	expect((web3Util.getTokenAllowance as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(web3Util.setUnlimitedTokenAllowance as jest.MatcherUtils).not.toBeCalled();
-	expect(web3Util.awaitTransactionSuccessAsync as jest.MatcherUtils).not.toBeCalled();
+	expect(web3Util.setUnlimitedTokenAllowance as jest.Mock).not.toBeCalled();
+	expect(web3Util.awaitTransactionSuccessAsync as jest.Mock).not.toBeCalled();
 });
 
 test('checkAllowance, 0 allowance', async () => {
@@ -429,18 +429,22 @@ test('initialize', async () => {
 });
 
 test('handleOrderHistory', async () => {
-	marketMaker.isInitialized = true;
+	const marketMaker1 = Object.assign(
+		Object.create(Object.getPrototypeOf(marketMaker)),
+		marketMaker
+	);
+	marketMaker1.isInitialized = true;
 	const dualClassWrapper = {} as any;
 	const relayerClient = {
 		subscribeOrderBook: jest.fn(() => Promise.resolve())
 	} as any;
-	marketMaker.tokens = tokens;
-	marketMaker.tokenBalances = [100, 100, 100];
-	marketMaker.cancelOrders = jest.fn(() => Promise.resolve());
-	marketMaker.createOrderBookFromNav = jest.fn(() => Promise.resolve());
-	await marketMaker.handleOrderHistory(relayerClient, dualClassWrapper, userOrders);
-	expect(marketMaker.tokenBalances).toMatchSnapshot();
-	for (const mockCall of (marketMaker.cancelOrders as jest.Mock).mock.calls)
+	marketMaker1.tokens = tokens;
+	marketMaker1.tokenBalances = [100, 100, 100];
+	marketMaker1.cancelOrders = jest.fn(() => Promise.resolve());
+	marketMaker1.createOrderBookFromNav = jest.fn(() => Promise.resolve());
+	await marketMaker1.handleOrderHistory(relayerClient, dualClassWrapper, userOrders);
+	expect(marketMaker1.tokenBalances).toMatchSnapshot();
+	for (const mockCall of (marketMaker1.cancelOrders as jest.Mock).mock.calls)
 		expect(mockCall.slice(1)).toMatchSnapshot();
 	expect((relayerClient.subscribeOrderBook as jest.Mock).mock.calls).toMatchSnapshot();
 });
@@ -564,6 +568,17 @@ test('createOrderBookSide', async () => {
 	Math.random = jest.fn(() => 0.5);
 	await marketMaker.createOrderBookSide(relayerClient, 'aETH|WETH', 0.0001, true, 4);
 	expect((relayerClient.addOrder as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('createOrderBookFromNav', async () => {
+	const dualClassWrapper = {
+		getStates: jest.fn(() => Promise.resolve(custodianStates))
+	} as any;
+	marketMaker.getEthPrice = jest.fn(() => 100);
+	DualClassWrapper.calculateNav = jest.fn(() => [1, 1.2]);
+	marketMaker.createOrderBookSide = jest.fn(() => Promise.resolve());
+	await marketMaker.createOrderBookFromNav(dualClassWrapper, {} as any);
+	expect((marketMaker.createOrderBookSide as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('makeOrders, isMakingOrders', async () => {

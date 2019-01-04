@@ -87,6 +87,35 @@ Array [
 ]
 `;
 
+exports[`createOrderBookFromNav 1`] = `
+Array [
+  Array [
+    Object {},
+    "aETH|WETH",
+    0.0099,
+    true,
+  ],
+  Array [
+    Object {},
+    "aETH|WETH",
+    0.0101,
+    false,
+  ],
+  Array [
+    Object {},
+    "bETH|WETH",
+    0.0119,
+    true,
+  ],
+  Array [
+    Object {},
+    "bETH|WETH",
+    0.0121,
+    false,
+  ],
+]
+`;
+
 exports[`createOrderBookSide 1`] = `
 Array [
   Array [
