@@ -29,6 +29,11 @@ export const DB_PAIR_OH_SEQ_STATUS = 'pairOrderHashSequenceStatus';
 export const DB_TYPE = 'type';
 export const DB_CONFIRMED = 'confirmed';
 export const DB_MATCHING = 'matching';
+export const DB_IP_LIST = 'ipList';
+export const DB_IP = 'ip';
+export const DB_COLOR = 'color';
+export const DB_WHITE = 'white';
+export const DB_BLACK = 'black';
 
 export const DB_USER = 'user';
 export const DB_ORDER_PROCESSOR = 'orderProcessor';
@@ -68,6 +73,7 @@ export const DB_CUSTODIAN = 'custodian';
 export const DB_MATCH = 'match';
 export const DB_TX_HASH = 'transactionHash';
 export const DB_MKT_MAKER = 'marketMaker';
+export const DB_HASH_DELETE_ALL = 'hashDeleteAll';
 
 export const DB_ADD = 'add';
 export const DB_UPDATE = 'update';

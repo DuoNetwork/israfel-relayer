@@ -14,7 +14,7 @@ class ServerMasterUtil {
 	): Promise<void> {
 		const tokens: IToken[] = await dynamoUtil.scanTokens();
 
-		if (option.token) {
+		if (option.token && startServer) {
 			const rawToken = tokens.find(t => t.code === option.token);
 			if (!rawToken) throw new Error('invalid token specified');
 

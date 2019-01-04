@@ -17,7 +17,7 @@ import util from './utils/util';
 
 const tool = process.argv[2];
 const option: IOption = util.parseOptions(process.argv);
-util.logInfo(`tool + ${tool} using env ${option.env}`);
+util.logInfo(`tool ${tool} using env ${option.env}`);
 if (option.debug) util.logLevel = CST.LOG_DEBUG;
 
 const redisConfig = require(`./keys/redis.${option.env}.json`);
@@ -37,7 +37,7 @@ switch (tool) {
 		orderWatcherServer.startServer(option);
 		break;
 	case CST.DB_ORDER_BOOKS:
-		serverMasterUtil.startLaunching(tool, option, () => orderBookServer.startServer(option));
+		serverMasterUtil.startLaunching(tool, option, opt => orderBookServer.startServer(opt));
 		break;
 	case CST.DB_ORDER_MATCHER:
 		orderMatchingUtil.startProcessing(option);
@@ -60,7 +60,10 @@ switch (tool) {
 		);
 		break;
 	case CST.DB_MKT_MAKER:
-		marketMaker.startProcessing(option);
+		serverMasterUtil.startLaunching(tool, option, opt => marketMaker.startProcessing(opt));
+		break;
+	case CST.DB_HASH_DELETE_ALL:
+		orderPersistenceUtil.hashDeleteAll(option);
 		break;
 	default:
 		break;

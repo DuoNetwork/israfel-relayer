@@ -1033,18 +1033,8 @@ const ws1 = {
 	on: jest.fn()
 };
 test('handleWebSocketConnection', () => {
-	relayerServer.clients = [];
 	relayerServer.sendInfo = jest.fn();
 	relayerServer.handleWebSocketConnection(ws1 as any);
-	expect(relayerServer.clients).toMatchSnapshot();
-	expect((ws1.on as jest.Mock).mock.calls).toMatchSnapshot();
-});
-
-test('handleWebSocketConnection same connection', () => {
-	relayerServer.clients = [];
-	relayerServer.sendInfo = jest.fn();
-	relayerServer.handleWebSocketConnection(ws1 as any);
-	expect(relayerServer.clients).toMatchSnapshot();
 	expect((ws1.on as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
@@ -1058,7 +1048,6 @@ test('handleWebSocketClose', () => {
 		account: ['ws'] as any
 	};
 	relayerServer.handleWebSocketClose(ws1 as any);
-	expect(relayerServer.clients).toEqual([]);
 	expect((relayerServer.unsubscribeOrderBook as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((relayerServer.unsubscribeOrderHistory as jest.Mock).mock.calls).toMatchSnapshot();
 });

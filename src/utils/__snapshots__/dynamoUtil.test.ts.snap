@@ -307,9 +307,7 @@ Array [
 ]
 `;
 
-exports[`getLiveOrders 1`] = `Array []`;
-
-exports[`getLiveOrders 2`] = `
+exports[`getLiveOrders 1`] = `
 Array [
   Array [
     Object {
@@ -325,7 +323,7 @@ Array [
 ]
 `;
 
-exports[`getLiveOrders 3`] = `
+exports[`getLiveOrders 2`] = `
 Array [
   Object {
     "account": "0xAccount",
@@ -348,9 +346,7 @@ Array [
 ]
 `;
 
-exports[`getLiveOrders with orderHash 1`] = `Array []`;
-
-exports[`getLiveOrders with orderHash 2`] = `
+exports[`getLiveOrders with orderHash 1`] = `
 Array [
   Array [
     Object {
@@ -369,7 +365,7 @@ Array [
 ]
 `;
 
-exports[`getLiveOrders with orderHash 3`] = `
+exports[`getLiveOrders with orderHash 2`] = `
 Array [
   Object {
     "account": "0xAccount",
@@ -392,7 +388,7 @@ Array [
 ]
 `;
 
-exports[`getLiveOrders with orderHash 4`] = `[Error: multiple record for order hash orderHash]`;
+exports[`getLiveOrders with orderHash 3`] = `[Error: multiple record for order hash orderHash]`;
 
 exports[`getRawOrder 1`] = `
 Array [
@@ -487,9 +483,7 @@ Array [
 ]
 `;
 
-exports[`getUserOrdersForMonth 1`] = `Array []`;
-
-exports[`getUserOrdersForMonth 2`] = `
+exports[`getUserOrdersForMonth 1`] = `
 Array [
   Object {
     "account": "0xAccount",
@@ -539,7 +533,7 @@ Array [
 ]
 `;
 
-exports[`getUserOrdersForMonth 3`] = `
+exports[`getUserOrdersForMonth 2`] = `
 Array [
   Array [
     Object {
@@ -600,9 +594,24 @@ exports[`scanData error 1`] = `Object {}`;
 
 exports[`scanData no ddb 1`] = `"dynamo db connection is not initialized"`;
 
-exports[`scanStatus 1`] = `Array []`;
+exports[`scanIpList 1`] = `
+Array [
+  Array [
+    Object {
+      "TableName": "israfel.dev.ipList",
+    },
+  ],
+]
+`;
 
-exports[`scanStatus 2`] = `
+exports[`scanIpList 2`] = `
+Object {
+  "ip1": "white",
+  "ip2": "black",
+}
+`;
+
+exports[`scanStatus 1`] = `
 Array [
   Array [
     Object {
@@ -612,7 +621,7 @@ Array [
 ]
 `;
 
-exports[`scanStatus 3`] = `
+exports[`scanStatus 2`] = `
 Array [
   Object {
     "count": 123,
@@ -630,9 +639,7 @@ Array [
 ]
 `;
 
-exports[`scanTokens 1`] = `Array []`;
-
-exports[`scanTokens 2`] = `
+exports[`scanTokens 1`] = `
 Array [
   Array [
     Object {
@@ -642,7 +649,7 @@ Array [
 ]
 `;
 
-exports[`scanTokens 3`] = `
+exports[`scanTokens 2`] = `
 Array [
   Object {
     "address": "addr1",

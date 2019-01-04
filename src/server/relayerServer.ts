@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as https from 'https';
-import WebSocket from 'ws';
+import WebSocket, { VerifyClientCallbackSync } from 'ws';
 import { API_GDAX, API_GEMINI, API_KRAKEN } from '../../../duo-admin/src/common/constants';
 import duoDynamoUtil from '../../../duo-admin/src/utils/dynamoUtil';
 import * as CST from '../common/constants';
@@ -37,10 +37,10 @@ class RelayerServer {
 	public web3Util: Web3Util | null = null;
 	public wsServer: WebSocket.Server | null = null;
 	public orderBookPairs: { [pair: string]: WebSocket[] } = {};
-	public clients: WebSocket[] = [];
 	public accountClients: { [account: string]: WebSocket[] } = {};
 	public duoAcceptedPrices: { [custodian: string]: IAcceptedPrice[] } = {};
 	public duoExchangePrices: { [source: string]: IPrice[] } = {};
+	public ipList: { [ip: string]: string } = {};
 
 	public sendResponse(ws: WebSocket, req: IWsRequest, status: string) {
 		const orderResponse: IWsResponse = {
@@ -378,7 +378,6 @@ class RelayerServer {
 
 	public handleWebSocketConnection(ws: WebSocket) {
 		util.logInfo('new connection');
-		if (!this.clients.includes(ws)) this.clients.push(ws);
 		this.sendInfo(ws);
 		ws.on('message', message => this.handleWebSocketMessage(ws, message.toString()));
 		ws.on('close', () => this.handleWebSocketClose(ws));
@@ -386,7 +385,6 @@ class RelayerServer {
 
 	public handleWebSocketClose(ws: WebSocket) {
 		util.logInfo('connection close');
-		this.clients = this.clients.filter(w => w !== ws);
 		for (const pair in this.orderBookPairs) this.unsubscribeOrderBook(ws, pair);
 		for (const account in this.accountClients) this.unsubscribeOrderHistory(ws, account);
 	}
@@ -447,8 +445,14 @@ class RelayerServer {
 
 		this.loadDuoAcceptedPrices();
 		this.loadDuoExchangePrices();
+		this.ipList = await dynamoUtil.scanIpList();
+		util.logDebug('loaded ip list');
 		setInterval(() => this.loadDuoAcceptedPrices(), 600000);
-		setInterval(() => this.loadDuoExchangePrices(), 30000);
+		setInterval(async () => {
+			this.loadDuoExchangePrices();
+			this.ipList = await dynamoUtil.scanIpList();
+			util.logDebug('loaded up ip list');
+		}, 30000);
 		this.processStatus = await dynamoUtil.scanStatus();
 		const port = 8080;
 		const server = https
@@ -457,13 +461,26 @@ class RelayerServer {
 				cert: fs.readFileSync(`./src/keys/websocket/cert.${option.env}.pem`, 'utf8')
 			})
 			.listen(port);
-		this.wsServer = new WebSocket.Server({ server: server });
+		const verifyClient: VerifyClientCallbackSync = info => {
+			const ip = (info.req.headers['x-forwarded-for'] ||
+				info.req.connection.remoteAddress) as string;
+			util.logDebug(ip);
+			if (this.ipList[ip] === CST.DB_BLACK) {
+				util.logDebug(`ip ${ip} in blacklist, refuse connection`);
+				return false;
+			}
+			return true;
+		};
+		this.wsServer = new WebSocket.Server({
+			server: server,
+			verifyClient: verifyClient
+		});
 		util.logInfo(`started relayer service at port ${port}`);
 
 		if (this.wsServer) {
 			setInterval(async () => {
 				this.processStatus = await dynamoUtil.scanStatus();
-				this.clients.forEach(ws => this.sendInfo(ws));
+				if (this.wsServer) this.wsServer.clients.forEach(ws => this.sendInfo(ws));
 			}, 30000);
 			this.wsServer.on('connection', ws => this.handleWebSocketConnection(ws));
 		}
