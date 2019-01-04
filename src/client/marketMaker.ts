@@ -413,14 +413,13 @@ class MarketMaker {
 			util.getUTCNowTimestamp()
 		);
 		for (const index of [0, 1])
-			for (const isBid of [true, false]) {
+			for (const isBid of [true, false])
 				await this.createOrderBookSide(
 					relayerClient,
 					this.tokens[index].code + '|' + CST.TOKEN_WETH,
 					navPrices[index] / ethPrice + (isBid ? -1 : 1) * this.priceStep,
 					isBid
 				);
-			}
 	}
 
 	public async handleOrderBookUpdate(
