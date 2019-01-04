@@ -344,8 +344,8 @@ class RelayerServer {
 		}
 	}
 
-	public handleWebSocketMessage(ws: WebSocket, m: string) {
-		util.logDebug('received: ' + m);
+	public handleWebSocketMessage(ws: WebSocket, ip: string, m: string) {
+		util.logDebug('received: ' + m + ' from ' + ip);
 		const req: IWsRequest = JSON.parse(m);
 		if (![CST.DB_ORDERS, CST.DB_ORDER_BOOKS].includes(req.channel) || !req.method) {
 			this.sendResponse(ws, req, CST.WS_INVALID_REQ);
@@ -376,15 +376,15 @@ class RelayerServer {
 		util.safeWsSend(ws, JSON.stringify(staticInfoResponse));
 	}
 
-	public handleWebSocketConnection(ws: WebSocket) {
+	public handleWebSocketConnection(ws: WebSocket, ip: string) {
 		util.logInfo('new connection');
 		this.sendInfo(ws);
-		ws.on('message', message => this.handleWebSocketMessage(ws, message.toString()));
-		ws.on('close', () => this.handleWebSocketClose(ws));
+		ws.on('message', message => this.handleWebSocketMessage(ws, ip, message.toString()));
+		ws.on('close', () => this.handleWebSocketClose(ws, ip));
 	}
 
-	public handleWebSocketClose(ws: WebSocket) {
-		util.logInfo('connection close');
+	public handleWebSocketClose(ws: WebSocket, ip: string) {
+		util.logInfo('connection close from ' + ip);
 		for (const pair in this.orderBookPairs) this.unsubscribeOrderBook(ws, pair);
 		for (const account in this.accountClients) this.unsubscribeOrderHistory(ws, account);
 	}
@@ -482,7 +482,10 @@ class RelayerServer {
 				this.processStatus = await dynamoUtil.scanStatus();
 				if (this.wsServer) this.wsServer.clients.forEach(ws => this.sendInfo(ws));
 			}, 30000);
-			this.wsServer.on('connection', ws => this.handleWebSocketConnection(ws));
+			this.wsServer.on('connection', (ws, req) =>
+				this.handleWebSocketConnection(ws, (req.headers['x-forwarded-for'] ||
+					req.connection.remoteAddress) as string)
+			);
 		}
 
 		if (option.server) {

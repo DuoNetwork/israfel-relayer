@@ -50,7 +50,7 @@ test('sendErrorOrderResponse', () => {
 		{
 			channel: 'channel',
 			method: 'method',
-			pair: 'pair',
+			pair: 'pair'
 		},
 		'0xOrderHash',
 		'status'
@@ -527,25 +527,19 @@ test('handleOrderRequest invalid requests', async () => {
 	relayerServer.handleTerminateOrderRequest = jest.fn();
 	relayerServer.handleOrderHistorySubscribeRequest = jest.fn();
 	relayerServer.handleOrderHistoryUnsubscribeRequest = jest.fn();
-	await relayerServer.handleOrderRequest(
-		'ws' as any,
-		{
-			channel: CST.DB_ORDERS,
-			method: CST.DB_ADD,
-			pair: 'pair',
-		}
-	);
+	await relayerServer.handleOrderRequest('ws' as any, {
+		channel: CST.DB_ORDERS,
+		method: CST.DB_ADD,
+		pair: 'pair'
+	});
 	relayerServer.web3Util = {
 		isValidPair: jest.fn(() => false)
 	} as any;
-	await relayerServer.handleOrderRequest(
-		'ws' as any,
-		{
-			channel: CST.DB_ORDERS,
-			method: CST.DB_ADD,
-			pair: 'pair'
-		}
-	);
+	await relayerServer.handleOrderRequest('ws' as any, {
+		channel: CST.DB_ORDERS,
+		method: CST.DB_ADD,
+		pair: 'pair'
+	});
 	await relayerServer.handleOrderRequest(
 		'ws' as any,
 		{
@@ -579,14 +573,11 @@ test('handleOrderRequest add', async () => {
 	relayerServer.web3Util = {
 		isValidPair: jest.fn(() => true)
 	} as any;
-	await relayerServer.handleOrderRequest(
-		'ws' as any,
-		{
-			channel: CST.DB_ORDERS,
-			method: CST.DB_ADD,
-			pair: 'pair'
-		}
-	);
+	await relayerServer.handleOrderRequest('ws' as any, {
+		channel: CST.DB_ORDERS,
+		method: CST.DB_ADD,
+		pair: 'pair'
+	});
 	expect(relayerServer.sendResponse as jest.Mock).not.toBeCalled();
 	expect((relayerServer.handleAddOrderRequest as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(relayerServer.handleTerminateOrderRequest as jest.Mock).not.toBeCalled();
@@ -603,14 +594,11 @@ test('handleOrderRequest terminate', async () => {
 	relayerServer.web3Util = {
 		isValidPair: jest.fn(() => true)
 	} as any;
-	await relayerServer.handleOrderRequest(
-		'ws' as any,
-		{
-			channel: CST.DB_ORDERS,
-			method: CST.DB_TERMINATE,
-			pair: 'pair'
-		}
-	);
+	await relayerServer.handleOrderRequest('ws' as any, {
+		channel: CST.DB_ORDERS,
+		method: CST.DB_TERMINATE,
+		pair: 'pair'
+	});
 	expect(relayerServer.sendResponse as jest.Mock).not.toBeCalled();
 	expect(relayerServer.handleAddOrderRequest as jest.Mock).not.toBeCalled();
 	expect((relayerServer.handleTerminateOrderRequest as jest.Mock).mock.calls).toMatchSnapshot();
@@ -937,9 +925,10 @@ test('handleOrderBookRequest unsubscribe', async () => {
 
 test('handleWebSocketMessage invalid requests', () => {
 	relayerServer.sendResponse = jest.fn();
-	relayerServer.handleWebSocketMessage('ws' as any, JSON.stringify({}));
+	relayerServer.handleWebSocketMessage('ws' as any, 'ip', JSON.stringify({}));
 	relayerServer.handleWebSocketMessage(
 		'ws' as any,
+		'ip',
 		JSON.stringify({
 			channel: 'channel',
 			method: 'method',
@@ -948,6 +937,7 @@ test('handleWebSocketMessage invalid requests', () => {
 	);
 	relayerServer.handleWebSocketMessage(
 		'ws' as any,
+		'ip',
 		JSON.stringify({
 			channel: CST.DB_ORDERS,
 			method: '',
@@ -962,6 +952,7 @@ test('handleWebSocketMessage orders', () => {
 	relayerServer.handleOrderRequest = jest.fn();
 	relayerServer.handleWebSocketMessage(
 		ws as any,
+		'ip',
 		JSON.stringify({
 			channel: CST.DB_ORDERS,
 			method: 'method',
@@ -976,6 +967,7 @@ test('handleWebSocketMessage orderBooks', () => {
 	relayerServer.handleOrderBookRequest = jest.fn();
 	relayerServer.handleWebSocketMessage(
 		ws as any,
+		'ip',
 		JSON.stringify({
 			channel: CST.DB_ORDER_BOOKS,
 			method: 'method',
@@ -1034,7 +1026,7 @@ const ws1 = {
 };
 test('handleWebSocketConnection', () => {
 	relayerServer.sendInfo = jest.fn();
-	relayerServer.handleWebSocketConnection(ws1 as any);
+	relayerServer.handleWebSocketConnection(ws1 as any, 'ip');
 	expect((ws1.on as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
@@ -1047,7 +1039,7 @@ test('handleWebSocketClose', () => {
 	relayerServer.accountClients = {
 		account: ['ws'] as any
 	};
-	relayerServer.handleWebSocketClose(ws1 as any);
+	relayerServer.handleWebSocketClose(ws1 as any, 'ip');
 	expect((relayerServer.unsubscribeOrderBook as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((relayerServer.unsubscribeOrderHistory as jest.Mock).mock.calls).toMatchSnapshot();
 });
