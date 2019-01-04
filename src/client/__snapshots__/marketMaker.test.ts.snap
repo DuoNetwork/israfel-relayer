@@ -87,6 +87,10 @@ Array [
 ]
 `;
 
+exports[`getEthPrice 1`] = `150`;
+
+exports[`getEthPrice, no ETH price 1`] = `0`;
+
 exports[`handleOrderHistory 1`] = `
 Array [
   99.9868,
@@ -161,3 +165,94 @@ Array [
 exports[`initialize, no a token 1`] = `[Error: no aToken]`;
 
 exports[`initialize, no b token 1`] = `[Error: no bToken]`;
+
+exports[`maintainBalance, short of token 1`] = `
+Array [
+  5.94949494949495,
+  300,
+  300,
+]
+`;
+
+exports[`maintainBalance, short of token 2`] = `
+Array [
+  Array [
+    "address",
+    "privateKey",
+    9000000000,
+    160000,
+    5.05050505,
+    "wethAddr",
+  ],
+]
+`;
+
+exports[`maintainBalance, short of weth 1`] = `
+Array [
+  6,
+  200,
+  200,
+]
+`;
+
+exports[`maintainBalance, short of weth 2`] = `
+Array [
+  Array [
+    "WETH",
+    "0x00D8d0660b243452fC2f996A892D3083A903576F",
+    "address",
+    "address",
+    5,
+  ],
+]
+`;
+
+exports[`maintainBalance, surplus of token 1`] = `
+Array [
+  5.96,
+  500,
+  500,
+]
+`;
+
+exports[`maintainBalance, surplus of token 2`] = `
+Array [
+  Array [
+    "address",
+    "privateKey",
+    200,
+    200,
+    9000000000,
+    80000,
+  ],
+]
+`;
+
+exports[`maintainBalance, surplus of token 3`] = `
+Array [
+  Array [
+    3.96,
+    "address",
+  ],
+]
+`;
+
+exports[`maintainBalance, surplus of weth 1`] = `
+Array [
+  6,
+  200,
+  200,
+]
+`;
+
+exports[`maintainBalance, surplus of weth 2`] = `
+Array [
+  Array [
+    "WETH",
+    "address",
+    "0x00D8d0660b243452fC2f996A892D3083A903576F",
+    "address",
+    6,
+  ],
+]
+`;

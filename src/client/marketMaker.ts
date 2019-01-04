@@ -75,7 +75,6 @@ class MarketMaker {
 		let wethShortfall = 0;
 		let wethSurplus = 0;
 		const tokensPerEth = DualClassWrapper.getTokensPerEth(this.custodianStates);
-
 		let bTokenToCreate = 0;
 		let bTokenToRedeem = 0;
 		let ethAmountForCreation = 0;
@@ -186,7 +185,6 @@ class MarketMaker {
 			await web3Util.awaitTransactionSuccessAsync(tx);
 			this.tokenBalances[0] -= wethSurplus;
 		}
-
 		this.isMaintainingBalance = false;
 	}
 
@@ -245,21 +243,32 @@ class MarketMaker {
 		util.logDebug(`[${pair}] ethPrice ${ethPrice} token nav ${navPrices[0]} ${navPrices[1]}`);
 		util.logDebug(`[${pair}] eth nav in eth ${ethNavInEth} token nav in eth ${tokenNavInEth}`);
 		const orderBookSnapshot = relayerClient.orderBookSnapshots[pair];
+		console.log('###############');
+		console.log('ethNavInEth: ' + ethNavInEth);
+		console.log('alpha :' + alpha);
+		console.log('otherPair: ' + otherPair);
+
+		console.log(orderBookSnapshot);
 
 		const newBids = orderBookSnapshot.bids;
+
 		const newAsks = orderBookSnapshot.asks;
+
 		const bestBidPrice = newBids.length
 			? newBids[0].price
 			: newAsks.length
 			? newAsks[0].price - this.priceStep
 			: tokenNavInEth - this.priceStep;
+		console.log('bestBidPrice: ' + bestBidPrice);
 		const bestAskPrice = newAsks.length
 			? newAsks[0].price
 			: newBids.length
 			? newBids[0].price + this.priceStep
 			: tokenNavInEth + this.priceStep;
+		console.log('bestBidPrice: ' + bestAskPrice);
 		util.logDebug(`[${pair}] best bid ${bestBidPrice}, best ask ${bestAskPrice}`);
 		// make orders for this side
+
 		if (newBids.length < CST.MIN_ORDER_BOOK_LEVELS) {
 			util.logDebug(JSON.stringify(newBids));
 			util.logDebug(`[${pair}] bid for ${pair} has insufficient liquidity, make orders`);
@@ -286,6 +295,7 @@ class MarketMaker {
 
 		const otherTokenNoArbBidPrice =
 			(ethNavInEth * (1 + alpha) - (isA ? alpha : 1) * bestAskPrice) / (isA ? 1 : alpha);
+
 		const otherTokenNoArbAskPrice =
 			(ethNavInEth * (1 + alpha) - (isA ? alpha : 1) * bestBidPrice) / (isA ? 1 : alpha);
 		const otherTokenOrderBook = relayerClient.orderBookSnapshots[otherPair];
@@ -561,6 +571,9 @@ class MarketMaker {
 
 	public async initialize(relayerClient: RelayerClient, option: IOption) {
 		util.logInfo('initializing dual class wrapper');
+		this.isSendingOrder = false;
+		this.isMaintainingBalance = false;
+		this.isMakingOrders = false;
 		const live = option.env === CST.DB_LIVE;
 		const aToken = relayerClient.web3Util.getTokenByCode(option.token);
 		if (!aToken) throw new Error('no aToken');
@@ -651,6 +664,12 @@ class MarketMaker {
 			}
 		);
 		relayerClient.connectToRelayer();
+
+		setInterval(() => {
+			util.logInfo('hourly reinitialize');
+			dualClassWrapper = null;
+			this.isInitialized = false;
+		}, 3600000);
 	}
 }
 
