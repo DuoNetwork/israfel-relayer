@@ -446,10 +446,12 @@ class RelayerServer {
 		this.loadDuoAcceptedPrices();
 		this.loadDuoExchangePrices();
 		this.ipList = await dynamoUtil.scanIpList();
+		util.logDebug('loaded ip list');
 		setInterval(() => this.loadDuoAcceptedPrices(), 600000);
 		setInterval(async () => {
 			this.loadDuoExchangePrices();
 			this.ipList = await dynamoUtil.scanIpList();
+			util.logDebug('loaded up ip list');
 		}, 30000);
 		this.processStatus = await dynamoUtil.scanStatus();
 		const port = 8080;
@@ -462,7 +464,7 @@ class RelayerServer {
 		const verifyClient: VerifyClientCallbackSync = info => {
 			const ip = (info.req.headers['x-forwarded-for'] ||
 				info.req.connection.remoteAddress) as string;
-			util.logInfo(ip);
+			util.logDebug(ip);
 			if (this.ipList[ip] === CST.DB_BLACK) {
 				util.logDebug(`ip ${ip} in blacklist, refuse connection`);
 				return false;
