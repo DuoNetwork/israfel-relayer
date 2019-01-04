@@ -10,7 +10,7 @@ class ServerMasterUtil {
 	public async startLaunching(
 		tool: string,
 		option: IOption,
-		startServer?: (option: IOption) => any
+		startServer: (option: IOption) => any
 	): Promise<void> {
 		const tokens: IToken[] = await dynamoUtil.scanTokens();
 

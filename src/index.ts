@@ -37,7 +37,7 @@ switch (tool) {
 		orderWatcherServer.startServer(option);
 		break;
 	case CST.DB_ORDER_BOOKS:
-		serverMasterUtil.startLaunching(tool, option, () => orderBookServer.startServer(option));
+		serverMasterUtil.startLaunching(tool, option, opt => orderBookServer.startServer(opt));
 		break;
 	case CST.DB_ORDER_MATCHER:
 		orderMatchingUtil.startProcessing(option);
@@ -60,7 +60,7 @@ switch (tool) {
 		);
 		break;
 	case CST.DB_MKT_MAKER:
-		serverMasterUtil.startLaunching(tool, option);
+		serverMasterUtil.startLaunching(tool, option, opt => marketMaker.startProcessing(opt));
 		break;
 	case CST.DB_HASH_DELETE_ALL:
 		orderPersistenceUtil.hashDeleteAll(option);
