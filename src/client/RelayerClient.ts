@@ -56,6 +56,10 @@ export default class RelayerClient {
 	}
 
 	private reconnect() {
+		if (this.ws) {
+			this.ws.removeAllListeners();
+			this.ws.terminate();
+		}
 		this.ws = null;
 		this.handleReconnect();
 		setTimeout(() => {
@@ -71,8 +75,15 @@ export default class RelayerClient {
 			this.handleConnected();
 		};
 		this.ws.onmessage = (m: any) => this.handleMessage(m.data.toString());
-		this.ws.onerror = () => this.reconnect();
-		this.ws.onclose = () => this.reconnect();
+		this.ws.onerror = error => {
+			console.log('ws error');
+			console.log(JSON.stringify(error));
+			this.reconnect();
+		};
+		this.ws.onclose = () => {
+			console.log('ws close');
+			this.reconnect();
+		};
 	}
 
 	public handleOrderResponse(response: IWsResponse) {
