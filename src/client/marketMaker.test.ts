@@ -8,7 +8,7 @@ import marketMaker from './marketMaker';
 const userOrders = [
 	{
 		account: 'account',
-		pair: 'aETH',
+		pair: 'aETH|WETH',
 		orderHash: 'orderHash1',
 		price: 0.001,
 		amount: 10,
@@ -31,7 +31,7 @@ const userOrders = [
 	},
 	{
 		account: 'account',
-		pair: 'bETH',
+		pair: 'bETH|WETH',
 		orderHash: 'orderHash2',
 		price: 0.0011,
 		amount: 10,
@@ -54,7 +54,7 @@ const userOrders = [
 	},
 	{
 		account: 'account',
-		pair: 'aETH',
+		pair: 'aETH|WETH',
 		orderHash: 'orderHash3',
 		price: 0.0013,
 		amount: 10,
@@ -77,7 +77,7 @@ const userOrders = [
 	},
 	{
 		account: 'account',
-		pair: 'bETH',
+		pair: 'bETH|WETH',
 		orderHash: 'orderHash4',
 		price: 0.0014,
 		amount: 10,
@@ -100,7 +100,7 @@ const userOrders = [
 	},
 	{
 		account: 'account',
-		pair: 'aETH',
+		pair: 'aETH|WETH',
 		orderHash: 'orderHash1',
 		price: 0.001,
 		amount: 10,
@@ -477,9 +477,426 @@ test('handleOrderBookUpdate', async () => {
 	expect((marketMaker2.makeOrders as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('handleUserOrder', async () => {
-	// TODO
-	expect(true).toBeTruthy();
+test('handleUserOrder, terminate, bid', async () => {
+	const marketMaker3 = Object.assign(
+		Object.create(Object.getPrototypeOf(marketMaker)),
+		marketMaker
+	);
+	marketMaker3.tokens = tokens;
+	marketMaker3.tokenBalances = [6, 200, 200];
+	marketMaker3.liveBidOrders = [
+		[
+			{
+				account: 'account',
+				pair: 'aETH|WETH',
+				orderHash: 'orderHash1',
+				price: 0.001,
+				amount: 10,
+				balance: 10,
+				matching: 0,
+				fill: 0,
+				side: 'bid',
+				expiry: 1234567890000,
+				createdAt: 1234567880000,
+				updatedAt: 1234567880000,
+				initialSequence: 1,
+				currentSequence: 1,
+				fee: 0.1,
+				feeAsset: 'aETH',
+				type: 'add',
+				status: 'confirmed',
+				updatedBy: 'relayer',
+				processed: true,
+				transactionHash: 'transactionhash1'
+			}
+		],
+		[]
+	];
+	const userOrder = {
+		account: 'account',
+		pair: 'aETH|WETH',
+		orderHash: 'orderHash1',
+		price: 0.001,
+		amount: 10,
+		balance: 10,
+		matching: 0,
+		fill: 0,
+		side: 'bid',
+		expiry: 1234567890000,
+		createdAt: 1234567880000,
+		updatedAt: 1234567880000,
+		initialSequence: 1,
+		currentSequence: 1,
+		fee: 0.1,
+		feeAsset: 'aETH',
+		type: 'terminate',
+		status: 'confirmed',
+		updatedBy: 'relayer',
+		processed: true,
+		transactionHash: 'transactionhash1'
+	};
+	marketMaker3.maintainBalance = jest.fn(() => Promise.resolve());
+	marketMaker3.canMakeOrder = jest.fn(() => false);
+	await marketMaker3.handleUserOrder(userOrder, {} as any, {} as any);
+	expect(marketMaker3.tokenBalances).toMatchSnapshot();
+});
+
+test('handleUserOrder, terminate, ask', async () => {
+	const marketMaker3 = Object.assign(
+		Object.create(Object.getPrototypeOf(marketMaker)),
+		marketMaker
+	);
+	marketMaker3.tokens = tokens;
+	marketMaker3.tokenBalances = [6, 200, 200];
+	marketMaker3.liveAskOrders = [
+		[
+			{
+				account: 'account',
+				pair: 'aETH|WETH',
+				orderHash: 'orderHash1',
+				price: 0.001,
+				amount: 10,
+				balance: 10,
+				matching: 0,
+				fill: 0,
+				side: 'ask',
+				expiry: 1234567890000,
+				createdAt: 1234567880000,
+				updatedAt: 1234567880000,
+				initialSequence: 1,
+				currentSequence: 1,
+				fee: 0.1,
+				feeAsset: 'aETH',
+				type: 'add',
+				status: 'confirmed',
+				updatedBy: 'relayer',
+				processed: true,
+				transactionHash: 'transactionhash1'
+			}
+		],
+		[]
+	];
+	const userOrder = {
+		account: 'account',
+		pair: 'aETH|WETH',
+		orderHash: 'orderHash1',
+		price: 0.001,
+		amount: 10,
+		balance: 10,
+		matching: 0,
+		fill: 0,
+		side: 'ask',
+		expiry: 1234567890000,
+		createdAt: 1234567880000,
+		updatedAt: 1234567880000,
+		initialSequence: 1,
+		currentSequence: 1,
+		fee: 0.1,
+		feeAsset: 'aETH',
+		type: 'terminate',
+		status: 'confirmed',
+		updatedBy: 'relayer',
+		processed: true,
+		transactionHash: 'transactionhash1'
+	};
+	marketMaker3.maintainBalance = jest.fn(() => Promise.resolve());
+	marketMaker3.canMakeOrder = jest.fn(() => false);
+	await marketMaker3.handleUserOrder(userOrder, {} as any, {} as any);
+	expect(marketMaker3.tokenBalances).toMatchSnapshot();
+});
+
+test('handleUserOrder, add, bid', async () => {
+	const marketMaker3 = Object.assign(
+		Object.create(Object.getPrototypeOf(marketMaker)),
+		marketMaker
+	);
+	marketMaker3.tokens = tokens;
+	marketMaker3.tokenBalances = [6, 200, 200];
+	marketMaker3.liveBidOrders = [[], []];
+	const userOrder = {
+		account: 'account',
+		pair: 'aETH|WETH',
+		orderHash: 'orderHash1',
+		price: 0.001,
+		amount: 10,
+		balance: 10,
+		matching: 0,
+		fill: 0,
+		side: 'bid',
+		expiry: 1234567890000,
+		createdAt: 1234567880000,
+		updatedAt: 1234567880000,
+		initialSequence: 1,
+		currentSequence: 1,
+		fee: 0.1,
+		feeAsset: 'aETH',
+		type: 'add',
+		status: 'confirmed',
+		updatedBy: 'relayer',
+		processed: true,
+		transactionHash: 'transactionhash1'
+	};
+	marketMaker3.maintainBalance = jest.fn(() => Promise.resolve());
+	marketMaker3.canMakeOrder = jest.fn(() => false);
+	await marketMaker3.handleUserOrder(userOrder, {} as any, {} as any);
+	expect(marketMaker3.tokenBalances).toMatchSnapshot();
+});
+
+test('handleUserOrder, add, ask', async () => {
+	const marketMaker3 = Object.assign(
+		Object.create(Object.getPrototypeOf(marketMaker)),
+		marketMaker
+	);
+	marketMaker3.tokens = tokens;
+	marketMaker3.tokenBalances = [6, 200, 200];
+	marketMaker3.liveAskOrders = [[], []];
+	const userOrder = {
+		account: 'account',
+		pair: 'aETH|WETH',
+		orderHash: 'orderHash1',
+		price: 0.001,
+		amount: 10,
+		balance: 10,
+		matching: 0,
+		fill: 0,
+		side: 'ask',
+		expiry: 1234567890000,
+		createdAt: 1234567880000,
+		updatedAt: 1234567880000,
+		initialSequence: 1,
+		currentSequence: 1,
+		fee: 0.1,
+		feeAsset: 'aETH',
+		type: 'add',
+		status: 'confirmed',
+		updatedBy: 'relayer',
+		processed: true,
+		transactionHash: 'transactionhash1'
+	};
+	marketMaker3.maintainBalance = jest.fn(() => Promise.resolve());
+	marketMaker3.canMakeOrder = jest.fn(() => false);
+	await marketMaker3.handleUserOrder(userOrder, {} as any, {} as any);
+	expect(marketMaker3.tokenBalances).toMatchSnapshot();
+});
+
+test('handleUserOrder, add, cancel too far away', async () => {
+	const marketMaker4 = Object.assign(
+		Object.create(Object.getPrototypeOf(marketMaker)),
+		marketMaker
+	);
+	marketMaker4.tokens = tokens;
+	marketMaker4.tokenBalances = [6, 200, 200];
+	marketMaker4.liveBidOrders = [
+		[
+			{
+				account: 'account',
+				pair: 'aETH|WETH',
+				orderHash: 'orderHash2',
+				price: 0.0011,
+				amount: 10,
+				balance: 10,
+				matching: 0,
+				fill: 0,
+				side: 'bid',
+				expiry: 1234567890000
+			} as any,
+			{
+				account: 'account',
+				pair: 'aETH|WETH',
+				orderHash: 'orderHash3',
+				price: 0.0012,
+				amount: 10,
+				balance: 10,
+				matching: 0,
+				fill: 0,
+				side: 'bid',
+				expiry: 1234567890000
+			} as any,
+			{
+				account: 'account',
+				pair: 'aETH|WETH',
+				orderHash: 'orderHash4',
+				price: 0.0014,
+				amount: 10,
+				balance: 10,
+				matching: 0,
+				fill: 0,
+				side: 'bid',
+				expiry: 1234567890000
+			} as any,
+			{
+				account: 'account',
+				pair: 'aETH|WETH',
+				orderHash: 'orderHash5',
+				price: 0.0015,
+				amount: 10,
+				balance: 10,
+				matching: 0,
+				fill: 0,
+				side: 'bid',
+				expiry: 1234567890000
+			}
+		],
+		[]
+	];
+	const userOrder = {
+		account: 'account',
+		pair: 'aETH|WETH',
+		orderHash: 'orderHash1',
+		price: 0.001,
+		amount: 10,
+		balance: 10,
+		matching: 0,
+		fill: 0,
+		side: 'bid',
+		expiry: 1234567890000,
+		createdAt: 1234567880000,
+		updatedAt: 1234567880000,
+		initialSequence: 1,
+		currentSequence: 1,
+		fee: 0.1,
+		feeAsset: 'aETH',
+		type: 'add',
+		status: 'confirmed',
+		updatedBy: 'relayer',
+		processed: true,
+		transactionHash: 'transactionhash1'
+	};
+	marketMaker4.maintainBalance = jest.fn(() => Promise.resolve());
+	marketMaker4.canMakeOrder = jest.fn(() => false);
+	marketMaker4.cancelOrders = jest.fn(() => Promise.resolve());
+	await marketMaker4.handleUserOrder(userOrder, {} as any, {} as any);
+	for (const mockCall of (marketMaker4.cancelOrders as jest.Mock).mock.calls)
+		expect(mockCall.slice(1)).toMatchSnapshot();
+	// expect(marketMaker3.tokenBalances).toMatchSnapshot();
+});
+
+test('handleUserOrder, update, bid', async () => {
+	const marketMaker3 = Object.assign(
+		Object.create(Object.getPrototypeOf(marketMaker)),
+		marketMaker
+	);
+	marketMaker3.tokens = tokens;
+	marketMaker3.tokenBalances = [6, 200, 200];
+	marketMaker3.liveBidOrders = [
+		[
+			{
+				account: 'account',
+				pair: 'aETH|WETH',
+				orderHash: 'orderHash1',
+				price: 0.001,
+				amount: 100,
+				balance: 80,
+				matching: 0,
+				fill: 0,
+				side: 'bid',
+				expiry: 1234567890000,
+				createdAt: 1234567880000,
+				updatedAt: 1234567880000,
+				initialSequence: 1,
+				currentSequence: 1,
+				fee: 0.1,
+				feeAsset: 'aETH',
+				type: 'update',
+				status: 'confirmed',
+				updatedBy: 'relayer',
+				processed: true,
+				transactionHash: 'transactionhash1'
+			}
+		],
+		[]
+	];
+	const userOrder = {
+		account: 'account',
+		pair: 'aETH|WETH',
+		orderHash: 'orderHash1',
+		price: 0.001,
+		amount: 100,
+		balance: 40,
+		matching: 0,
+		fill: 0,
+		side: 'bid',
+		expiry: 1234567890000,
+		createdAt: 1234567880000,
+		updatedAt: 1234567880000,
+		initialSequence: 1,
+		currentSequence: 1,
+		fee: 0.1,
+		feeAsset: 'aETH',
+		type: 'update',
+		status: 'confirmed',
+		updatedBy: 'relayer',
+		processed: true,
+		transactionHash: 'transactionhash1'
+	};
+	marketMaker3.maintainBalance = jest.fn(() => Promise.resolve());
+	marketMaker3.canMakeOrder = jest.fn(() => false);
+	await marketMaker3.handleUserOrder(userOrder, {} as any, {} as any);
+	expect(marketMaker3.tokenBalances).toMatchSnapshot();
+});
+
+test('handleUserOrder, update, ask', async () => {
+	const marketMaker3 = Object.assign(
+		Object.create(Object.getPrototypeOf(marketMaker)),
+		marketMaker
+	);
+	marketMaker3.tokens = tokens;
+	marketMaker3.tokenBalances = [6, 200, 200];
+	marketMaker3.liveBidOrders = [
+		[
+			{
+				account: 'account',
+				pair: 'aETH|WETH',
+				orderHash: 'orderHash1',
+				price: 0.001,
+				amount: 100,
+				balance: 80,
+				matching: 0,
+				fill: 0,
+				side: 'ask',
+				expiry: 1234567890000,
+				createdAt: 1234567880000,
+				updatedAt: 1234567880000,
+				initialSequence: 1,
+				currentSequence: 1,
+				fee: 0.1,
+				feeAsset: 'aETH',
+				type: 'add',
+				status: 'confirmed',
+				updatedBy: 'relayer',
+				processed: true,
+				transactionHash: 'transactionhash1'
+			}
+		],
+		[]
+	];
+	const userOrder = {
+		account: 'account',
+		pair: 'aETH|WETH',
+		orderHash: 'orderHash1',
+		price: 0.001,
+		amount: 100,
+		balance: 40,
+		matching: 0,
+		fill: 0,
+		side: 'ask',
+		expiry: 1234567890000,
+		createdAt: 1234567880000,
+		updatedAt: 1234567880000,
+		initialSequence: 1,
+		currentSequence: 1,
+		fee: 0.1,
+		feeAsset: 'aETH',
+		type: 'update',
+		status: 'confirmed',
+		updatedBy: 'relayer',
+		processed: true,
+		transactionHash: 'transactionhash1'
+	};
+	marketMaker3.maintainBalance = jest.fn(() => Promise.resolve());
+	marketMaker3.canMakeOrder = jest.fn(() => false);
+	await marketMaker3.handleUserOrder(userOrder, {} as any, {} as any);
+	expect(marketMaker3.tokenBalances).toMatchSnapshot();
 });
 
 test('canMakeOrder, no orderBookSnapshot', () => {

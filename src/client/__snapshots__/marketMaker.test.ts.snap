@@ -227,6 +227,63 @@ Array [
 ]
 `;
 
+exports[`handleUserOrder, add, ask 1`] = `
+Array [
+  6,
+  190,
+  200,
+]
+`;
+
+exports[`handleUserOrder, add, bid 1`] = `
+Array [
+  5.99,
+  200,
+  200,
+]
+`;
+
+exports[`handleUserOrder, add, cancel too far away 1`] = `
+Array [
+  "aETH|WETH",
+  Array [
+    "orderHash1",
+  ],
+]
+`;
+
+exports[`handleUserOrder, terminate, ask 1`] = `
+Array [
+  6,
+  210,
+  200,
+]
+`;
+
+exports[`handleUserOrder, terminate, bid 1`] = `
+Array [
+  6.01,
+  200,
+  200,
+]
+`;
+
+exports[`handleUserOrder, update, ask 1`] = `
+Array [
+  6,
+  200,
+  200,
+]
+`;
+
+exports[`handleUserOrder, update, bid 1`] = `
+Array [
+  6.04,
+  200,
+  200,
+]
+`;
+
 exports[`initialize 1`] = `
 Array [
   Array [
