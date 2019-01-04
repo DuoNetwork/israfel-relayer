@@ -87,6 +87,43 @@ Array [
 ]
 `;
 
+exports[`createOrderBookSide 1`] = `
+Array [
+  Array [
+    "address",
+    "aETH|WETH",
+    0.0001,
+    22.5,
+    true,
+    1234567890000,
+  ],
+  Array [
+    "address",
+    "aETH|WETH",
+    0,
+    22.5,
+    true,
+    1234567890000,
+  ],
+  Array [
+    "address",
+    "aETH|WETH",
+    -0.0001,
+    22.5,
+    true,
+    1234567890000,
+  ],
+  Array [
+    "address",
+    "aETH|WETH",
+    -0.0002,
+    22.5,
+    true,
+    1234567890000,
+  ],
+]
+`;
+
 exports[`getEthPrice 1`] = `150`;
 
 exports[`getEthPrice, no ETH price 1`] = `0`;
@@ -209,7 +246,7 @@ Array [
 
 exports[`maintainBalance, surplus of token 1`] = `
 Array [
-  5.96,
+  5.04615385,
   500,
   500,
 ]
@@ -231,7 +268,7 @@ Array [
 exports[`maintainBalance, surplus of token 3`] = `
 Array [
   Array [
-    3.96,
+    3.04615385,
     "address",
   ],
 ]
@@ -253,6 +290,102 @@ Array [
     "0x00D8d0660b243452fC2f996A892D3083A903576F",
     "address",
     6,
+  ],
+]
+`;
+
+exports[`makeOrders, arbitrage occurs, take asks 1`] = `
+Array [
+  "bETH|WETH",
+  false,
+  Array [
+    Object {
+      "balance": 20,
+      "count": 1,
+      "price": 0.0085,
+    },
+    Object {
+      "balance": 20,
+      "count": 1,
+      "price": 0.0084,
+    },
+    Object {
+      "balance": 20,
+      "count": 1,
+      "price": 0.0083,
+    },
+    Object {
+      "balance": 20,
+      "count": 1,
+      "price": 0.0082,
+    },
+  ],
+]
+`;
+
+exports[`makeOrders, arbitrage occurs, take asks 2`] = `
+Array [
+  "bETH|WETH",
+  Array [
+    "orderHash4",
+  ],
+]
+`;
+
+exports[`makeOrders, arbitrage occurs, take bids 1`] = `
+Array [
+  "bETH|WETH",
+  true,
+  Array [
+    Object {
+      "balance": 20,
+      "count": 1,
+      "price": 0.0091,
+    },
+    Object {
+      "balance": 20,
+      "count": 1,
+      "price": 0.009,
+    },
+  ],
+]
+`;
+
+exports[`makeOrders, create ask order 1`] = `
+Array [
+  "aETH|WETH",
+  0.006705,
+  false,
+  1,
+]
+`;
+
+exports[`makeOrders, create bid order 1`] = `
+Array [
+  "aETH|WETH",
+  0.006305,
+  true,
+  1,
+]
+`;
+
+exports[`takeOneSideOrders 1`] = `
+Array [
+  Array [
+    "address",
+    "aETH|WETH",
+    0.001,
+    20,
+    false,
+    1234567890000,
+  ],
+  Array [
+    "address",
+    "aETH|WETH",
+    0.0014,
+    20,
+    false,
+    1234567890000,
   ],
 ]
 `;

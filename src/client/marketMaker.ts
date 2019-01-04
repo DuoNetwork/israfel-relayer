@@ -242,13 +242,6 @@ class MarketMaker {
 		util.logDebug(`[${pair}] ethPrice ${ethPrice} token nav ${navPrices[0]} ${navPrices[1]}`);
 		util.logDebug(`[${pair}] eth nav in eth ${ethNavInEth} token nav in eth ${tokenNavInEth}`);
 		const orderBookSnapshot = relayerClient.orderBookSnapshots[pair];
-		console.log('###############');
-		console.log('ethNavInEth: ' + ethNavInEth);
-		console.log('alpha :' + alpha);
-		console.log('otherPair: ' + otherPair);
-
-		console.log(orderBookSnapshot);
-
 		const newBids = orderBookSnapshot.bids;
 
 		const newAsks = orderBookSnapshot.asks;
@@ -258,13 +251,11 @@ class MarketMaker {
 			: newAsks.length
 			? newAsks[0].price - this.priceStep
 			: tokenNavInEth - this.priceStep;
-		console.log('bestBidPrice: ' + bestBidPrice);
 		const bestAskPrice = newAsks.length
 			? newAsks[0].price
 			: newBids.length
 			? newBids[0].price + this.priceStep
 			: tokenNavInEth + this.priceStep;
-		console.log('bestBidPrice: ' + bestAskPrice);
 		util.logDebug(`[${pair}] best bid ${bestBidPrice}, best ask ${bestAskPrice}`);
 		// make orders for this side
 
@@ -311,7 +302,6 @@ class MarketMaker {
 		util.logDebug(
 			`[${otherPair}] no arb ask ${otherTokenNoArbAskPrice} vs best ask ${otherTokenBestAsk}`
 		);
-
 		const orderHashesToCancel: string[] = [];
 		let bidsToTake: IOrderBookSnapshotLevel[] = [];
 		let asksToTake: IOrderBookSnapshotLevel[] = [];
