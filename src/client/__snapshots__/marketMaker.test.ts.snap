@@ -1,5 +1,27 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`cancelOrders 1`] = `
+Array [
+  Array [
+    "address",
+    "By signing this message, your are confirming to cancel following orders (no gas cost involved): orderHash1,orderHash2",
+  ],
+]
+`;
+
+exports[`cancelOrders 2`] = `
+Array [
+  Array [
+    "aETH|WETH",
+    Array [
+      "orderHash1",
+      "orderHash2",
+    ],
+    "signature",
+  ],
+]
+`;
+
 exports[`checkAllowance, 0 allowance 1`] = `
 Array [
   Array [
@@ -156,6 +178,16 @@ Array [
 exports[`getEthPrice 1`] = `150`;
 
 exports[`getEthPrice, no ETH price 1`] = `0`;
+
+exports[`handleOrderBookUpdate 1`] = `
+Array [
+  Array [
+    Object {},
+    Object {},
+    "aETH|WETH",
+  ],
+]
+`;
 
 exports[`handleOrderHistory 1`] = `
 Array [

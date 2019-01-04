@@ -428,6 +428,18 @@ test('initialize', async () => {
 	expect((relayerClient.subscribeOrderHistory as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
+test('cancelOrders', async () => {
+	const relayerClient = {
+		web3Util: {
+			web3PersonalSign: jest.fn(() => Promise.resolve('signature'))
+		},
+		deleteOrder: jest.fn(() => Promise.resolve())
+	} as any;
+	await marketMaker.cancelOrders(relayerClient, 'aETH|WETH', ['orderHash1', 'orderHash2']);
+	expect((relayerClient.web3Util.web3PersonalSign as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((relayerClient.deleteOrder as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
 test('handleOrderHistory', async () => {
 	const marketMaker1 = Object.assign(
 		Object.create(Object.getPrototypeOf(marketMaker)),
@@ -447,6 +459,27 @@ test('handleOrderHistory', async () => {
 	for (const mockCall of (marketMaker1.cancelOrders as jest.Mock).mock.calls)
 		expect(mockCall.slice(1)).toMatchSnapshot();
 	expect((relayerClient.subscribeOrderBook as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderBookUpdate', async () => {
+	const marketMaker2 = Object.assign(
+		Object.create(Object.getPrototypeOf(marketMaker)),
+		marketMaker
+	);
+	const dualClassWrapper = {} as any;
+	const relayerClient = {} as any;
+	marketMaker2.canMakeOrder = jest.fn(() => true);
+	marketMaker2.makeOrders = jest.fn(() => Promise.resolve());
+
+	await marketMaker2.handleOrderBookUpdate(dualClassWrapper, relayerClient, {
+		pair: 'aETH|WETH'
+	} as any);
+	expect((marketMaker2.makeOrders as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleUserOrder', async () => {
+	// TODO
+	expect(true).toBeTruthy();
 });
 
 test('canMakeOrder, no orderBookSnapshot', () => {
@@ -1192,12 +1225,3 @@ test('makeOrders, arbitrage occurs, take bids', async () => {
 	for (const mockCall of (marketMaker.cancelOrders as jest.Mock).mock.calls)
 		expect(mockCall.slice(1)).toMatchSnapshot();
 });
-
-// test('takeOneSideOrders, isSendingOrder', async () => {
-// 	const relayerClient = {
-// 		addOrder: jest.fn(() => Promise.resolve('addOrderTxHash'))
-// 	} as any;
-// 	marketMaker.isSendingOrder = true;
-// 	await marketMaker.takeOneSideOrders(relayerClient, 'aETH|WETH', true, []);
-// 	expect(relayerClient.addOrder as jest.Mock).not.toBeCalled();
-// });
