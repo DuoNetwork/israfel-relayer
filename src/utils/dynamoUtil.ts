@@ -109,6 +109,21 @@ class DynamoUtil {
 		return data.Items.map(ob => this.parseToken(ob));
 	}
 
+	public async scanIpList() {
+		const data = await this.scanData({
+			TableName: this.getTableName(CST.DB_IP_LIST)
+		});
+		const ipList: { [ip: string]: string } = {};
+		if (!data.Items || !data.Items.length) return ipList;
+
+		data.Items.forEach(ip => {
+			const ipAddr = ip[CST.DB_IP].S || '';
+			const color = ip[CST.DB_COLOR].S || '';
+			if (ipAddr && color) ipList[ipAddr] = color;
+		});
+		return ipList;
+	}
+
 	public updateStatus(process: string, count: number = 0) {
 		const params: PutItemInput = {
 			TableName: this.getTableName(CST.DB_STATUS),

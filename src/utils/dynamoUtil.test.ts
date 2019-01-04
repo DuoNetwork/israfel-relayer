@@ -152,7 +152,7 @@ test('scanTokens', async () => {
 		Items: []
 	};
 	dynamoUtil.scanData = jest.fn(() => Promise.resolve(scanOutput));
-	expect(await dynamoUtil.scanTokens()).toMatchSnapshot();
+	expect(await dynamoUtil.scanTokens()).toEqual([]);
 	expect((dynamoUtil.scanData as jest.Mock).mock.calls).toMatchSnapshot();
 	scanOutput = {
 		Items: [
@@ -206,6 +206,37 @@ test('scanTokens', async () => {
 	expect(await dynamoUtil.scanTokens()).toMatchSnapshot();
 });
 
+test('scanIpList', async () => {
+	let scanOutput: { [key: string]: any } = {
+		Items: []
+	};
+	dynamoUtil.scanData = jest.fn(() => Promise.resolve(scanOutput));
+	expect(await dynamoUtil.scanIpList()).toEqual({});
+	expect((dynamoUtil.scanData as jest.Mock).mock.calls).toMatchSnapshot();
+	scanOutput = {
+		Items: [
+			{
+				[CST.DB_IP]: { S: 'ip1' },
+				[CST.DB_COLOR]: { S: CST.DB_WHITE }
+			},
+			{
+				[CST.DB_IP]: { S: 'ip2' },
+				[CST.DB_COLOR]: { S: CST.DB_BLACK }
+			},
+			{
+				[CST.DB_IP]: { S: 'ip3' },
+				[CST.DB_COLOR]: { S: '' }
+			},
+			{
+				[CST.DB_IP]: { S: '' },
+				[CST.DB_COLOR]: { S: CST.DB_BLACK }
+			}
+		]
+	};
+	dynamoUtil.scanData = jest.fn(() => Promise.resolve(scanOutput));
+	expect(await dynamoUtil.scanIpList()).toMatchSnapshot();
+});
+
 test('updateStatus', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
@@ -219,7 +250,7 @@ test('scanStatus', async () => {
 		Items: []
 	};
 	dynamoUtil.scanData = jest.fn(() => Promise.resolve(scanOutput));
-	expect(await dynamoUtil.scanStatus()).toMatchSnapshot();
+	expect(await dynamoUtil.scanStatus()).toEqual([]);
 	expect((dynamoUtil.scanData as jest.Mock).mock.calls).toMatchSnapshot();
 	scanOutput = {
 		Items: [
@@ -315,7 +346,7 @@ test('getLiveOrders', async () => {
 		Items: []
 	};
 	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
-	expect(await dynamoUtil.getLiveOrders('code1|code2')).toMatchSnapshot();
+	expect(await dynamoUtil.getLiveOrders('code1|code2')).toEqual([]);
 	expect((dynamoUtil.queryData as jest.Mock).mock.calls).toMatchSnapshot();
 
 	queryOutput = {
@@ -351,7 +382,7 @@ test('getLiveOrders with orderHash', async () => {
 		Items: []
 	};
 	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
-	expect(await dynamoUtil.getLiveOrders('code1|code2', 'orderHash')).toMatchSnapshot();
+	expect(await dynamoUtil.getLiveOrders('code1|code2', 'orderHash')).toEqual([]);
 	expect((dynamoUtil.queryData as jest.Mock).mock.calls).toMatchSnapshot();
 
 	queryOutput = {
@@ -574,7 +605,7 @@ test('getUserOrdersForMonth', async () => {
 		Items: []
 	};
 	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
-	expect(await dynamoUtil.getUserOrdersForMonth('0xAccount', '1234-56')).toMatchSnapshot();
+	expect(await dynamoUtil.getUserOrdersForMonth('0xAccount', '1234-56')).toEqual([]);
 
 	queryOutput = {
 		Items: [

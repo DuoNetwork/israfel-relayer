@@ -40,7 +40,7 @@ class RelayerServer {
 	public accountClients: { [account: string]: WebSocket[] } = {};
 	public duoAcceptedPrices: { [custodian: string]: IAcceptedPrice[] } = {};
 	public duoExchangePrices: { [source: string]: IPrice[] } = {};
-	public ipBlackList: string[] = ['119.73.164.130'];
+	public ipList: { [ip: string]: string } = {};
 
 	public sendResponse(ws: WebSocket, req: IWsRequest, status: string) {
 		const orderResponse: IWsResponse = {
@@ -445,8 +445,12 @@ class RelayerServer {
 
 		this.loadDuoAcceptedPrices();
 		this.loadDuoExchangePrices();
+		this.ipList = await dynamoUtil.scanIpList();
 		setInterval(() => this.loadDuoAcceptedPrices(), 600000);
-		setInterval(() => this.loadDuoExchangePrices(), 30000);
+		setInterval(async () => {
+			this.loadDuoExchangePrices();
+			this.ipList = await dynamoUtil.scanIpList();
+		}, 30000);
 		this.processStatus = await dynamoUtil.scanStatus();
 		const port = 8080;
 		const server = https
@@ -459,8 +463,8 @@ class RelayerServer {
 			const ip = (info.req.headers['x-forwarded-for'] ||
 				info.req.connection.remoteAddress) as string;
 			util.logInfo(ip);
-			if (this.ipBlackList.includes(ip)) {
-				util.logDebug(`ip ${ip} in blacklist, close connection`);
+			if (this.ipList[ip] === CST.DB_BLACK) {
+				util.logDebug(`ip ${ip} in blacklist, refuse connection`);
 				return false;
 			}
 			return true;

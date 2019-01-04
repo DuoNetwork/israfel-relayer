@@ -29,6 +29,11 @@ export const DB_PAIR_OH_SEQ_STATUS = 'pairOrderHashSequenceStatus';
 export const DB_TYPE = 'type';
 export const DB_CONFIRMED = 'confirmed';
 export const DB_MATCHING = 'matching';
+export const DB_IP_LIST = 'ipList';
+export const DB_IP = 'ip';
+export const DB_COLOR = 'color';
+export const DB_WHITE = 'white';
+export const DB_BLACK = 'black';
 
 export const DB_USER = 'user';
 export const DB_ORDER_PROCESSOR = 'orderProcessor';
