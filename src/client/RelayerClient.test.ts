@@ -618,3 +618,52 @@ test('deleteOrder', () => {
 	relayerClient.deleteOrder('pair', ['orderHash'], 'signature');
 	expect(send.mock.calls).toMatchSnapshot();
 });
+
+test('reconnect, less than 5 times', () => {
+	const handleConnected = jest.fn();
+	const handleReconnect = jest.fn();
+	relayerClient.onConnection(handleConnected, handleReconnect);
+	const ws = {
+		removeAllListeners: jest.fn(),
+		terminate: jest.fn()
+	}
+	relayerClient.ws = ws as any;
+	relayerClient.reconnectionNumber = 3;
+	global.setTimeout = jest.fn();
+	relayerClient.connectToRelayer = jest.fn();
+	relayerClient.reconnect();
+	expect(handleReconnect).toBeCalledTimes(1);
+	expect(ws.removeAllListeners).toBeCalledTimes(1);
+	expect(ws.terminate).toBeCalledTimes(1);
+	expect(relayerClient.ws).toBeNull();
+	expect(relayerClient.reconnectionNumber).toBe(4);
+	expect((global.setTimeout as jest.Mock).mock.calls).toMatchSnapshot();
+	(global.setTimeout as jest.Mock).mock.calls[0][0]();
+	expect(relayerClient.connectToRelayer as jest.Mock).toBeCalled();
+});
+
+test('reconnect, no ws', () => {
+	const handleConnected = jest.fn();
+	const handleReconnect = jest.fn();
+	relayerClient.onConnection(handleConnected, handleReconnect);
+	relayerClient.ws = null;
+	global.setTimeout = jest.fn();
+	relayerClient.reconnect();
+	expect(handleReconnect).toBeCalledTimes(1);
+	expect(relayerClient.ws).toBeNull();
+	expect(relayerClient.reconnectionNumber).toBe(5);
+	expect((global.setTimeout as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('reconnect, more than 5 times', () => {
+	const handleConnected = jest.fn();
+	const handleReconnect = jest.fn();
+	relayerClient.onConnection(handleConnected, handleReconnect);
+	relayerClient.ws = null;
+	global.setTimeout = jest.fn();
+	relayerClient.reconnect();
+	expect(handleReconnect).toBeCalledTimes(1);
+	expect(relayerClient.ws).toBeNull();
+	expect(relayerClient.reconnectionNumber).toBe(5);
+	expect(global.setTimeout as jest.Mock).not.toBeCalled();
+});

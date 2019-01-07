@@ -55,7 +55,7 @@ export default class RelayerClient {
 		this.env = env;
 	}
 
-	private reconnect() {
+	public reconnect() {
 		if (this.ws) {
 			this.ws.removeAllListeners();
 			this.ws.terminate();
@@ -64,7 +64,7 @@ export default class RelayerClient {
 		this.handleReconnect();
 		if (this.reconnectionNumber < 5) {
 			this.reconnectionNumber++;
-			setTimeout(() => this.connectToRelayer(), this.reconnectionNumber * 10000);
+			global.setTimeout(() => this.connectToRelayer(), this.reconnectionNumber * 10000);
 		}
 	}
 

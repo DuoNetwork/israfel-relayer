@@ -255,6 +255,24 @@ Array [
 ]
 `;
 
+exports[`reconnect, less than 5 times 1`] = `
+Array [
+  Array [
+    [Function],
+    40000,
+  ],
+]
+`;
+
+exports[`reconnect, no ws 1`] = `
+Array [
+  Array [
+    [Function],
+    50000,
+  ],
+]
+`;
+
 exports[`subscribeOrderBook existing pair 1`] = `
 Array [
   Array [
