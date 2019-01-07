@@ -323,7 +323,7 @@ test('getOrderBookSnapshotMid no bids', () => {
 				}
 			]
 		})
-	).toBe(2);
+	).toBe(Number.NEGATIVE_INFINITY);
 });
 
 test('getOrderBookSnapshotMid no asks', () => {
@@ -340,7 +340,7 @@ test('getOrderBookSnapshotMid no asks', () => {
 			],
 			asks: []
 		})
-	).toBe(1);
+	).toBe(Number.POSITIVE_INFINITY);
 });
 
 test('getOrderBookSnapshotMid no bids and no asks', () => {

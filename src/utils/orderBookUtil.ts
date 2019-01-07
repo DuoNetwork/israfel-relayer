@@ -12,19 +12,10 @@ import util from './util';
 class OrderBookUtil {
 	public getOrderBookSnapshotMid(orderBook: IOrderBookSnapshot) {
 		const { bids, asks } = orderBook;
-		let totalWeight = 0;
-		let totoalPrice = 0;
-		if (bids.length) {
-			totalWeight++;
-			totoalPrice += bids[0].price;
-		}
-
-		if (asks.length) {
-			totalWeight++;
-			totoalPrice += asks[0].price;
-		}
-
-		return totalWeight ? totoalPrice / totalWeight : 0;
+		if (!bids.length && !asks.length) return 0;
+		else if (!bids.length) return Number.NEGATIVE_INFINITY;
+		else if (!asks.length) return Number.POSITIVE_INFINITY;
+		return (bids[0].price + asks[0].price) / 2;
 	}
 
 	public getOrderBookSnapshotSpread(orderBook: IOrderBookSnapshot) {

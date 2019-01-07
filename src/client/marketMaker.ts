@@ -31,7 +31,7 @@ class MarketMaker {
 	public isSendingOrder = false;
 	public isMaintainingBalance = false;
 	public isMakingOrders = false;
-	public lastMid: { [key: string]: number } = {};
+	public lastMid: number[] = [0, 0];
 
 	private isA(pair: string) {
 		return pair.startsWith(this.tokens[0].code);
@@ -214,9 +214,7 @@ class MarketMaker {
 	public async makeOrders(
 		relayerClient: RelayerClient,
 		dualClassWrapper: DualClassWrapper,
-		pair: string,
-		newMid: number,
-		newSpread: number
+		pair: string
 	) {
 		if (!this.canMakeOrder(relayerClient, pair) || this.isMakingOrders) return;
 
@@ -241,6 +239,8 @@ class MarketMaker {
 		util.logDebug(`[${pair}] ethPrice ${ethPrice} token nav ${navPrices[0]} ${navPrices[1]}`);
 		util.logDebug(`[${pair}] eth nav in eth ${ethNavInEth} token nav in eth ${tokenNavInEth}`);
 		const orderBookSnapshot = relayerClient.orderBookSnapshots[pair];
+		const newMid = orderBookUtil.getOrderBookSnapshotMid(orderBookSnapshot);
+		const newSpread = orderBookUtil.getOrderBookSnapshotSpread(orderBookSnapshot);
 		const newBids = orderBookSnapshot.bids;
 
 		const newAsks = orderBookSnapshot.asks;
@@ -257,7 +257,7 @@ class MarketMaker {
 			: tokenNavInEth + this.priceStep;
 		util.logDebug(`[${pair}] best bid ${bestBidPrice}, best ask ${bestAskPrice}`);
 
-		if (this.lastMid[pair] === 0 || newSpread <= 3 * this.priceStep) {
+		if (this.lastMid[pariIndex] === 0 || newSpread <= 3 * this.priceStep) {
 			if (newAsks.length < CST.MIN_ORDER_BOOK_LEVELS)
 				await this.createOrderBookSide(
 					relayerClient,
@@ -277,8 +277,7 @@ class MarketMaker {
 					CST.MIN_ORDER_BOOK_LEVELS - newBids.length
 				);
 			}
-		}
-		if (newMid > this.lastMid[pair]) {
+		} else if (newMid > this.lastMid[pariIndex]) {
 			if (newAsks.length < CST.MIN_ORDER_BOOK_LEVELS)
 				await this.createOrderBookSide(
 					relayerClient,
@@ -287,25 +286,13 @@ class MarketMaker {
 					false,
 					CST.MIN_ORDER_BOOK_LEVELS - newAsks.length
 				);
-			bestBidPrice = bestAskPrice - this.priceStep * 3;
-			if (newBids.length && newBids[0].price < bestBidPrice) {
-				const levelDiff = Math.floor((bestBidPrice - newBids[0].price) / this.priceStep);
-				if (levelDiff > 0)
-					await this.createOrderBookSide(
-						relayerClient,
-						pair,
-						bestBidPrice,
-						true,
-						Math.max(levelDiff, CST.MIN_ORDER_BOOK_LEVELS)
-					);
-				await this.terminateSideOrdersUpToPrice(
-					pair,
-					true,
-					bestBidPrice - this.priceStep * CST.MIN_ORDER_BOOK_LEVELS,
-					relayerClient
-				);
+
+			const fixSpreadBestBidPrice = bestAskPrice - this.priceStep * 3;
+			if (fixSpreadBestBidPrice > bestBidPrice) {
+				bestBidPrice = fixSpreadBestBidPrice;
+				await this.createOrderBookSide(relayerClient, pair, bestBidPrice, true, 1);
 			}
-		} else {
+		} else if (newMid < this.lastMid[pariIndex]) {
 			if (newBids.length < CST.MIN_ORDER_BOOK_LEVELS) {
 				util.logDebug(JSON.stringify(newBids));
 				util.logDebug(`[${pair}] bid for ${pair} has insufficient liquidity, make orders`);
@@ -318,23 +305,10 @@ class MarketMaker {
 				);
 			}
 
-			bestAskPrice = this.priceStep * 3 + bestBidPrice;
-			if (newAsks.length && newAsks[0].price > bestAskPrice) {
-				const levelDiff = Math.floor((newAsks[0].price - bestAskPrice) / this.priceStep);
-				if (levelDiff > 0)
-					await this.createOrderBookSide(
-						relayerClient,
-						pair,
-						bestAskPrice,
-						false,
-						Math.max(levelDiff, CST.MIN_ORDER_BOOK_LEVELS)
-					);
-				await this.terminateSideOrdersUpToPrice(
-					pair,
-					false,
-					bestAskPrice + this.priceStep * CST.MIN_ORDER_BOOK_LEVELS,
-					relayerClient
-				);
+			const fixSpreadBestAskPrice = this.priceStep * 3 + bestBidPrice;
+			if (fixSpreadBestAskPrice < bestAskPrice) {
+				bestAskPrice = fixSpreadBestAskPrice;
+				await this.createOrderBookSide(relayerClient, pair, bestAskPrice, false, 1);
 			}
 		}
 
@@ -392,21 +366,8 @@ class MarketMaker {
 			await this.takeOneSideOrders(relayerClient, otherPair, false, asksToTake);
 		}
 
+		this.lastMid[pariIndex] = newMid;
 		this.isMakingOrders = false;
-	}
-
-	public async terminateSideOrdersUpToPrice(
-		pair: string,
-		isBid: boolean,
-		price: number,
-		relayerClient: RelayerClient
-	) {
-		const isA = this.isA(pair);
-		const index = isA ? 0 : 1;
-		const orderHashesToCancel = isBid
-			? this.liveBidOrders[index].filter(uo => uo.price < price).map(uo => uo.orderHash)
-			: this.liveAskOrders[index].filter(uo => uo.price > price).map(uo => uo.orderHash);
-		await this.cancelOrders(relayerClient, pair, orderHashesToCancel);
 	}
 
 	public async takeOneSideOrders(
@@ -499,10 +460,7 @@ class MarketMaker {
 	) {
 		const pair = orderBookSnapshot.pair;
 		util.logDebug(`received orderBookUpdate ${pair} ${orderBookSnapshot.version}`);
-		const newMid = orderBookUtil.getOrderBookSnapshotMid(orderBookSnapshot);
-		const newSpread = orderBookUtil.getOrderBookSnapshotSpread(orderBookSnapshot);
-		await this.makeOrders(relayerClient, dualClassWrapper, pair, newMid, newSpread);
-		this.lastMid[pair] = newMid;
+		await this.makeOrders(relayerClient, dualClassWrapper, pair);
 	}
 
 	public async cancelOrders(relayerClient: RelayerClient, pair: string, orderHashes: string[]) {
@@ -608,7 +566,7 @@ class MarketMaker {
 		}
 
 		await this.maintainBalance(relayerClient.web3Util, dualClassWrapper);
-		return this.makeOrders(relayerClient, dualClassWrapper, pair, this.lastMid[pair], 0);
+		return this.makeOrders(relayerClient, dualClassWrapper, pair);
 	}
 
 	public handleOrderError(method: string, orderHash: string, error: string) {
@@ -630,8 +588,6 @@ class MarketMaker {
 		);
 		if (!bToken) throw new Error('no bToken');
 		this.tokens = [aToken, bToken];
-		this.lastMid[aToken.code + '|' + CST.TOKEN_WETH] = 0;
-		this.lastMid[bToken.code + '|' + CST.TOKEN_WETH] = 0;
 		this.priceStep = aToken.precisions[CST.TOKEN_WETH] * 20;
 		let infura = {
 			token: ''
