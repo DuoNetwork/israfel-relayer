@@ -190,7 +190,7 @@ test('renderOrderBookSnapshotSide, with zero level balance', () => {
 
 test('renderOrderBookSnapshotSide, with zero level count', () => {
 	const orderLevelsBids1: IOrderBookLevel[] = util.clone(orderLevelsBids);
-	orderLevelsBids1.forEach(bid => bid.balance = 0);
+	orderLevelsBids1.forEach(bid => (bid.balance = 0));
 	expect(orderBookUtil.renderOrderBookSnapshotSide(orderLevelsBids1)).toMatchSnapshot();
 });
 
@@ -284,4 +284,140 @@ test('updateOrderBookSnapshot, ask, not existingLevel, count = -1', () => {
 	const orderBookSnapshotTest8 = util.clone(orderBookSnapshot);
 	orderBookUtil.updateOrderBookSnapshot(orderBookSnapshotTest8, orderBookSnapshotUpdateAsk);
 	expect(orderBookSnapshotTest8).toMatchSnapshot();
+});
+
+test('getOrderBookSnapshotMid bids and asks', () => {
+	expect(
+		orderBookUtil.getOrderBookSnapshotMid({
+			pair: 'pair',
+			version: 1234567890,
+			bids: [
+				{
+					price: 1,
+					balance: 1,
+					count: 1
+				}
+			],
+			asks: [
+				{
+					price: 2,
+					balance: 1,
+					count: 1
+				}
+			]
+		})
+	).toBe(1.5);
+});
+
+test('getOrderBookSnapshotMid no bids', () => {
+	expect(
+		orderBookUtil.getOrderBookSnapshotMid({
+			pair: 'pair',
+			version: 1234567890,
+			bids: [],
+			asks: [
+				{
+					price: 2,
+					balance: 1,
+					count: 1
+				}
+			]
+		})
+	).toBe(2);
+});
+
+test('getOrderBookSnapshotMid no asks', () => {
+	expect(
+		orderBookUtil.getOrderBookSnapshotMid({
+			pair: 'pair',
+			version: 1234567890,
+			bids: [
+				{
+					price: 1,
+					balance: 1,
+					count: 1
+				}
+			],
+			asks: []
+		})
+	).toBe(1);
+});
+
+test('getOrderBookSnapshotMid no bids and no asks', () => {
+	expect(
+		orderBookUtil.getOrderBookSnapshotMid({
+			pair: 'pair',
+			version: 1234567890,
+			bids: [],
+			asks: []
+		})
+	).toBe(0);
+});
+
+test('getOrderBookSnapshotSpread bids and asks', () => {
+	expect(
+		orderBookUtil.getOrderBookSnapshotSpread({
+			pair: 'pair',
+			version: 1234567890,
+			bids: [
+				{
+					price: 1,
+					balance: 1,
+					count: 1
+				}
+			],
+			asks: [
+				{
+					price: 2,
+					balance: 1,
+					count: 1
+				}
+			]
+		})
+	).toBe(1);
+});
+
+test('getOrderBookSnapshotSpread no bids', () => {
+	expect(
+		orderBookUtil.getOrderBookSnapshotSpread({
+			pair: 'pair',
+			version: 1234567890,
+			bids: [],
+			asks: [
+				{
+					price: 2,
+					balance: 1,
+					count: 1
+				}
+			]
+		})
+	).toBe(Number.POSITIVE_INFINITY);
+});
+
+test('getOrderBookSnapshotMid no asks', () => {
+	expect(
+		orderBookUtil.getOrderBookSnapshotSpread({
+			pair: 'pair',
+			version: 1234567890,
+			bids: [
+				{
+					price: 1,
+					balance: 1,
+					count: 1
+				}
+			],
+			asks: []
+		})
+	).toBe(Number.POSITIVE_INFINITY);
+});
+
+test('getOrderBookSnapshotMid no bids and no asks', () => {
+	expect(
+		orderBookUtil.getOrderBookSnapshotSpread({
+			pair: 'pair',
+			version: 1234567890,
+			bids: [],
+			asks: []
+		})
+	).toBe(Number.POSITIVE_INFINITY);
 });
