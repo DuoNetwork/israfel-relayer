@@ -1642,3 +1642,21 @@ test('makeOrders, arbitrage occurs, take bids', async () => {
 	for (const mockCall of (marketMaker.cancelOrders as jest.Mock).mock.calls)
 		expect(mockCall.slice(1)).toMatchSnapshot();
 });
+
+test('connectToRelayer', () => {
+	const relayerClient = {
+		onInfoUpdate: jest.fn(),
+		onOrder: jest.fn(),
+		onOrderBook: jest.fn(),
+		onConnection: jest.fn(),
+		connectToRelayer: jest.fn()
+	};
+	global.setInterval = jest.fn();
+	marketMaker.connectToRelayer(relayerClient as any, {} as any);
+	expect(relayerClient.onInfoUpdate.mock.calls).toMatchSnapshot();
+	expect(relayerClient.onOrder.mock.calls).toMatchSnapshot();
+	expect(relayerClient.onOrderBook.mock.calls).toMatchSnapshot();
+	expect(relayerClient.onConnection.mock.calls).toMatchSnapshot();
+	expect(relayerClient.connectToRelayer).toBeCalledTimes(1);
+	expect((global.setInterval as jest.Mock).mock.calls).toMatchSnapshot();
+});

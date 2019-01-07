@@ -603,14 +603,7 @@ class MarketMaker {
 		return dualClassWrapper;
 	}
 
-	public async startProcessing(option: IOption) {
-		util.logInfo(`starting bot for token ${option.token}`);
-		const mnemonic = require('../keys/mnemomicBot.json');
-		const live = option.env === CST.DB_LIVE;
-		const web3Util = new Web3Util(null, live, mnemonic[option.token], false);
-		this.makerAccount = this.getMakerAccount(mnemonic[option.token], 0);
-		const relayerClient = new RelayerClient(web3Util, option.env);
-		this.isBeethoven = option.token.startsWith('a');
+	public connectToRelayer(relayerClient: RelayerClient, option: IOption) {
 		let dualClassWrapper: DualClassWrapper | null = null;
 
 		relayerClient.onInfoUpdate(async (tokens, status, acceptedPrices, exchangePrices) => {
@@ -657,11 +650,21 @@ class MarketMaker {
 		);
 		relayerClient.connectToRelayer();
 
-		setInterval(() => {
+		global.setInterval(() => {
 			util.logInfo('hourly reinitialize');
 			dualClassWrapper = null;
 			this.isInitialized = false;
 		}, 3600000);
+	}
+
+	public startProcessing(option: IOption) {
+		util.logInfo(`starting bot for token ${option.token}`);
+		const mnemonic = require('../keys/mnemomicBot.json');
+		const live = option.env === CST.DB_LIVE;
+		const web3Util = new Web3Util(null, live, mnemonic[option.token], false);
+		this.makerAccount = this.getMakerAccount(mnemonic[option.token], 0);
+		this.isBeethoven = option.token.startsWith('a');
+		this.connectToRelayer(new RelayerClient(web3Util, option.env), option);
 	}
 }
 

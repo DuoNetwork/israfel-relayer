@@ -109,6 +109,51 @@ Array [
 ]
 `;
 
+exports[`connectToRelayer 1`] = `
+Array [
+  Array [
+    [Function],
+  ],
+]
+`;
+
+exports[`connectToRelayer 2`] = `
+Array [
+  Array [
+    [Function],
+    [Function],
+    [Function],
+  ],
+]
+`;
+
+exports[`connectToRelayer 3`] = `
+Array [
+  Array [
+    [Function],
+    [Function],
+  ],
+]
+`;
+
+exports[`connectToRelayer 4`] = `
+Array [
+  Array [
+    [Function],
+    [Function],
+  ],
+]
+`;
+
+exports[`connectToRelayer 5`] = `
+Array [
+  Array [
+    [Function],
+    3600000,
+  ],
+]
+`;
+
 exports[`createOrderBookFromNav 1`] = `
 Array [
   Array [
