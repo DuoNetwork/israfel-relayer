@@ -62,10 +62,10 @@ export default class RelayerClient {
 		}
 		this.ws = null;
 		this.handleReconnect();
-		setTimeout(() => {
-			this.connectToRelayer();
+		if (this.reconnectionNumber < 5) {
 			this.reconnectionNumber++;
-		}, this.reconnectionNumber * 5000);
+			setTimeout(() => this.connectToRelayer(), this.reconnectionNumber * 10000);
+		}
 	}
 
 	public connectToRelayer() {
