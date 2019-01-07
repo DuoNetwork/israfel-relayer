@@ -45,7 +45,7 @@ const userOrders = [
 		initialSequence: 2,
 		currentSequence: 2,
 		fee: 0.1,
-		feeAsset: 'aETH',
+		feeAsset: 'bETH',
 		type: 'add',
 		status: 'confirmed',
 		updatedBy: 'relayer',
@@ -426,6 +426,27 @@ test('cancelOrders', async () => {
 	await marketMaker.cancelOrders(relayerClient, 'aETH|WETH', ['orderHash1', 'orderHash2']);
 	expect((relayerClient.web3Util.web3PersonalSign as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((relayerClient.deleteOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(marketMaker.pendingOrders).toMatchSnapshot();
+});
+
+test('handleOrderHistory not initlized', async () => {
+	const marketMaker1 = Object.assign(
+		Object.create(Object.getPrototypeOf(marketMaker)),
+		marketMaker
+	);
+	marketMaker1.isInitialized = false;
+	const dualClassWrapper = {} as any;
+	const relayerClient = {
+		subscribeOrderBook: jest.fn(() => Promise.resolve())
+	} as any;
+	marketMaker1.tokens = tokens;
+	marketMaker1.tokenBalances = [100, 100, 100];
+	marketMaker1.cancelOrders = jest.fn(() => Promise.resolve());
+	marketMaker1.createOrderBookFromNav = jest.fn(() => Promise.resolve());
+	await marketMaker1.handleOrderHistory(relayerClient, dualClassWrapper, userOrders);
+	expect(marketMaker1.tokenBalances).toEqual([100, 100, 100]);
+	expect(marketMaker1.cancelOrders).not.toBeCalled();
+	expect(relayerClient.subscribeOrderBook).not.toBeCalled();
 });
 
 test('handleOrderHistory', async () => {
@@ -444,9 +465,9 @@ test('handleOrderHistory', async () => {
 	marketMaker1.createOrderBookFromNav = jest.fn(() => Promise.resolve());
 	await marketMaker1.handleOrderHistory(relayerClient, dualClassWrapper, userOrders);
 	expect(marketMaker1.tokenBalances).toMatchSnapshot();
-	for (const mockCall of (marketMaker1.cancelOrders as jest.Mock).mock.calls)
+	for (const mockCall of marketMaker1.cancelOrders.mock.calls)
 		expect(mockCall.slice(1)).toMatchSnapshot();
-	expect((relayerClient.subscribeOrderBook as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(relayerClient.subscribeOrderBook.mock.calls).toMatchSnapshot();
 });
 
 test('handleOrderBookUpdate', async () => {
@@ -462,6 +483,14 @@ test('handleOrderBookUpdate', async () => {
 		pair: 'aETH|WETH'
 	} as any);
 	expect((marketMaker2.makeOrders as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderError', () => {
+	marketMaker.pendingOrders = {
+		orderHash: true
+	};
+	marketMaker.handleOrderError('method', 'orderHash', 'error');
+	expect(marketMaker.pendingOrders).toEqual({});
 });
 
 test('handleUserOrder, terminate, bid', async () => {
@@ -524,9 +553,13 @@ test('handleUserOrder, terminate, bid', async () => {
 	};
 	marketMaker3.maintainBalance = jest.fn(() => Promise.resolve());
 	marketMaker3.makeOrders = jest.fn(() => Promise.resolve());
+	marketMaker3.pendingOrders = {
+		orderHash1: true
+	};
 	await marketMaker3.handleUserOrder(userOrder, {} as any, {} as any);
 	expect(marketMaker3.tokenBalances).toMatchSnapshot();
 	expect(marketMaker3.makeOrders.mock.calls).toMatchSnapshot();
+	expect(marketMaker3.pendingOrders).toEqual({});
 });
 
 test('handleUserOrder, terminate, bid bToken', async () => {
@@ -704,29 +737,34 @@ test('handleUserOrder, add, ask', async () => {
 	);
 	marketMaker3.tokens = tokens;
 	marketMaker3.tokenBalances = [6, 200, 200];
-	marketMaker3.liveAskOrders = [[{
-		account: 'account',
-		pair: 'aETH|WETH',
-		orderHash: 'orderHash2',
-		price: 0.001,
-		amount: 10,
-		balance: 10,
-		matching: 0,
-		fill: 0,
-		side: 'ask',
-		expiry: 1234567890000,
-		createdAt: 1234567880000,
-		updatedAt: 1234567880000,
-		initialSequence: 1,
-		currentSequence: 1,
-		fee: 0.1,
-		feeAsset: 'aETH',
-		type: 'add',
-		status: 'confirmed',
-		updatedBy: 'relayer',
-		processed: true,
-		transactionHash: 'transactionhash2'
-	}], []];
+	marketMaker3.liveAskOrders = [
+		[
+			{
+				account: 'account',
+				pair: 'aETH|WETH',
+				orderHash: 'orderHash2',
+				price: 0.001,
+				amount: 10,
+				balance: 10,
+				matching: 0,
+				fill: 0,
+				side: 'ask',
+				expiry: 1234567890000,
+				createdAt: 1234567880000,
+				updatedAt: 1234567880000,
+				initialSequence: 1,
+				currentSequence: 1,
+				fee: 0.1,
+				feeAsset: 'aETH',
+				type: 'add',
+				status: 'confirmed',
+				updatedBy: 'relayer',
+				processed: true,
+				transactionHash: 'transactionhash2'
+			}
+		],
+		[]
+	];
 	const userOrder = {
 		account: 'account',
 		pair: 'aETH|WETH',
@@ -1056,20 +1094,21 @@ test('getEthPrice', () => {
 			timestamp: 1234567890000
 		}
 	];
-	expect(marketMaker.getEthPrice()).toMatchSnapshot();
+	expect(marketMaker.getEthPrice()).toBe(150);
 });
 
 test('getEthPrice, no ETH price', () => {
 	marketMaker.exchangePrices[CST.API_KRAKEN] = [];
-	expect(marketMaker.getEthPrice()).toMatchSnapshot();
+	expect(marketMaker.getEthPrice()).toBe(0);
 });
 
-test('takeOneSideOrders', async () => {
+test('takeOneSideOrders bid', async () => {
 	const relayerClient = {
 		addOrder: jest.fn(() => Promise.resolve('addOrderTxHash'))
 	} as any;
 	util.getExpiryTimestamp = jest.fn(() => 1234567890000);
 	util.sleep = jest.fn(() => Promise.resolve());
+	marketMaker.pendingOrders = {};
 	await marketMaker.takeOneSideOrders(relayerClient, 'aETH|WETH', true, [
 		{
 			price: 0.001,
@@ -1088,17 +1127,61 @@ test('takeOneSideOrders', async () => {
 		}
 	]);
 	expect((relayerClient.addOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(marketMaker.pendingOrders).toMatchSnapshot();
 });
 
-test('createOrderBookSide', async () => {
+test('takeOneSideOrders ask', async () => {
+	const relayerClient = {
+		addOrder: jest.fn(() => Promise.resolve('addOrderTxHash'))
+	} as any;
+	util.getExpiryTimestamp = jest.fn(() => 1234567890000);
+	util.sleep = jest.fn(() => Promise.resolve());
+	marketMaker.pendingOrders = {};
+	await marketMaker.takeOneSideOrders(relayerClient, 'aETH|WETH', false, [
+		{
+			price: 0.001,
+			balance: 20,
+			count: 1
+		},
+		{
+			price: 0.0012,
+			balance: 0,
+			count: 1
+		},
+		{
+			price: 0.0014,
+			balance: 20,
+			count: 1
+		}
+	]);
+	expect((relayerClient.addOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(marketMaker.pendingOrders).toMatchSnapshot();
+});
+
+test('createOrderBookSide bid', async () => {
 	const relayerClient = {
 		addOrder: jest.fn(() => Promise.resolve('addOrderTxHash'))
 	} as any;
 	util.getExpiryTimestamp = jest.fn(() => 1234567890000);
 	util.sleep = jest.fn(() => Promise.resolve());
 	Math.random = jest.fn(() => 0.5);
+	marketMaker.pendingOrders = {};
 	await marketMaker.createOrderBookSide(relayerClient, 'aETH|WETH', 0.0001, true, 4);
 	expect((relayerClient.addOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(marketMaker.pendingOrders).toMatchSnapshot();
+});
+
+test('createOrderBookSide ask', async () => {
+	const relayerClient = {
+		addOrder: jest.fn(() => Promise.resolve('addOrderTxHash'))
+	} as any;
+	util.getExpiryTimestamp = jest.fn(() => 1234567890000);
+	util.sleep = jest.fn(() => Promise.resolve());
+	Math.random = jest.fn(() => 0.5);
+	marketMaker.pendingOrders = {};
+	await marketMaker.createOrderBookSide(relayerClient, 'aETH|WETH', 0.0001, false, 4);
+	expect((relayerClient.addOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(marketMaker.pendingOrders).toMatchSnapshot();
 });
 
 test('createOrderBookFromNav', async () => {
@@ -1255,6 +1338,124 @@ test('makeOrders, no need to create order', async () => {
 		getStates: jest.fn(() => Promise.resolve(custodianStates))
 	} as any;
 	await marketMaker.makeOrders(relayerClient, dualClassWrapper, 'aETH|WETH');
+	expect(marketMaker.createOrderBookSide as jest.Mock).not.toBeCalled();
+	expect(marketMaker.takeOneSideOrders as jest.Mock).not.toBeCalled();
+	expect(marketMaker.cancelOrders as jest.Mock).not.toBeCalled();
+});
+
+test('makeOrders, no need to create order, bToken', async () => {
+	marketMaker.isMakingOrders = false;
+	marketMaker.canMakeOrder = jest.fn(() => true);
+	marketMaker.tokens = tokens;
+	marketMaker.getEthPrice = jest.fn(() => 150);
+	DualClassWrapper.calculateNav = jest.fn(() => [1, 1.2]);
+	marketMaker.createOrderBookSide = jest.fn(() => Promise.resolve());
+	marketMaker.takeOneSideOrders = jest.fn(() => Promise.resolve());
+	marketMaker.cancelOrders = jest.fn(() => Promise.resolve());
+	const relayerClient = {
+		orderBookSnapshots: {
+			'aETH|WETH': {
+				version: 1,
+				pair: 'aETH|WETH',
+				bids: [
+					{
+						price: 0.006405,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.006305,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.006205,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.006105,
+						balance: 20,
+						count: 1
+					}
+				],
+				asks: [
+					{
+						price: 0.006605,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.006705,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.006805,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.006905,
+						balance: 20,
+						count: 1
+					}
+				]
+			},
+			'bETH|WETH': {
+				version: 1,
+				pair: 'bETH',
+				bids: [
+					{
+						price: 0.0087,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.0086,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.0085,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.0084,
+						balance: 20,
+						count: 1
+					}
+				],
+				asks: [
+					{
+						price: 0.0088,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.0089,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.009,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.0091,
+						balance: 20,
+						count: 1
+					}
+				]
+			}
+		}
+	} as any;
+	const dualClassWrapper = {
+		getStates: jest.fn(() => Promise.resolve(custodianStates))
+	} as any;
+	await marketMaker.makeOrders(relayerClient, dualClassWrapper, 'bETH|WETH');
 	expect(marketMaker.createOrderBookSide as jest.Mock).not.toBeCalled();
 	expect(marketMaker.takeOneSideOrders as jest.Mock).not.toBeCalled();
 	expect(marketMaker.cancelOrders as jest.Mock).not.toBeCalled();
@@ -1497,6 +1698,19 @@ test('makeOrders, arbitrage occurs, take asks', async () => {
 	marketMaker.createOrderBookSide = jest.fn(() => Promise.resolve());
 	marketMaker.takeOneSideOrders = jest.fn(() => Promise.resolve());
 	marketMaker.cancelOrders = jest.fn(() => Promise.resolve());
+	marketMaker.liveAskOrders = [
+		[],
+		[
+			{
+				price: 0.0082,
+				orderHash: 'askToCancelOrderHash'
+			} as any,
+			{
+				price: 0.01,
+				orderHash: 'askToKeeyOrderHash'
+			}
+		]
+	];
 	const relayerClient = {
 		orderBookSnapshots: {
 			'aETH|WETH': {
@@ -1574,12 +1788,7 @@ test('makeOrders, arbitrage occurs, take asks', async () => {
 				],
 				asks: [
 					{
-						price: 0.0085,
-						balance: 20,
-						count: 1
-					},
-					{
-						price: 0.0084,
+						price: 0.0082,
 						balance: 20,
 						count: 1
 					},
@@ -1589,7 +1798,12 @@ test('makeOrders, arbitrage occurs, take asks', async () => {
 						count: 1
 					},
 					{
-						price: 0.0082,
+						price: 0.0084,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.0085,
 						balance: 20,
 						count: 1
 					}
@@ -1618,6 +1832,19 @@ test('makeOrders, arbitrage occurs, take bids', async () => {
 	marketMaker.createOrderBookSide = jest.fn(() => Promise.resolve());
 	marketMaker.takeOneSideOrders = jest.fn(() => Promise.resolve());
 	marketMaker.cancelOrders = jest.fn(() => Promise.resolve());
+	marketMaker.liveBidOrders = [
+		[],
+		[
+			{
+				price: 0.0091,
+				orderHash: 'bidToCancelOrderHash'
+			} as any,
+			{
+				price: 0.0089,
+				orderHash: 'bidToKeepOrderHash'
+			} as any
+		]
+	];
 	const relayerClient = {
 		orderBookSnapshots: {
 			'aETH|WETH': {

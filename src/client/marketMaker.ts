@@ -368,7 +368,7 @@ class MarketMaker {
 		pair: string,
 		bestPrice: number,
 		isBid: boolean,
-		level: number = CST.MIN_ORDER_BOOK_LEVELS
+		level: number
 	) {
 		const precision = this.tokens[0].precisions[CST.TOKEN_WETH];
 		this.isSendingOrder = true;
@@ -413,7 +413,8 @@ class MarketMaker {
 					relayerClient,
 					this.tokens[index].code + '|' + CST.TOKEN_WETH,
 					navPrices[index] / ethPrice + (isBid ? -1 : 1) * this.priceStep,
-					isBid
+					isBid,
+					CST.MIN_ORDER_BOOK_LEVELS
 				);
 	}
 
