@@ -304,16 +304,6 @@ class MarketMaker {
 					bestBidPrice - this.priceStep * CST.MIN_ORDER_BOOK_LEVELS,
 					relayerClient
 				);
-			} else if (newBids.length < CST.MIN_ORDER_BOOK_LEVELS) {
-				util.logDebug(JSON.stringify(newBids));
-				util.logDebug(`[${pair}] bid for ${pair} has insufficient liquidity, make orders`);
-				await this.createOrderBookSide(
-					relayerClient,
-					pair,
-					bestBidPrice,
-					true,
-					CST.MIN_ORDER_BOOK_LEVELS - newBids.length
-				);
 			}
 		} else {
 			if (newBids.length < CST.MIN_ORDER_BOOK_LEVELS) {
@@ -330,9 +320,7 @@ class MarketMaker {
 
 			bestAskPrice = this.priceStep * 3 + bestBidPrice;
 			if (newAsks.length && newAsks[0].price > bestAskPrice) {
-				const levelDiff = Math.floor(
-					(newAsks[0].price - bestAskPrice) / this.priceStep
-				);
+				const levelDiff = Math.floor((newAsks[0].price - bestAskPrice) / this.priceStep);
 				if (levelDiff > 0)
 					await this.createOrderBookSide(
 						relayerClient,
@@ -346,16 +334,6 @@ class MarketMaker {
 					false,
 					bestAskPrice + this.priceStep * CST.MIN_ORDER_BOOK_LEVELS,
 					relayerClient
-				);
-			} else if (newAsks.length < CST.MIN_ORDER_BOOK_LEVELS) {
-				util.logDebug(JSON.stringify(newAsks));
-				util.logDebug(`[${pair}] ask for ${pair} has insufficient liquidity, make orders`);
-				await this.createOrderBookSide(
-					relayerClient,
-					pair,
-					bestAskPrice,
-					false,
-					CST.MIN_ORDER_BOOK_LEVELS - newAsks.length
 				);
 			}
 		}
