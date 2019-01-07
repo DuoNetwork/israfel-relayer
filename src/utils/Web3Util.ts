@@ -18,7 +18,7 @@ import { schemas, SchemaValidator } from '@0x/json-schemas';
 import { MetamaskSubprovider, MnemonicWalletSubprovider } from '@0x/subproviders';
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import * as CST from '../common/constants';
-import { IRawOrder, IStringSignedOrder, IToken, Wallet } from '../common/types';
+import { IAccount, IRawOrder, IStringSignedOrder, IToken, Wallet } from '../common/types';
 import util from './util';
 
 const Web3Eth = require('web3-eth');
@@ -435,5 +435,20 @@ export default class Web3Util {
 				senderAddress,
 				amountInWei
 			);
+	}
+
+	public static getAccountFromMnemonic(mnemonic: string, index: number): IAccount {
+		const bip39 = require('bip39');
+		const hdkey = require('ethereumjs-wallet/hdkey');
+		const hdwallet = hdkey.fromMasterSeed(bip39.mnemonicToSeed(mnemonic));
+		const wallet = hdwallet
+			.derivePath('m/' + CST.BASE_DERIVATION_PATH + '/' + index)
+			.getWallet();
+		const address = '0x' + wallet.getAddress().toString('hex');
+		const privateKey = wallet.getPrivateKey().toString('hex');
+		return {
+			address: address,
+			privateKey: privateKey
+		};
 	}
 }

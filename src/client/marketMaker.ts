@@ -32,7 +32,12 @@ class MarketMaker {
 	public isMakingOrders = false;
 
 	private isA(pair: string) {
-		return this.tokens[0].code === pair.split('|')[0];
+		return pair.startsWith(this.tokens[0].code);
+	}
+
+	private getOtherPair(pair: string) {
+		const isA = this.isA(pair);
+		return this.tokens[isA ? 1 : 0].code + '|' + pair.split('|')[1];
 	}
 
 	public getEthPrice() {
@@ -69,7 +74,7 @@ class MarketMaker {
 
 		this.isMaintainingBalance = true;
 		this.custodianStates = await dualClassWrapper.getStates();
-		const alpha = this.custodianStates.alpha;
+		const { alpha, createCommRate, redeemCommRate } = this.custodianStates;
 		let impliedWethBalance = this.tokenBalances[0];
 		let wethShortfall = 0;
 		let wethSurplus = 0;
@@ -88,8 +93,7 @@ class MarketMaker {
 				CST.TARGET_TOKEN_BALANCE * alpha - this.tokenBalances[1]
 			);
 			bTokenToCreate = Math.max(aTokenShortfall / alpha, bTokenShortfall);
-			ethAmountForCreation =
-				bTokenToCreate / tokensPerEth[1] / (1 - this.custodianStates.createCommRate);
+			ethAmountForCreation = bTokenToCreate / tokensPerEth[1] / (1 - createCommRate);
 			impliedWethBalance -= ethAmountForCreation;
 		}
 
@@ -104,7 +108,7 @@ class MarketMaker {
 			);
 			bTokenToRedeem = Math.min(aTokenSurplus / alpha, bTokenSurplus);
 			ethAmountForRedemption = util.round(
-				(bTokenToRedeem / tokensPerEth[1]) * (1 - this.custodianStates.redeemCommRate)
+				(bTokenToRedeem / tokensPerEth[1]) * (1 - redeemCommRate)
 			);
 			impliedWethBalance += ethAmountForRedemption;
 		}
@@ -162,8 +166,8 @@ class MarketMaker {
 			);
 			util.logDebug(`tx hash: ${tx}`);
 			await web3Util.awaitTransactionSuccessAsync(tx);
-			this.tokenBalances[2] -= bTokenToCreate;
-			this.tokenBalances[1] -= bTokenToCreate * alpha;
+			this.tokenBalances[2] -= bTokenToRedeem;
+			this.tokenBalances[1] -= bTokenToRedeem * alpha;
 			util.logDebug(`wrapping ether with amt ${ethAmountForRedemption}`);
 			tx = await web3Util.wrapEther(ethAmountForRedemption, this.makerAccount.address);
 			util.logDebug(`tx hash: ${tx}`);
@@ -187,18 +191,8 @@ class MarketMaker {
 		this.isMaintainingBalance = false;
 	}
 
-	// public getSideTotalLiquidity(side: IOrderBookSnapshotLevel[], level: number = 0): number {
-	// 	if (!side.length) return 0;
-	// 	level = level || side.length;
-	// 	let accumulatedAmt = 0;
-	// 	for (let i = 0; i < level; i++) accumulatedAmt += side[i].balance;
-	// 	return accumulatedAmt;
-	// }
-
 	public canMakeOrder(relayerClient: RelayerClient, pair: string) {
-		const isA = this.isA(pair);
-		const index = isA ? 1 : 0;
-		const otherPair = this.tokens[index].code + '|' + CST.TOKEN_WETH;
+		const otherPair = this.getOtherPair(pair);
 		if (
 			!relayerClient.orderBookSnapshots[pair] ||
 			!relayerClient.orderBookSnapshots[otherPair]
@@ -220,12 +214,13 @@ class MarketMaker {
 		dualClassWrapper: DualClassWrapper,
 		pair: string
 	) {
-		if (this.isMakingOrders) return;
+		if (!this.canMakeOrder(relayerClient, pair) || this.isMakingOrders) return;
 
 		this.isMakingOrders = true;
 		const isA = this.isA(pair);
-		const index = isA ? 1 : 0;
-		const otherPair = this.tokens[index].code + '|' + CST.TOKEN_WETH;
+		const pariIndex = isA ? 0 : 1;
+		const otherPairIndex = 1 - pariIndex;
+		const otherPair = this.getOtherPair(pair);
 
 		util.logDebug(`[${pair}] start making orders`);
 		this.custodianStates = await dualClassWrapper.getStates();
@@ -238,7 +233,7 @@ class MarketMaker {
 			ethPrice,
 			util.getUTCNowTimestamp()
 		);
-		const tokenNavInEth = navPrices[isA ? 0 : 1] / ethPrice;
+		const tokenNavInEth = navPrices[pariIndex] / ethPrice;
 		util.logDebug(`[${pair}] ethPrice ${ethPrice} token nav ${navPrices[0]} ${navPrices[1]}`);
 		util.logDebug(`[${pair}] eth nav in eth ${ethNavInEth} token nav in eth ${tokenNavInEth}`);
 		const orderBookSnapshot = relayerClient.orderBookSnapshots[pair];
@@ -306,7 +301,7 @@ class MarketMaker {
 		let bidsToTake: IOrderBookSnapshotLevel[] = [];
 		let asksToTake: IOrderBookSnapshotLevel[] = [];
 		if (otherTokenBestBid >= otherTokenNoArbAskPrice) {
-			for (const liveOrder of this.liveBidOrders[index])
+			for (const liveOrder of this.liveBidOrders[otherPairIndex])
 				if (liveOrder.price >= otherTokenNoArbAskPrice)
 					orderHashesToCancel.push(liveOrder.orderHash);
 			bidsToTake = otherTokenOrderBook.bids.filter(
@@ -315,7 +310,7 @@ class MarketMaker {
 		}
 
 		if (otherTokenBestAsk <= otherTokenNoArbBidPrice) {
-			for (const liveOrder of this.liveAskOrders[index])
+			for (const liveOrder of this.liveAskOrders[otherPairIndex])
 				if (liveOrder.price <= otherTokenNoArbBidPrice)
 					orderHashesToCancel.push(liveOrder.orderHash);
 			asksToTake = otherTokenOrderBook.asks.filter(
@@ -429,8 +424,7 @@ class MarketMaker {
 	) {
 		const pair = orderBookSnapshot.pair;
 		util.logDebug(`received orderBookUpdate ${pair} ${orderBookSnapshot.version}`);
-		if (this.canMakeOrder(relayerClient, pair))
-			return this.makeOrders(relayerClient, dualClassWrapper, pair);
+		return this.makeOrders(relayerClient, dualClassWrapper, pair);
 	}
 
 	public async cancelOrders(relayerClient: RelayerClient, pair: string, orderHashes: string[]) {
@@ -536,29 +530,13 @@ class MarketMaker {
 		}
 
 		await this.maintainBalance(relayerClient.web3Util, dualClassWrapper);
-		if (this.canMakeOrder(relayerClient, pair))
-			return this.makeOrders(relayerClient, dualClassWrapper, pair);
+		return this.makeOrders(relayerClient, dualClassWrapper, pair);
 	}
 
 	public handleOrderError(method: string, orderHash: string, error: string) {
 		util.logError(method + ' ' + orderHash + ' ' + error);
 		if (this.pendingOrders[orderHash]) delete this.pendingOrders[orderHash];
 		// TODO: handle add and terminate error
-	}
-
-	public getMakerAccount(mnemomic: string, index: number): IAccount {
-		const bip39 = require('bip39');
-		const hdkey = require('ethereumjs-wallet/hdkey');
-		const hdwallet = hdkey.fromMasterSeed(bip39.mnemonicToSeed(mnemomic));
-		const wallet = hdwallet
-			.derivePath('m/' + CST.BASE_DERIVATION_PATH + '/' + index)
-			.getWallet();
-		const address = '0x' + wallet.getAddress().toString('hex');
-		const privateKey = wallet.getPrivateKey().toString('hex');
-		return {
-			address: address,
-			privateKey: privateKey
-		};
 	}
 
 	public async initialize(relayerClient: RelayerClient, option: IOption) {
@@ -662,7 +640,7 @@ class MarketMaker {
 		const mnemonic = require('../keys/mnemomicBot.json');
 		const live = option.env === CST.DB_LIVE;
 		const web3Util = new Web3Util(null, live, mnemonic[option.token], false);
-		this.makerAccount = this.getMakerAccount(mnemonic[option.token], 0);
+		this.makerAccount = Web3Util.getAccountFromMnemonic(mnemonic[option.token], 0);
 		this.isBeethoven = option.token.startsWith('a');
 		this.connectToRelayer(new RelayerClient(web3Util, option.env), option);
 	}

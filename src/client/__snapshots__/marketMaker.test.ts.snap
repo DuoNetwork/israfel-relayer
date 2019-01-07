@@ -280,6 +280,16 @@ Array [
 ]
 `;
 
+exports[`handleUserOrder, add, ask 2`] = `
+Array [
+  Array [
+    Object {},
+    Object {},
+    "aETH|WETH",
+  ],
+]
+`;
+
 exports[`handleUserOrder, add, bid 1`] = `
 Array [
   5.99,
@@ -288,7 +298,35 @@ Array [
 ]
 `;
 
+exports[`handleUserOrder, add, bid 2`] = `
+Array [
+  Array [
+    Object {},
+    Object {},
+    "aETH|WETH",
+  ],
+]
+`;
+
 exports[`handleUserOrder, add, cancel too far away 1`] = `
+Array [
+  5.99,
+  200,
+  200,
+]
+`;
+
+exports[`handleUserOrder, add, cancel too far away 2`] = `
+Array [
+  Array [
+    Object {},
+    Object {},
+    "aETH|WETH",
+  ],
+]
+`;
+
+exports[`handleUserOrder, add, cancel too far away 3`] = `
 Array [
   "aETH|WETH",
   Array [
@@ -305,6 +343,16 @@ Array [
 ]
 `;
 
+exports[`handleUserOrder, terminate, ask 2`] = `
+Array [
+  Array [
+    Object {},
+    Object {},
+    "aETH|WETH",
+  ],
+]
+`;
+
 exports[`handleUserOrder, terminate, bid 1`] = `
 Array [
   6.01,
@@ -313,11 +361,49 @@ Array [
 ]
 `;
 
+exports[`handleUserOrder, terminate, bid 2`] = `
+Array [
+  Array [
+    Object {},
+    Object {},
+    "aETH|WETH",
+  ],
+]
+`;
+
+exports[`handleUserOrder, terminate, bid bToken 1`] = `
+Array [
+  6.01,
+  200,
+  200,
+]
+`;
+
+exports[`handleUserOrder, terminate, bid bToken 2`] = `
+Array [
+  Array [
+    Object {},
+    Object {},
+    "bETH|WETH",
+  ],
+]
+`;
+
 exports[`handleUserOrder, update, ask 1`] = `
 Array [
   6,
+  240,
   200,
-  200,
+]
+`;
+
+exports[`handleUserOrder, update, ask 2`] = `
+Array [
+  Array [
+    Object {},
+    Object {},
+    "aETH|WETH",
+  ],
 ]
 `;
 
@@ -326,6 +412,16 @@ Array [
   6.04,
   200,
   200,
+]
+`;
+
+exports[`handleUserOrder, update, bid 2`] = `
+Array [
+  Array [
+    Object {},
+    Object {},
+    "aETH|WETH",
+  ],
 ]
 `;
 
@@ -368,7 +464,7 @@ exports[`initialize, no b token 1`] = `[Error: no bToken]`;
 
 exports[`maintainBalance, short of token 1`] = `
 Array [
-  5.94949494949495,
+  7.114996114996115,
   300,
   300,
 ]
@@ -381,7 +477,7 @@ Array [
     "privateKey",
     9000000000,
     160000,
-    5.05050505,
+    3.88500389,
     "wethAddr",
   ],
 ]
@@ -410,8 +506,8 @@ Array [
 exports[`maintainBalance, surplus of token 1`] = `
 Array [
   5.04615385,
-  500,
-  500,
+  300,
+  300,
 ]
 `;
 
