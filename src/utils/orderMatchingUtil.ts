@@ -8,8 +8,7 @@ import {
 	IOrderBookLevel,
 	IOrderBookLevelUpdate,
 	IOrderMatchRequest,
-	IStringSignedOrder,
-	ITrade
+	IStringSignedOrder
 } from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import orderPersistenceUtil from './orderPersistenceUtil';
@@ -106,7 +105,7 @@ class OrderMatchingUtil {
 						orderAmount: bidLiveOrder.amount,
 						matchingAmount: bidMatchingAmount,
 						price: bidLiveOrder.price,
-						fee: bidLiveOrder.fee,
+						fee: (bidLiveOrder.fee * bidMatchingAmount) / bidLiveOrder.amount,
 						feeAsset: bidLiveOrder.feeAsset
 					},
 					ask: {
@@ -114,8 +113,8 @@ class OrderMatchingUtil {
 						orderAmount: askLiveOrder.amount,
 						matchingAmount: askMatchingAmount,
 						price: askLiveOrder.price,
-						fee: bidLiveOrder.fee,
-						feeAsset: bidLiveOrder.feeAsset
+						fee: (askLiveOrder.fee * askMatchingAmount) / askLiveOrder.amount,
+						feeAsset: askLiveOrder.feeAsset
 					},
 					takerSide:
 						bidLiveOrder.initialSequence > askLiveOrder.initialSequence
@@ -197,11 +196,11 @@ class OrderMatchingUtil {
 			transactionHash: txHash
 		});
 
-		const takerOrder = takerSide === CST.DB_BID ? bid : ask;
-		const makerOrder = takerSide === CST.DB_BID ? ask : bid;
-		const takerRawOrder = takerSide === CST.DB_BID ? bidOrder : askOrder;
-		const makerRawOrder = takerSide === CST.DB_BID ? askOrder : bidOrder;
-		const trade: ITrade = {
+		const takerIsBid = takerSide === CST.DB_BID;
+		const takerOrder = takerIsBid ? bid : ask;
+		const makerOrder = takerIsBid ? ask : bid;
+		const takerRawOrder = takerIsBid ? bidOrder : askOrder;
+		await dynamoUtil.addTrade({
 			pair: pair,
 			transactionHash: txHash,
 			taker: {
@@ -210,29 +209,18 @@ class OrderMatchingUtil {
 				side: takerSide,
 				price: takerOrder.price,
 				amount: takerOrder.matchingAmount,
-				fee: util.round(
-					new BigNumber(takerOrder.matchingAmount)
-						.div(takerRawOrder.makerAssetAmount)
-						.mul(takerOrder.fee)
-						.valueOf()
-				),
+				fee: takerOrder.fee,
 				feeAsset: takerOrder.feeAsset
 			},
 			maker: {
 				orderHash: makerOrder.orderHash,
 				price: makerOrder.price,
 				amount: makerOrder.matchingAmount,
-				fee: util.round(
-					new BigNumber(makerOrder.matchingAmount)
-						.div(makerRawOrder.makerAssetAmount)
-						.mul(makerOrder.fee)
-						.valueOf()
-				),
+				fee: makerOrder.fee,
 				feeAsset: makerOrder.feeAsset
 			},
 			timestamp: matchTimeStamp
-		};
-		await dynamoUtil.addTrade(trade);
+		});
 	}
 
 	public async processMatchQueue(web3Util: Web3Util) {
@@ -333,13 +321,13 @@ class OrderMatchingUtil {
 
 			web3Util
 				.awaitTransactionSuccessAsync(txHash)
-				.then(async receipt => {
+				.then(receipt => {
 					util.logDebug(
-						`matchOrder successfully mined: txHash: ${receipt.blockHash}, sender: ${
-							receipt.from
-						}`
+						`matchOrder successfully mined: txHash: ${
+							receipt.transactionHash
+						}, sender: ${receipt.from}`
 					);
-					await this.processMatchSuccess(
+					return this.processMatchSuccess(
 						web3Util,
 						receipt.transactionHash,
 						matchTimeStamp,

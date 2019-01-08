@@ -6,7 +6,7 @@ Object {
   "orderMatchRequests": Array [
     Object {
       "ask": Object {
-        "fee": 1,
+        "fee": 0.6666666666666666,
         "feeAsset": "feeAsset",
         "matchingAmount": 20,
         "orderAmount": 30,
@@ -84,7 +84,7 @@ Object {
         "price": 0.04,
       },
       "bid": Object {
-        "fee": 1,
+        "fee": 0.75,
         "feeAsset": "feeAsset",
         "matchingAmount": 30,
         "orderAmount": 40,
@@ -232,7 +232,7 @@ Object {
         "price": 0.04,
       },
       "bid": Object {
-        "fee": 1,
+        "fee": 0.6666666666666667,
         "feeAsset": "feeAsset",
         "matchingAmount": 26.666666666666668,
         "orderAmount": 40,
@@ -396,7 +396,7 @@ Object {
   "orderMatchRequests": Array [
     Object {
       "ask": Object {
-        "fee": 1,
+        "fee": 0.8333333333333334,
         "feeAsset": "feeAsset",
         "matchingAmount": 25,
         "orderAmount": 30,
@@ -417,7 +417,7 @@ Object {
     },
     Object {
       "ask": Object {
-        "fee": 1,
+        "fee": 0.16666666666666666,
         "feeAsset": "feeAsset",
         "matchingAmount": 5,
         "orderAmount": 30,
@@ -425,7 +425,7 @@ Object {
         "price": 0.04,
       },
       "bid": Object {
-        "fee": 1,
+        "fee": 0.16666666666666666,
         "feeAsset": "feeAsset",
         "matchingAmount": 5,
         "orderAmount": 30,
@@ -446,7 +446,7 @@ Object {
         "price": 0.05,
       },
       "bid": Object {
-        "fee": 1,
+        "fee": 0.8333333333333334,
         "feeAsset": "feeAsset",
         "matchingAmount": 25,
         "orderAmount": 30,
@@ -586,7 +586,7 @@ Object {
   "orderMatchRequests": Array [
     Object {
       "ask": Object {
-        "fee": 1,
+        "fee": 0.6666666666666666,
         "feeAsset": "feeAsset",
         "matchingAmount": 20,
         "orderAmount": 30,
@@ -734,7 +734,7 @@ Object {
   "orderMatchRequests": Array [
     Object {
       "ask": Object {
-        "fee": 1,
+        "fee": 0.6666666666666666,
         "feeAsset": "feeAsset",
         "matchingAmount": 20,
         "orderAmount": 30,
@@ -784,7 +784,7 @@ Object {
         "price": 0.04,
       },
       "bid": Object {
-        "fee": 1,
+        "fee": 0.75,
         "feeAsset": "feeAsset",
         "matchingAmount": 30,
         "orderAmount": 40,
@@ -932,7 +932,7 @@ Object {
         "price": 0.04,
       },
       "bid": Object {
-        "fee": 1,
+        "fee": 0.75,
         "feeAsset": "feeAsset",
         "matchingAmount": 30,
         "orderAmount": 40,
@@ -1096,7 +1096,7 @@ Object {
   "orderMatchRequests": Array [
     Object {
       "ask": Object {
-        "fee": 1,
+        "fee": 0.6666666666666666,
         "feeAsset": "feeAsset",
         "matchingAmount": 20,
         "orderAmount": 30,
@@ -1113,11 +1113,11 @@ Object {
       },
       "feeOnToken": false,
       "pair": "pair",
-      "takerSide": "ask",
+      "takerSide": "bid",
     },
     Object {
       "ask": Object {
-        "fee": 1,
+        "fee": 0.3333333333333333,
         "feeAsset": "feeAsset",
         "matchingAmount": 10,
         "orderAmount": 30,
@@ -1125,7 +1125,7 @@ Object {
         "price": 0.04,
       },
       "bid": Object {
-        "fee": 1,
+        "fee": 0.3333333333333333,
         "feeAsset": "feeAsset",
         "matchingAmount": 10,
         "orderAmount": 30,
@@ -1146,7 +1146,7 @@ Object {
         "price": 0.05,
       },
       "bid": Object {
-        "fee": 1,
+        "fee": 0.6666666666666666,
         "feeAsset": "feeAsset",
         "matchingAmount": 20,
         "orderAmount": 30,
@@ -1206,7 +1206,7 @@ Object {
     "fee": 1,
     "feeAsset": "feeAsset",
     "fill": 0,
-    "initialSequence": 1,
+    "initialSequence": 5,
     "matching": 20,
     "orderHash": "orderHash1",
     "pair": "pair",
@@ -1286,7 +1286,7 @@ Object {
   "orderMatchRequests": Array [
     Object {
       "ask": Object {
-        "fee": 1,
+        "fee": 0.6666666666666666,
         "feeAsset": "feeAsset",
         "matchingAmount": 20,
         "orderAmount": 30,
@@ -2019,7 +2019,7 @@ Array [
     Object {
       "maker": Object {
         "amount": 10,
-        "fee": 0,
+        "fee": 0.1,
         "feeAsset": "code2",
         "orderHash": "0xrightHash",
         "price": 0.001,
@@ -2028,11 +2028,68 @@ Array [
       "taker": Object {
         "address": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
         "amount": 10,
-        "fee": 0,
+        "fee": 0.1,
         "feeAsset": "code1",
         "orderHash": "0xleftHash",
         "price": 0.001,
         "side": "bid",
+      },
+      "timestamp": 1234567890000,
+      "transactionHash": "txHash",
+    },
+  ],
+]
+`;
+
+exports[`processMatchSuccess ask 1`] = `
+Array [
+  Array [
+    Object {
+      "fill": 1e-17,
+      "matching": -10,
+      "method": "update",
+      "orderHash": "0xleftHash",
+      "pair": "code1|code2",
+      "requestor": "orderMatcher",
+      "status": "pFill",
+      "transactionHash": "txHash",
+    },
+  ],
+  Array [
+    Object {
+      "fill": 1e-17,
+      "matching": -10,
+      "method": "update",
+      "orderHash": "0xrightHash",
+      "pair": "code1|code2",
+      "requestor": "orderMatcher",
+      "status": "pFill",
+      "transactionHash": "txHash",
+    },
+  ],
+]
+`;
+
+exports[`processMatchSuccess ask 2`] = `
+Array [
+  Array [
+    Object {
+      "maker": Object {
+        "amount": 10,
+        "fee": 0.1,
+        "feeAsset": "code1",
+        "orderHash": "0xleftHash",
+        "price": 0.001,
+      },
+      "pair": "code1|code2",
+      "taker": Object {
+        "address": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
+        "amount": 10,
+        "fee": 0.1,
+        "feeAsset": "code2",
+        "orderHash": "0xrightHash",
+        "price": 0.001,
+        "side": "ask",
       },
       "timestamp": 1234567890000,
       "transactionHash": "txHash",
