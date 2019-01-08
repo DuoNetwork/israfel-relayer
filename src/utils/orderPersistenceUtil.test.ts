@@ -475,12 +475,12 @@ test('processOrderQueue failed', async () => {
 	expect(orderPersistenceUtil.addUserOrderToDB as jest.Mock).not.toBeCalled();
 	expect((redisUtil.hashGet as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(redisUtil.hashDelete as jest.Mock).not.toBeCalled();
-	expect((redisUtil.putBack as jest.Mock).mock.calls.length).toBe(1);
+	expect(redisUtil.putBack as jest.Mock).toBeCalledTimes(1);
 	expect((redisUtil.putBack as jest.Mock).mock.calls[0][0]).toEqual(
 		(redisUtil.pop as jest.Mock).mock.calls[0][0]
 	);
 	expect((redisUtil.putBack as jest.Mock).mock.calls[0][1]).toEqual('code1|code2|add|0xOrderHash');
-	expect((redisUtil.hashSet as jest.Mock).mock.calls.length).toBe(1);
+	expect(redisUtil.hashSet as jest.Mock).toBeCalledTimes(1);
 	expect((redisUtil.hashSet as jest.Mock).mock.calls[0][0]).toEqual(
 		(redisUtil.hashGet as jest.Mock).mock.calls[0][0]
 	);

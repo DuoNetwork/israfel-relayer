@@ -5,9 +5,12 @@ test('onMessage orderBooks', () => {
 	redisUtil.onOrderBookUpdate(handleOrderBookUpdate);
 	const handleOrderUpdate = jest.fn();
 	redisUtil.onOrderUpdate(handleOrderUpdate);
+	const handleTradeUpdate = jest.fn();
+	redisUtil.onTradeUpdate(handleTradeUpdate);
 	redisUtil.onMessage('orderBooks|any', JSON.stringify('test'));
 	expect(handleOrderBookUpdate.mock.calls).toMatchSnapshot();
-	expect(handleOrderUpdate.mock.calls.length).toBe(0);
+	expect(handleOrderUpdate).not.toBeCalled();
+	expect(handleTradeUpdate).not.toBeCalled();
 });
 
 test('onMessage orders', () => {
@@ -15,9 +18,25 @@ test('onMessage orders', () => {
 	redisUtil.onOrderBookUpdate(handleOrderBookUpdate);
 	const handleOrderUpdate = jest.fn();
 	redisUtil.onOrderUpdate(handleOrderUpdate);
+	const handleTradeUpdate = jest.fn();
+	redisUtil.onTradeUpdate(handleTradeUpdate);
 	redisUtil.onMessage('orders|any', JSON.stringify('test'));
 	expect(handleOrderUpdate.mock.calls).toMatchSnapshot();
-	expect(handleOrderBookUpdate.mock.calls.length).toBe(0);
+	expect(handleOrderBookUpdate).not.toBeCalled();
+	expect(handleTradeUpdate).not.toBeCalled();
+});
+
+test('onMessage trades', () => {
+	const handleOrderBookUpdate = jest.fn();
+	redisUtil.onOrderBookUpdate(handleOrderBookUpdate);
+	const handleOrderUpdate = jest.fn();
+	redisUtil.onOrderUpdate(handleOrderUpdate);
+	const handleTradeUpdate = jest.fn();
+	redisUtil.onTradeUpdate(handleTradeUpdate);
+	redisUtil.onMessage('trades|any', JSON.stringify('test'));
+	expect(handleOrderUpdate).not.toBeCalled();
+	expect(handleOrderBookUpdate).not.toBeCalled();
+	expect(handleTradeUpdate.mock.calls).toMatchSnapshot();
 });
 
 test('onMessage anything else', () => {
@@ -26,8 +45,8 @@ test('onMessage anything else', () => {
 	const handleOrderUpdate = jest.fn();
 	redisUtil.onOrderUpdate(handleOrderUpdate);
 	redisUtil.onMessage('any', JSON.stringify('test'));
-	expect(handleOrderUpdate.mock.calls.length).toBe(0);
-	expect(handleOrderBookUpdate.mock.calls.length).toBe(0);
+	expect(handleOrderUpdate).not.toBeCalled();
+	expect(handleOrderBookUpdate).not.toBeCalled();
 });
 
 test('publish', async () => {

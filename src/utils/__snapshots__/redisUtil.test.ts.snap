@@ -87,6 +87,15 @@ Array [
 ]
 `;
 
+exports[`onMessage trades 1`] = `
+Array [
+  Array [
+    "trades|any",
+    "test",
+  ],
+]
+`;
+
 exports[`patternSubscribe 1`] = `
 Array [
   Array [

@@ -1602,14 +1602,6 @@ Array [
 ]
 `;
 
-exports[`processMatchQueue, awaitTransactionSuccessAsync success 6`] = `
-Array [
-  Array [
-    "0xleftHash",
-  ],
-]
-`;
-
 exports[`processMatchQueue, awaitTransactionSuccessAsync success partial 1`] = `
 Array [
   Array [
@@ -1712,14 +1704,6 @@ Array [
 ]
 `;
 
-exports[`processMatchQueue, awaitTransactionSuccessAsync success partial 6`] = `
-Array [
-  Array [
-    "0xleftHash",
-  ],
-]
-`;
-
 exports[`processMatchQueue, awaitTransactionSuccessAsync success, not feeOnToken 1`] = `
 Array [
   Array [
@@ -1818,14 +1802,6 @@ exports[`processMatchQueue, awaitTransactionSuccessAsync success, not feeOnToken
 Array [
   Array [
     undefined,
-  ],
-]
-`;
-
-exports[`processMatchQueue, awaitTransactionSuccessAsync success, not feeOnToken 6`] = `
-Array [
-  Array [
-    "0xleftHash",
   ],
 ]
 `;
@@ -1989,7 +1965,7 @@ exports[`processMatchSuccess 2`] = `
 Array [
   Array [
     Object {
-      "feeAsset": "code2",
+      "feeAsset": "code1",
       "maker": Object {
         "amount": 10,
         "fee": 0.1,
@@ -2008,6 +1984,15 @@ Array [
       "timestamp": 1234567890000,
       "transactionHash": "txHash",
     },
+  ],
+]
+`;
+
+exports[`processMatchSuccess 3`] = `
+Array [
+  Array [
+    "trades|pubsub|code1|code2",
+    "{\\"pair\\":\\"code1|code2\\",\\"transactionHash\\":\\"txHash\\",\\"feeAsset\\":\\"code1\\",\\"taker\\":{\\"orderHash\\":\\"0xleftHash\\",\\"address\\":\\"0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872\\",\\"side\\":\\"bid\\",\\"price\\":0.001,\\"amount\\":10,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"0xrightHash\\",\\"price\\":0.001,\\"amount\\":10,\\"fee\\":0.1},\\"timestamp\\":1234567890000}",
   ],
 ]
 `;
@@ -2045,7 +2030,7 @@ exports[`processMatchSuccess ask 2`] = `
 Array [
   Array [
     Object {
-      "feeAsset": "code2",
+      "feeAsset": "code1",
       "maker": Object {
         "amount": 10,
         "fee": 0.1,
@@ -2068,11 +2053,28 @@ Array [
 ]
 `;
 
+exports[`processMatchSuccess ask 3`] = `
+Array [
+  Array [
+    "trades|pubsub|code1|code2",
+    "{\\"pair\\":\\"code1|code2\\",\\"transactionHash\\":\\"txHash\\",\\"feeAsset\\":\\"code1\\",\\"taker\\":{\\"orderHash\\":\\"0xrightHash\\",\\"address\\":\\"0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872\\",\\"side\\":\\"ask\\",\\"price\\":0.001,\\"amount\\":10,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"0xleftHash\\",\\"price\\":0.001,\\"amount\\":10,\\"fee\\":0.1},\\"timestamp\\":1234567890000}",
+  ],
+]
+`;
+
 exports[`queueMatchRequest 1`] = `
 Array [
   Array [
     "match|queue",
     "\\"matchRequest\\"",
+  ],
+]
+`;
+
+exports[`subscribeTradeUpdate 1`] = `
+Array [
+  Array [
+    "trades|pubsub|pair",
   ],
 ]
 `;
