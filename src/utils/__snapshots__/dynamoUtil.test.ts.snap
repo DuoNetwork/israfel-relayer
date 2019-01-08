@@ -131,14 +131,14 @@ Array [
   Array [
     Object {
       "Item": Object {
+        "feeAsset": Object {
+          "S": "feeAsset",
+        },
         "makerAmount": Object {
           "N": "654",
         },
         "makerFee": Object {
           "N": "321",
-        },
-        "makerFeeAsset": Object {
-          "S": "makerFeeAsset",
         },
         "makerOrderHash": Object {
           "S": "makerOrderHash",
@@ -157,9 +157,6 @@ Array [
         },
         "takerFee": Object {
           "N": "789",
-        },
-        "takerFeeAsset": Object {
-          "S": "takerFeeAsset",
         },
         "takerOrderHash": Object {
           "S": "takerOrderHash",
@@ -532,10 +529,10 @@ Array [
 exports[`getTradesForHour 1`] = `
 Array [
   Object {
+    "feeAsset": "feeAsset",
     "maker": Object {
       "amount": 654,
       "fee": 321,
-      "feeAsset": "makerFeeAsset",
       "orderHash": "makerOrderHash",
       "price": 987,
     },
@@ -544,7 +541,6 @@ Array [
       "address": "takerAddress",
       "amount": 456,
       "fee": 789,
-      "feeAsset": "takerFeeAsset",
       "orderHash": "takerOrderHash",
       "price": 123,
       "side": "takerSide",

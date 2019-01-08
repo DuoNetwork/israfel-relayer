@@ -236,7 +236,6 @@ Array [
   Array [
     "orderBook",
     "liveOrders",
-    true,
     false,
   ],
 ]
@@ -315,7 +314,6 @@ Array [
   Array [
     "orderBook",
     "liveOrders",
-    true,
     false,
   ],
 ]

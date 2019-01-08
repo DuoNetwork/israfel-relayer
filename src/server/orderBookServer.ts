@@ -37,7 +37,6 @@ class OrderBookServer {
 	};
 	public processedUpdates: { [orderHash: string]: number } = {};
 	public custodianInTrading: boolean = false;
-	public feeOnToken: boolean = true;
 
 	public async handleOrderUpdate(channel: string, orderQueueItem: IOrderQueueItem) {
 		util.logDebug('receive update from channel: ' + channel);
@@ -96,7 +95,6 @@ class OrderBookServer {
 			const matchinResult = orderMatchingUtil.findMatchingOrders(
 				this.orderBook,
 				this.liveOrders,
-				this.feeOnToken,
 				true
 			);
 			matchinResult.orderMatchRequests.forEach(orderToMatch =>
@@ -186,7 +184,6 @@ class OrderBookServer {
 			const matchingResult = orderMatchingUtil.findMatchingOrders(
 				this.orderBook,
 				this.liveOrders,
-				this.feeOnToken,
 				false
 			);
 			matchingResult.orderMatchRequests.forEach(omr =>
@@ -283,8 +280,6 @@ class OrderBookServer {
 		);
 		await this.checkCustodianState(dualClassWrapper);
 		setInterval(() => this.checkCustodianState(dualClassWrapper), 10000);
-		if (token.feeSchedules[CST.TOKEN_WETH] && token.feeSchedules[CST.TOKEN_WETH].asset)
-			this.feeOnToken = false;
 
 		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderQueueItem) =>
 			this.handleOrderUpdate(channel, orderQueueItem)

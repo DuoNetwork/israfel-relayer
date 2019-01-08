@@ -33,7 +33,6 @@ class OrderMatchingUtil {
 	public findMatchingOrders(
 		orderBook: IOrderBook,
 		liveOrders: { [orderHash: string]: ILiveOrder },
-		feeOnToken: boolean,
 		updatesRequired: boolean
 	): {
 		orderMatchRequests: IOrderMatchRequest[];
@@ -80,6 +79,7 @@ class OrderMatchingUtil {
 					askIdx++;
 					continue;
 				}
+				const feeOnToken = bidLiveOrder.pair.startsWith(bidLiveOrder.feeAsset);
 				const bidFillableBalance = feeOnToken ? bid.balance * bid.price : bid.balance;
 				const askFillableBalance = feeOnToken ? ask.balance * ask.price : ask.balance;
 				const matchingAmount = Math.min(bidFillableBalance, askFillableBalance);
@@ -99,22 +99,20 @@ class OrderMatchingUtil {
 				askLiveOrder.matching += askMatchingAmount;
 				orderMatchRequests.push({
 					pair: bidLiveOrder.pair,
-					feeOnToken: feeOnToken,
+					feeAsset: bidLiveOrder.feeAsset,
 					bid: {
 						orderHash: bidLiveOrder.orderHash,
 						orderAmount: bidLiveOrder.amount,
 						matchingAmount: bidMatchingAmount,
 						price: bidLiveOrder.price,
-						fee: (bidLiveOrder.fee * bidMatchingAmount) / bidLiveOrder.amount,
-						feeAsset: bidLiveOrder.feeAsset
+						fee: (bidLiveOrder.fee * bidMatchingAmount) / bidLiveOrder.amount
 					},
 					ask: {
 						orderHash: askLiveOrder.orderHash,
 						orderAmount: askLiveOrder.amount,
 						matchingAmount: askMatchingAmount,
 						price: askLiveOrder.price,
-						fee: (askLiveOrder.fee * askMatchingAmount) / askLiveOrder.amount,
-						feeAsset: askLiveOrder.feeAsset
+						fee: (askLiveOrder.fee * askMatchingAmount) / askLiveOrder.amount
 					},
 					takerSide:
 						bidLiveOrder.initialSequence > askLiveOrder.initialSequence
@@ -203,21 +201,20 @@ class OrderMatchingUtil {
 		await dynamoUtil.addTrade({
 			pair: pair,
 			transactionHash: txHash,
+			feeAsset: matchRequest.feeAsset,
 			taker: {
 				orderHash: takerOrder.orderHash,
 				address: takerRawOrder.makerAddress,
 				side: takerSide,
 				price: takerOrder.price,
 				amount: takerOrder.matchingAmount,
-				fee: takerOrder.fee,
-				feeAsset: takerOrder.feeAsset
+				fee: takerOrder.fee
 			},
 			maker: {
 				orderHash: makerOrder.orderHash,
 				price: makerOrder.price,
 				amount: makerOrder.matchingAmount,
 				fee: makerOrder.fee,
-				feeAsset: makerOrder.feeAsset
 			},
 			timestamp: matchTimeStamp
 		});
@@ -227,7 +224,7 @@ class OrderMatchingUtil {
 		const reqString = await redisUtil.pop(this.getMatchQueueKey());
 		if (!reqString) return false;
 		const matchRequest: IOrderMatchRequest = JSON.parse(reqString);
-		const { pair, feeOnToken, bid, ask } = matchRequest;
+		const { pair, feeAsset, bid, ask } = matchRequest;
 
 		try {
 			const bidRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
@@ -265,6 +262,7 @@ class OrderMatchingUtil {
 			let txHash = '';
 			let matchTimeStamp = 0;
 
+			const feeOnToken = pair.startsWith(feeAsset);
 			try {
 				txHash = await web3Util.matchOrders(
 					feeOnToken ? askOrder : bidOrder,

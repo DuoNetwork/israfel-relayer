@@ -77,7 +77,7 @@ export interface IOrderPersistRequest {
 
 export interface IOrderMatchRequest {
 	pair: string;
-	feeOnToken: boolean;
+	feeAsset: string;
 	bid: IOrderMatchingInfo;
 	ask: IOrderMatchingInfo;
 	takerSide: string;
@@ -90,7 +90,6 @@ export interface IOrderMatchingInfo {
 	matchingAmount: number;
 	price: number;
 	fee: number;
-	feeAsset: string;
 }
 
 export interface IOrderQueueItem {
@@ -282,14 +281,13 @@ export interface ITrade {
 		price: number;
 		amount: number;
 		fee: number;
-		feeAsset: string;
 	};
 	maker: {
 		orderHash: string;
 		price: number;
 		amount: number;
 		fee: number;
-		feeAsset: string;
 	};
+	feeAsset: string;
 	timestamp: number;
 }

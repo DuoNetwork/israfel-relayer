@@ -683,16 +683,15 @@ test('addTrade', async () => {
 			side: 'takerSide',
 			price: 123,
 			amount: 456,
-			fee: 789,
-			feeAsset: 'takerFeeAsset'
+			fee: 789
 		},
 		maker: {
 			orderHash: 'makerOrderHash',
 			price: 987,
 			amount: 654,
-			fee: 321,
-			feeAsset: 'makerFeeAsset'
+			fee: 321
 		},
+		feeAsset: 'feeAsset',
 		timestamp: 1234567890
 	});
 	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
@@ -712,18 +711,17 @@ test('getTradesForHour', async () => {
 					S: 'code1|code2|1234-56-78-90'
 				},
 				[CST.DB_TS_TX_HASH]: { S: '1234567890|txHash' },
+				[CST.DB_FEE_ASSET]: { S: 'feeAsset' },
 				[CST.DB_TK_OH]: { S: 'takerOrderHash' },
 				[CST.DB_TK_ADDR]: { S: 'takerAddress' },
 				[CST.DB_TK_SIDE]: { S: 'takerSide' },
 				[CST.DB_TK_PX]: { N: '123' },
 				[CST.DB_TK_AMT]: { N: '456' },
 				[CST.DB_TK_FEE]: { N: '789' },
-				[CST.DB_TK_FA]: { S: 'takerFeeAsset' },
 				[CST.DB_MK_OH]: { S: 'makerOrderHash' },
 				[CST.DB_MK_PX]: { N: '987' },
 				[CST.DB_MK_AMT]: { N: '654' },
-				[CST.DB_MK_FEE]: { N: '321' },
-				[CST.DB_MK_FA]: { S: 'makerFeeAsset' }
+				[CST.DB_MK_FEE]: { N: '321' }
 			}
 		]
 	};

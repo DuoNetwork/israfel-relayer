@@ -506,18 +506,17 @@ class DynamoUtil {
 				S: trade.pair + '|' + moment.utc(trade.timestamp).format('YYYY-MM-DD-HH')
 			},
 			[CST.DB_TS_TX_HASH]: { S: trade.timestamp + '|' + trade.transactionHash },
+			[CST.DB_FEE_ASSET]: { S: trade.feeAsset },
 			[CST.DB_TK_OH]: { S: trade.taker.orderHash },
 			[CST.DB_TK_ADDR]: { S: trade.taker.address },
 			[CST.DB_TK_SIDE]: { S: trade.taker.side },
 			[CST.DB_TK_PX]: { N: trade.taker.price + '' },
 			[CST.DB_TK_AMT]: { N: trade.taker.amount + '' },
 			[CST.DB_TK_FEE]: { N: trade.taker.fee + '' },
-			[CST.DB_TK_FA]: { S: trade.taker.feeAsset },
 			[CST.DB_MK_OH]: { S: trade.maker.orderHash },
 			[CST.DB_MK_PX]: { N: trade.maker.price + '' },
 			[CST.DB_MK_AMT]: { N: trade.maker.amount + '' },
-			[CST.DB_MK_FEE]: { N: trade.maker.fee + '' },
-			[CST.DB_MK_FA]: { S: trade.maker.feeAsset }
+			[CST.DB_MK_FEE]: { N: trade.maker.fee + '' }
 		};
 	}
 
@@ -535,21 +534,20 @@ class DynamoUtil {
 			pair: code1 + '|' + code2,
 			timestamp: Number(tsString),
 			transactionHash: txHash,
+			feeAsset: data[CST.DB_FEE_ASSET].S || '',
 			taker: {
 				orderHash: data[CST.DB_TK_OH].S || '',
 				address: data[CST.DB_TK_ADDR].S || '',
 				side: data[CST.DB_TK_SIDE].S || '',
 				price: Number(data[CST.DB_TK_PX].N),
 				amount: Number(data[CST.DB_TK_AMT].N),
-				fee: Number(data[CST.DB_TK_FEE].N),
-				feeAsset: data[CST.DB_TK_FA].S || ''
+				fee: Number(data[CST.DB_TK_FEE].N)
 			},
 			maker: {
 				orderHash: data[CST.DB_MK_OH].S || '',
 				price: Number(data[CST.DB_MK_PX].N),
 				amount: Number(data[CST.DB_MK_AMT].N),
-				fee: Number(data[CST.DB_MK_FEE].N),
-				feeAsset: data[CST.DB_MK_FA].S || ''
+				fee: Number(data[CST.DB_MK_FEE].N)
 			}
 		};
 	}

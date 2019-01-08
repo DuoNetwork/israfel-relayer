@@ -43,12 +43,10 @@ export const DB_TK_SIDE = 'takerSide';
 export const DB_TK_PX = 'takerPrice';
 export const DB_TK_AMT = 'takerAmount';
 export const DB_TK_FEE = 'takerFee';
-export const DB_TK_FA = 'takerFeeAsset';
 export const DB_MK_OH = 'makerOrderHash';
 export const DB_MK_PX = 'makerPrice';
 export const DB_MK_AMT = 'makerAmount';
 export const DB_MK_FEE = 'makerFee';
-export const DB_MK_FA = 'makerFeeAsset';
 
 export const DB_USER = 'user';
 export const DB_ORDER_PROCESSOR = 'orderProcessor';
