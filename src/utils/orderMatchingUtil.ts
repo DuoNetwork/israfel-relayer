@@ -1,4 +1,4 @@
-import { BigNumber } from '0x.js';
+import { BigNumber, SignedOrder } from '0x.js';
 import moment from 'moment';
 import * as CST from '../common/constants';
 import {
@@ -145,11 +145,101 @@ class OrderMatchingUtil {
 		};
 	}
 
+	public async processMatchSuccess(
+		web3Util: Web3Util,
+		txHash: string,
+		matchTimeStamp: number,
+		matchRequest: IOrderMatchRequest,
+		bidOrder: SignedOrder,
+		askOrder: SignedOrder
+	) {
+		const { pair, bid, ask, takerSide } = matchRequest;
+		const bidFilledTakerAmt = await web3Util.getFilledTakerAssetAmount(bid.orderHash);
+
+		const bidFilledAmt = Number(
+			bidFilledTakerAmt
+				.div(bidOrder.takerAssetAmount)
+				.mul(new BigNumber(bid.orderAmount))
+				.valueOf()
+		);
+
+		// update order status
+		util.logDebug(`update bidOrder orderHash: ${bid.orderHash}, fill amount: ${bidFilledAmt}`);
+		await orderPersistenceUtil.persistOrder({
+			method: bidFilledAmt >= bid.orderAmount ? CST.DB_TERMINATE : CST.DB_UPDATE,
+			pair: pair,
+			orderHash: bid.orderHash,
+			fill: bidFilledAmt,
+			matching: -bid.matchingAmount,
+			requestor: CST.DB_ORDER_MATCHER,
+			status: bidFilledAmt >= bid.orderAmount ? CST.DB_FILL : CST.DB_PFILL,
+			transactionHash: txHash
+		});
+
+		const askFilledTakerAmt = await web3Util.getFilledTakerAssetAmount(ask.orderHash);
+
+		const askFilledAmt = Number(
+			askFilledTakerAmt
+				.div(askOrder.takerAssetAmount)
+				.mul(new BigNumber(ask.orderAmount))
+				.valueOf()
+		);
+
+		util.logDebug(`update askOrder orderHash: ${ask.orderHash}, fill amount: ${askFilledAmt}`);
+		await orderPersistenceUtil.persistOrder({
+			method: askFilledAmt >= ask.orderAmount ? CST.DB_TERMINATE : CST.DB_UPDATE,
+			pair: pair,
+			orderHash: ask.orderHash,
+			fill: askFilledAmt,
+			matching: -ask.matchingAmount,
+			requestor: CST.DB_ORDER_MATCHER,
+			status: askFilledAmt >= ask.orderAmount ? CST.DB_FILL : CST.DB_PFILL,
+			transactionHash: txHash
+		});
+
+		const takerOrder = takerSide === CST.DB_BID ? bid : ask;
+		const makerOrder = takerSide === CST.DB_BID ? ask : bid;
+		const takerRawOrder = takerSide === CST.DB_BID ? bidOrder : askOrder;
+		const makerRawOrder = takerSide === CST.DB_BID ? askOrder : bidOrder;
+		const trade: ITrade = {
+			pair: pair,
+			transactionHash: txHash,
+			taker: {
+				orderHash: takerOrder.orderHash,
+				address: takerRawOrder.makerAddress,
+				side: takerSide,
+				price: takerOrder.price,
+				amount: takerOrder.matchingAmount,
+				fee: util.round(
+					new BigNumber(takerOrder.matchingAmount)
+						.div(takerRawOrder.makerAssetAmount)
+						.mul(takerOrder.fee)
+						.valueOf()
+				),
+				feeAsset: takerOrder.feeAsset
+			},
+			maker: {
+				orderHash: makerOrder.orderHash,
+				price: makerOrder.price,
+				amount: makerOrder.matchingAmount,
+				fee: util.round(
+					new BigNumber(makerOrder.matchingAmount)
+						.div(makerRawOrder.makerAssetAmount)
+						.mul(makerOrder.fee)
+						.valueOf()
+				),
+				feeAsset: makerOrder.feeAsset
+			},
+			timestamp: matchTimeStamp
+		};
+		await dynamoUtil.addTrade(trade);
+	}
+
 	public async processMatchQueue(web3Util: Web3Util) {
 		const reqString = await redisUtil.pop(this.getMatchQueueKey());
 		if (!reqString) return false;
 		const matchRequest: IOrderMatchRequest = JSON.parse(reqString);
-		const { pair, feeOnToken, bid, ask, takerSide } = matchRequest;
+		const { pair, feeOnToken, bid, ask } = matchRequest;
 
 		try {
 			const bidRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
@@ -249,94 +339,14 @@ class OrderMatchingUtil {
 							receipt.from
 						}`
 					);
-
-					const bidFilledTakerAmt = await web3Util.getFilledTakerAssetAmount(
-						bid.orderHash
+					await this.processMatchSuccess(
+						web3Util,
+						receipt.transactionHash,
+						matchTimeStamp,
+						matchRequest,
+						bidOrder,
+						askOrder
 					);
-
-					const bidFilledAmt = Number(
-						bidFilledTakerAmt
-							.div(bidOrder.takerAssetAmount)
-							.mul(new BigNumber(bid.orderAmount))
-							.valueOf()
-					);
-
-					// update order status
-					util.logDebug(
-						`update bidOrder orderHash: ${bid.orderHash}, fill amount: ${bidFilledAmt}`
-					);
-					await orderPersistenceUtil.persistOrder({
-						method: bidFilledAmt >= bid.orderAmount ? CST.DB_TERMINATE : CST.DB_UPDATE,
-						pair: pair,
-						orderHash: bid.orderHash,
-						fill: bidFilledAmt,
-						matching: -bid.matchingAmount,
-						requestor: CST.DB_ORDER_MATCHER,
-						status: bidFilledAmt >= bid.orderAmount ? CST.DB_FILL : CST.DB_PFILL,
-						transactionHash: receipt.transactionHash
-					});
-
-					const askFilledTakerAmt = await web3Util.getFilledTakerAssetAmount(
-						ask.orderHash
-					);
-
-					const askFilledAmt = Number(
-						askFilledTakerAmt
-							.div(askOrder.takerAssetAmount)
-							.mul(new BigNumber(ask.orderAmount))
-							.valueOf()
-					);
-
-					util.logDebug(
-						`update askOrder orderHash: ${ask.orderHash}, fill amount: ${askFilledAmt}`
-					);
-					await orderPersistenceUtil.persistOrder({
-						method: askFilledAmt >= ask.orderAmount ? CST.DB_TERMINATE : CST.DB_UPDATE,
-						pair: pair,
-						orderHash: ask.orderHash,
-						fill: askFilledAmt,
-						matching: -ask.matchingAmount,
-						requestor: CST.DB_ORDER_MATCHER,
-						status: askFilledAmt >= ask.orderAmount ? CST.DB_FILL : CST.DB_PFILL,
-						transactionHash: receipt.transactionHash
-					});
-
-					const takerOrder = takerSide === CST.DB_BID ? bid : ask;
-					const makerOrder = takerSide === CST.DB_BID ? ask : bid;
-					const takerRawOrder = takerSide === CST.DB_BID ? bidOrder : askOrder;
-					const makerRawOrder = takerSide === CST.DB_BID ? askOrder : bidOrder;
-					const trade: ITrade = {
-						pair: pair,
-						transactionHash: txHash,
-						taker: {
-							orderHash: takerOrder.orderHash,
-							address: takerRawOrder.makerAddress,
-							side: takerSide,
-							price: takerOrder.price,
-							amount: takerOrder.matchingAmount,
-							fee: util.round(
-								new BigNumber(takerOrder.matchingAmount)
-									.div(takerRawOrder.makerAssetAmount)
-									.mul(takerOrder.fee)
-									.valueOf()
-							),
-							feeAsset: takerOrder.feeAsset
-						},
-						maker: {
-							orderHash: makerOrder.orderHash,
-							price: makerOrder.price,
-							amount: makerOrder.matchingAmount,
-							fee: util.round(
-								new BigNumber(makerOrder.matchingAmount)
-									.div(makerRawOrder.makerAssetAmount)
-									.mul(makerOrder.fee)
-									.valueOf()
-							),
-							feeAsset: makerOrder.feeAsset
-						},
-						timestamp: matchTimeStamp
-					};
-					await dynamoUtil.addTrade(trade);
 				})
 				.catch(async txError => {
 					util.logError(

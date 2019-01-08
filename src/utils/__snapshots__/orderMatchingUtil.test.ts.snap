@@ -1984,6 +1984,63 @@ Array [
 ]
 `;
 
+exports[`processMatchSuccess 1`] = `
+Array [
+  Array [
+    Object {
+      "fill": 1e-17,
+      "matching": -10,
+      "method": "update",
+      "orderHash": "0xleftHash",
+      "pair": "code1|code2",
+      "requestor": "orderMatcher",
+      "status": "pFill",
+      "transactionHash": "txHash",
+    },
+  ],
+  Array [
+    Object {
+      "fill": 1e-17,
+      "matching": -10,
+      "method": "update",
+      "orderHash": "0xrightHash",
+      "pair": "code1|code2",
+      "requestor": "orderMatcher",
+      "status": "pFill",
+      "transactionHash": "txHash",
+    },
+  ],
+]
+`;
+
+exports[`processMatchSuccess 2`] = `
+Array [
+  Array [
+    Object {
+      "maker": Object {
+        "amount": 10,
+        "fee": 0,
+        "feeAsset": "code2",
+        "orderHash": "0xrightHash",
+        "price": 0.001,
+      },
+      "pair": "code1|code2",
+      "taker": Object {
+        "address": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
+        "amount": 10,
+        "fee": 0,
+        "feeAsset": "code1",
+        "orderHash": "0xleftHash",
+        "price": 0.001,
+        "side": "bid",
+      },
+      "timestamp": 1234567890000,
+      "transactionHash": "txHash",
+    },
+  ],
+]
+`;
+
 exports[`queueMatchRequest 1`] = `
 Array [
   Array [
