@@ -267,3 +267,25 @@ export interface IAction {
 	currentAskLevels: number;
 	currentBidLevels: number;
 }
+
+export interface ITrade {
+	pair: string;
+	transactionHash: string;
+	taker: {
+		orderHash: string;
+		address: string;
+		side: string;
+		price: number;
+		amount: number;
+		fee: number;
+		feeAsset: string;
+	};
+	maker: {
+		orderHash: string;
+		price: number;
+		amount: number;
+		fee: number;
+		feeAsset: string;
+	};
+	timestamp: number;
+}
