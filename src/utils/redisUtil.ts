@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 import * as CST from '../common/constants';
-import { IOrderBookSnapshotUpdate, IOrderQueueItem } from '../common/types';
+import { IOrderBookSnapshotUpdate, IOrderQueueItem, ITrade } from '../common/types';
 import util from './util';
 
 class RedisUtil {
@@ -12,6 +12,7 @@ class RedisUtil {
 	private handleOrderUpdate:
 		| ((channel: string, orderQueueItem: IOrderQueueItem) => any)
 		| null = null;
+	private handleTradeUpdate: ((channel: string, trade: ITrade) => any) | null = null;
 
 	public init(redisKey: { host: string; password: string; servername: string }) {
 		this.redisPub = new Redis(6379, redisKey.host, {
@@ -39,6 +40,9 @@ class RedisUtil {
 			case CST.DB_ORDERS:
 				if (this.handleOrderUpdate) this.handleOrderUpdate(channel, JSON.parse(message));
 				break;
+			case CST.DB_TRADES:
+				if (this.handleTradeUpdate) this.handleTradeUpdate(channel, JSON.parse(message));
+				break;
 			default:
 				break;
 		}
@@ -53,6 +57,10 @@ class RedisUtil {
 		handleOrderUpdate: (channel: string, orderQueueItem: IOrderQueueItem) => any
 	) {
 		this.handleOrderUpdate = handleOrderUpdate;
+	}
+
+	public onTradeUpdate(handleTradeUpdate: (channel: string, trade: ITrade) => any) {
+		this.handleTradeUpdate = handleTradeUpdate;
 	}
 
 	public publish(channel: string, msg: string) {

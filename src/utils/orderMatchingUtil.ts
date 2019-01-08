@@ -8,7 +8,8 @@ import {
 	IOrderBookLevel,
 	IOrderBookLevelUpdate,
 	IOrderMatchRequest,
-	IStringSignedOrder
+	IStringSignedOrder,
+	ITrade
 } from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import orderPersistenceUtil from './orderPersistenceUtil';
@@ -28,6 +29,18 @@ class OrderMatchingUtil {
 	public queueMatchRequest(orderMatchRequest: IOrderMatchRequest) {
 		// push request into queue
 		redisUtil.push(this.getMatchQueueKey(), JSON.stringify(orderMatchRequest));
+	}
+
+	private getTradePubSubChannel(pair: string) {
+		return `${CST.DB_TRADES}|${CST.DB_PUBSUB}|${pair}`;
+	}
+
+	public subscribeTradeUpdate(
+		pair: string,
+		handleTradeUpdate: (channel: string, trade: ITrade) => any
+	) {
+		redisUtil.onTradeUpdate(handleTradeUpdate);
+		redisUtil.subscribe(this.getTradePubSubChannel(pair));
 	}
 
 	public findMatchingOrders(
@@ -198,7 +211,7 @@ class OrderMatchingUtil {
 		const takerOrder = takerIsBid ? bid : ask;
 		const makerOrder = takerIsBid ? ask : bid;
 		const takerRawOrder = takerIsBid ? bidOrder : askOrder;
-		await dynamoUtil.addTrade({
+		const trade = {
 			pair: pair,
 			transactionHash: txHash,
 			feeAsset: matchRequest.feeAsset,
@@ -214,10 +227,12 @@ class OrderMatchingUtil {
 				orderHash: makerOrder.orderHash,
 				price: makerOrder.price,
 				amount: makerOrder.matchingAmount,
-				fee: makerOrder.fee,
+				fee: makerOrder.fee
 			},
 			timestamp: matchTimeStamp
-		});
+		};
+		await dynamoUtil.addTrade(trade);
+		await redisUtil.publish(this.getTradePubSubChannel(pair), JSON.stringify(trade));
 	}
 
 	public async processMatchQueue(web3Util: Web3Util) {

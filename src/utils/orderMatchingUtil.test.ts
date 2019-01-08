@@ -589,6 +589,7 @@ test('processMatchSuccess', async () => {
 		getFilledTakerAssetAmount: jest.fn(() => new BigNumber(1))
 	} as any;
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	redisUtil.publish = jest.fn(() => Promise.resolve());
 	dynamoUtil.addTrade = jest.fn(() => Promise.resolve());
 	const bidSignedOrder: IStringSignedOrder = {
 		exchangeAddress: '0x48bacb9266a570d521063ef5dd96e61686dbe788',
@@ -636,6 +637,7 @@ test('processMatchSuccess', async () => {
 	);
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((dynamoUtil.addTrade as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((redisUtil.publish as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('processMatchSuccess ask', async () => {
@@ -644,6 +646,7 @@ test('processMatchSuccess ask', async () => {
 		getFilledTakerAssetAmount: jest.fn(() => new BigNumber(1))
 	} as any;
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	redisUtil.publish = jest.fn(() => Promise.resolve());
 	dynamoUtil.addTrade = jest.fn(() => Promise.resolve());
 	const bidSignedOrder: IStringSignedOrder = {
 		exchangeAddress: '0x48bacb9266a570d521063ef5dd96e61686dbe788',
@@ -691,4 +694,5 @@ test('processMatchSuccess ask', async () => {
 	);
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((dynamoUtil.addTrade as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((redisUtil.publish as jest.Mock).mock.calls).toMatchSnapshot();
 });

@@ -12,6 +12,7 @@ import {
 	IPrice,
 	IStatus,
 	IStringSignedOrder,
+	ITrade,
 	IUserOrder,
 	IWsAddOrderRequest,
 	IWsInfoResponse,
@@ -41,6 +42,7 @@ class RelayerServer {
 	public duoAcceptedPrices: { [custodian: string]: IAcceptedPrice[] } = {};
 	public duoExchangePrices: { [source: string]: IPrice[] } = {};
 	public ipList: { [ip: string]: string } = {};
+	public lastTrades: { [key: string]: ITrade[] } = {};
 
 	public sendResponse(ws: WebSocket, req: IWsRequest, status: string) {
 		const orderResponse: IWsResponse = {
@@ -265,6 +267,12 @@ class RelayerServer {
 				this.sendUserOrderResponse(ws, userOrder, orderQueueItem.method)
 			);
 		}
+	}
+
+	public handleTradeUpdate(channel: string, trade: ITrade) {
+		util.logDebug('receive update from channel: ' + channel);
+		this.lastTrades[trade.pair].push(trade);
+		this.lastTrades[trade.pair].sort((a, b) => -a.timestamp + b.timestamp);
 	}
 
 	public handleOrderBookUpdate(
