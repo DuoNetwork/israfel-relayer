@@ -1,5 +1,6 @@
 import { BigNumber } from '0x.js';
 import { IOrderMatchRequest, IRawOrder } from '../common/types';
+import dynamoUtil from '../utils/dynamoUtil';
 import orderMatchingUtil from './orderMatchingUtil';
 import orderPersistenceUtil from './orderPersistenceUtil';
 // import orderUtil from './orderUtil';
@@ -298,13 +299,20 @@ const orderMatchReq: IOrderMatchRequest = {
 	bid: {
 		orderAmount: 10,
 		orderHash: '0xleftHash',
-		matchingAmount: 10
+		matchingAmount: 10,
+		price: 0.001,
+		fee: 0.1,
+		feeAsset: 'code1'
 	},
 	ask: {
 		orderAmount: 10,
 		orderHash: '0xrightHash',
-		matchingAmount: 10
-	}
+		matchingAmount: 10,
+		price: 0.001,
+		fee: 0.1,
+		feeAsset: 'code2'
+	},
+	takerSide: 'bid'
 };
 
 test('processMatchQueue, no leftRawOrder', async () => {
@@ -500,6 +508,7 @@ test('processMatchQueue, awaitTransactionSuccessAsync revert', async () => {
 test('processMatchQueue, awaitTransactionSuccessAsync success', async () => {
 	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
 	redisUtil.putBack = jest.fn(() => Promise.resolve());
+	dynamoUtil.addTrade = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.getRawOrderInPersistence = jest.fn((pair, hash) => {
 		rawOrders[hash].pair = pair;
 		return Promise.resolve(rawOrders[hash]);
@@ -510,7 +519,9 @@ test('processMatchQueue, awaitTransactionSuccessAsync success', async () => {
 		getTransactionCount: jest.fn(() => 1),
 		getGasPrice: jest.fn(() => 100000000),
 		matchOrders: jest.fn(() => Promise.resolve()),
-		getFilledTakerAssetAmount: jest.fn(() => Promise.resolve(new BigNumber(5000000000000000000))),
+		getFilledTakerAssetAmount: jest.fn(() =>
+			Promise.resolve(new BigNumber(5000000000000000000))
+		),
 		awaitTransactionSuccessAsync: jest.fn(() => Promise.resolve({}))
 	} as any;
 
@@ -542,7 +553,9 @@ test('processMatchQueue, awaitTransactionSuccessAsync success partial', async ()
 		getTransactionCount: jest.fn(() => 1),
 		getGasPrice: jest.fn(() => 100000000),
 		matchOrders: jest.fn(() => Promise.resolve()),
-		getFilledTakerAssetAmount: jest.fn(() => Promise.resolve(new BigNumber(500000000000000000))),
+		getFilledTakerAssetAmount: jest.fn(() =>
+			Promise.resolve(new BigNumber(500000000000000000))
+		),
 		awaitTransactionSuccessAsync: jest.fn(() => Promise.resolve({}))
 	} as any;
 
@@ -575,7 +588,9 @@ test('processMatchQueue, awaitTransactionSuccessAsync success, not feeOnToken', 
 		getTransactionCount: jest.fn(() => 1),
 		getGasPrice: jest.fn(() => 100000000),
 		matchOrders: jest.fn(() => Promise.resolve()),
-		getFilledTakerAssetAmount: jest.fn(() => Promise.resolve(new BigNumber(5000000000000000000))),
+		getFilledTakerAssetAmount: jest.fn(() =>
+			Promise.resolve(new BigNumber(5000000000000000000))
+		),
 		awaitTransactionSuccessAsync: jest.fn(() => Promise.resolve({}))
 	} as any;
 

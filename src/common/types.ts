@@ -80,6 +80,7 @@ export interface IOrderMatchRequest {
 	feeOnToken: boolean;
 	bid: IOrderMatchingInfo;
 	ask: IOrderMatchingInfo;
+	takerSide: string;
 	transactionHash?: string;
 }
 
@@ -87,6 +88,9 @@ export interface IOrderMatchingInfo {
 	orderHash: string;
 	orderAmount: number;
 	matchingAmount: number;
+	price: number;
+	fee: number;
+	feeAsset: string;
 }
 
 export interface IOrderQueueItem {

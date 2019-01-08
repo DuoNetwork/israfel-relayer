@@ -1,4 +1,5 @@
 import { BigNumber } from '0x.js';
+import moment from 'moment';
 import * as CST from '../common/constants';
 import {
 	ILiveOrder,
@@ -7,7 +8,8 @@ import {
 	IOrderBookLevel,
 	IOrderBookLevelUpdate,
 	IOrderMatchRequest,
-	IStringSignedOrder
+	IStringSignedOrder,
+	ITrade
 } from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import orderPersistenceUtil from './orderPersistenceUtil';
@@ -102,13 +104,23 @@ class OrderMatchingUtil {
 					bid: {
 						orderHash: bidLiveOrder.orderHash,
 						orderAmount: bidLiveOrder.amount,
-						matchingAmount: bidMatchingAmount
+						matchingAmount: bidMatchingAmount,
+						price: bidLiveOrder.price,
+						fee: bidLiveOrder.fee,
+						feeAsset: bidLiveOrder.feeAsset
 					},
 					ask: {
 						orderHash: askLiveOrder.orderHash,
 						orderAmount: askLiveOrder.amount,
-						matchingAmount: askMatchingAmount
-					}
+						matchingAmount: askMatchingAmount,
+						price: askLiveOrder.price,
+						fee: bidLiveOrder.fee,
+						feeAsset: bidLiveOrder.feeAsset
+					},
+					takerSide:
+						bidLiveOrder.initialSequence > askLiveOrder.initialSequence
+							? CST.DB_BID
+							: CST.DB_ASK
 				});
 				if (updatesRequired) {
 					orderBookLevelUpdates.push({
@@ -137,7 +149,7 @@ class OrderMatchingUtil {
 		const reqString = await redisUtil.pop(this.getMatchQueueKey());
 		if (!reqString) return false;
 		const matchRequest: IOrderMatchRequest = JSON.parse(reqString);
-		const { pair, feeOnToken, bid, ask } = matchRequest;
+		const { pair, feeOnToken, bid, ask, takerSide } = matchRequest;
 
 		try {
 			const bidRawOrder = await orderPersistenceUtil.getRawOrderInPersistence(
@@ -156,9 +168,7 @@ class OrderMatchingUtil {
 			);
 
 			if (!askRawOrder) {
-				util.logError(
-					`raw order of ${askRawOrder} does not exist, ignore match request`
-				);
+				util.logError(`raw order of ${askRawOrder} does not exist, ignore match request`);
 				return true;
 			}
 
@@ -175,6 +185,7 @@ class OrderMatchingUtil {
 			const currentNonce = await web3Util.getTransactionCount(currentAddr);
 			const curretnGasPrice = Math.max(await web3Util.getGasPrice(), 5000000000);
 			let txHash = '';
+			let matchTimeStamp = 0;
 
 			try {
 				txHash = await web3Util.matchOrders(
@@ -188,6 +199,7 @@ class OrderMatchingUtil {
 						shouldValidate: false
 					}
 				);
+				matchTimeStamp = Number(moment.utc().valueOf());
 			} catch (matchError) {
 				util.logDebug(JSON.stringify(matchError));
 				util.logError('error in sending match tx for ' + reqString);
@@ -279,8 +291,7 @@ class OrderMatchingUtil {
 						`update askOrder orderHash: ${ask.orderHash}, fill amount: ${askFilledAmt}`
 					);
 					await orderPersistenceUtil.persistOrder({
-						method:
-							askFilledAmt >= ask.orderAmount ? CST.DB_TERMINATE : CST.DB_UPDATE,
+						method: askFilledAmt >= ask.orderAmount ? CST.DB_TERMINATE : CST.DB_UPDATE,
 						pair: pair,
 						orderHash: ask.orderHash,
 						fill: askFilledAmt,
@@ -289,6 +300,43 @@ class OrderMatchingUtil {
 						status: askFilledAmt >= ask.orderAmount ? CST.DB_FILL : CST.DB_PFILL,
 						transactionHash: receipt.transactionHash
 					});
+
+					const takerOrder = takerSide === CST.DB_BID ? bid : ask;
+					const makerOrder = takerSide === CST.DB_BID ? ask : bid;
+					const takerRawOrder = takerSide === CST.DB_BID ? bidOrder : askOrder;
+					const makerRawOrder = takerSide === CST.DB_BID ? askOrder : bidOrder;
+					const trade: ITrade = {
+						pair: pair,
+						transactionHash: txHash,
+						taker: {
+							orderHash: takerOrder.orderHash,
+							address: takerRawOrder.makerAddress,
+							side: takerSide,
+							price: takerOrder.price,
+							amount: takerOrder.matchingAmount,
+							fee: util.round(
+								new BigNumber(takerOrder.matchingAmount)
+									.div(takerRawOrder.makerAssetAmount)
+									.mul(takerOrder.fee)
+									.valueOf()
+							),
+							feeAsset: takerOrder.feeAsset
+						},
+						maker: {
+							orderHash: makerOrder.orderHash,
+							price: makerOrder.price,
+							amount: makerOrder.matchingAmount,
+							fee: util.round(
+								new BigNumber(makerOrder.matchingAmount)
+									.div(makerRawOrder.makerAssetAmount)
+									.mul(makerOrder.fee)
+									.valueOf()
+							),
+							feeAsset: makerOrder.feeAsset
+						},
+						timestamp: matchTimeStamp
+					};
+					await dynamoUtil.addTrade(trade);
 				})
 				.catch(async txError => {
 					util.logError(
