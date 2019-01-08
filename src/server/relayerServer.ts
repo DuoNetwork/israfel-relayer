@@ -42,7 +42,7 @@ class RelayerServer {
 	public duoAcceptedPrices: { [custodian: string]: IAcceptedPrice[] } = {};
 	public duoExchangePrices: { [source: string]: IPrice[] } = {};
 	public ipList: { [ip: string]: string } = {};
-	public lastTrades: { [key: string]: ITrade[] } = {};
+	public trades: { [key: string]: ITrade[] } = {};
 
 	public sendResponse(ws: WebSocket, req: IWsRequest, status: string) {
 		const orderResponse: IWsResponse = {
@@ -271,8 +271,11 @@ class RelayerServer {
 
 	public handleTradeUpdate(channel: string, trade: ITrade) {
 		util.logDebug('receive update from channel: ' + channel);
-		this.lastTrades[trade.pair].push(trade);
-		this.lastTrades[trade.pair].sort((a, b) => -a.timestamp + b.timestamp);
+		if (!this.trades[trade.pair]) this.trades[trade.pair] = [trade];
+		else {
+			this.trades[trade.pair].push(trade);
+			this.trades[trade.pair].sort((a, b) => a.timestamp - b.timestamp);
+		}
 	}
 
 	public handleOrderBookUpdate(

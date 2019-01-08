@@ -460,6 +460,20 @@ test('handleOrderUpdate requested existing pair existing account', () => {
 	expect((relayerServer.sendUserOrderResponse as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
+test('handleTradeUpdate', () => {
+	relayerServer.handleTradeUpdate('channel', {
+		pair: 'pair',
+		transactionHash: 'txHash1',
+		timestamp: 1234567890
+	} as any);
+	relayerServer.handleTradeUpdate('channel', {
+		pair: 'pair',
+		transactionHash: 'txHash2',
+		timestamp: 1234567889
+	} as any);
+	expect(relayerServer.trades).toMatchSnapshot();
+})
+
 test('handleOrderHistoryUnsubscribeRequest existing account more than one', async () => {
 	relayerServer.sendResponse = jest.fn();
 	orderPersistenceUtil.unsubscribeOrderUpdate = jest.fn();

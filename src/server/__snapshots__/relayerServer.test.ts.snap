@@ -904,6 +904,23 @@ Array [
 ]
 `;
 
+exports[`handleTradeUpdate 1`] = `
+Object {
+  "pair": Array [
+    Object {
+      "pair": "pair",
+      "timestamp": 1234567889,
+      "transactionHash": "txHash2",
+    },
+    Object {
+      "pair": "pair",
+      "timestamp": 1234567890,
+      "transactionHash": "txHash1",
+    },
+  ],
+}
+`;
+
 exports[`handleWebSocketClose 1`] = `
 Array [
   Array [
