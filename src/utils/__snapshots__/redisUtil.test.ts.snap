@@ -25,6 +25,14 @@ Array [
 ]
 `;
 
+exports[`hashDeleteAll 1`] = `
+Array [
+  Array [
+    "key",
+  ],
+]
+`;
+
 exports[`hashGet 1`] = `
 Array [
   Array [

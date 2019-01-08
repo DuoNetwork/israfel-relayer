@@ -137,6 +137,16 @@ test('hashDelete', async () => {
 	expect(((redisUtil.redisPub as any).hdel as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
+test('hashDeleteAll', async () => {
+	redisUtil.redisPub = null;
+	expect(await redisUtil.hashDeleteAll('key')).toBe(0);
+	redisUtil.redisPub = {
+		del: jest.fn()
+	} as any;
+	await redisUtil.hashDeleteAll('key');
+	expect(((redisUtil.redisPub as any).del as jest.Mock).mock.calls).toMatchSnapshot();
+})
+
 test('subscribe', async () => {
 	redisUtil.redisSub = {
 		subscribe: jest.fn()

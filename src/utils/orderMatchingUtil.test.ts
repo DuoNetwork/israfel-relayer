@@ -334,6 +334,62 @@ test('processMatchSuccess', async () => {
 	expect((redisUtil.publish as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
+test('processMatchSuccess full fill', async () => {
+	const web3Util = {
+		getFilledTakerAssetAmount: jest.fn(() => new BigNumber(1000000000000000000))
+	} as any;
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	redisUtil.publish = jest.fn(() => Promise.resolve());
+	dynamoUtil.addTrade = jest.fn(() => Promise.resolve());
+	const bidSignedOrder: IStringSignedOrder = {
+		exchangeAddress: '0x48bacb9266a570d521063ef5dd96e61686dbe788',
+		makerAddress: '0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872',
+		takerAddress: '0x5409ed021d9299bf6814279a6a1411a7e866a631',
+		senderAddress: '0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872',
+		feeRecipientAddress: '0x5409ed021d9299bf6814279a6a1411a7e866a631',
+		expirationTimeSeconds: '1538117918',
+		salt: '15105341483720',
+		makerAssetAmount: '1000000000000000000',
+		takerAssetAmount: '1000000000000000000',
+		makerAssetData:
+			'0xf47261b0000000000000000000000000871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c',
+		takerAssetData:
+			'0xf47261b00000000000000000000000000b1ba0af832d7c05fd64161e0db78e85978e8082',
+		makerFee: '0',
+		takerFee: '0',
+		signature: 'signature1'
+	};
+	const askSignedOrder: IStringSignedOrder = {
+		exchangeAddress: '0x48bacb9266a570d521063ef5dd96e61686dbe788',
+		makerAddress: '0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872',
+		takerAddress: '0x5409ed021d9299bf6814279a6a1411a7e866a631',
+		senderAddress: '0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872',
+		feeRecipientAddress: '0x5409ed021d9299bf6814279a6a1411a7e866a631',
+		expirationTimeSeconds: '1538117918',
+		salt: '15105341483720',
+		makerAssetAmount: '1000000000000000000',
+		takerAssetAmount: '1000000000000000000',
+		makerAssetData:
+			'0xf47261b0000000000000000000000000871dd7c2b4b25e1aa18728e9d5f2af4c4e431f5c',
+		takerAssetData:
+			'0xf47261b00000000000000000000000000b1ba0af832d7c05fd64161e0db78e85978e8082',
+		makerFee: '0',
+		takerFee: '0',
+		signature: 'signature2'
+	};
+	await orderMatchingUtil.processMatchSuccess(
+		web3Util,
+		'txHash',
+		1234567890000,
+		orderMatchReq,
+		orderUtil.parseSignedOrder(bidSignedOrder),
+		orderUtil.parseSignedOrder(askSignedOrder)
+	);
+	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.addTrade as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((redisUtil.publish as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
 test('processMatchSuccess ask', async () => {
 	orderMatchReq.takerSide = 'ask';
 	const web3Util = {

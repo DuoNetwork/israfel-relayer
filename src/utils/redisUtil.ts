@@ -114,7 +114,7 @@ class RedisUtil {
 
 	public hashDeleteAll(key: string) {
 		if (this.redisPub) return this.redisPub.del(key);
-		return Promise.resolve({});
+		return Promise.resolve(0);
 	}
 
 	public subscribe(channel: string) {
