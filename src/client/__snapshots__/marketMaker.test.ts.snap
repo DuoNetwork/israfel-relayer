@@ -280,6 +280,16 @@ Object {
 }
 `;
 
+exports[`handleOrderBookUpdate 1`] = `
+Array [
+  Array [
+    Object {},
+    Object {},
+    "aETH|WETH",
+  ],
+]
+`;
+
 exports[`handleOrderHistory 1`] = `
 Array [
   99.9868,
@@ -471,6 +481,43 @@ Array [
 ]
 `;
 
+exports[`initialize 1`] = `
+Array [
+  Array [
+    "aETH",
+  ],
+]
+`;
+
+exports[`initialize 2`] = `
+Array [
+  Array [
+    "WETH",
+    "address",
+  ],
+  Array [
+    "aETH",
+    "address",
+  ],
+  Array [
+    "bETH",
+    "address",
+  ],
+]
+`;
+
+exports[`initialize 3`] = `
+Array [
+  Array [
+    "address",
+  ],
+]
+`;
+
+exports[`initialize, no a token 1`] = `[Error: no aToken]`;
+
+exports[`initialize, no b token 1`] = `[Error: no bToken]`;
+
 exports[`maintainBalance, short of token 1`] = `
 Array [
   7.114996114996115,
@@ -559,6 +606,117 @@ Array [
     "address",
     6,
   ],
+]
+`;
+
+exports[`makeOrders, arbitrage occurs, take asks 1`] = `
+Array [
+  "bETH|WETH",
+  false,
+  Array [
+    Object {
+      "balance": 20,
+      "count": 1,
+      "price": 0.0082,
+    },
+    Object {
+      "balance": 20,
+      "count": 1,
+      "price": 0.0083,
+    },
+    Object {
+      "balance": 20,
+      "count": 1,
+      "price": 0.0084,
+    },
+    Object {
+      "balance": 20,
+      "count": 1,
+      "price": 0.0085,
+    },
+  ],
+]
+`;
+
+exports[`makeOrders, arbitrage occurs, take asks 2`] = `
+Array [
+  "bETH|WETH",
+  Array [
+    "askToCancelOrderHash",
+  ],
+]
+`;
+
+exports[`makeOrders, arbitrage occurs, take bids 1`] = `
+Array [
+  "bETH|WETH",
+  true,
+  Array [
+    Object {
+      "balance": 20,
+      "count": 1,
+      "price": 0.0091,
+    },
+    Object {
+      "balance": 20,
+      "count": 1,
+      "price": 0.009,
+    },
+  ],
+]
+`;
+
+exports[`makeOrders, arbitrage occurs, take bids 2`] = `
+Array [
+  "bETH|WETH",
+  Array [
+    "bidToCancelOrderHash",
+  ],
+]
+`;
+
+exports[`makeOrders, create ask order, no spread change 1`] = `
+Array [
+  "aETH|WETH",
+  0.006505,
+  false,
+  1,
+]
+`;
+
+exports[`makeOrders, create bid order, no spread change 1`] = `
+Array [
+  "aETH|WETH",
+  0.006305,
+  true,
+  1,
+]
+`;
+
+exports[`makeOrders, create bid order, with spread change, moving down 1`] = `
+Array [
+  "aETH|WETH",
+  0.006305,
+  true,
+  1,
+]
+`;
+
+exports[`makeOrders, create bid order, with spread change, moving down 2`] = `
+Array [
+  "aETH|WETH",
+  0.006605,
+  false,
+  1,
+]
+`;
+
+exports[`makeOrders, create bid order, with spread change, moving up 1`] = `
+Array [
+  "aETH|WETH",
+  0.006405,
+  true,
+  1,
 ]
 `;
 
