@@ -1171,6 +1171,19 @@ test('createOrderBookSide bid', async () => {
 	expect(marketMaker.pendingOrders).toMatchSnapshot();
 });
 
+test('createOrderBookSide bid, no price adjustment', async () => {
+	const relayerClient = {
+		addOrder: jest.fn(() => Promise.resolve('addOrderTxHash'))
+	} as any;
+	util.getExpiryTimestamp = jest.fn(() => 1234567890000);
+	util.sleep = jest.fn(() => Promise.resolve());
+	Math.random = jest.fn(() => 0.5);
+	marketMaker.pendingOrders = {};
+	await marketMaker.createOrderBookSide(relayerClient, 'aETH|WETH', 0.0001, true, 4, false);
+	expect((relayerClient.addOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(marketMaker.pendingOrders).toMatchSnapshot();
+});
+
 test('createOrderBookSide ask', async () => {
 	const relayerClient = {
 		addOrder: jest.fn(() => Promise.resolve('addOrderTxHash'))
@@ -1341,6 +1354,7 @@ test('makeOrders, no need to create order', async () => {
 	expect(marketMaker.createOrderBookSide as jest.Mock).not.toBeCalled();
 	expect(marketMaker.takeOneSideOrders as jest.Mock).not.toBeCalled();
 	expect(marketMaker.cancelOrders as jest.Mock).not.toBeCalled();
+	expect(marketMaker.lastMid).toMatchSnapshot();
 });
 
 test('makeOrders, no need to create order, bToken', async () => {
@@ -1459,6 +1473,7 @@ test('makeOrders, no need to create order, bToken', async () => {
 	expect(marketMaker.createOrderBookSide as jest.Mock).not.toBeCalled();
 	expect(marketMaker.takeOneSideOrders as jest.Mock).not.toBeCalled();
 	expect(marketMaker.cancelOrders as jest.Mock).not.toBeCalled();
+	expect(marketMaker.lastMid).toMatchSnapshot();
 });
 
 test('makeOrders, create bid order, no spread change', async () => {
@@ -1573,6 +1588,7 @@ test('makeOrders, create bid order, no spread change', async () => {
 		expect(mockCall.slice(1)).toMatchSnapshot();
 	expect(marketMaker.takeOneSideOrders as jest.Mock).not.toBeCalled();
 	expect(marketMaker.cancelOrders as jest.Mock).not.toBeCalled();
+	expect(marketMaker.lastMid).toMatchSnapshot();
 });
 
 test('makeOrders, create ask order, no spread change', async () => {
@@ -1687,9 +1703,10 @@ test('makeOrders, create ask order, no spread change', async () => {
 		expect(mockCall.slice(1)).toMatchSnapshot();
 	expect(marketMaker.takeOneSideOrders as jest.Mock).not.toBeCalled();
 	expect(marketMaker.cancelOrders as jest.Mock).not.toBeCalled();
+	expect(marketMaker.lastMid).toMatchSnapshot();
 });
 
-test('makeOrders, create bid order, with spread change, moving up', async () => {
+test('makeOrders, create bid order, with spread change', async () => {
 	marketMaker.isMakingOrders = false;
 	marketMaker.canMakeOrder = jest.fn(() => true);
 	marketMaker.tokens = tokens;
@@ -1698,18 +1715,13 @@ test('makeOrders, create bid order, with spread change, moving up', async () => 
 	marketMaker.createOrderBookSide = jest.fn(() => Promise.resolve());
 	marketMaker.takeOneSideOrders = jest.fn(() => Promise.resolve());
 	marketMaker.cancelOrders = jest.fn(() => Promise.resolve());
-	marketMaker.lastMid = [0.006305, 0.0087];
+	marketMaker.lastMid = [0.006505, 0.0087];
 	const relayerClient = {
 		orderBookSnapshots: {
 			'aETH|WETH': {
 				version: 1,
 				pair: 'aETH|WETH',
 				bids: [
-					{
-						price: 0.006305,
-						balance: 20,
-						count: 1
-					},
 					{
 						price: 0.006205,
 						balance: 20,
@@ -1719,19 +1731,14 @@ test('makeOrders, create bid order, with spread change, moving up', async () => 
 						price: 0.006105,
 						balance: 20,
 						count: 1
+					},
+					{
+						price: 0.006005,
+						balance: 20,
+						count: 1
 					}
 				],
 				asks: [
-					{
-						price: 0.006705,
-						balance: 20,
-						count: 1
-					},
-					{
-						price: 0.006505,
-						balance: 20,
-						count: 1
-					},
 					{
 						price: 0.006605,
 						balance: 20,
@@ -1739,6 +1746,16 @@ test('makeOrders, create bid order, with spread change, moving up', async () => 
 					},
 					{
 						price: 0.006705,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.006805,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.006905,
 						balance: 20,
 						count: 1
 					}
@@ -1802,9 +1819,10 @@ test('makeOrders, create bid order, with spread change, moving up', async () => 
 		expect(mockCall.slice(1)).toMatchSnapshot();
 	expect(marketMaker.takeOneSideOrders as jest.Mock).not.toBeCalled();
 	expect(marketMaker.cancelOrders as jest.Mock).not.toBeCalled();
+	expect(marketMaker.lastMid).toMatchSnapshot();
 });
 
-test('makeOrders, create bid order, with spread change, moving down', async () => {
+test('makeOrders, create bid order, with spread change, no need to fill', async () => {
 	marketMaker.isMakingOrders = false;
 	marketMaker.canMakeOrder = jest.fn(() => true);
 	marketMaker.tokens = tokens;
@@ -1834,6 +1852,11 @@ test('makeOrders, create bid order, with spread change, moving down', async () =
 						price: 0.006105,
 						balance: 20,
 						count: 1
+					},
+					{
+						price: 0.006005,
+						balance: 20,
+						count: 1
 					}
 				],
 				asks: [
@@ -1843,17 +1866,17 @@ test('makeOrders, create bid order, with spread change, moving down', async () =
 						count: 1
 					},
 					{
-						price: 0.006505,
+						price: 0.006805,
 						balance: 20,
 						count: 1
 					},
 					{
-						price: 0.006605,
+						price: 0.006905,
 						balance: 20,
 						count: 1
 					},
 					{
-						price: 0.006705,
+						price: 0.007005,
 						balance: 20,
 						count: 1
 					}
@@ -1917,6 +1940,244 @@ test('makeOrders, create bid order, with spread change, moving down', async () =
 		expect(mockCall.slice(1)).toMatchSnapshot();
 	expect(marketMaker.takeOneSideOrders as jest.Mock).not.toBeCalled();
 	expect(marketMaker.cancelOrders as jest.Mock).not.toBeCalled();
+	expect(marketMaker.lastMid).toMatchSnapshot();
+});
+
+test('makeOrders, create ask order, with spread change', async () => {
+	marketMaker.isMakingOrders = false;
+	marketMaker.canMakeOrder = jest.fn(() => true);
+	marketMaker.tokens = tokens;
+	marketMaker.getEthPrice = jest.fn(() => 150);
+	DualClassWrapper.calculateNav = jest.fn(() => [1, 1.2]);
+	marketMaker.createOrderBookSide = jest.fn(() => Promise.resolve());
+	marketMaker.takeOneSideOrders = jest.fn(() => Promise.resolve());
+	marketMaker.cancelOrders = jest.fn(() => Promise.resolve());
+	marketMaker.lastMid = [0.006405, 0.0087];
+	const relayerClient = {
+		orderBookSnapshots: {
+			'aETH|WETH': {
+				version: 1,
+				pair: 'aETH|WETH',
+				bids: [
+					{
+						price: 0.006305,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.006205,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.006105,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.006005,
+						balance: 20,
+						count: 1
+					}
+				],
+				asks: [
+					{
+						price: 0.006705,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.006805,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.006905,
+						balance: 20,
+						count: 1
+					}
+				]
+			},
+			'bETH|WETH': {
+				version: 1,
+				pair: 'bETH',
+				bids: [
+					{
+						price: 0.0087,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.0086,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.0085,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.0084,
+						balance: 20,
+						count: 1
+					}
+				],
+				asks: [
+					{
+						price: 0.0091,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.0092,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.0093,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.0094,
+						balance: 20,
+						count: 1
+					}
+				]
+			}
+		}
+	} as any;
+	const dualClassWrapper = {
+		getStates: jest.fn(() => Promise.resolve(custodianStates))
+	} as any;
+	await marketMaker.makeOrders(relayerClient, dualClassWrapper, 'aETH|WETH');
+	for (const mockCall of (marketMaker.createOrderBookSide as jest.Mock).mock.calls)
+		expect(mockCall.slice(1)).toMatchSnapshot();
+	expect(marketMaker.takeOneSideOrders as jest.Mock).not.toBeCalled();
+	expect(marketMaker.cancelOrders as jest.Mock).not.toBeCalled();
+	expect(marketMaker.lastMid).toMatchSnapshot();
+});
+
+test('makeOrders, create ask order, with spread change, no need to fill', async () => {
+	marketMaker.isMakingOrders = false;
+	marketMaker.canMakeOrder = jest.fn(() => true);
+	marketMaker.tokens = tokens;
+	marketMaker.getEthPrice = jest.fn(() => 150);
+	DualClassWrapper.calculateNav = jest.fn(() => [1, 1.2]);
+	marketMaker.createOrderBookSide = jest.fn(() => Promise.resolve());
+	marketMaker.takeOneSideOrders = jest.fn(() => Promise.resolve());
+	marketMaker.cancelOrders = jest.fn(() => Promise.resolve());
+	marketMaker.lastMid = [0.006305, 0.0087];
+	const relayerClient = {
+		orderBookSnapshots: {
+			'aETH|WETH': {
+				version: 1,
+				pair: 'aETH|WETH',
+				bids: [
+					{
+						price: 0.006305,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.006205,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.006105,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.006005,
+						balance: 20,
+						count: 1
+					}
+				],
+				asks: [
+					{
+						price: 0.006705,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.006805,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.006905,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.007005,
+						balance: 20,
+						count: 1
+					}
+				]
+			},
+			'bETH|WETH': {
+				version: 1,
+				pair: 'bETH',
+				bids: [
+					{
+						price: 0.0087,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.0086,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.0085,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.0084,
+						balance: 20,
+						count: 1
+					}
+				],
+				asks: [
+					{
+						price: 0.0091,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.0092,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.0093,
+						balance: 20,
+						count: 1
+					},
+					{
+						price: 0.0094,
+						balance: 20,
+						count: 1
+					}
+				]
+			}
+		}
+	} as any;
+	const dualClassWrapper = {
+		getStates: jest.fn(() => Promise.resolve(custodianStates))
+	} as any;
+	await marketMaker.makeOrders(relayerClient, dualClassWrapper, 'aETH|WETH');
+	for (const mockCall of (marketMaker.createOrderBookSide as jest.Mock).mock.calls)
+		expect(mockCall.slice(1)).toMatchSnapshot();
+	expect(marketMaker.takeOneSideOrders as jest.Mock).not.toBeCalled();
+	expect(marketMaker.cancelOrders as jest.Mock).not.toBeCalled();
+	expect(marketMaker.lastMid).toMatchSnapshot();
 });
 
 test('makeOrders, arbitrage occurs, take asks', async () => {
@@ -2051,6 +2312,7 @@ test('makeOrders, arbitrage occurs, take asks', async () => {
 		expect(mockCall.slice(1)).toMatchSnapshot();
 	for (const mockCall of (marketMaker.cancelOrders as jest.Mock).mock.calls)
 		expect(mockCall.slice(1)).toMatchSnapshot();
+	expect(marketMaker.lastMid).toMatchSnapshot();
 });
 
 test('makeOrders, arbitrage occurs, take bids', async () => {
@@ -2184,6 +2446,7 @@ test('makeOrders, arbitrage occurs, take bids', async () => {
 		expect(mockCall.slice(1)).toMatchSnapshot();
 	for (const mockCall of (marketMaker.cancelOrders as jest.Mock).mock.calls)
 		expect(mockCall.slice(1)).toMatchSnapshot();
+	expect(marketMaker.lastMid).toMatchSnapshot();
 });
 
 test('connectToRelayer', () => {

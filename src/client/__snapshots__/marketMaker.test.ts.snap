@@ -280,6 +280,49 @@ Object {
 }
 `;
 
+exports[`createOrderBookSide bid, no price adjustment 1`] = `
+Array [
+  Array [
+    "address",
+    "aETH|WETH",
+    0.0001,
+    22.5,
+    true,
+    1234567890000,
+  ],
+  Array [
+    "address",
+    "aETH|WETH",
+    0.0001,
+    22.5,
+    true,
+    1234567890000,
+  ],
+  Array [
+    "address",
+    "aETH|WETH",
+    0.0001,
+    22.5,
+    true,
+    1234567890000,
+  ],
+  Array [
+    "address",
+    "aETH|WETH",
+    0.0001,
+    22.5,
+    true,
+    1234567890000,
+  ],
+]
+`;
+
+exports[`createOrderBookSide bid, no price adjustment 2`] = `
+Object {
+  "addOrderTxHash": true,
+}
+`;
+
 exports[`handleOrderBookUpdate 1`] = `
 Array [
   Array [
@@ -647,6 +690,13 @@ Array [
 ]
 `;
 
+exports[`makeOrders, arbitrage occurs, take asks 3`] = `
+Array [
+  0.006505,
+  0.0087,
+]
+`;
+
 exports[`makeOrders, arbitrage occurs, take bids 1`] = `
 Array [
   "bETH|WETH",
@@ -675,12 +725,69 @@ Array [
 ]
 `;
 
+exports[`makeOrders, arbitrage occurs, take bids 3`] = `
+Array [
+  0.006505,
+  0.0087,
+]
+`;
+
 exports[`makeOrders, create ask order, no spread change 1`] = `
 Array [
   "aETH|WETH",
   0.006505,
   false,
   1,
+]
+`;
+
+exports[`makeOrders, create ask order, no spread change 2`] = `
+Array [
+  0.006405,
+  0.00875,
+]
+`;
+
+exports[`makeOrders, create ask order, with spread change 1`] = `
+Array [
+  "aETH|WETH",
+  0.006705,
+  false,
+  1,
+]
+`;
+
+exports[`makeOrders, create ask order, with spread change 2`] = `
+Array [
+  "aETH|WETH",
+  0.006405,
+  true,
+  1,
+  false,
+]
+`;
+
+exports[`makeOrders, create ask order, with spread change 3`] = `
+Array [
+  0.006505,
+  0.0087,
+]
+`;
+
+exports[`makeOrders, create ask order, with spread change, no need to fill 1`] = `
+Array [
+  "aETH|WETH",
+  0.006405,
+  true,
+  1,
+  false,
+]
+`;
+
+exports[`makeOrders, create ask order, with spread change, no need to fill 2`] = `
+Array [
+  0.006505,
+  0.0087,
 ]
 `;
 
@@ -693,30 +800,67 @@ Array [
 ]
 `;
 
-exports[`makeOrders, create bid order, with spread change, moving down 1`] = `
+exports[`makeOrders, create bid order, no spread change 2`] = `
+Array [
+  0.0063549999999999995,
+  0.00875,
+]
+`;
+
+exports[`makeOrders, create bid order, with spread change 1`] = `
 Array [
   "aETH|WETH",
-  0.006305,
+  0.006205,
   true,
   1,
 ]
 `;
 
-exports[`makeOrders, create bid order, with spread change, moving down 2`] = `
+exports[`makeOrders, create bid order, with spread change 2`] = `
+Array [
+  "aETH|WETH",
+  0.0065049999999999995,
+  false,
+  1,
+  false,
+]
+`;
+
+exports[`makeOrders, create bid order, with spread change 3`] = `
+Array [
+  0.006404999999999999,
+  0.0087,
+]
+`;
+
+exports[`makeOrders, create bid order, with spread change, no need to fill 1`] = `
 Array [
   "aETH|WETH",
   0.006605,
   false,
   1,
+  false,
 ]
 `;
 
-exports[`makeOrders, create bid order, with spread change, moving up 1`] = `
+exports[`makeOrders, create bid order, with spread change, no need to fill 2`] = `
 Array [
-  "aETH|WETH",
-  0.006405,
-  true,
-  1,
+  0.006505,
+  0.0087,
+]
+`;
+
+exports[`makeOrders, no need to create order 1`] = `
+Array [
+  0.006505,
+  0,
+]
+`;
+
+exports[`makeOrders, no need to create order, bToken 1`] = `
+Array [
+  0.006505,
+  0.00875,
 ]
 `;
 

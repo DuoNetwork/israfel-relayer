@@ -287,11 +287,8 @@ class MarketMaker {
 					CST.MIN_ORDER_BOOK_LEVELS - newAsks.length
 				);
 
-			const fixSpreadBestBidPrice = bestAskPrice - this.priceStep * 3;
-			if (fixSpreadBestBidPrice > bestBidPrice) {
-				bestBidPrice = fixSpreadBestBidPrice;
-				await this.createOrderBookSide(relayerClient, pair, bestBidPrice, true, 1);
-			}
+			bestBidPrice = bestAskPrice - this.priceStep * 3;
+			await this.createOrderBookSide(relayerClient, pair, bestBidPrice, true, 1, false);
 		} else if (newMid < this.lastMid[pariIndex]) {
 			if (newBids.length < CST.MIN_ORDER_BOOK_LEVELS) {
 				util.logDebug(JSON.stringify(newBids));
@@ -305,11 +302,8 @@ class MarketMaker {
 				);
 			}
 
-			const fixSpreadBestAskPrice = this.priceStep * 3 + bestBidPrice;
-			if (fixSpreadBestAskPrice < bestAskPrice) {
-				bestAskPrice = fixSpreadBestAskPrice;
-				await this.createOrderBookSide(relayerClient, pair, bestAskPrice, false, 1);
-			}
+			bestAskPrice = this.priceStep * 3 + bestBidPrice;
+			await this.createOrderBookSide(relayerClient, pair, bestAskPrice, false, 1, false);
 		}
 
 		const otherTokenNoArbBidPrice =
@@ -403,7 +397,8 @@ class MarketMaker {
 		pair: string,
 		bestPrice: number,
 		isBid: boolean,
-		level: number
+		level: number,
+		adjustPrice: boolean = true
 	) {
 		const precision = this.tokens[0].precisions[CST.TOKEN_WETH];
 		this.isSendingOrder = true;
@@ -411,7 +406,11 @@ class MarketMaker {
 			const levelPrice = Number(
 				util.formatFixedNumber(
 					bestPrice +
-						(isBid ? -1 : 1) * (i + CST.MIN_ORDER_BOOK_LEVELS - level) * this.priceStep,
+						(adjustPrice
+							? (isBid ? -1 : 1) *
+							(i + CST.MIN_ORDER_BOOK_LEVELS - level) *
+							this.priceStep
+							: 0),
 					precision
 				)
 			);
