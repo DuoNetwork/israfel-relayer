@@ -671,3 +671,70 @@ test('getUserOrders', async () => {
 	await dynamoUtil.getUserOrders('0xAccount', 1000000000);
 	expect((dynamoUtil.getUserOrdersForMonth as jest.Mock).mock.calls).toMatchSnapshot();
 });
+
+test('addTrade', async () => {
+	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
+	await dynamoUtil.addTrade({
+		pair: 'code1|code2',
+		transactionHash: 'txHash',
+		taker: {
+			orderHash: 'takerOrderHash',
+			address: 'takerAddress',
+			side: 'takerSide',
+			price: 123,
+			amount: 456,
+			fee: 789,
+			feeAsset: 'takerFeeAsset'
+		},
+		maker: {
+			orderHash: 'makerOrderHash',
+			price: 987,
+			amount: 654,
+			fee: 321,
+			feeAsset: 'makerFeeAsset'
+		},
+		timestamp: 1234567890
+	});
+	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('getTradesForHour', async () => {
+	let queryOutput: { [key: string]: any } = {
+		Items: []
+	};
+	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
+	expect(await dynamoUtil.getTradesForHour('code1|code2', '1234-56-78-90')).toEqual([]);
+
+	queryOutput = {
+		Items: [
+			{
+				[CST.DB_PAIR_DATE_HOUR]: {
+					S: 'code1|code2|1234-56-78-90'
+				},
+				[CST.DB_TS_TX_HASH]: { S: '1234567890|txHash' },
+				[CST.DB_TK_OH]: { S: 'takerOrderHash' },
+				[CST.DB_TK_ADDR]: { S: 'takerAddress' },
+				[CST.DB_TK_SIDE]: { S: 'takerSide' },
+				[CST.DB_TK_PX]: { N: '123' },
+				[CST.DB_TK_AMT]: { N: '456' },
+				[CST.DB_TK_FEE]: { N: '789' },
+				[CST.DB_TK_FA]: { S: 'takerFeeAsset' },
+				[CST.DB_MK_OH]: { S: 'makerOrderHash' },
+				[CST.DB_MK_PX]: { N: '987' },
+				[CST.DB_MK_AMT]: { N: '654' },
+				[CST.DB_MK_FEE]: { N: '321' },
+				[CST.DB_MK_FA]: { S: 'makerFeeAsset' }
+			}
+		]
+	};
+	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
+	expect(await dynamoUtil.getTradesForHour('code1|code2', '1234-56-78-90')).toMatchSnapshot();
+	expect((dynamoUtil.queryData as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('getTrades', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 9876543210);
+	dynamoUtil.getTradesForHour = jest.fn(() => Promise.resolve([]));
+	await dynamoUtil.getTrades('code1|code2', 9870000000);
+	expect((dynamoUtil.getTradesForHour as jest.Mock).mock.calls).toMatchSnapshot();
+});

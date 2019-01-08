@@ -126,6 +126,60 @@ Array [
 ]
 `;
 
+exports[`addTrade 1`] = `
+Array [
+  Array [
+    Object {
+      "Item": Object {
+        "makerAmount": Object {
+          "N": "654",
+        },
+        "makerFee": Object {
+          "N": "321",
+        },
+        "makerFeeAsset": Object {
+          "S": "makerFeeAsset",
+        },
+        "makerOrderHash": Object {
+          "S": "makerOrderHash",
+        },
+        "makerPrice": Object {
+          "N": "987",
+        },
+        "pairDateHour": Object {
+          "S": "code1|code2|1970-01-15-06",
+        },
+        "takerAddress": Object {
+          "S": "takerAddress",
+        },
+        "takerAmount": Object {
+          "N": "456",
+        },
+        "takerFee": Object {
+          "N": "789",
+        },
+        "takerFeeAsset": Object {
+          "S": "takerFeeAsset",
+        },
+        "takerOrderHash": Object {
+          "S": "takerOrderHash",
+        },
+        "takerPrice": Object {
+          "N": "123",
+        },
+        "takerSide": Object {
+          "S": "takerSide",
+        },
+        "timestampTransactionHash": Object {
+          "S": "1234567890|txHash",
+        },
+      },
+      "TableName": "israfel.dev.trades",
+    },
+  ],
+]
+`;
+
 exports[`addUserOrder 1`] = `
 Array [
   Array [
@@ -457,6 +511,65 @@ Object {
 `;
 
 exports[`getRawOrder 4`] = `[Error: multiple record for order hash 0xOrderHash]`;
+
+exports[`getTrades 1`] = `
+Array [
+  Array [
+    "code1|code2",
+    "1970-04-25-05",
+  ],
+  Array [
+    "code1|code2",
+    "1970-04-25-06",
+  ],
+  Array [
+    "code1|code2",
+    "1970-04-25-07",
+  ],
+]
+`;
+
+exports[`getTradesForHour 1`] = `
+Array [
+  Object {
+    "maker": Object {
+      "amount": 654,
+      "fee": 321,
+      "feeAsset": "makerFeeAsset",
+      "orderHash": "makerOrderHash",
+      "price": 987,
+    },
+    "pair": "code1|code2",
+    "taker": Object {
+      "address": "takerAddress",
+      "amount": 456,
+      "fee": 789,
+      "feeAsset": "takerFeeAsset",
+      "orderHash": "takerOrderHash",
+      "price": 123,
+      "side": "takerSide",
+    },
+    "timestamp": 1234567890,
+    "transactionHash": "txHash",
+  },
+]
+`;
+
+exports[`getTradesForHour 2`] = `
+Array [
+  Array [
+    Object {
+      "ExpressionAttributeValues": Object {
+        ":pairDateHour": Object {
+          "S": "code1|code2|1234-56-78-90",
+        },
+      },
+      "KeyConditionExpression": "pairDateHour = :pairDateHour",
+      "TableName": "israfel.dev.trades",
+    },
+  ],
+]
+`;
 
 exports[`getUserOrders 1`] = `
 Array [

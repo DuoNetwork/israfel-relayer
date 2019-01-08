@@ -11,7 +11,15 @@ import DynamoDB, {
 import AWS from 'aws-sdk/global';
 import moment from 'moment';
 import * as CST from '../common/constants';
-import { IFeeSchedule, ILiveOrder, IRawOrder, IStatus, IToken, IUserOrder } from '../common/types';
+import {
+	IFeeSchedule,
+	ILiveOrder,
+	IRawOrder,
+	IStatus,
+	IToken,
+	ITrade,
+	IUserOrder
+} from '../common/types';
 import util from './util';
 
 class DynamoUtil {
@@ -490,6 +498,93 @@ class DynamoUtil {
 		if (!data.Items || !data.Items.length) return [];
 
 		return data.Items.map(uo => this.parseUserOrder(uo));
+	}
+
+	public convertTradeToDynamo(trade: ITrade): AttributeMap {
+		return {
+			[CST.DB_PAIR_DATE_HOUR]: {
+				S: trade.pair + '|' + moment.utc(trade.timestamp).format('YYYY-MM-DD-HH')
+			},
+			[CST.DB_TS_TX_HASH]: { S: trade.timestamp + '|' + trade.transactionHash },
+			[CST.DB_TK_OH]: { S: trade.taker.orderHash },
+			[CST.DB_TK_ADDR]: { S: trade.taker.address },
+			[CST.DB_TK_SIDE]: { S: trade.taker.side },
+			[CST.DB_TK_PX]: { N: trade.taker.price + '' },
+			[CST.DB_TK_AMT]: { N: trade.taker.amount + '' },
+			[CST.DB_TK_FEE]: { N: trade.taker.fee + '' },
+			[CST.DB_TK_FA]: { S: trade.taker.feeAsset },
+			[CST.DB_MK_OH]: { S: trade.maker.orderHash },
+			[CST.DB_MK_PX]: { N: trade.maker.price + '' },
+			[CST.DB_MK_AMT]: { N: trade.maker.amount + '' },
+			[CST.DB_MK_FEE]: { N: trade.maker.fee + '' },
+			[CST.DB_MK_FA]: { S: trade.maker.feeAsset }
+		};
+	}
+
+	public addTrade(trade: ITrade) {
+		return this.putData({
+			TableName: this.getTableName(CST.DB_TRADES),
+			Item: this.convertTradeToDynamo(trade)
+		});
+	}
+
+	public parseTrade(data: AttributeMap): ITrade {
+		const [code1, code2] = (data[CST.DB_PAIR_DATE_HOUR].S || '').split('|');
+		const [tsString, txHash] = (data[CST.DB_TS_TX_HASH].S || '').split('|');
+		return {
+			pair: code1 + '|' + code2,
+			timestamp: Number(tsString),
+			transactionHash: txHash,
+			taker: {
+				orderHash: data[CST.DB_TK_OH].S || '',
+				address: data[CST.DB_TK_ADDR].S || '',
+				side: data[CST.DB_TK_SIDE].S || '',
+				price: Number(data[CST.DB_TK_PX].N),
+				amount: Number(data[CST.DB_TK_AMT].N),
+				fee: Number(data[CST.DB_TK_FEE].N),
+				feeAsset: data[CST.DB_TK_FA].S || ''
+			},
+			maker: {
+				orderHash: data[CST.DB_MK_OH].S || '',
+				price: Number(data[CST.DB_MK_PX].N),
+				amount: Number(data[CST.DB_MK_AMT].N),
+				fee: Number(data[CST.DB_MK_FEE].N),
+				feeAsset: data[CST.DB_MK_FA].S || ''
+			}
+		};
+	}
+
+	public async getTrades(pair: string, start: number, end: number = 0) {
+		if (!end) end = util.getUTCNowTimestamp();
+		const startObj = moment.utc(start).startOf('hour');
+		const hours = [];
+		while (startObj.valueOf() <= end) {
+			hours.push(startObj.format('YYYY-MM-DD-HH'));
+			startObj.add(1, 'hour');
+		}
+
+		const trades = [];
+
+		for (const hour of hours) trades.push(...(await this.getTradesForHour(pair, hour)));
+
+		return trades;
+	}
+
+	public async getTradesForHour(pair: string, dateHour: string) {
+		const params: QueryInput = {
+			TableName: this.getTableName(CST.DB_TRADES),
+			KeyConditionExpression: `${CST.DB_PAIR_DATE_HOUR} = :${CST.DB_PAIR_DATE_HOUR}`,
+			ExpressionAttributeValues: {
+				[':' + CST.DB_PAIR_DATE_HOUR]: {
+					S: `${pair}|${dateHour}`
+				}
+			}
+		};
+
+		const data = await this.queryData(params);
+		if (!data.Items || !data.Items.length) return [];
+
+		return data.Items.map(t => this.parseTrade(t));
 	}
 }
 
