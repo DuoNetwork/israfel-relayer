@@ -325,10 +325,10 @@ class MarketMaker {
 			? otherTokenOrderBook.asks[0].price
 			: Number.MAX_VALUE;
 
-		util.logInfo(
+		util.logDebug(
 			`[${otherPair}] no arb bid ${otherTokenNoArbBidPrice} vs best bid ${otherTokenBestBid}`
 		);
-		util.logInfo(
+		util.logDebug(
 			`[${otherPair}] no arb ask ${otherTokenNoArbAskPrice} vs best ask ${otherTokenBestAsk}`
 		);
 		const orderHashesToCancel: string[] = [];
