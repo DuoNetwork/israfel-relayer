@@ -215,7 +215,7 @@ test('handleAddOrderRequest', async () => {
 	expect(relayerServer.sendErrorOrderResponse as jest.Mock).not.toBeCalled();
 });
 
-test('handleTerminateOrderRequest invalid request and liveOrder does not exist', async () => {
+test('handleTerminateOrderRequest invalid request and rawOrder does not exist', async () => {
 	relayerServer.web3Util = null;
 	relayerServer.sendResponse = jest.fn();
 	await relayerServer.handleTerminateOrderRequest({} as any, {
@@ -235,7 +235,7 @@ test('handleTerminateOrderRequest invalid request and liveOrder does not exist',
 	relayerServer.sendErrorOrderResponse = jest.fn();
 	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve('userOrder'));
-	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
+	orderPersistenceUtil.getRawOrderInPersistence = jest.fn(() => Promise.resolve(null));
 	relayerServer.web3Util = {
 		web3AccountsRecover: jest.fn(() => '')
 	} as any;
@@ -257,9 +257,11 @@ test('handleTerminateOrderRequest signature is wrong', async () => {
 	relayerServer.sendErrorOrderResponse = jest.fn();
 	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve('userOrder'));
-	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() =>
+	orderPersistenceUtil.getRawOrderInPersistence = jest.fn(() =>
 		Promise.resolve({
-			account: 'account'
+			signedOrder: {
+				makerAddress: 'account'
+			}
 		})
 	);
 	relayerServer.web3Util = {
@@ -280,9 +282,11 @@ test('handleTerminateOrderRequest signature is wrong', async () => {
 test('handleTerminateOrderRequest persist no return', async () => {
 	relayerServer.sendErrorOrderResponse = jest.fn();
 	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() =>
+	orderPersistenceUtil.getRawOrderInPersistence = jest.fn(() =>
 		Promise.resolve({
-			account: 'account'
+			signedOrder: {
+				makerAddress: 'account'
+			}
 		})
 	);
 	relayerServer.web3Util = {
@@ -304,9 +308,11 @@ test('handleTerminateOrderRequest persist no return', async () => {
 test('handleTerminateOrderRequest persist error', async () => {
 	relayerServer.sendErrorOrderResponse = jest.fn();
 	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() =>
+	orderPersistenceUtil.getRawOrderInPersistence = jest.fn(() =>
 		Promise.resolve({
-			account: 'account'
+			signedOrder: {
+				makerAddress: 'account'
+			}
 		})
 	);
 	relayerServer.web3Util = {
@@ -330,9 +336,11 @@ test('handleTerminateOrderRequest persist error', async () => {
 test('handleTerminateOrderRequest', async () => {
 	relayerServer.sendErrorOrderResponse = jest.fn();
 	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() =>
+	orderPersistenceUtil.getRawOrderInPersistence = jest.fn(() =>
 		Promise.resolve({
-			account: 'account'
+			signedOrder: {
+				makerAddress: 'account'
+			}
 		})
 	);
 	relayerServer.web3Util = {
@@ -702,7 +710,7 @@ test('handleTradeUpdate, no previous trades', () => {
 });
 
 test('handleTradeUpdate, have previous trades', () => {
-	relayerServer.trades['pair'] = [trade]
+	relayerServer.trades['pair'] = [trade];
 	relayerServer.wsServer = {
 		clients: [{} as any, {} as any]
 	} as any;
@@ -1084,7 +1092,7 @@ test('loadHistoryTrades', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.getTrades = jest.fn(() => Promise.resolve());
 	await relayerServer.loadHistoryTrades('pair', 1);
-	expect((dynamoUtil.getTrades  as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.getTrades as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 const ws1 = {

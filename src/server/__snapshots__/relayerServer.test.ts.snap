@@ -771,7 +771,7 @@ Array [
 ]
 `;
 
-exports[`handleTerminateOrderRequest invalid request and liveOrder does not exist 1`] = `
+exports[`handleTerminateOrderRequest invalid request and rawOrder does not exist 1`] = `
 Array [
   Array [
     Object {},
@@ -800,7 +800,7 @@ Array [
 ]
 `;
 
-exports[`handleTerminateOrderRequest invalid request and liveOrder does not exist 2`] = `
+exports[`handleTerminateOrderRequest invalid request and rawOrder does not exist 2`] = `
 Array [
   Array [
     Object {},

@@ -153,8 +153,8 @@ class RelayerServer {
 			.web3AccountsRecover(CST.TERMINATE_SIGN_MSG + orderHashes.join(','), signature)
 			.toLowerCase();
 		for (const orderHash of orderHashes) {
-			const liveOrder = await orderPersistenceUtil.getLiveOrderInPersistence(pair, orderHash);
-			if (account && liveOrder && liveOrder.account === account)
+			const rawOrder = await orderPersistenceUtil.getRawOrderInPersistence(pair, orderHash);
+			if (account && rawOrder && rawOrder.signedOrder.makerAddress === account)
 				try {
 					const userOrder = await orderPersistenceUtil.persistOrder({
 						method: req.method,
