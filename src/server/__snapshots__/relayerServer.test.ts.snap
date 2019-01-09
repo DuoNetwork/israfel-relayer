@@ -814,7 +814,7 @@ Array [
       "signature": "signature",
     },
     "0xOrderHash",
-    "invalid request",
+    "invalid order",
   ],
 ]
 `;
@@ -899,7 +899,7 @@ Array [
       "signature": "siganature",
     },
     "0xOrderHash",
-    "invalid request",
+    "invalid order",
   ],
 ]
 `;

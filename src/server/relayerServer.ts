@@ -170,8 +170,8 @@ class RelayerServer {
 					this.sendErrorOrderResponse(ws, req, orderHash, CST.WS_ERROR);
 				}
 			else {
-				util.logDebug('invalid request, ignore');
-				this.sendErrorOrderResponse(ws, req, orderHash, CST.WS_INVALID_REQ);
+				util.logDebug('invalid order, ignore');
+				this.sendErrorOrderResponse(ws, req, orderHash, CST.WS_INVALID_ORDER);
 			}
 		}
 	}
