@@ -904,18 +904,177 @@ Array [
 ]
 `;
 
-exports[`handleTradeUpdate 1`] = `
+exports[`handleTradeUpdate, have previous trades 1`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "feeAsset": "aETH",
+      "maker": Object {
+        "amount": 20,
+        "fee": 0.1,
+        "orderHash": "orderHash2",
+        "price": 0.01,
+      },
+      "pair": "pair",
+      "taker": Object {
+        "address": "address",
+        "amount": 20,
+        "fee": 0.1,
+        "orderHash": "orderHash1",
+        "price": 0.01,
+        "side": "bid",
+      },
+      "timestamp": 1234567890,
+      "transactionHash": "txHash2",
+    },
+  ],
+  Array [
+    Object {},
+    Object {
+      "feeAsset": "aETH",
+      "maker": Object {
+        "amount": 20,
+        "fee": 0.1,
+        "orderHash": "orderHash2",
+        "price": 0.01,
+      },
+      "pair": "pair",
+      "taker": Object {
+        "address": "address",
+        "amount": 20,
+        "fee": 0.1,
+        "orderHash": "orderHash1",
+        "price": 0.01,
+        "side": "bid",
+      },
+      "timestamp": 1234567890,
+      "transactionHash": "txHash2",
+    },
+  ],
+]
+`;
+
+exports[`handleTradeUpdate, have previous trades 2`] = `
 Object {
   "pair": Array [
     Object {
+      "feeAsset": "aETH",
+      "maker": Object {
+        "amount": 20,
+        "fee": 0.1,
+        "orderHash": "orderHash2",
+        "price": 0.01,
+      },
       "pair": "pair",
-      "timestamp": 1234567889,
-      "transactionHash": "txHash2",
+      "taker": Object {
+        "address": "address",
+        "amount": 20,
+        "fee": 0.1,
+        "orderHash": "orderHash1",
+        "price": 0.01,
+        "side": "bid",
+      },
+      "timestamp": 1234567890,
+      "transactionHash": "txHash",
     },
     Object {
+      "feeAsset": "aETH",
+      "maker": Object {
+        "amount": 20,
+        "fee": 0.1,
+        "orderHash": "orderHash2",
+        "price": 0.01,
+      },
       "pair": "pair",
+      "taker": Object {
+        "address": "address",
+        "amount": 20,
+        "fee": 0.1,
+        "orderHash": "orderHash1",
+        "price": 0.01,
+        "side": "bid",
+      },
       "timestamp": 1234567890,
-      "transactionHash": "txHash1",
+      "transactionHash": "txHash2",
+    },
+  ],
+}
+`;
+
+exports[`handleTradeUpdate, no previous trades 1`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "feeAsset": "aETH",
+      "maker": Object {
+        "amount": 20,
+        "fee": 0.1,
+        "orderHash": "orderHash2",
+        "price": 0.01,
+      },
+      "pair": "pair",
+      "taker": Object {
+        "address": "address",
+        "amount": 20,
+        "fee": 0.1,
+        "orderHash": "orderHash1",
+        "price": 0.01,
+        "side": "bid",
+      },
+      "timestamp": 1234567890,
+      "transactionHash": "txHash",
+    },
+  ],
+  Array [
+    Object {},
+    Object {
+      "feeAsset": "aETH",
+      "maker": Object {
+        "amount": 20,
+        "fee": 0.1,
+        "orderHash": "orderHash2",
+        "price": 0.01,
+      },
+      "pair": "pair",
+      "taker": Object {
+        "address": "address",
+        "amount": 20,
+        "fee": 0.1,
+        "orderHash": "orderHash1",
+        "price": 0.01,
+        "side": "bid",
+      },
+      "timestamp": 1234567890,
+      "transactionHash": "txHash",
+    },
+  ],
+]
+`;
+
+exports[`handleTradeUpdate, no previous trades 2`] = `
+Object {
+  "pair": Array [
+    Object {
+      "feeAsset": "aETH",
+      "maker": Object {
+        "amount": 20,
+        "fee": 0.1,
+        "orderHash": "orderHash2",
+        "price": 0.01,
+      },
+      "pair": "pair",
+      "taker": Object {
+        "address": "address",
+        "amount": 20,
+        "fee": 0.1,
+        "orderHash": "orderHash1",
+        "price": 0.01,
+        "side": "bid",
+      },
+      "timestamp": 1234567890,
+      "transactionHash": "txHash",
     },
   ],
 }
@@ -1091,6 +1250,16 @@ Array [
 ]
 `;
 
+exports[`loadHistoryTrades 1`] = `
+Array [
+  Array [
+    "pair",
+    1148167890,
+    1234567890,
+  ],
+]
+`;
+
 exports[`sendErrorOrderResponse 1`] = `
 Array [
   Array [
@@ -1102,7 +1271,7 @@ Array [
 exports[`sendInfo 1`] = `
 Array [
   Array [
-    "{\\"channel\\":\\"info\\",\\"method\\":\\"info\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"acceptedPrices\\":{\\"custodian\\":[\\"acceptedPrices\\"]},\\"exchangePrices\\":{},\\"tokens\\":[\\"token1\\"],\\"processStatus\\":[\\"status1\\"]}",
+    "{\\"channel\\":\\"info\\",\\"method\\":\\"info\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"acceptedPrices\\":{\\"custodian\\":[\\"acceptedPrices\\"]},\\"exchangePrices\\":{},\\"historyMarketTrades\\":{\\"pair\\":[\\"historyTrades\\"]},\\"tokens\\":[\\"token1\\"],\\"processStatus\\":[\\"status1\\"]}",
   ],
 ]
 `;

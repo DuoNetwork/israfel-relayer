@@ -20,6 +20,9 @@ test('sendInfo', () => {
 	relayerServer.duoAcceptedPrices = {
 		custodian: ['acceptedPrices'] as any
 	};
+	relayerServer.historyMarketTrades = {
+		pair: ['historyTrades'] as any
+	};
 	relayerServer.processStatus = ['status1'] as any;
 	relayerServer.sendInfo(ws as any);
 	expect((ws.send as jest.Mock).mock.calls).toMatchSnapshot();
@@ -460,19 +463,19 @@ test('handleOrderUpdate requested existing pair existing account', () => {
 	expect((relayerServer.sendUserOrderResponse as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('handleTradeUpdate', () => {
-	relayerServer.handleTradeUpdate('channel', {
-		pair: 'pair',
-		transactionHash: 'txHash1',
-		timestamp: 1234567890
-	} as any);
-	relayerServer.handleTradeUpdate('channel', {
-		pair: 'pair',
-		transactionHash: 'txHash2',
-		timestamp: 1234567889
-	} as any);
-	expect(relayerServer.trades).toMatchSnapshot();
-})
+// test('handleTradeUpdate', () => {
+// 	relayerServer.handleTradeUpdate('channel', {
+// 		pair: 'pair',
+// 		transactionHash: 'txHash1',
+// 		timestamp: 1234567890
+// 	} as any);
+// 	relayerServer.handleTradeUpdate('channel', {
+// 		pair: 'pair',
+// 		transactionHash: 'txHash2',
+// 		timestamp: 1234567889
+// 	} as any);
+// 	expect(relayerServer.trades).toMatchSnapshot();
+// });
 
 test('handleOrderHistoryUnsubscribeRequest existing account more than one', async () => {
 	relayerServer.sendResponse = jest.fn();
@@ -666,6 +669,49 @@ test('handleOrderRequest unsubscribe', async () => {
 	expect(
 		(relayerServer.handleOrderHistoryUnsubscribeRequest as jest.Mock).mock.calls
 	).toMatchSnapshot();
+});
+
+const trade = {
+	pair: 'pair',
+	transactionHash: 'txHash',
+	taker: {
+		orderHash: 'orderHash1',
+		address: 'address',
+		side: 'bid',
+		price: 0.01,
+		amount: 20,
+		fee: 0.1
+	},
+	maker: {
+		orderHash: 'orderHash2',
+		price: 0.01,
+		amount: 20,
+		fee: 0.1
+	},
+	feeAsset: 'aETH',
+	timestamp: 1234567890
+};
+test('handleTradeUpdate, no previous trades', () => {
+	relayerServer.wsServer = {
+		clients: [{} as any, {} as any]
+	} as any;
+	relayerServer.sendTradeUpdate = jest.fn();
+	relayerServer.handleTradeUpdate('channel', trade);
+	expect((relayerServer.sendTradeUpdate as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(relayerServer.trades).toMatchSnapshot();
+});
+
+test('handleTradeUpdate, have previous trades', () => {
+	relayerServer.trades['pair'] = [trade]
+	relayerServer.wsServer = {
+		clients: [{} as any, {} as any]
+	} as any;
+	relayerServer.sendTradeUpdate = jest.fn();
+	const secondTrade = util.clone(trade);
+	secondTrade.transactionHash = 'txHash2';
+	relayerServer.handleTradeUpdate('channel', secondTrade);
+	expect((relayerServer.sendTradeUpdate as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(relayerServer.trades).toMatchSnapshot();
 });
 
 test('handleOrderBookUpdate empty ws list', () => {
@@ -1032,6 +1078,13 @@ test('loadDuoExchangePrices', async () => {
 	await relayerServer.loadDuoExchangePrices();
 	expect(relayerServer.duoExchangePrices).toEqual({});
 	expect((duoDynamoUtil.getPrices as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('loadHistoryTrades', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	dynamoUtil.getTrades = jest.fn(() => Promise.resolve());
+	await relayerServer.loadHistoryTrades('pair', 1);
+	expect((dynamoUtil.getTrades  as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 const ws1 = {
