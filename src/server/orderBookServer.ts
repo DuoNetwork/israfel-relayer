@@ -41,19 +41,17 @@ class OrderBookServer {
 	public async handleOrderUpdate(channel: string, orderQueueItem: IOrderQueueItem) {
 		util.logDebug('receive update from channel: ' + channel);
 
-		if (
-			orderQueueItem.requestor === CST.DB_ORDER_BOOKS ||
-			(orderQueueItem.requestor === CST.DB_ORDER_MATCHER &&
-				orderQueueItem.method !== CST.DB_TERMINATE)
-		) {
+		if (orderQueueItem.requestor === CST.DB_ORDER_BOOKS) {
 			util.logDebug('ignore order update requested by self');
 			return;
 		}
 
+		const { method, liveOrder } = orderQueueItem;
+		const orderHash = liveOrder.orderHash;
+
 		if (!this.custodianInTrading) {
 			util.logDebug('custodian not in trading, terminate incoming order');
-			if (orderQueueItem.method !== CST.DB_TERMINATE)
-				this.terminateOrder(orderQueueItem.liveOrder.orderHash);
+			if (method !== CST.DB_TERMINATE) this.terminateOrder(orderHash);
 			return;
 		}
 
@@ -63,12 +61,11 @@ class OrderBookServer {
 			return;
 		}
 
-		const { method, liveOrder } = orderQueueItem;
 		if (![CST.DB_ADD, CST.DB_UPDATE, CST.DB_TERMINATE].includes(method)) {
 			util.logDebug('invalid method, ignore');
 			return;
 		}
-		const orderHash = liveOrder.orderHash;
+
 		if (
 			liveOrder.currentSequence <= this.orderSnapshotSequence ||
 			(this.processedUpdates[orderHash] &&

@@ -21,7 +21,7 @@ test('subscribeTradeUpdate', () => {
 	expect((redisUtil.subscribe as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(redisUtil.onTradeUpdate as jest.Mock).toBeCalledTimes(1);
 	expect((redisUtil.onTradeUpdate as jest.Mock).mock.calls[0][0]).toBe(handleTradeUpdate);
-})
+});
 
 const orderBook = {
 	bids: [
@@ -471,63 +471,6 @@ test('processMatchQueue, empty queue', async () => {
 	expect(isSuccess).toEqual(false);
 });
 
-test('processMatchQueue, no leftRawOrder', async () => {
-	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
-	redisUtil.putBack = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.getRawOrderInPersistence = jest.fn(() => Promise.resolve(null));
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
-	const web3Util = {
-		tokens: [],
-		getTransactionCount: jest.fn(() => 1),
-		getGasPrice: jest.fn(() => 100000000),
-		matchOrders: jest.fn(() => Promise.resolve()),
-		awaitTransactionSuccessAsync: jest.fn(() => Promise.resolve())
-	} as any;
-	orderMatchingUtil.processMatchSuccess = jest.fn();
-	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util);
-	expect((redisUtil.pop as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(
-		(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).mock.calls
-	).toMatchSnapshot();
-	expect(orderPersistenceUtil.persistOrder as jest.Mock).not.toBeCalled();
-	expect(web3Util.getTransactionCount as jest.Mock).not.toBeCalled();
-	expect(web3Util.getGasPrice as jest.Mock).not.toBeCalled();
-	expect(web3Util.matchOrders as jest.Mock).not.toBeCalled();
-	expect(redisUtil.putBack as jest.Mock).not.toBeCalled();
-	// expect((redisUtil.putBack  as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(web3Util.awaitTransactionSuccessAsync as jest.Mock).not.toBeCalled();
-	expect(isSuccess).toEqual(true);
-});
-
-test('processMatchQueue, no rightRawOrder', async () => {
-	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
-	redisUtil.putBack = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.getRawOrderInPersistence = jest.fn((pair: string, orderHash: string) =>
-		Promise.resolve(orderHash === '0xrightHash' ? null : pair)
-	);
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
-	const web3Util = {
-		tokens: [],
-		getTransactionCount: jest.fn(() => 1),
-		getGasPrice: jest.fn(() => 100000000),
-		matchOrders: jest.fn(() => Promise.resolve()),
-		awaitTransactionSuccessAsync: jest.fn(() => Promise.resolve())
-	} as any;
-	orderMatchingUtil.processMatchSuccess = jest.fn();
-	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util);
-	expect((redisUtil.pop as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(
-		(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).mock.calls
-	).toMatchSnapshot();
-	expect(orderPersistenceUtil.persistOrder as jest.Mock).not.toBeCalled();
-	expect(web3Util.getTransactionCount as jest.Mock).not.toBeCalled();
-	expect(web3Util.getGasPrice as jest.Mock).not.toBeCalled();
-	expect(web3Util.matchOrders as jest.Mock).not.toBeCalled();
-	expect(redisUtil.putBack as jest.Mock).not.toBeCalled();
-	expect(web3Util.awaitTransactionSuccessAsync as jest.Mock).not.toBeCalled();
-	expect(isSuccess).toEqual(true);
-});
-
 const rawOrders: { [key: string]: IRawOrder } = {
 	'0xleftHash': {
 		pair: 'pair',
@@ -576,6 +519,7 @@ const rawOrders: { [key: string]: IRawOrder } = {
 };
 
 test('processMatchQueue, matchOrder revert', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1528117918000);
 	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
 	redisUtil.putBack = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.getRawOrderInPersistence = jest.fn((pair, hash) => {
@@ -606,6 +550,7 @@ test('processMatchQueue, matchOrder revert', async () => {
 });
 
 test('processMatchQueue, persistOrder reject', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1528117918000);
 	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
 	redisUtil.putBack = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.getRawOrderInPersistence = jest.fn((pair, hash) => {
@@ -636,6 +581,7 @@ test('processMatchQueue, persistOrder reject', async () => {
 });
 
 test('processMatchQueue, awaitTransactionSuccessAsync revert', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1528117918000);
 	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
 	redisUtil.putBack = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.getRawOrderInPersistence = jest.fn((pair, hash) => {
@@ -667,6 +613,7 @@ test('processMatchQueue, awaitTransactionSuccessAsync revert', async () => {
 });
 
 test('processMatchQueue, awaitTransactionSuccessAsync success', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1528117918000);
 	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
 	redisUtil.putBack = jest.fn(() => Promise.resolve());
 	dynamoUtil.addTrade = jest.fn(() => Promise.resolve());
@@ -699,6 +646,7 @@ test('processMatchQueue, awaitTransactionSuccessAsync success', async () => {
 });
 
 test('processMatchQueue, awaitTransactionSuccessAsync success partial', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1528117918000);
 	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
 	redisUtil.putBack = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.getRawOrderInPersistence = jest.fn((pair, hash) => {
@@ -730,6 +678,7 @@ test('processMatchQueue, awaitTransactionSuccessAsync success partial', async ()
 });
 
 test('processMatchQueue, awaitTransactionSuccessAsync success, not feeOnToken', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1528117918000);
 	orderMatchReq.feeAsset = 'code2';
 	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
 	redisUtil.putBack = jest.fn(() => Promise.resolve());
@@ -758,5 +707,150 @@ test('processMatchQueue, awaitTransactionSuccessAsync success, not feeOnToken', 
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(redisUtil.putBack as jest.Mock).not.toBeCalled();
 	expect((web3Util.awaitTransactionSuccessAsync as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(isSuccess).toEqual(true);
+});
+
+test('processMatchQueue, no leftRawOrder', async () => {
+	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
+	redisUtil.putBack = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.getRawOrderInPersistence = jest.fn(() => Promise.resolve(null));
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	const web3Util = {
+		tokens: [],
+		getTransactionCount: jest.fn(() => 1),
+		getGasPrice: jest.fn(() => 100000000),
+		matchOrders: jest.fn(() => Promise.resolve()),
+		awaitTransactionSuccessAsync: jest.fn(() => Promise.resolve())
+	} as any;
+	orderMatchingUtil.processMatchSuccess = jest.fn();
+	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util);
+	expect((redisUtil.pop as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(
+		(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).mock.calls
+	).toMatchSnapshot();
+	expect(orderPersistenceUtil.persistOrder as jest.Mock).not.toBeCalled();
+	expect(web3Util.getTransactionCount as jest.Mock).not.toBeCalled();
+	expect(web3Util.getGasPrice as jest.Mock).not.toBeCalled();
+	expect(web3Util.matchOrders as jest.Mock).not.toBeCalled();
+	expect(redisUtil.putBack as jest.Mock).not.toBeCalled();
+	// expect((redisUtil.putBack  as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(web3Util.awaitTransactionSuccessAsync as jest.Mock).not.toBeCalled();
+	expect(isSuccess).toEqual(true);
+});
+
+test('processMatchQueue, left order expired', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890000);
+	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
+	redisUtil.putBack = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.getRawOrderInPersistence = jest.fn(() =>
+		Promise.resolve({
+			signedOrder: 'signedOrder'
+		})
+	);
+	orderUtil.parseSignedOrder = jest.fn(() => ({
+		expirationTimeSeconds: new BigNumber(1234567890 - 180)
+	}));
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	const web3Util = {
+		tokens: [],
+		getTransactionCount: jest.fn(() => 1),
+		getGasPrice: jest.fn(() => 100000000),
+		matchOrders: jest.fn(() => Promise.resolve()),
+		awaitTransactionSuccessAsync: jest.fn(() => Promise.resolve())
+	} as any;
+	orderMatchingUtil.processMatchSuccess = jest.fn();
+	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util);
+	expect((redisUtil.pop as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(
+		(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).mock.calls
+	).toMatchSnapshot();
+	expect((orderUtil.parseSignedOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(web3Util.getTransactionCount as jest.Mock).not.toBeCalled();
+	expect(web3Util.getGasPrice as jest.Mock).not.toBeCalled();
+	expect(web3Util.matchOrders as jest.Mock).not.toBeCalled();
+	expect(redisUtil.putBack as jest.Mock).not.toBeCalled();
+	expect(web3Util.awaitTransactionSuccessAsync as jest.Mock).not.toBeCalled();
+	expect(isSuccess).toEqual(true);
+});
+
+test('processMatchQueue, no rightRawOrder', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890000);
+	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
+	redisUtil.putBack = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.getRawOrderInPersistence = jest.fn((pair: string, orderHash: string) =>
+		Promise.resolve(
+			orderHash === '0xrightHash'
+				? null
+				: {
+						signedOrder: pair
+				}
+		)
+	);
+	orderUtil.parseSignedOrder = jest.fn(() => ({
+		expirationTimeSeconds: new BigNumber(1234567890 - 179)
+	}));
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	const web3Util = {
+		tokens: [],
+		getTransactionCount: jest.fn(() => 1),
+		getGasPrice: jest.fn(() => 100000000),
+		matchOrders: jest.fn(() => Promise.resolve()),
+		awaitTransactionSuccessAsync: jest.fn(() => Promise.resolve())
+	} as any;
+	orderMatchingUtil.processMatchSuccess = jest.fn();
+	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util);
+	expect((redisUtil.pop as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(
+		(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).mock.calls
+	).toMatchSnapshot();
+	expect((orderUtil.parseSignedOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(orderPersistenceUtil.persistOrder as jest.Mock).not.toBeCalled();
+	expect(web3Util.getTransactionCount as jest.Mock).not.toBeCalled();
+	expect(web3Util.getGasPrice as jest.Mock).not.toBeCalled();
+	expect(web3Util.matchOrders as jest.Mock).not.toBeCalled();
+	expect(redisUtil.putBack as jest.Mock).not.toBeCalled();
+	expect(web3Util.awaitTransactionSuccessAsync as jest.Mock).not.toBeCalled();
+	expect(isSuccess).toEqual(true);
+});
+
+test('processMatchQueue, right order expired', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890000);
+	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
+	redisUtil.putBack = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.getRawOrderInPersistence = jest.fn(() =>
+		Promise.resolve({
+			signedOrder: 'signedOrder'
+		})
+	);
+	orderUtil.parseSignedOrder = jest
+		.fn()
+		.mockReturnValueOnce({
+			expirationTimeSeconds: new BigNumber(1234567890 - 179)
+		})
+		.mockReturnValueOnce({
+			expirationTimeSeconds: new BigNumber(1234567890 - 180)
+		});
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	const web3Util = {
+		tokens: [],
+		getTransactionCount: jest.fn(() => 1),
+		getGasPrice: jest.fn(() => 100000000),
+		matchOrders: jest.fn(() => Promise.resolve()),
+		awaitTransactionSuccessAsync: jest.fn(() => Promise.resolve())
+	} as any;
+	orderMatchingUtil.processMatchSuccess = jest.fn();
+	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util);
+	expect((redisUtil.pop as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(
+		(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).mock.calls
+	).toMatchSnapshot();
+	expect((orderUtil.parseSignedOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(web3Util.getTransactionCount as jest.Mock).not.toBeCalled();
+	expect(web3Util.getGasPrice as jest.Mock).not.toBeCalled();
+	expect(web3Util.matchOrders as jest.Mock).not.toBeCalled();
+	expect(redisUtil.putBack as jest.Mock).not.toBeCalled();
+	expect(web3Util.awaitTransactionSuccessAsync as jest.Mock).not.toBeCalled();
 	expect(isSuccess).toEqual(true);
 });

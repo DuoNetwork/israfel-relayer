@@ -248,7 +248,26 @@ class OrderMatchingUtil {
 			);
 
 			if (!bidRawOrder) {
-				util.logError(`raw order of ${bidRawOrder} does not exist, ignore match request`);
+				util.logError(`raw order of ${bid.orderHash} does not exist, ignore match request`);
+				return true;
+			}
+
+			const bidOrder = orderUtil.parseSignedOrder(
+				bidRawOrder.signedOrder as IStringSignedOrder
+			);
+
+			if (
+				Number(bidOrder.expirationTimeSeconds.valueOf()) <=
+				util.getUTCNowTimestamp() / 1000 - 180
+			) {
+				util.logError(`${bid.orderHash} already expired`);
+				await orderPersistenceUtil.persistOrder({
+					method: CST.DB_TERMINATE,
+					status: CST.DB_TERMINATE,
+					requestor: CST.DB_ORDER_MATCHER,
+					pair: pair,
+					orderHash: bid.orderHash
+				});
 				return true;
 			}
 
@@ -258,17 +277,28 @@ class OrderMatchingUtil {
 			);
 
 			if (!askRawOrder) {
-				util.logError(`raw order of ${askRawOrder} does not exist, ignore match request`);
+				util.logError(`raw order of ${ask.orderHash} does not exist, ignore match request`);
 				return true;
 			}
-
-			const bidOrder = orderUtil.parseSignedOrder(
-				bidRawOrder.signedOrder as IStringSignedOrder
-			);
 
 			const askOrder = orderUtil.parseSignedOrder(
 				askRawOrder.signedOrder as IStringSignedOrder
 			);
+
+			if (
+				Number(askOrder.expirationTimeSeconds.valueOf()) <=
+				util.getUTCNowTimestamp() / 1000 - 180
+			) {
+				util.logError(`${ask.orderHash} already expired`);
+				await orderPersistenceUtil.persistOrder({
+					method: CST.DB_TERMINATE,
+					status: CST.DB_TERMINATE,
+					requestor: CST.DB_ORDER_MATCHER,
+					pair: pair,
+					orderHash: ask.orderHash
+				});
+				return true;
+			}
 
 			const currentAddr = this.getCurrentAddress();
 			util.logDebug('using sender address ' + currentAddr);

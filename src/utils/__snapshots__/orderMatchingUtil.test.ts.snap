@@ -1806,6 +1806,45 @@ Array [
 ]
 `;
 
+exports[`processMatchQueue, left order expired 1`] = `
+Array [
+  Array [
+    "match|queue",
+  ],
+]
+`;
+
+exports[`processMatchQueue, left order expired 2`] = `
+Array [
+  Array [
+    "code1|code2",
+    "0xleftHash",
+  ],
+]
+`;
+
+exports[`processMatchQueue, left order expired 3`] = `
+Array [
+  Array [
+    "signedOrder",
+  ],
+]
+`;
+
+exports[`processMatchQueue, left order expired 4`] = `
+Array [
+  Array [
+    Object {
+      "method": "terminate",
+      "orderHash": "0xleftHash",
+      "pair": "code1|code2",
+      "requestor": "orderMatcher",
+      "status": "terminate",
+    },
+  ],
+]
+`;
+
 exports[`processMatchQueue, matchOrder revert 1`] = `
 Array [
   Array [
@@ -1888,6 +1927,14 @@ Array [
 ]
 `;
 
+exports[`processMatchQueue, no rightRawOrder 3`] = `
+Array [
+  Array [
+    "code1|code2",
+  ],
+]
+`;
+
 exports[`processMatchQueue, persistOrder reject 1`] = `
 Array [
   Array [
@@ -1928,6 +1975,52 @@ Array [
   Array [
     "match|queue",
     "{\\"pair\\":\\"code1|code2\\",\\"feeAsset\\":\\"code1\\",\\"bid\\":{\\"orderAmount\\":10,\\"orderHash\\":\\"0xleftHash\\",\\"matchingAmount\\":10,\\"price\\":0.001,\\"fee\\":0.1},\\"ask\\":{\\"orderAmount\\":10,\\"orderHash\\":\\"0xrightHash\\",\\"matchingAmount\\":10,\\"price\\":0.001,\\"fee\\":0.1},\\"takerSide\\":\\"bid\\"}",
+  ],
+]
+`;
+
+exports[`processMatchQueue, right order expired 1`] = `
+Array [
+  Array [
+    "match|queue",
+  ],
+]
+`;
+
+exports[`processMatchQueue, right order expired 2`] = `
+Array [
+  Array [
+    "code1|code2",
+    "0xleftHash",
+  ],
+  Array [
+    "code1|code2",
+    "0xrightHash",
+  ],
+]
+`;
+
+exports[`processMatchQueue, right order expired 3`] = `
+Array [
+  Array [
+    "signedOrder",
+  ],
+  Array [
+    "signedOrder",
+  ],
+]
+`;
+
+exports[`processMatchQueue, right order expired 4`] = `
+Array [
+  Array [
+    Object {
+      "method": "terminate",
+      "orderHash": "0xrightHash",
+      "pair": "code1|code2",
+      "requestor": "orderMatcher",
+      "status": "terminate",
+    },
   ],
 ]
 `;

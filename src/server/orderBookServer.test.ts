@@ -103,13 +103,6 @@ test('handleOrderUpdate ignore update by self', async () => {
 	expect(orderBookServer.processedUpdates).toEqual({});
 });
 
-test('handleOrderUpdate ignore non terminating update by order matcher', async () => {
-	orderQueueItem.requestor = CST.DB_ORDER_MATCHER;
-	await orderBookServer.handleOrderUpdate(channel, orderQueueItem);
-	expect(orderBookServer.pendingUpdates.length).toBe(0);
-	expect(orderBookServer.processedUpdates).toEqual({});
-});
-
 test('handleOrderUpdate invalid method', async () => {
 	orderQueueItem.requestor = 'requestor';
 	orderQueueItem.method = 'xxx';
