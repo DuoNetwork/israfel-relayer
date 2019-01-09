@@ -736,3 +736,76 @@ test('getTrades', async () => {
 	await dynamoUtil.getTrades('code1|code2', 9870000000);
 	expect((dynamoUtil.getTradesForHour as jest.Mock).mock.calls).toMatchSnapshot();
 });
+
+test('addLiveAndRawOrder', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 9876543210);
+	dynamoUtil.transactPutData = jest.fn(() => Promise.resolve());
+	await dynamoUtil.addLiveAndRawOrder(
+		{
+			account: '0xAccount',
+			pair: 'code1|code2',
+			orderHash: '0xOrderHash',
+			price: 0.123456789,
+			amount: 456,
+			balance: 123,
+			matching: 111,
+			fill: 234,
+			side: CST.DB_BID,
+			expiry: 1234567890,
+			fee: 1,
+			feeAsset: 'feeAsset',
+			createdAt: 1234560000,
+			updatedAt: 1234560000,
+			initialSequence: 1,
+			currentSequence: 2
+		},
+		{
+			pair: 'code1|code2',
+			orderHash: '0xOrderHash',
+			signedOrder: {
+				senderAddress: 'senderAddress',
+				makerAddress: 'makerAddress',
+				takerAddress: 'takerAddress',
+				makerFee: '0',
+				takerFee: '0',
+				makerAssetAmount: '123',
+				takerAssetAmount: '456',
+				makerAssetData: 'makerAssetData',
+				takerAssetData: 'takerAssetData',
+				salt: '789',
+				exchangeAddress: 'exchangeAddress',
+				feeRecipientAddress: 'feeRecipientAddress',
+				expirationTimeSeconds: '1234567890',
+				signature: 'signature'
+			}
+		} as any
+	);
+	expect((dynamoUtil.transactPutData as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('deleteLiveAndRawOrder', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 9876543210);
+	dynamoUtil.transactPutData = jest.fn(() => Promise.resolve());
+	await dynamoUtil.deleteLiveAndRawOrder(
+		{
+			account: '0xAccount',
+			pair: 'code1|code2',
+			orderHash: '0xOrderHash',
+			price: 0.123456789,
+			amount: 456,
+			balance: 123,
+			matching: 111,
+			fill: 234,
+			side: CST.DB_BID,
+			expiry: 1234567890,
+			fee: 1,
+			feeAsset: 'feeAsset',
+			createdAt: 1234560000,
+			updatedAt: 1234560000,
+			initialSequence: 1,
+			currentSequence: 2
+		},
+		'orderHash'
+	);
+	expect((dynamoUtil.transactPutData as jest.Mock).mock.calls).toMatchSnapshot();
+});

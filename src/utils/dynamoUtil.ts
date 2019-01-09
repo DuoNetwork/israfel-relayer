@@ -6,6 +6,7 @@ import DynamoDB, {
 	QueryOutput,
 	ScanInput,
 	ScanOutput,
+	TransactWriteItemsInput,
 	UpdateItemInput
 } from 'aws-sdk/clients/dynamodb';
 import AWS from 'aws-sdk/global';
@@ -40,6 +41,14 @@ class DynamoUtil {
 		return new Promise((resolve, reject) =>
 			this.ddb
 				? this.ddb.putItem(params, err => (err ? reject(err) : resolve()))
+				: reject('dynamo db connection is not initialized')
+		);
+	}
+
+	public transactPutData(params: TransactWriteItemsInput): Promise<void> {
+		return new Promise((resolve, reject) =>
+			this.ddb
+				? this.ddb.transactWriteItems(params, err => (err ? reject(err) : resolve()))
 				: reject('dynamo db connection is not initialized')
 		);
 	}
@@ -199,6 +208,60 @@ class DynamoUtil {
 		return this.putData({
 			TableName: this.getTableName(CST.DB_LIVE_ORDERS),
 			Item: this.convertLiveOrderToDynamo(liveOrder)
+		});
+	}
+
+	public addLiveAndRawOrder(liveOrder: ILiveOrder, rawOrder: IRawOrder) {
+		return this.transactPutData({
+			TransactItems: [
+				{
+					Put: {
+						TableName: this.getTableName(CST.DB_LIVE_ORDERS),
+						Item: this.convertLiveOrderToDynamo(liveOrder)
+					}
+				},
+				{
+					Put: {
+						TableName: this.getTableName(CST.DB_RAW_ORDERS),
+						Item: this.convertRawOrderToDynamo(rawOrder)
+					}
+				}
+			]
+		});
+	}
+
+	public deleteLiveAndRawOrder(liveOrder: ILiveOrder, rawOrderOrderHash: string) {
+		return this.transactPutData({
+			TransactItems: [
+				{
+					Delete: {
+						TableName: this.getTableName(CST.DB_LIVE_ORDERS),
+						Key: {
+							[CST.DB_PAIR]: {
+								S: liveOrder.pair
+							},
+							[CST.DB_ORDER_HASH]: {
+								S: liveOrder.orderHash
+							}
+						}
+					}
+				},
+				{
+					Update: {
+						TableName: this.getTableName(CST.DB_RAW_ORDERS),
+						Key: {
+							[CST.DB_ORDER_HASH]: {
+								S: rawOrderOrderHash
+							}
+						},
+						ExpressionAttributeValues: {
+							[':' + CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' }
+						},
+						UpdateExpression: `SET ${CST.DB_UPDATED_AT} = ${':' +
+							CST.DB_UPDATED_AT} REMOVE ${CST.DB_0X_SIGNATURE}`
+					}
+				}
+			]
 		});
 	}
 

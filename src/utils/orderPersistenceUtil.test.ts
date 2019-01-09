@@ -42,14 +42,28 @@ const liveOrder = {
 test('addUserOrderToDB', async () => {
 	dynamoUtil.addUserOrder = jest.fn(() => Promise.resolve());
 	expect(
-		await orderPersistenceUtil.addUserOrderToDB(liveOrder, 'type', 'status', 'updatedBy', true, 'txHash')
+		await orderPersistenceUtil.addUserOrderToDB(
+			liveOrder,
+			'type',
+			'status',
+			'updatedBy',
+			true,
+			'txHash'
+		)
 	).toMatchSnapshot();
 });
 
 test('addUserOrderToDB error', async () => {
 	dynamoUtil.addUserOrder = jest.fn(() => Promise.reject('addUserOrderToDB'));
 	expect(
-		await orderPersistenceUtil.addUserOrderToDB(liveOrder, 'type', 'status', 'updatedBy', false, 'txHash')
+		await orderPersistenceUtil.addUserOrderToDB(
+			liveOrder,
+			'type',
+			'status',
+			'updatedBy',
+			false,
+			'txHash'
+		)
 	).toMatchSnapshot();
 });
 
@@ -84,7 +98,9 @@ test('getLiveOrderInPersistence in terminate queue', async () => {
 			['code1|code2|add|0xOrderhash']: JSON.stringify({ liveOrder: 'liveOrder' })
 		})
 	);
-	expect(await orderPersistenceUtil.getLiveOrderInPersistence('code1|code2', '0xOrderHash')).toBeNull();
+	expect(
+		await orderPersistenceUtil.getLiveOrderInPersistence('code1|code2', '0xOrderHash')
+	).toBeNull();
 });
 
 test('getLiveOrderInPersistence in update queue', async () => {
@@ -122,7 +138,9 @@ test('getLiveOrderInPersistence not exist', async () => {
 		})
 	);
 	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([]));
-	expect(await orderPersistenceUtil.getLiveOrderInPersistence('code1|code2', '0xOrderHash')).toBeNull();
+	expect(
+		await orderPersistenceUtil.getLiveOrderInPersistence('code1|code2', '0xOrderHash')
+	).toBeNull();
 });
 
 test('getLiveOrderInPersistence only in db', async () => {
@@ -379,15 +397,15 @@ test('processOrderQueue add', async () => {
 	redisUtil.hashGet = jest.fn(() => Promise.resolve(JSON.stringify(addOrderQueueItem)));
 	redisUtil.hashDelete = jest.fn(() => Promise.resolve());
 	redisUtil.putBack = jest.fn();
-	dynamoUtil.addRawOrder = jest.fn(() => Promise.resolve());
-	dynamoUtil.addLiveOrder = jest.fn(() => Promise.resolve());
+	dynamoUtil.addLiveAndRawOrder = jest.fn(() => Promise.resolve());
+	// dynamoUtil.addLiveOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.updateLiveOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.deleteRawOrderSignature = jest.fn(() => Promise.resolve());
 	dynamoUtil.deleteLiveOrder = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve());
 	const isSuccess = await orderPersistenceUtil.processOrderQueue();
-	expect((dynamoUtil.addRawOrder as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((dynamoUtil.addLiveOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.addLiveAndRawOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	// expect((dynamoUtil.addLiveOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(dynamoUtil.updateLiveOrder as jest.Mock).not.toBeCalled();
 	expect(dynamoUtil.deleteRawOrderSignature as jest.Mock).not.toBeCalled();
 	expect(dynamoUtil.deleteLiveOrder as jest.Mock).not.toBeCalled();
@@ -436,18 +454,18 @@ test('processOrderQueue terminate', async () => {
 	);
 	redisUtil.hashDelete = jest.fn(() => Promise.resolve());
 	redisUtil.putBack = jest.fn();
-	dynamoUtil.addRawOrder = jest.fn(() => Promise.resolve());
-	dynamoUtil.addLiveOrder = jest.fn(() => Promise.resolve());
+	dynamoUtil.addLiveAndRawOrder = jest.fn(() => Promise.resolve());
+	// dynamoUtil.addLiveOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.updateLiveOrder = jest.fn(() => Promise.resolve());
-	dynamoUtil.deleteRawOrderSignature = jest.fn(() => Promise.resolve());
-	dynamoUtil.deleteLiveOrder = jest.fn(() => Promise.resolve());
+	// dynamoUtil.deleteRawOrderSignature = jest.fn(() => Promise.resolve());
+	dynamoUtil.deleteLiveAndRawOrder = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve());
 	const isSuccess = await orderPersistenceUtil.processOrderQueue();
-	expect(dynamoUtil.addRawOrder as jest.Mock).not.toBeCalled();
-	expect(dynamoUtil.addLiveOrder as jest.Mock).not.toBeCalled();
+	// expect(dynamoUtil.addRawOrder as jest.Mock).not.toBeCalled();
+	expect(dynamoUtil.addLiveAndRawOrder as jest.Mock).not.toBeCalled();
 	expect(dynamoUtil.updateLiveOrder as jest.Mock).not.toBeCalled();
-	expect((dynamoUtil.deleteRawOrderSignature as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((dynamoUtil.deleteLiveOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	// expect((dynamoUtil.deleteRawOrderSignature as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.deleteLiveAndRawOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderPersistenceUtil.addUserOrderToDB as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((redisUtil.hashGet as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(redisUtil.putBack as jest.Mock).not.toBeCalled();
@@ -461,17 +479,17 @@ test('processOrderQueue failed', async () => {
 	redisUtil.hashDelete = jest.fn(() => Promise.resolve());
 	redisUtil.putBack = jest.fn();
 	redisUtil.hashSet = jest.fn(() => Promise.resolve());
-	dynamoUtil.addRawOrder = jest.fn(() => Promise.reject('processOrderQueue'));
-	dynamoUtil.addLiveOrder = jest.fn(() => Promise.resolve());
+	// dynamoUtil.addRawOrder = jest.fn(() => Promise.reject('processOrderQueue'));
+	dynamoUtil.addLiveAndRawOrder = jest.fn(() => Promise.reject('processOrderQueue'));
 	dynamoUtil.updateLiveOrder = jest.fn(() => Promise.resolve());
-	dynamoUtil.deleteRawOrderSignature = jest.fn(() => Promise.resolve());
-	dynamoUtil.deleteLiveOrder = jest.fn(() => Promise.resolve());
+	// dynamoUtil.deleteRawOrderSignature = jest.fn(() => Promise.resolve());
+	dynamoUtil.deleteLiveAndRawOrder = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve());
 	const isSuccess = await orderPersistenceUtil.processOrderQueue();
-	expect(dynamoUtil.addLiveOrder as jest.Mock).not.toBeCalled();
+	// expect(dynamoUtil.addLiveAndRawOrder as jest.Mock).not.toBeCalled();
 	expect(dynamoUtil.updateLiveOrder as jest.Mock).not.toBeCalled();
-	expect(dynamoUtil.deleteRawOrderSignature as jest.Mock).not.toBeCalled();
-	expect(dynamoUtil.deleteLiveOrder as jest.Mock).not.toBeCalled();
+	// expect(dynamoUtil.deleteRawOrderSignature as jest.Mock).not.toBeCalled();
+	expect(dynamoUtil.deleteLiveAndRawOrder as jest.Mock).not.toBeCalled();
 	expect(orderPersistenceUtil.addUserOrderToDB as jest.Mock).not.toBeCalled();
 	expect((redisUtil.hashGet as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(redisUtil.hashDelete as jest.Mock).not.toBeCalled();
@@ -479,7 +497,9 @@ test('processOrderQueue failed', async () => {
 	expect((redisUtil.putBack as jest.Mock).mock.calls[0][0]).toEqual(
 		(redisUtil.pop as jest.Mock).mock.calls[0][0]
 	);
-	expect((redisUtil.putBack as jest.Mock).mock.calls[0][1]).toEqual('code1|code2|add|0xOrderHash');
+	expect((redisUtil.putBack as jest.Mock).mock.calls[0][1]).toEqual(
+		'code1|code2|add|0xOrderHash'
+	);
 	expect(redisUtil.hashSet as jest.Mock).toBeCalledTimes(1);
 	expect((redisUtil.hashSet as jest.Mock).mock.calls[0][0]).toEqual(
 		(redisUtil.hashGet as jest.Mock).mock.calls[0][0]
@@ -500,7 +520,9 @@ test('getAllLiveOrdersInPersistence only add in redis', async () => {
 		})
 	);
 	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([]));
-	expect(await orderPersistenceUtil.getAllLiveOrdersInPersistence('code1|code2')).toMatchSnapshot();
+	expect(
+		await orderPersistenceUtil.getAllLiveOrdersInPersistence('code1|code2')
+	).toMatchSnapshot();
 	expect((redisUtil.hashGetAll as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
@@ -512,7 +534,9 @@ test('getAllLiveOrdersInPersistence add and update in redis', async () => {
 		})
 	);
 	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([]));
-	expect(await orderPersistenceUtil.getAllLiveOrdersInPersistence('code1|code2')).toMatchSnapshot();
+	expect(
+		await orderPersistenceUtil.getAllLiveOrdersInPersistence('code1|code2')
+	).toMatchSnapshot();
 });
 
 test('getAllLiveOrdersInPersistence add and terminate in redis', async () => {
@@ -551,7 +575,9 @@ test('getAllLiveOrdersInPersistence update in redis and exist in db', async () =
 			}
 		])
 	);
-	expect(await orderPersistenceUtil.getAllLiveOrdersInPersistence('code1|code2')).toMatchSnapshot();
+	expect(
+		await orderPersistenceUtil.getAllLiveOrdersInPersistence('code1|code2')
+	).toMatchSnapshot();
 });
 
 test('getAllLiveOrdersInPersistence update and temrinate in redis and exist in db', async () => {
@@ -594,7 +620,9 @@ test('getRawOrderInPersistence in terminate queue', async () => {
 			['code1|code2|add|0xOrderhash']: JSON.stringify({ liveOrder: 'liveOrder' })
 		})
 	);
-	expect(await orderPersistenceUtil.getRawOrderInPersistence('code1|code2', '0xOrderHash')).toBeNull();
+	expect(
+		await orderPersistenceUtil.getRawOrderInPersistence('code1|code2', '0xOrderHash')
+	).toBeNull();
 	expect((redisUtil.hashMultiGet as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
@@ -605,7 +633,9 @@ test('getRawOrderInPersistence in add queue', async () => {
 			['code1|code2|add|0xOrderHash']: JSON.stringify({ signedOrder: 'signedOrder' })
 		})
 	);
-	expect(await orderPersistenceUtil.getRawOrderInPersistence('code1|code2', '0xOrderHash')).toMatchSnapshot();
+	expect(
+		await orderPersistenceUtil.getRawOrderInPersistence('code1|code2', '0xOrderHash')
+	).toMatchSnapshot();
 });
 
 test('getRawOrderInPersistence in dynamo but no signature', async () => {
@@ -623,7 +653,9 @@ test('getRawOrderInPersistence in dynamo but no signature', async () => {
 			}
 		})
 	);
-	expect(await orderPersistenceUtil.getRawOrderInPersistence('code1|code2', '0xOrderHash')).toBeNull();
+	expect(
+		await orderPersistenceUtil.getRawOrderInPersistence('code1|code2', '0xOrderHash')
+	).toBeNull();
 	expect((dynamoUtil.getRawOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
@@ -642,7 +674,9 @@ test('getRawOrderInPersistence in dynamo', async () => {
 			}
 		})
 	);
-	expect(await orderPersistenceUtil.getRawOrderInPersistence('code1|code2', '0xOrderHash')).toMatchSnapshot();
+	expect(
+		await orderPersistenceUtil.getRawOrderInPersistence('code1|code2', '0xOrderHash')
+	).toMatchSnapshot();
 	expect((dynamoUtil.getRawOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
@@ -654,6 +688,8 @@ test('getRawOrderInPersistence not in neither', async () => {
 		})
 	);
 	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve(null));
-	expect(await orderPersistenceUtil.getRawOrderInPersistence('code1|code2', '0xOrderHash')).toBeNull();
+	expect(
+		await orderPersistenceUtil.getRawOrderInPersistence('code1|code2', '0xOrderHash')
+	).toBeNull();
 	expect((dynamoUtil.getRawOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });

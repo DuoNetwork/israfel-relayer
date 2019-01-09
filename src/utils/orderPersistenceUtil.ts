@@ -208,34 +208,36 @@ class OrderPersistenceUtil {
 			// only from orderMatcher
 			// matching will be a negative number to offset previous matching number
 			const matchinAdjust = Math.min(matching || 0, -fill + orderQueueItem.liveOrder.fill);
-			orderQueueItem.liveOrder.matching = util.round(
-				Math.max(orderQueueItem.liveOrder.matching + matchinAdjust, 0)
-			) || 0;
+			orderQueueItem.liveOrder.matching =
+				util.round(Math.max(orderQueueItem.liveOrder.matching + matchinAdjust, 0)) || 0;
 			orderQueueItem.liveOrder.fill = util.round(fill);
-			orderQueueItem.liveOrder.balance = util.round(
-				Math.max(
-					orderQueueItem.liveOrder.amount -
-						orderQueueItem.liveOrder.fill -
-						orderQueueItem.liveOrder.matching,
-					0
-				)
-			) || 0;
+			orderQueueItem.liveOrder.balance =
+				util.round(
+					Math.max(
+						orderQueueItem.liveOrder.amount -
+							orderQueueItem.liveOrder.fill -
+							orderQueueItem.liveOrder.matching,
+						0
+					)
+				) || 0;
 		} else if (!fill && matching) {
 			// only from orderMatcher
-			orderQueueItem.liveOrder.matching = util.round(
-				Math.min(
-					orderQueueItem.liveOrder.amount - orderQueueItem.liveOrder.fill,
-					orderQueueItem.liveOrder.matching + matching
-				)
-			) || 0;
-			orderQueueItem.liveOrder.balance = util.round(
-				Math.max(
-					orderQueueItem.liveOrder.amount -
-						orderQueueItem.liveOrder.fill -
-						orderQueueItem.liveOrder.matching,
-					0
-				)
-			) || 0;
+			orderQueueItem.liveOrder.matching =
+				util.round(
+					Math.min(
+						orderQueueItem.liveOrder.amount - orderQueueItem.liveOrder.fill,
+						orderQueueItem.liveOrder.matching + matching
+					)
+				) || 0;
+			orderQueueItem.liveOrder.balance =
+				util.round(
+					Math.max(
+						orderQueueItem.liveOrder.amount -
+							orderQueueItem.liveOrder.fill -
+							orderQueueItem.liveOrder.matching,
+						0
+					)
+				) || 0;
 		}
 
 		if (transactionHash) orderQueueItem.transactionHash = transactionHash;
@@ -281,19 +283,15 @@ class OrderPersistenceUtil {
 		try {
 			util.logDebug(`${method} order`);
 			if (method === CST.DB_ADD) {
-				await dynamoUtil.addRawOrder({
+				await dynamoUtil.addLiveAndRawOrder(orderQueueItem.liveOrder, {
 					pair: pair,
 					orderHash: orderHash,
 					signedOrder: orderQueueItem.signedOrder as IStringSignedOrder
 				});
-				util.logDebug(`added raw order`);
-				await dynamoUtil.addLiveOrder(orderQueueItem.liveOrder);
-				util.logDebug(`added live order`);
+				util.logDebug(`add live & raw order`);
 			} else if (method === CST.DB_TERMINATE) {
-				await dynamoUtil.deleteRawOrderSignature(orderHash);
-				util.logDebug(`deleted raw order`);
-				await dynamoUtil.deleteLiveOrder(orderQueueItem.liveOrder);
-				util.logDebug(`deleted live order`);
+				await dynamoUtil.deleteLiveAndRawOrder(orderQueueItem.liveOrder, orderHash);
+				util.logDebug(`delete live & raw order`);
 			} else {
 				await dynamoUtil.updateLiveOrder(orderQueueItem.liveOrder);
 				util.logDebug(`added live order`);

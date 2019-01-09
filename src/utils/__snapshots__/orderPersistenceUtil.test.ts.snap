@@ -327,6 +327,23 @@ exports[`processOrderQueue add 1`] = `
 Array [
   Array [
     Object {
+      "account": "0xAccount",
+      "amount": 456,
+      "balance": 123,
+      "createdAt": 1111111111,
+      "currentSequence": 2,
+      "expiry": 1234567890,
+      "fee": 1,
+      "feeAsset": "feeAsset",
+      "fill": 234,
+      "initialSequence": 1,
+      "matching": 99,
+      "orderHash": "0xOrderHash",
+      "pair": "code1|code2",
+      "price": 0.123456789,
+      "side": "bid",
+    },
+    Object {
       "orderHash": "0xOrderHash",
       "pair": "code1|code2",
       "signedOrder": Object {
@@ -370,30 +387,6 @@ Array [
       "price": 0.123456789,
       "side": "bid",
     },
-  ],
-]
-`;
-
-exports[`processOrderQueue add 3`] = `
-Array [
-  Array [
-    Object {
-      "account": "0xAccount",
-      "amount": 456,
-      "balance": 123,
-      "createdAt": 1111111111,
-      "currentSequence": 2,
-      "expiry": 1234567890,
-      "fee": 1,
-      "feeAsset": "feeAsset",
-      "fill": 234,
-      "initialSequence": 1,
-      "matching": 99,
-      "orderHash": "0xOrderHash",
-      "pair": "code1|code2",
-      "price": 0.123456789,
-      "side": "bid",
-    },
     "add",
     "status",
     "requestor",
@@ -403,7 +396,7 @@ Array [
 ]
 `;
 
-exports[`processOrderQueue add 4`] = `
+exports[`processOrderQueue add 3`] = `
 Array [
   Array [
     "orders|cache|code1|code2",
@@ -412,7 +405,7 @@ Array [
 ]
 `;
 
-exports[`processOrderQueue add 5`] = `
+exports[`processOrderQueue add 4`] = `
 Array [
   Array [
     "orders|cache|code1|code2",
@@ -450,14 +443,6 @@ Array [
 exports[`processOrderQueue terminate 1`] = `
 Array [
   Array [
-    "0xOrderHash",
-  ],
-]
-`;
-
-exports[`processOrderQueue terminate 2`] = `
-Array [
-  Array [
     Object {
       "account": "0xAccount",
       "amount": 456,
@@ -475,11 +460,12 @@ Array [
       "price": 0.123456789,
       "side": "bid",
     },
+    "0xOrderHash",
   ],
 ]
 `;
 
-exports[`processOrderQueue terminate 3`] = `
+exports[`processOrderQueue terminate 2`] = `
 Array [
   Array [
     Object {
@@ -508,7 +494,7 @@ Array [
 ]
 `;
 
-exports[`processOrderQueue terminate 4`] = `
+exports[`processOrderQueue terminate 3`] = `
 Array [
   Array [
     "orders|cache|code1|code2",
@@ -517,7 +503,7 @@ Array [
 ]
 `;
 
-exports[`processOrderQueue terminate 5`] = `
+exports[`processOrderQueue terminate 4`] = `
 Array [
   Array [
     "orders|cache|code1|code2",

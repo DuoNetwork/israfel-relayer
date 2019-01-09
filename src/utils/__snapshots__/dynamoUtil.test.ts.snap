@@ -1,5 +1,132 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`addLiveAndRawOrder 1`] = `
+Array [
+  Array [
+    Object {
+      "TransactItems": Array [
+        Object {
+          "Put": Object {
+            "Item": Object {
+              "account": Object {
+                "S": "0xAccount",
+              },
+              "amount": Object {
+                "N": "456",
+              },
+              "balance": Object {
+                "N": "123",
+              },
+              "createdAt": Object {
+                "N": "1234560000",
+              },
+              "currentSequence": Object {
+                "N": "2",
+              },
+              "expiry": Object {
+                "N": "1234567890",
+              },
+              "fee": Object {
+                "N": "1",
+              },
+              "feeAsset": Object {
+                "S": "feeAsset",
+              },
+              "fill": Object {
+                "N": "234",
+              },
+              "initialSequence": Object {
+                "N": "1",
+              },
+              "matching": Object {
+                "N": "111",
+              },
+              "orderHash": Object {
+                "S": "0xOrderHash",
+              },
+              "pair": Object {
+                "S": "code1|code2",
+              },
+              "price": Object {
+                "N": "0.12345679",
+              },
+              "side": Object {
+                "S": "bid",
+              },
+              "updatedAt": Object {
+                "N": "9876543210",
+              },
+            },
+            "TableName": "israfel.dev.liveOrders",
+          },
+        },
+        Object {
+          "Put": Object {
+            "Item": Object {
+              "createdAt": Object {
+                "N": "9876543210",
+              },
+              "exchangeAddress": Object {
+                "S": "exchangeAddress",
+              },
+              "expirationTimeSeconds": Object {
+                "S": "1234567890",
+              },
+              "feeRecipientAddress": Object {
+                "S": "feeRecipientAddress",
+              },
+              "makerAddress": Object {
+                "S": "makerAddress",
+              },
+              "makerAssetAmount": Object {
+                "S": "123",
+              },
+              "makerAssetData": Object {
+                "S": "makerAssetData",
+              },
+              "makerFee": Object {
+                "S": "0",
+              },
+              "orderHash": Object {
+                "S": "0xOrderHash",
+              },
+              "pair": Object {
+                "S": "code1|code2",
+              },
+              "salt": Object {
+                "S": "789",
+              },
+              "senderAddress": Object {
+                "S": "senderAddress",
+              },
+              "signature": Object {
+                "S": "signature",
+              },
+              "takerAddress": Object {
+                "S": "takerAddress",
+              },
+              "takerAssetAmount": Object {
+                "S": "456",
+              },
+              "takerAssetData": Object {
+                "S": "takerAssetData",
+              },
+              "takerFee": Object {
+                "S": "0",
+              },
+              "updatedAt": Object {
+                "N": "9876543210",
+              },
+            },
+            "TableName": "israfel.dev.rawOrders",
+          },
+        },
+      ],
+    },
+  ],
+]
+`;
+
 exports[`addLiveOrder 1`] = `
 Array [
   Array [
@@ -318,6 +445,46 @@ Array [
 exports[`deleteData error 1`] = `Object {}`;
 
 exports[`deleteData no ddb 1`] = `"dynamo db connection is not initialized"`;
+
+exports[`deleteLiveAndRawOrder 1`] = `
+Array [
+  Array [
+    Object {
+      "TransactItems": Array [
+        Object {
+          "Delete": Object {
+            "Key": Object {
+              "orderHash": Object {
+                "S": "0xOrderHash",
+              },
+              "pair": Object {
+                "S": "code1|code2",
+              },
+            },
+            "TableName": "israfel.dev.liveOrders",
+          },
+        },
+        Object {
+          "Update": Object {
+            "ExpressionAttributeValues": Object {
+              ":updatedAt": Object {
+                "N": "9876543210",
+              },
+            },
+            "Key": Object {
+              "orderHash": Object {
+                "S": "orderHash",
+              },
+            },
+            "TableName": "israfel.dev.rawOrders",
+            "UpdateExpression": "SET updatedAt = :updatedAt REMOVE signature",
+          },
+        },
+      ],
+    },
+  ],
+]
+`;
 
 exports[`deleteLiveOrder 1`] = `
 Array [
