@@ -10,6 +10,14 @@ test('putData no ddb', async () => {
 	}
 });
 
+test('transactPutData no ddb', async () => {
+	try {
+		await dynamoUtil.transactPutData({} as any);
+	} catch (error) {
+		expect(error).toMatchSnapshot();
+	}
+});
+
 test('updateData no ddb', async () => {
 	try {
 		await dynamoUtil.updateData({} as any);
@@ -49,6 +57,18 @@ test('putData error', async () => {
 	} as any;
 	try {
 		await dynamoUtil.putData({} as any);
+	} catch (error) {
+		expect(error).toMatchSnapshot();
+	}
+});
+
+test('transactPutData error', async () => {
+	const mock = jest.fn((params: any, cb: any) => cb(params));
+	dynamoUtil.ddb = {
+		transactWriteItems: mock
+	} as any;
+	try {
+		await dynamoUtil.transactPutData({} as any);
 	} catch (error) {
 		expect(error).toMatchSnapshot();
 	}
@@ -108,6 +128,15 @@ test('putData', async () => {
 		putItem: mock
 	} as any;
 	await dynamoUtil.putData({} as any);
+	expect(mock.mock.calls).toMatchSnapshot();
+});
+
+test('transactPutData', async () => {
+	const mock = jest.fn((params: any, cb: any) => params && cb());
+	dynamoUtil.ddb = {
+		transactWriteItems: mock
+	} as any;
+	await dynamoUtil.transactPutData({} as any);
 	expect(mock.mock.calls).toMatchSnapshot();
 });
 
@@ -245,6 +274,13 @@ test('updateStatus', async () => {
 	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
+test('updateStatus failed', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	dynamoUtil.putData = jest.fn(() => Promise.reject('putDataError'));
+	await dynamoUtil.updateStatus('someProcess');
+	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
 test('scanStatus', async () => {
 	let scanOutput: { [key: string]: any } = {
 		Items: []
@@ -271,29 +307,6 @@ test('scanStatus', async () => {
 	expect(await dynamoUtil.scanStatus()).toMatchSnapshot();
 });
 
-test('addLiveOrder', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
-	await dynamoUtil.addLiveOrder({
-		account: '0xAccount',
-		pair: 'code1|code2',
-		orderHash: '0xOrderHash',
-		price: 0.123456789,
-		amount: 456,
-		balance: 123,
-		matching: 111,
-		fill: 234,
-		side: CST.DB_BID,
-		fee: 1,
-		feeAsset: 'feeAsset',
-		expiry: 1234567890,
-		createdAt: 1111111111,
-		initialSequence: 1,
-		currentSequence: 1
-	});
-	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
-});
-
 test('updateLiveOrder', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.updateData = jest.fn(() => Promise.resolve({}));
@@ -316,29 +329,6 @@ test('updateLiveOrder', async () => {
 		currentSequence: 2
 	});
 	expect((dynamoUtil.updateData as jest.Mock).mock.calls).toMatchSnapshot();
-});
-
-test('deleteLiveOrder', async () => {
-	dynamoUtil.deleteData = jest.fn(() => Promise.resolve({}));
-	await dynamoUtil.deleteLiveOrder({
-		account: '0xAccount',
-		pair: 'code1|code2',
-		orderHash: '0xOrderHash',
-		price: 123,
-		amount: 456,
-		balance: 123,
-		matching: 111,
-		fill: 234,
-		side: CST.DB_BID,
-		expiry: 1234567890,
-		fee: 1,
-		feeAsset: 'feeAsset',
-		createdAt: 1234560000,
-		updatedAt: 1234560000,
-		initialSequence: 1,
-		currentSequence: 2
-	});
-	expect((dynamoUtil.deleteData as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('getLiveOrders', async () => {
@@ -422,39 +412,6 @@ test('getLiveOrders with orderHash', async () => {
 	} catch (error) {
 		expect(error).toMatchSnapshot();
 	}
-});
-
-test('deleteRawOrderSignature', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.updateData = jest.fn(() => Promise.resolve({}));
-	await dynamoUtil.deleteRawOrderSignature('0xOrderHash');
-	expect((dynamoUtil.updateData as jest.Mock).mock.calls).toMatchSnapshot();
-});
-
-test('addRawOrder', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
-	await dynamoUtil.addRawOrder({
-		pair: 'code1|code2',
-		orderHash: '0xOrderHash',
-		signedOrder: {
-			senderAddress: 'senderAddress',
-			makerAddress: 'makerAddress',
-			takerAddress: 'takerAddress',
-			makerFee: '0',
-			takerFee: '0',
-			makerAssetAmount: '123',
-			takerAssetAmount: '456',
-			makerAssetData: 'makerAssetData',
-			takerAssetData: 'takerAssetData',
-			salt: '789',
-			exchangeAddress: 'exchangeAddress',
-			feeRecipientAddress: 'feeRecipientAddress',
-			expirationTimeSeconds: '1234567890',
-			signature: 'signature'
-		}
-	});
-	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('getRawOrder', async () => {
@@ -737,10 +694,10 @@ test('getTrades', async () => {
 	expect((dynamoUtil.getTradesForHour as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('addLiveAndRawOrder', async () => {
+test('addOrder', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 9876543210);
 	dynamoUtil.transactPutData = jest.fn(() => Promise.resolve());
-	await dynamoUtil.addLiveAndRawOrder(
+	await dynamoUtil.addOrder(
 		{
 			account: '0xAccount',
 			pair: 'code1|code2',
@@ -783,29 +740,9 @@ test('addLiveAndRawOrder', async () => {
 	expect((dynamoUtil.transactPutData as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('deleteLiveAndRawOrder', async () => {
+test('deleteOrder', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 9876543210);
 	dynamoUtil.transactPutData = jest.fn(() => Promise.resolve());
-	await dynamoUtil.deleteLiveAndRawOrder(
-		{
-			account: '0xAccount',
-			pair: 'code1|code2',
-			orderHash: '0xOrderHash',
-			price: 0.123456789,
-			amount: 456,
-			balance: 123,
-			matching: 111,
-			fill: 234,
-			side: CST.DB_BID,
-			expiry: 1234567890,
-			fee: 1,
-			feeAsset: 'feeAsset',
-			createdAt: 1234560000,
-			updatedAt: 1234560000,
-			initialSequence: 1,
-			currentSequence: 2
-		},
-		'orderHash'
-	);
+	await dynamoUtil.deleteOrder('code1|code2', '0xOrderHash');
 	expect((dynamoUtil.transactPutData as jest.Mock).mock.calls).toMatchSnapshot();
 });

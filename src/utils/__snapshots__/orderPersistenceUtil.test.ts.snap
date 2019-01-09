@@ -182,6 +182,51 @@ Array [
 ]
 `;
 
+exports[`persistOrder add publish failed 1`] = `
+Array [
+  Array [
+    "orders|cache|code1|code2",
+    "code1|code2|add|0xOrderHash",
+    "{\\"method\\":\\"add\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"test\\":\\"liveOrder\\",\\"initialSequence\\":123,\\"currentSequence\\":123},\\"signedOrder\\":\\"may or may not exist\\"}",
+  ],
+]
+`;
+
+exports[`persistOrder add publish failed 2`] = `
+Array [
+  Array [
+    "orders|queue",
+    "code1|code2|add|0xOrderHash",
+  ],
+]
+`;
+
+exports[`persistOrder add publish failed 3`] = `
+Array [
+  Array [
+    "orders|pubsub|code1|code2",
+    "{\\"method\\":\\"add\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"test\\":\\"liveOrder\\",\\"initialSequence\\":123,\\"currentSequence\\":123},\\"signedOrder\\":\\"may or may not exist\\"}",
+  ],
+]
+`;
+
+exports[`persistOrder add publish failed 4`] = `
+Array [
+  Array [
+    Object {
+      "currentSequence": 123,
+      "initialSequence": 123,
+      "test": "liveOrder",
+    },
+    "add",
+    "status",
+    "requestor",
+    false,
+    undefined,
+  ],
+]
+`;
+
 exports[`persistOrder not add fill 1`] = `
 Array [
   Array [
@@ -425,6 +470,50 @@ Array [
 exports[`processOrderQueue failed 1`] = `
 Array [
   Array [
+    Object {
+      "account": "0xAccount",
+      "amount": 456,
+      "balance": 123,
+      "createdAt": 1111111111,
+      "currentSequence": 2,
+      "expiry": 1234567890,
+      "fee": 1,
+      "feeAsset": "feeAsset",
+      "fill": 234,
+      "initialSequence": 1,
+      "matching": 99,
+      "orderHash": "0xOrderHash",
+      "pair": "code1|code2",
+      "price": 0.123456789,
+      "side": "bid",
+    },
+    Object {
+      "orderHash": "0xOrderHash",
+      "pair": "code1|code2",
+      "signedOrder": Object {
+        "exchangeAddress": "exchangeAddress",
+        "expirationTimeSeconds": "1234567890",
+        "feeRecipientAddress": "feeRecipientAddress",
+        "makerAddress": "makerAddress",
+        "makerAssetAmount": "123",
+        "makerAssetData": "makerAssetData",
+        "makerFee": "0",
+        "salt": "789",
+        "senderAddress": "senderAddress",
+        "signature": "signature",
+        "takerAddress": "takerAddress",
+        "takerAssetAmount": "456",
+        "takerAssetData": "takerAssetData",
+        "takerFee": "0",
+      },
+    },
+  ],
+]
+`;
+
+exports[`processOrderQueue failed 2`] = `
+Array [
+  Array [
     "orders|cache|code1|code2",
     "code1|code2|add|0xOrderHash",
   ],
@@ -443,23 +532,7 @@ Array [
 exports[`processOrderQueue terminate 1`] = `
 Array [
   Array [
-    Object {
-      "account": "0xAccount",
-      "amount": 456,
-      "balance": 123,
-      "createdAt": 1111111111,
-      "currentSequence": 2,
-      "expiry": 1234567890,
-      "fee": 1,
-      "feeAsset": "feeAsset",
-      "fill": 234,
-      "initialSequence": 1,
-      "matching": 99,
-      "orderHash": "0xOrderHash",
-      "pair": "code1|code2",
-      "price": 0.123456789,
-      "side": "bid",
-    },
+    "code1|code2",
     "0xOrderHash",
   ],
 ]

@@ -252,7 +252,7 @@ class OrderPersistenceUtil {
 		util.logDebug(`done`);
 
 		try {
-			redisUtil.publish(this.getOrderPubSubChannel(pair), orderQueueItemString);
+			await redisUtil.publish(this.getOrderPubSubChannel(pair), orderQueueItemString);
 		} catch (error) {
 			util.logError(error);
 		}
@@ -283,14 +283,14 @@ class OrderPersistenceUtil {
 		try {
 			util.logDebug(`${method} order`);
 			if (method === CST.DB_ADD) {
-				await dynamoUtil.addLiveAndRawOrder(orderQueueItem.liveOrder, {
+				await dynamoUtil.addOrder(orderQueueItem.liveOrder, {
 					pair: pair,
 					orderHash: orderHash,
 					signedOrder: orderQueueItem.signedOrder as IStringSignedOrder
 				});
 				util.logDebug(`add live & raw order`);
 			} else if (method === CST.DB_TERMINATE) {
-				await dynamoUtil.deleteLiveAndRawOrder(orderQueueItem.liveOrder, orderHash);
+				await dynamoUtil.deleteOrder(pair, orderHash);
 				util.logDebug(`delete live & raw order`);
 			} else {
 				await dynamoUtil.updateLiveOrder(orderQueueItem.liveOrder);

@@ -204,14 +204,37 @@ class DynamoUtil {
 		};
 	}
 
-	public addLiveOrder(liveOrder: ILiveOrder) {
-		return this.putData({
-			TableName: this.getTableName(CST.DB_LIVE_ORDERS),
-			Item: this.convertLiveOrderToDynamo(liveOrder)
-		});
+	public convertRawOrderToDynamo(rawOrder: IRawOrder): AttributeMap {
+		const timestamp = util.getUTCNowTimestamp();
+		return {
+			[CST.DB_ORDER_HASH]: { S: rawOrder.orderHash },
+			[CST.DB_PAIR]: { S: rawOrder.pair },
+			[CST.DB_0X_SENDER_ADDR]: { S: rawOrder.signedOrder.senderAddress + '' },
+			[CST.DB_0X_MAKER_ADDR]: { S: rawOrder.signedOrder.makerAddress + '' },
+			[CST.DB_0X_TAKER_ADDR]: { S: rawOrder.signedOrder.takerAddress + '' },
+			[CST.DB_0X_MAKER_FEE]: { S: rawOrder.signedOrder.makerFee.valueOf() + '' },
+			[CST.DB_0X_TAKER_FEE]: { S: rawOrder.signedOrder.takerFee.valueOf() + '' },
+			[CST.DB_0X_MAKER_ASSET_AMT]: {
+				S: rawOrder.signedOrder.makerAssetAmount.valueOf() + ''
+			},
+			[CST.DB_0X_TAKER_ASSET_AMT]: {
+				S: rawOrder.signedOrder.takerAssetAmount.valueOf() + ''
+			},
+			[CST.DB_0X_MAKER_ASSET_DATA]: { S: rawOrder.signedOrder.makerAssetData + '' },
+			[CST.DB_0X_TAKER_ASSET_DATA]: { S: rawOrder.signedOrder.takerAssetData + '' },
+			[CST.DB_0X_SALT]: { S: rawOrder.signedOrder.salt.valueOf() + '' },
+			[CST.DB_0X_EXCHANGE_ADDR]: { S: rawOrder.signedOrder.exchangeAddress + '' },
+			[CST.DB_0X_FEE_RECIPIENT_ADDR]: { S: rawOrder.signedOrder.feeRecipientAddress + '' },
+			[CST.DB_0X_EXPIRATION_TIME_SECONDS]: {
+				S: rawOrder.signedOrder.expirationTimeSeconds.valueOf() + ''
+			},
+			[CST.DB_0X_SIGNATURE]: { S: rawOrder.signedOrder.signature + '' },
+			[CST.DB_CREATED_AT]: { N: (rawOrder.createdAt || timestamp) + '' },
+			[CST.DB_UPDATED_AT]: { N: timestamp + '' }
+		};
 	}
 
-	public addLiveAndRawOrder(liveOrder: ILiveOrder, rawOrder: IRawOrder) {
+	public addOrder(liveOrder: ILiveOrder, rawOrder: IRawOrder) {
 		return this.transactPutData({
 			TransactItems: [
 				{
@@ -230,7 +253,7 @@ class DynamoUtil {
 		});
 	}
 
-	public deleteLiveAndRawOrder(liveOrder: ILiveOrder, rawOrderOrderHash: string) {
+	public deleteOrder(pair: string, orderHash: string) {
 		return this.transactPutData({
 			TransactItems: [
 				{
@@ -238,10 +261,10 @@ class DynamoUtil {
 						TableName: this.getTableName(CST.DB_LIVE_ORDERS),
 						Key: {
 							[CST.DB_PAIR]: {
-								S: liveOrder.pair
+								S: pair
 							},
 							[CST.DB_ORDER_HASH]: {
-								S: liveOrder.orderHash
+								S: orderHash
 							}
 						}
 					}
@@ -251,7 +274,7 @@ class DynamoUtil {
 						TableName: this.getTableName(CST.DB_RAW_ORDERS),
 						Key: {
 							[CST.DB_ORDER_HASH]: {
-								S: rawOrderOrderHash
+								S: orderHash
 							}
 						},
 						ExpressionAttributeValues: {
@@ -294,20 +317,6 @@ class DynamoUtil {
 			} = ${':' + CST.DB_MATCHING}, ${CST.DB_FILL} = ${':' + CST.DB_FILL}, ${
 				CST.DB_UPDATED_AT
 			} = ${':' + CST.DB_UPDATED_AT}, ${CST.DB_CURRENT_SEQ} = ${':' + CST.DB_CURRENT_SEQ} `
-		});
-	}
-
-	public deleteLiveOrder(liveOrder: ILiveOrder): Promise<void> {
-		return this.deleteData({
-			TableName: this.getTableName(CST.DB_LIVE_ORDERS),
-			Key: {
-				[CST.DB_PAIR]: {
-					S: liveOrder.pair
-				},
-				[CST.DB_ORDER_HASH]: {
-					S: liveOrder.orderHash
-				}
-			}
 		});
 	}
 
@@ -354,60 +363,6 @@ class DynamoUtil {
 			throw new Error('multiple record for order hash ' + orderHash);
 
 		return data.Items.map(ob => this.parseLiveOrder(ob));
-	}
-
-	public deleteRawOrderSignature(orderHash: string) {
-		return this.updateData({
-			TableName: this.getTableName(CST.DB_RAW_ORDERS),
-			Key: {
-				[CST.DB_ORDER_HASH]: {
-					S: orderHash
-				}
-			},
-			ExpressionAttributeValues: {
-				[':' + CST.DB_UPDATED_AT]: { N: util.getUTCNowTimestamp() + '' }
-			},
-			UpdateExpression: `SET ${CST.DB_UPDATED_AT} = ${':' + CST.DB_UPDATED_AT} REMOVE ${
-				CST.DB_0X_SIGNATURE
-			}`
-		});
-	}
-
-	public convertRawOrderToDynamo(rawOrder: IRawOrder): AttributeMap {
-		const timestamp = util.getUTCNowTimestamp();
-		return {
-			[CST.DB_ORDER_HASH]: { S: rawOrder.orderHash },
-			[CST.DB_PAIR]: { S: rawOrder.pair },
-			[CST.DB_0X_SENDER_ADDR]: { S: rawOrder.signedOrder.senderAddress + '' },
-			[CST.DB_0X_MAKER_ADDR]: { S: rawOrder.signedOrder.makerAddress + '' },
-			[CST.DB_0X_TAKER_ADDR]: { S: rawOrder.signedOrder.takerAddress + '' },
-			[CST.DB_0X_MAKER_FEE]: { S: rawOrder.signedOrder.makerFee.valueOf() + '' },
-			[CST.DB_0X_TAKER_FEE]: { S: rawOrder.signedOrder.takerFee.valueOf() + '' },
-			[CST.DB_0X_MAKER_ASSET_AMT]: {
-				S: rawOrder.signedOrder.makerAssetAmount.valueOf() + ''
-			},
-			[CST.DB_0X_TAKER_ASSET_AMT]: {
-				S: rawOrder.signedOrder.takerAssetAmount.valueOf() + ''
-			},
-			[CST.DB_0X_MAKER_ASSET_DATA]: { S: rawOrder.signedOrder.makerAssetData + '' },
-			[CST.DB_0X_TAKER_ASSET_DATA]: { S: rawOrder.signedOrder.takerAssetData + '' },
-			[CST.DB_0X_SALT]: { S: rawOrder.signedOrder.salt.valueOf() + '' },
-			[CST.DB_0X_EXCHANGE_ADDR]: { S: rawOrder.signedOrder.exchangeAddress + '' },
-			[CST.DB_0X_FEE_RECIPIENT_ADDR]: { S: rawOrder.signedOrder.feeRecipientAddress + '' },
-			[CST.DB_0X_EXPIRATION_TIME_SECONDS]: {
-				S: rawOrder.signedOrder.expirationTimeSeconds.valueOf() + ''
-			},
-			[CST.DB_0X_SIGNATURE]: { S: rawOrder.signedOrder.signature + '' },
-			[CST.DB_CREATED_AT]: { N: (rawOrder.createdAt || timestamp) + '' },
-			[CST.DB_UPDATED_AT]: { N: timestamp + '' }
-		};
-	}
-
-	public addRawOrder(rawOrder: IRawOrder) {
-		return this.putData({
-			TableName: this.getTableName(CST.DB_RAW_ORDERS),
-			Item: this.convertRawOrderToDynamo(rawOrder)
-		});
 	}
 
 	public parseRawOrder(data: AttributeMap): IRawOrder {
