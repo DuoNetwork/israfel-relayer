@@ -6,6 +6,13 @@ import orderUtil from './orderUtil';
 import util from './util';
 import Web3Util from './Web3Util';
 
+test('isExpired', () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	expect(orderUtil.isExpired(1234567890 + 180001)).toBeFalsy();
+	expect(orderUtil.isExpired(1234567890 + 180000)).toBeTruthy();
+	expect(orderUtil.isExpired(1234567890 + 179999)).toBeTruthy();
+})
+
 const signedOrder = {
 	senderAddress: 'senderAddress',
 	makerAddress: 'makerAddress',

@@ -256,10 +256,7 @@ class OrderMatchingUtil {
 				bidRawOrder.signedOrder as IStringSignedOrder
 			);
 
-			if (
-				Number(bidOrder.expirationTimeSeconds.valueOf()) <=
-				util.getUTCNowTimestamp() / 1000 - 180
-			) {
+			if (orderUtil.isExpired(Number(bidOrder.expirationTimeSeconds.valueOf()) * 1000)) {
 				util.logError(`${bid.orderHash} already expired`);
 				await orderPersistenceUtil.persistOrder({
 					method: CST.DB_TERMINATE,
@@ -285,10 +282,7 @@ class OrderMatchingUtil {
 				askRawOrder.signedOrder as IStringSignedOrder
 			);
 
-			if (
-				Number(askOrder.expirationTimeSeconds.valueOf()) <=
-				util.getUTCNowTimestamp() / 1000 - 180
-			) {
+			if (orderUtil.isExpired(Number(askOrder.expirationTimeSeconds.valueOf()) * 1000)) {
 				util.logError(`${ask.orderHash} already expired`);
 				await orderPersistenceUtil.persistOrder({
 					method: CST.DB_TERMINATE,

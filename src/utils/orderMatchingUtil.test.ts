@@ -748,7 +748,7 @@ test('processMatchQueue, left order expired', async () => {
 		})
 	);
 	orderUtil.parseSignedOrder = jest.fn(() => ({
-		expirationTimeSeconds: new BigNumber(1234567890 - 180)
+		expirationTimeSeconds: new BigNumber(1234567890 + 180)
 	}));
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
 	const web3Util = {
@@ -788,7 +788,7 @@ test('processMatchQueue, no rightRawOrder', async () => {
 		)
 	);
 	orderUtil.parseSignedOrder = jest.fn(() => ({
-		expirationTimeSeconds: new BigNumber(1234567890 - 179)
+		expirationTimeSeconds: new BigNumber(1234567890 + 181)
 	}));
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
 	const web3Util = {
@@ -826,10 +826,10 @@ test('processMatchQueue, right order expired', async () => {
 	orderUtil.parseSignedOrder = jest
 		.fn()
 		.mockReturnValueOnce({
-			expirationTimeSeconds: new BigNumber(1234567890 - 179)
+			expirationTimeSeconds: new BigNumber(1234567890 + 181)
 		})
 		.mockReturnValueOnce({
-			expirationTimeSeconds: new BigNumber(1234567890 - 180)
+			expirationTimeSeconds: new BigNumber(1234567890 + 180)
 		});
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
 	const web3Util = {

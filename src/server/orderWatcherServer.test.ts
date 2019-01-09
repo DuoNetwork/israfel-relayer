@@ -5,9 +5,9 @@ import { BigNumber, ExchangeContractErrs, OrderState } from '0x.js';
 import * as CST from '../common/constants';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
+import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 import orderWatcherServer from './orderWatcherServer';
-import util from '../utils/util';
 
 test('remove from watch, not a existing order', async () => {
 	const removeOrder = jest.fn(() => Promise.resolve());
@@ -100,16 +100,16 @@ test('addIntoWatch expired', async () => {
 	orderWatcherServer.orderWatcher = {} as any;
 	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({}));
 	orderWatcherServer.watchingOrders = {};
-	orderWatcherServer.web3Util = {
-		validateOrderFillable: jest.fn(() => Promise.resolve(true))
-	} as any;
+	orderWatcherServer.web3Util = {} as any;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
+	orderWatcherServer.removeFromWatch = jest.fn();
 	await orderWatcherServer.addIntoWatch(
-		{ orderHash: 'orderHash', pair: 'pair', expiry: 1234567890 - 3 * 60000 } as any,
+		{ orderHash: 'orderHash', pair: 'pair', expiry: 1234567890 + 3 * 60000 } as any,
 		signedOrder
 	);
 	expect(dynamoUtil.getRawOrder as jest.Mock).not.toBeCalled();
 	expect((orderWatcherServer.updateOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(addOrderAsync).not.toBeCalled();
 	expect(orderWatcherServer.watchingOrders).toEqual({});
 });

@@ -108,20 +108,20 @@ class OrderWatcherServer {
 
 	public async addIntoWatch(liveOrder: ILiveOrder, signedOrder?: IStringSignedOrder) {
 		const orderHash = liveOrder.orderHash;
+		if (orderUtil.isExpired(liveOrder.expiry)) {
+			util.logDebug(orderHash + ' expired, send update');
+			this.removeFromWatch(orderHash);
+			await this.updateOrder({
+				method: CST.DB_TERMINATE,
+				status: CST.DB_TERMINATE,
+				requestor: CST.DB_ORDER_WATCHER,
+				pair: liveOrder.pair,
+				orderHash: orderHash
+			});
+			return;
+		}
 		try {
 			if (this.orderWatcher && this.web3Util && !this.watchingOrders[orderHash]) {
-				if (liveOrder.expiry - util.getUTCNowTimestamp() <= 3 * CST.ONE_MINUTE_MS) {
-					util.logDebug(orderHash + ' expired, send update');
-					await this.updateOrder({
-						method: CST.DB_TERMINATE,
-						status: CST.DB_TERMINATE,
-						requestor: CST.DB_ORDER_WATCHER,
-						pair: liveOrder.pair,
-						orderHash: orderHash
-					});
-					return;
-				}
-
 				if (!signedOrder) {
 					const rawOrder: IRawOrder | null = await dynamoUtil.getRawOrder(orderHash);
 					if (!rawOrder) {
@@ -221,7 +221,7 @@ class OrderWatcherServer {
 			undefined,
 			{
 				cleanupJobIntervalMs: 30000,
-				expirationMarginMs: 3 * CST.ONE_MINUTE_MS
+				expirationMarginMs: CST.EXPIRY_MARGIN_MS
 			}
 		);
 		if (option.tokens.length)

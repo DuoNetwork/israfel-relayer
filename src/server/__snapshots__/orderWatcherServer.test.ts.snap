@@ -14,6 +14,14 @@ Array [
 ]
 `;
 
+exports[`addIntoWatch expired 2`] = `
+Array [
+  Array [
+    "orderHash",
+  ],
+]
+`;
+
 exports[`addIntoWatch no signed order fillable 1`] = `
 Array [
   Array [

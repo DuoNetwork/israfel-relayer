@@ -5,6 +5,10 @@ import util from './util';
 import Web3Util from './Web3Util';
 
 class OrderUtil {
+	public isExpired(expiryInMs: number) {
+		return expiryInMs - CST.EXPIRY_MARGIN_MS <= util.getUTCNowTimestamp();
+	}
+
 	public constructUserOrder(
 		liveOrder: ILiveOrder,
 		type: string,
