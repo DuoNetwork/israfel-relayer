@@ -1,0 +1,81 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`persistTrade 1`] = `
+Array [
+  Array [
+    Object {
+      "feeAsset": "code1",
+      "maker": Object {
+        "amount": 10,
+        "fee": 0.1,
+        "orderHash": "0xrightHash",
+        "price": 0.001,
+      },
+      "pair": "code1|code2",
+      "taker": Object {
+        "address": "takerAddress",
+        "amount": 10,
+        "fee": 0.1,
+        "orderHash": "0xleftHash",
+        "price": 0.001,
+        "side": "bid",
+      },
+      "timestamp": 1234567890000,
+      "transactionHash": "txHash",
+    },
+  ],
+]
+`;
+
+exports[`persistTrade 2`] = `
+Array [
+  Array [
+    "trades|pubsub|code1|code2",
+    "{\\"pair\\":\\"code1|code2\\",\\"transactionHash\\":\\"txHash\\",\\"feeAsset\\":\\"code1\\",\\"taker\\":{\\"orderHash\\":\\"0xleftHash\\",\\"address\\":\\"takerAddress\\",\\"side\\":\\"bid\\",\\"price\\":0.001,\\"amount\\":10,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"0xrightHash\\",\\"price\\":0.001,\\"amount\\":10,\\"fee\\":0.1},\\"timestamp\\":1234567890000}",
+  ],
+]
+`;
+
+exports[`persistTrade ask 1`] = `
+Array [
+  Array [
+    Object {
+      "feeAsset": "code1",
+      "maker": Object {
+        "amount": 10,
+        "fee": 0.1,
+        "orderHash": "0xleftHash",
+        "price": 0.001,
+      },
+      "pair": "code1|code2",
+      "taker": Object {
+        "address": "takerAddress",
+        "amount": 10,
+        "fee": 0.1,
+        "orderHash": "0xrightHash",
+        "price": 0.001,
+        "side": "ask",
+      },
+      "timestamp": 1234567890000,
+      "transactionHash": "txHash",
+    },
+  ],
+]
+`;
+
+exports[`persistTrade ask 2`] = `
+Array [
+  Array [
+    "trades|pubsub|code1|code2",
+    "{\\"pair\\":\\"code1|code2\\",\\"transactionHash\\":\\"txHash\\",\\"feeAsset\\":\\"code1\\",\\"taker\\":{\\"orderHash\\":\\"0xrightHash\\",\\"address\\":\\"takerAddress\\",\\"side\\":\\"ask\\",\\"price\\":0.001,\\"amount\\":10,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"0xleftHash\\",\\"price\\":0.001,\\"amount\\":10,\\"fee\\":0.1},\\"timestamp\\":1234567890000}",
+  ],
+]
+`;
+
+exports[`subscribeTradeUpdate 1`] = `
+Array [
+  Array [
+    "trades|pubsub|pair",
+  ],
+]
+`;
