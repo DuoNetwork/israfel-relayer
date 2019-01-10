@@ -210,6 +210,48 @@ Object {
 }
 `;
 
+exports[`initialize 1`] = `
+Array [
+  Array [
+    [Function],
+    10000,
+  ],
+  Array [
+    [Function],
+    900000,
+  ],
+]
+`;
+
+exports[`initialize 2`] = `
+Array [
+  Array [
+    "dualClassWrapper",
+  ],
+  Array [
+    "dualClassWrapper",
+  ],
+]
+`;
+
+exports[`initialize 3`] = `
+Array [
+  Array [
+    "code1|code2",
+    [Function],
+  ],
+]
+`;
+
+exports[`initialize 4`] = `
+Array [
+  Array [
+    "channel",
+    "orderQueueItem",
+  ],
+]
+`;
+
 exports[`loadLiveOrders 1`] = `"orderBook"`;
 
 exports[`loadLiveOrders 2`] = `"orderBookSnapshot"`;

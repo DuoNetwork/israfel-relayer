@@ -252,6 +252,18 @@ class OrderBookServer {
 		}
 	}
 
+	public async initialize(dualClassWrapper: DualClassWrapper) {
+		await this.checkCustodianState(dualClassWrapper);
+		global.setInterval(() => this.checkCustodianState(dualClassWrapper), 10000);
+
+		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderQueueItem) =>
+			this.handleOrderUpdate(channel, orderQueueItem)
+		);
+
+		await this.loadLiveOrders();
+		global.setInterval(() => this.loadLiveOrders(), CST.ONE_MINUTE_MS * 15);
+	}
+
 	public async startServer(option: IOption) {
 		this.pair = option.token + '|' + CST.TOKEN_WETH;
 		const tokens = await dynamoUtil.scanTokens();
@@ -262,29 +274,21 @@ class OrderBookServer {
 		}
 
 		const infura = require('../keys/infura.json');
-		const dualClassWrapper = new DualClassWrapper(
-			new Web3Wrapper(
-				null,
-				'infura',
-				(option.env === CST.DB_LIVE
-					? CST.PROVIDER_INFURA_MAIN
-					: CST.PROVIDER_INFURA_KOVAN) +
-					'/' +
-					infura.token,
-				option.env === CST.DB_LIVE
-			),
-			token.custodian
+		this.initialize(
+			new DualClassWrapper(
+				new Web3Wrapper(
+					null,
+					'infura',
+					(option.env === CST.DB_LIVE
+						? CST.PROVIDER_INFURA_MAIN
+						: CST.PROVIDER_INFURA_KOVAN) +
+						'/' +
+						infura.token,
+					option.env === CST.DB_LIVE
+				),
+				token.custodian
+			)
 		);
-		await this.checkCustodianState(dualClassWrapper);
-		setInterval(() => this.checkCustodianState(dualClassWrapper), 10000);
-
-		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderQueueItem) =>
-			this.handleOrderUpdate(channel, orderQueueItem)
-		);
-
-		await this.loadLiveOrders();
-		setInterval(() => this.loadLiveOrders(), CST.ONE_MINUTE_MS * 15);
-
 		if (option.server) {
 			dynamoUtil.updateStatus(this.pair);
 			setInterval(
