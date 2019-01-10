@@ -524,15 +524,15 @@ class RelayerServer {
 		await this.loadDuoAcceptedPrices();
 		await this.loadDuoExchangePrices();
 		await this.loadAndSubscribeMarketTrades();
-		util.logDebug('loaded ip list');
 		global.setInterval(() => this.loadDuoAcceptedPrices(), 600000);
 		this.ipList = await dynamoUtil.scanIpList();
 		this.processStatus = await dynamoUtil.scanStatus();
+		util.logDebug('loaded ip list and status');
 		global.setInterval(async () => {
 			await this.loadDuoExchangePrices();
 			this.ipList = await dynamoUtil.scanIpList();
 			this.processStatus = await dynamoUtil.scanStatus();
-			util.logDebug('loaded up ip list');
+			util.logDebug('loaded up ip list and status');
 		}, 30000);
 	}
 
@@ -572,7 +572,7 @@ class RelayerServer {
 				};
 			}
 		);
-		this.initializeCache(this.web3Util);
+		await this.initializeCache(this.web3Util);
 		const port = 8080;
 		const wsServer = new WebSocket.Server({
 			server: https
