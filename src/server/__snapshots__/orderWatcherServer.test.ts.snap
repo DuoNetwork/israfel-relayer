@@ -1,5 +1,36 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`addIntoWatch error 1`] = `
+Array [
+  Array [
+    Object {
+      "exchangeAddress": "exchangeAddress",
+      "expirationTimeSeconds": "1234567890",
+      "feeRecipientAddress": "feeRecipientAddress",
+      "makerAddress": "makerAddress",
+      "makerAssetAmount": "123",
+      "makerAssetData": "makerAssetData",
+      "makerFee": "0",
+      "salt": "789",
+      "senderAddress": "senderAddress",
+      "signature": "signature",
+      "takerAddress": "takerAddress",
+      "takerAssetAmount": "456",
+      "takerAssetData": "takerAssetData",
+      "takerFee": "0",
+    },
+  ],
+]
+`;
+
+exports[`addIntoWatch error 2`] = `
+Array [
+  Array [
+    "orderHash",
+  ],
+]
+`;
+
 exports[`addIntoWatch expired 1`] = `
 Array [
   Array [
@@ -138,7 +169,7 @@ Array [
 ]
 `;
 
-exports[`handle orderUpdate add 1`] = `
+exports[`handleOrderUpdate add 1`] = `
 Array [
   Array [
     Object {
@@ -164,7 +195,7 @@ Array [
 ]
 `;
 
-exports[`handle orderUpdate terminate 1`] = `
+exports[`handleOrderUpdate terminate 1`] = `
 Array [
   Array [
     "0xOrderHash",
@@ -326,6 +357,92 @@ Array [
 ]
 `;
 
+exports[`initializeData 1`] = `
+Array [
+  Array [
+    [Function],
+  ],
+]
+`;
+
+exports[`initializeData 2`] = `
+Array [
+  Array [
+    "orderState",
+  ],
+]
+`;
+
+exports[`initializeData 3`] = `
+Array [
+  Array [
+    "token|WETH",
+    [Function],
+  ],
+]
+`;
+
+exports[`initializeData 4`] = `
+Array [
+  Array [
+    "channel",
+    "orderQueueItem",
+  ],
+]
+`;
+
+exports[`initializeData 5`] = `
+Array [
+  Array [
+    [Function],
+    3600000,
+  ],
+]
+`;
+
+exports[`initializeData tokens 1`] = `
+Array [
+  Array [
+    [Function],
+  ],
+]
+`;
+
+exports[`initializeData tokens 2`] = `
+Array [
+  Array [
+    "orderState",
+  ],
+]
+`;
+
+exports[`initializeData tokens 3`] = `
+Array [
+  Array [
+    "token|WETH",
+    [Function],
+  ],
+]
+`;
+
+exports[`initializeData tokens 4`] = `
+Array [
+  Array [
+    "channel",
+    "orderQueueItem",
+  ],
+]
+`;
+
+exports[`initializeData tokens 5`] = `
+Array [
+  Array [
+    [Function],
+    3600000,
+  ],
+]
+`;
+
 exports[`loadOrders 1`] = `
 Array [
   Array [
@@ -356,7 +473,15 @@ Array [
 ]
 `;
 
-exports[`remove from watch, exisitng order 1`] = `
+exports[`removeFromWatch, exisitng order 1`] = `
+Array [
+  Array [
+    "orderHash",
+  ],
+]
+`;
+
+exports[`removeFromWatch, exisitng order, error 1`] = `
 Array [
   Array [
     "orderHash",
@@ -398,6 +523,47 @@ Array [
       "requestor": "orderWatcher",
       "status": "status",
     },
+  ],
+]
+`;
+
+exports[`updateOrder persist failed 1`] = `
+Array [
+  Array [
+    Object {
+      "fill": 123,
+      "method": "method",
+      "orderHash": "orderHash",
+      "pair": "pair",
+      "requestor": "orderWatcher",
+      "status": "status",
+    },
+  ],
+  Array [
+    Object {
+      "fill": 123,
+      "method": "method",
+      "orderHash": "orderHash",
+      "pair": "pair",
+      "requestor": "orderWatcher",
+      "status": "status",
+    },
+  ],
+]
+`;
+
+exports[`updateOrder persist failed 2`] = `
+Array [
+  Array [
+    "orderHash",
+  ],
+]
+`;
+
+exports[`updateOrder persist failed 3`] = `
+Array [
+  Array [
+    2000,
   ],
 ]
 `;

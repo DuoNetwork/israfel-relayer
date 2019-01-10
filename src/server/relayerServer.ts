@@ -1,7 +1,12 @@
 import * as fs from 'fs';
 import * as https from 'https';
 import WebSocket, { VerifyClientCallbackSync } from 'ws';
-import { API_GDAX, API_GEMINI, API_KRAKEN } from '../../../duo-admin/src/common/constants';
+import {
+	API_BITSTAMP,
+	API_GDAX,
+	API_GEMINI,
+	API_KRAKEN
+} from '../../../duo-admin/src/common/constants';
 import duoDynamoUtil from '../../../duo-admin/src/utils/dynamoUtil';
 import * as CST from '../common/constants';
 import {
@@ -38,7 +43,6 @@ import Web3Util from '../utils/Web3Util';
 class RelayerServer {
 	public processStatus: IStatus[] = [];
 	public web3Util: Web3Util | null = null;
-	private wsServer: WebSocket.Server | null = null;
 	public tradePairs: { [pair: string]: WebSocket[] } = {};
 	public orderBookPairs: { [pair: string]: WebSocket[] } = {};
 	public accountClients: { [account: string]: WebSocket[] } = {};
@@ -169,34 +173,44 @@ class RelayerServer {
 	}
 
 	public async handleOrderHistorySubscribeRequest(ws: WebSocket, req: IWsOrderHistoryRequest) {
-		const { account } = req;
-		if (util.isEmptyObject(this.accountClients)) {
-			const deadline = util.getUTCNowTimestamp();
-			const tokens = this.web3Util ? this.web3Util.tokens : [];
-			for (const token of tokens)
-				if (!token.maturity || token.maturity > deadline)
-					for (const code in token.feeSchedules)
-						orderPersistenceUtil.subscribeOrderUpdate(
-							`${token.code}|${code}`,
-							(channel, orderQueueItem) =>
-								this.handleOrderUpdate(channel, orderQueueItem)
-						);
+		if (this.web3Util) {
+			const { account } = req;
+			if (util.isEmptyObject(this.accountClients)) {
+				const deadline = util.getUTCNowTimestamp();
+				const tokens = this.web3Util.tokens;
+				for (const token of tokens)
+					if (!token.maturity || token.maturity > deadline)
+						for (const code in token.feeSchedules)
+							orderPersistenceUtil.subscribeOrderUpdate(
+								`${token.code}|${code}`,
+								(channel, orderQueueItem) =>
+									this.handleOrderUpdate(channel, orderQueueItem)
+							);
+			}
+
+			if (!this.accountClients[account]) this.accountClients[account] = [];
+			if (!this.accountClients[account].includes(ws)) this.accountClients[account].push(ws);
+
+			const now = util.getUTCNowTimestamp();
+			const userOrders = await dynamoUtil.getUserOrders(account, now - 30 * 86400000, now);
+
+			const orderBookResponse: IWsOrderHistoryResponse = {
+				method: CST.WS_HISTORY,
+				channel: CST.DB_ORDERS,
+				status: CST.WS_OK,
+				pair: '',
+				orderHistory: userOrders
+			};
+			util.safeWsSend(ws, JSON.stringify(orderBookResponse));
+		} else {
+			const orderBookResponse: IWsResponse = {
+				method: CST.WS_HISTORY,
+				channel: CST.DB_ORDERS,
+				status: CST.WS_ERROR,
+				pair: ''
+			};
+			util.safeWsSend(ws, JSON.stringify(orderBookResponse));
 		}
-
-		if (!this.accountClients[account]) this.accountClients[account] = [];
-		if (!this.accountClients[account].includes(ws)) this.accountClients[account].push(ws);
-
-		const now = util.getUTCNowTimestamp();
-		const userOrders = await dynamoUtil.getUserOrders(account, now - 30 * 86400000, now);
-
-		const orderBookResponse: IWsOrderHistoryResponse = {
-			method: CST.WS_HISTORY,
-			channel: CST.DB_ORDERS,
-			status: CST.WS_OK,
-			pair: '',
-			orderHistory: userOrders
-		};
-		util.safeWsSend(ws, JSON.stringify(orderBookResponse));
 	}
 
 	public unsubscribeOrderHistory(ws: WebSocket, account: string) {
@@ -204,8 +218,8 @@ class RelayerServer {
 			this.accountClients[account] = this.accountClients[account].filter(e => e !== ws);
 			if (!this.accountClients[account].length) delete this.accountClients[account];
 
-			if (util.isEmptyObject(this.accountClients)) {
-				const tokens = this.web3Util ? this.web3Util.tokens : [];
+			if (util.isEmptyObject(this.accountClients) && this.web3Util) {
+				const tokens = this.web3Util.tokens;
 				for (const token of tokens)
 					for (const code in token.feeSchedules)
 						orderPersistenceUtil.unsubscribeOrderUpdate(`${token.code}|${code}`);
@@ -483,7 +497,7 @@ class RelayerServer {
 
 	public async loadDuoExchangePrices() {
 		const start = util.getUTCNowTimestamp() - 24 * 3600000;
-		for (const source of [API_GDAX, API_GEMINI, API_KRAKEN])
+		for (const source of [API_GDAX, API_GEMINI, API_KRAKEN, API_BITSTAMP])
 			this.duoExchangePrices[source] = await duoDynamoUtil.getPrices(
 				source,
 				60,
@@ -509,12 +523,45 @@ class RelayerServer {
 		}
 	}
 
+	public async initializeCache(web3Util: Web3Util) {
+		web3Util.setTokens(await dynamoUtil.scanTokens());
+		global.setInterval(async () => web3Util.setTokens(await dynamoUtil.scanTokens()), 3600000);
+		await this.loadDuoAcceptedPrices();
+		await this.loadDuoExchangePrices();
+		await this.loadAndSubscribeMarketTrades();
+		global.setInterval(() => this.loadDuoAcceptedPrices(), 600000);
+		this.ipList = await dynamoUtil.scanIpList();
+		this.processStatus = await dynamoUtil.scanStatus();
+		util.logDebug('loaded ip list and status');
+		global.setInterval(async () => {
+			await this.loadDuoExchangePrices();
+			this.ipList = await dynamoUtil.scanIpList();
+			this.processStatus = await dynamoUtil.scanStatus();
+			util.logDebug('loaded up ip list and status');
+		}, 30000);
+	}
+
+	public verifyClient: VerifyClientCallbackSync = info => {
+		const ip = (info.req.headers['x-forwarded-for'] ||
+			info.req.connection.remoteAddress) as string;
+		util.logDebug(ip);
+		if (this.ipList[ip] === CST.DB_BLACK) {
+			util.logDebug(`ip ${ip} in blacklist, refuse connection`);
+			return false;
+		}
+		return true;
+	};
+
+	public initializeWsServer(wsServer: WebSocket.Server) {
+		global.setInterval(() => wsServer.clients.forEach(ws => this.sendInfo(ws)), 30000);
+		wsServer.on('connection', (ws, req) =>
+			this.handleWebSocketConnection(ws, (req.headers['x-forwarded-for'] ||
+				req.connection.remoteAddress) as string)
+		);
+	}
+
 	public async startServer(config: object, option: IOption) {
 		this.web3Util = new Web3Util(null, option.env === CST.DB_LIVE, '', false);
-		this.web3Util.setTokens(await dynamoUtil.scanTokens());
-		setInterval(async () => {
-			if (this.web3Util) this.web3Util.setTokens(await dynamoUtil.scanTokens());
-		}, 3600000);
 		duoDynamoUtil.init(
 			config,
 			option.env === CST.DB_LIVE,
@@ -530,67 +577,23 @@ class RelayerServer {
 				};
 			}
 		);
-
-		this.loadDuoAcceptedPrices();
-		this.loadDuoExchangePrices();
-		this.loadAndSubscribeMarketTrades();
-		this.ipList = await dynamoUtil.scanIpList();
-		util.logDebug('loaded ip list');
-		setInterval(() => this.loadDuoAcceptedPrices(), 600000);
-		setInterval(async () => {
-			this.loadDuoExchangePrices();
-			this.ipList = await dynamoUtil.scanIpList();
-			util.logDebug('loaded up ip list');
-		}, 30000);
-		this.processStatus = await dynamoUtil.scanStatus();
+		await this.initializeCache(this.web3Util);
 		const port = 8080;
-		const server = https
-			.createServer({
-				key: fs.readFileSync(`./src/keys/websocket/key.${option.env}.pem`, 'utf8'),
-				cert: fs.readFileSync(`./src/keys/websocket/cert.${option.env}.pem`, 'utf8')
-			})
-			.listen(port);
-		const verifyClient: VerifyClientCallbackSync = info => {
-			const ip = (info.req.headers['x-forwarded-for'] ||
-				info.req.connection.remoteAddress) as string;
-			util.logDebug(ip);
-			if (this.ipList[ip] === CST.DB_BLACK) {
-				util.logDebug(`ip ${ip} in blacklist, refuse connection`);
-				return false;
-			}
-			return true;
-		};
-		this.wsServer = new WebSocket.Server({
-			server: server,
-			verifyClient: verifyClient
+		const wsServer = new WebSocket.Server({
+			server: https
+				.createServer({
+					key: fs.readFileSync(`./src/keys/websocket/key.${option.env}.pem`, 'utf8'),
+					cert: fs.readFileSync(`./src/keys/websocket/cert.${option.env}.pem`, 'utf8')
+				})
+				.listen(port),
+			verifyClient: this.verifyClient
 		});
 		util.logInfo(`started relayer service at port ${port}`);
-		if (this.wsServer) {
-			setInterval(async () => {
-				this.processStatus = await dynamoUtil.scanStatus();
-				if (this.wsServer) this.wsServer.clients.forEach(ws => this.sendInfo(ws));
-			}, 30000);
-			this.wsServer.on('connection', (ws, req) =>
-				this.handleWebSocketConnection(ws, (req.headers['x-forwarded-for'] ||
-					req.connection.remoteAddress) as string)
-			);
-		}
-
-		this.web3Util.tokens.forEach(token => {
-			tradePriceUtil.subscribeTradeUpdate(
-				token.code + '|' + CST.TOKEN_WETH,
-				(channel, trade) => this.handleTradeUpdate(channel, trade)
-			);
-		});
-
+		this.initializeWsServer(wsServer);
 		if (option.server) {
 			dynamoUtil.updateStatus(CST.DB_RELAYER);
 			setInterval(
-				() =>
-					dynamoUtil.updateStatus(
-						CST.DB_RELAYER,
-						this.wsServer ? this.wsServer.clients.size : 0
-					),
+				() => dynamoUtil.updateStatus(CST.DB_RELAYER, wsServer.clients.size),
 				30000
 			);
 		}

@@ -372,3 +372,23 @@ test('checkCustodianState in trading', async () => {
 	expect(orderBookPersistenceUtil.publishOrderBookUpdate as jest.Mock).not.toBeCalled();
 	expect(orderBookServer.terminateOrder as jest.Mock).not.toBeCalled();
 });
+
+test('initialize', async () => {
+	global.setInterval = jest.fn();
+	orderBookServer.checkCustodianState = jest.fn(() => Promise.resolve());
+	orderBookServer.handleOrderUpdate = jest.fn(() => Promise.resolve());
+	orderBookServer.loadLiveOrders = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
+	await orderBookServer.initialize('dualClassWrapper' as any);
+	expect((global.setInterval as jest.Mock).mock.calls).toMatchSnapshot();
+	await (global.setInterval as jest.Mock).mock.calls[0][0]();
+	await (global.setInterval as jest.Mock).mock.calls[1][0]();
+	expect((orderBookServer.checkCustodianState as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(orderBookServer.loadLiveOrders as jest.Mock).toBeCalledTimes(2);
+	expect((orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).mock.calls).toMatchSnapshot();
+	(orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).mock.calls[0][1](
+		'channel',
+		'orderQueueItem'
+	);
+	expect((orderBookServer.handleOrderUpdate as jest.Mock).mock.calls).toMatchSnapshot();
+});
