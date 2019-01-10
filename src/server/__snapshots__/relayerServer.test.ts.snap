@@ -371,12 +371,21 @@ Array [
 exports[`handleOrderBookSubscribeRequest new pair 2`] = `
 Array [
   Array [
-    "pair",
+    "channel",
+    "obsu",
   ],
 ]
 `;
 
 exports[`handleOrderBookSubscribeRequest new pair 3`] = `
+Array [
+  Array [
+    "pair",
+  ],
+]
+`;
+
+exports[`handleOrderBookSubscribeRequest new pair 4`] = `
 Array [
   Array [
     "ws",
@@ -566,6 +575,24 @@ Array [
 ]
 `;
 
+exports[`handleOrderHistorySubscribeRequest new account  4`] = `
+Array [
+  Array [
+    "channel",
+    "orderQueueItem",
+  ],
+]
+`;
+
+exports[`handleOrderHistorySubscribeRequest no web3Util 1`] = `
+Array [
+  Array [
+    "ws",
+    "{\\"method\\":\\"history\\",\\"channel\\":\\"orders\\",\\"status\\":\\"error\\",\\"pair\\":\\"\\"}",
+  ],
+]
+`;
+
 exports[`handleOrderHistoryUnsubscribeRequest existing account clean up 1`] = `
 Array [
   Array [
@@ -594,6 +621,21 @@ Array [
   ],
   Array [
     "code2|base2",
+  ],
+]
+`;
+
+exports[`handleOrderHistoryUnsubscribeRequest existing account clean up no web3Util 1`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "account": "account",
+      "channel": "channel",
+      "method": "method",
+      "pair": "",
+    },
+    "ok",
   ],
 ]
 `;
@@ -1307,6 +1349,77 @@ Array [
       "method": "method",
       "pair": "pair",
     },
+  ],
+]
+`;
+
+exports[`initializeCache 1`] = `
+Array [
+  Array [
+    [Function],
+    3600000,
+  ],
+  Array [
+    [Function],
+    600000,
+  ],
+  Array [
+    [Function],
+    30000,
+  ],
+]
+`;
+
+exports[`initializeCache 2`] = `
+Array [
+  Array [
+    Array [
+      "token",
+    ],
+  ],
+  Array [
+    Array [
+      "token",
+    ],
+  ],
+]
+`;
+
+exports[`initializeWsServer 1`] = `
+Array [
+  Array [
+    [Function],
+    30000,
+  ],
+]
+`;
+
+exports[`initializeWsServer 2`] = `
+Array [
+  Array [
+    "ws",
+  ],
+]
+`;
+
+exports[`initializeWsServer 3`] = `
+Array [
+  Array [
+    "connection",
+    [Function],
+  ],
+]
+`;
+
+exports[`initializeWsServer 4`] = `
+Array [
+  Array [
+    "ws",
+    "ip",
+  ],
+  Array [
+    "ws",
+    "ip",
   ],
 ]
 `;

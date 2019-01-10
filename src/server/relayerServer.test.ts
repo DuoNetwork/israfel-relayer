@@ -370,73 +370,10 @@ test('handleTerminateOrderRequest', async () => {
 	expect((relayerServer.sendUserOrderResponse as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('handleOrderHistorySubscribeRequest new account ', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders']));
-	util.safeWsSend = jest.fn();
-	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
-	relayerServer.web3Util = {
-		tokens: [
-			{
-				code: 'code1',
-				feeSchedules: {
-					base1: {},
-					base2: {}
-				}
-			},
-			{
-				code: 'code2',
-				feeSchedules: {
-					base1: {},
-					base2: {}
-				}
-			}
-		]
-	} as any;
-	await relayerServer.handleOrderHistorySubscribeRequest('ws' as any, {
-		channel: 'channel',
-		method: 'method',
-		pair: '',
-		account: 'account'
-	});
-	expect(relayerServer.accountClients).toMatchSnapshot();
-	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).mock.calls).toMatchSnapshot();
-});
-
-test('handleOrderHistorySubscribeRequest existing account same ws', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders']));
-	util.safeWsSend = jest.fn();
-	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
-	await relayerServer.handleOrderHistorySubscribeRequest('ws' as any, {
-		channel: 'channel',
-		method: 'method',
-		pair: '',
-		account: 'account'
-	});
-	expect(relayerServer.accountClients).toMatchSnapshot();
-	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).not.toBeCalled();
-});
-
-test('handleOrderHistorySubscribeRequest existing account new ws', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders']));
-	util.safeWsSend = jest.fn();
-	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
-	await relayerServer.handleOrderHistorySubscribeRequest('ws1' as any, {
-		channel: 'channel',
-		method: 'method',
-		pair: '',
-		account: 'account'
-	});
-	expect(relayerServer.accountClients).toMatchSnapshot();
-	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).not.toBeCalled();
-});
-
 test('handleOrderUpdate requested by self', () => {
+	relayerServer.accountClients = {
+		account: ['ws', 'ws1'] as any
+	};
 	relayerServer.sendUserOrderResponse = jest.fn();
 	relayerServer.handleOrderUpdate('channel', {
 		requestor: CST.DB_RELAYER
@@ -482,19 +419,104 @@ test('handleOrderUpdate requested existing pair existing account', () => {
 	expect((relayerServer.sendUserOrderResponse as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-// test('handleTradeUpdate', () => {
-// 	relayerServer.handleTradeUpdate('channel', {
-// 		pair: 'pair',
-// 		transactionHash: 'txHash1',
-// 		timestamp: 1234567890
-// 	} as any);
-// 	relayerServer.handleTradeUpdate('channel', {
-// 		pair: 'pair',
-// 		transactionHash: 'txHash2',
-// 		timestamp: 1234567889
-// 	} as any);
-// 	expect(relayerServer.trades).toMatchSnapshot();
-// });
+test('handleOrderHistorySubscribeRequest no web3Util', async () => {
+	relayerServer.accountClients = {};
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders']));
+	util.safeWsSend = jest.fn();
+	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
+	relayerServer.web3Util = null;
+	await relayerServer.handleOrderHistorySubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: '',
+		account: 'account'
+	});
+	expect(relayerServer.accountClients).toEqual({});
+	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).not.toBeCalled();
+});
+
+test('handleOrderHistorySubscribeRequest new account ', async () => {
+	relayerServer.accountClients = {};
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders']));
+	util.safeWsSend = jest.fn();
+	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
+	relayerServer.web3Util = {
+		tokens: [
+			{
+				code: 'code1',
+				feeSchedules: {
+					base1: {},
+					base2: {}
+				}
+			},
+			{
+				code: 'code2',
+				feeSchedules: {
+					base1: {},
+					base2: {}
+				}
+			},
+			{
+				code: 'code2',
+				feeSchedules: {
+					base1: {},
+					base2: {}
+				},
+				maturity: 123
+			}
+		]
+	} as any;
+	relayerServer.handleOrderUpdate = jest.fn();
+	await relayerServer.handleOrderHistorySubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: '',
+		account: 'account'
+	});
+	expect(relayerServer.accountClients).toMatchSnapshot();
+	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).mock.calls).toMatchSnapshot();
+	(orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).mock.calls[0][1](
+		'channel',
+		'orderQueueItem'
+	);
+	expect((relayerServer.handleOrderUpdate as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderHistorySubscribeRequest existing account same ws', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders']));
+	util.safeWsSend = jest.fn();
+	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
+	await relayerServer.handleOrderHistorySubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: '',
+		account: 'account'
+	});
+	expect(relayerServer.accountClients).toMatchSnapshot();
+	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).not.toBeCalled();
+});
+
+test('handleOrderHistorySubscribeRequest existing account new ws', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders']));
+	util.safeWsSend = jest.fn();
+	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
+	await relayerServer.handleOrderHistorySubscribeRequest('ws1' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: '',
+		account: 'account'
+	});
+	expect(relayerServer.accountClients).toMatchSnapshot();
+	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).not.toBeCalled();
+});
 
 test('handleOrderHistoryUnsubscribeRequest existing account more than one', async () => {
 	relayerServer.sendResponse = jest.fn();
@@ -540,6 +562,21 @@ test('handleOrderHistoryUnsubscribeRequest existing account clean up', async () 
 	expect(relayerServer.accountClients).toEqual({});
 	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderPersistenceUtil.unsubscribeOrderUpdate as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleOrderHistoryUnsubscribeRequest existing account clean up no web3Util', async () => {
+	relayerServer.sendResponse = jest.fn();
+	orderPersistenceUtil.unsubscribeOrderUpdate = jest.fn();
+	relayerServer.web3Util = null;
+	await relayerServer.handleOrderHistoryUnsubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: '',
+		account: 'account'
+	});
+	expect(relayerServer.accountClients).toEqual({});
+	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(orderPersistenceUtil.unsubscribeOrderUpdate as jest.Mock).not.toBeCalled();
 });
 
 test('handleOrderHistoryUnsubscribeRequest new account', async () => {
@@ -721,6 +758,7 @@ test('handleOrderBookSubscribeRequest new pair', async () => {
 	orderBookPersistenceUtil.subscribeOrderBookUpdate = jest.fn();
 	orderBookPersistenceUtil.getOrderBookSnapshot = jest.fn(() => Promise.resolve('snapshot'));
 	util.safeWsSend = jest.fn();
+	relayerServer.handleOrderBookUpdate = jest.fn();
 	await relayerServer.handleOrderBookSubscribeRequest('ws' as any, {
 		channel: 'channel',
 		method: 'method',
@@ -732,6 +770,11 @@ test('handleOrderBookSubscribeRequest new pair', async () => {
 	expect(
 		(orderBookPersistenceUtil.subscribeOrderBookUpdate as jest.Mock).mock.calls
 	).toMatchSnapshot();
+	(orderBookPersistenceUtil.subscribeOrderBookUpdate as jest.Mock).mock.calls[0][1](
+		'channel',
+		'obsu'
+	);
+	expect((relayerServer.handleOrderBookUpdate as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
 		(orderBookPersistenceUtil.getOrderBookSnapshot as jest.Mock).mock.calls
 	).toMatchSnapshot();
@@ -1173,9 +1216,7 @@ test('handleTradeRequest subscribe', async () => {
 		pair: 'pair'
 	});
 	expect(relayerServer.sendResponse as jest.Mock).not.toBeCalled();
-	expect(
-		(relayerServer.handleTradeSubscribeRequest as jest.Mock).mock.calls
-	).toMatchSnapshot();
+	expect((relayerServer.handleTradeSubscribeRequest as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(relayerServer.handleTradeUnsubscribeRequest as jest.Mock).not.toBeCalled();
 });
 
@@ -1193,9 +1234,7 @@ test('handleTradeRequest unsubscribe', async () => {
 	});
 	expect(relayerServer.sendResponse as jest.Mock).not.toBeCalled();
 	expect(relayerServer.handleTradeSubscribeRequest as jest.Mock).not.toBeCalled();
-	expect(
-		(relayerServer.handleTradeUnsubscribeRequest as jest.Mock).mock.calls
-	).toMatchSnapshot();
+	expect((relayerServer.handleTradeUnsubscribeRequest as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleWebSocketMessage invalid requests', () => {
@@ -1372,4 +1411,81 @@ test('handleWebSocketConnection', () => {
 	expect(ws1.on.mock.calls[1][0]).toBe('close');
 	ws1.on.mock.calls[1][1]();
 	expect((relayerServer.handleWebSocketClose as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('initializeCache', async () => {
+	global.setInterval = jest.fn();
+	dynamoUtil.scanTokens = jest.fn(() => Promise.resolve(['token']));
+	dynamoUtil.scanIpList = jest.fn(() => Promise.resolve(['ip']));
+	dynamoUtil.scanStatus = jest.fn(() => Promise.resolve(['status']));
+	relayerServer.loadDuoAcceptedPrices = jest.fn(() => Promise.resolve());
+	relayerServer.loadDuoExchangePrices = jest.fn(() => Promise.resolve());
+	relayerServer.loadAndSubscribeMarketTrades = jest.fn(() => Promise.resolve());
+	const web3Util = {
+		setTokens: jest.fn()
+	};
+	await relayerServer.initializeCache(web3Util as any);
+	expect((global.setInterval as jest.Mock).mock.calls).toMatchSnapshot();
+	await (global.setInterval as jest.Mock).mock.calls[0][0]();
+	await (global.setInterval as jest.Mock).mock.calls[1][0]();
+	await (global.setInterval as jest.Mock).mock.calls[2][0]();
+	expect(dynamoUtil.scanTokens as jest.Mock).toBeCalledTimes(2);
+	expect(dynamoUtil.scanIpList as jest.Mock).toBeCalledTimes(2);
+	expect(dynamoUtil.scanStatus as jest.Mock).toBeCalledTimes(2);
+	expect(relayerServer.loadDuoAcceptedPrices as jest.Mock).toBeCalledTimes(2);
+	expect(relayerServer.loadDuoExchangePrices as jest.Mock).toBeCalledTimes(2);
+	expect(relayerServer.loadAndSubscribeMarketTrades as jest.Mock).toBeCalledTimes(1);
+	expect(web3Util.setTokens.mock.calls).toMatchSnapshot();
+});
+
+test('verifyClient', () => {
+	expect(
+		relayerServer.verifyClient({
+			req: {
+				headers: {},
+				connection: {
+					remoteAddress: 'ip'
+				}
+			}
+		} as any)
+	).toBeTruthy();
+	relayerServer.ipList = {
+		ip: CST.DB_BLACK
+	};
+	expect(
+		relayerServer.verifyClient({
+			req: {
+				headers: {
+					'x-forwarded-for': 'ip'
+				}
+			}
+		} as any)
+	).toBeFalsy();
+});
+
+test('initializeWsServer', () => {
+	global.setInterval = jest.fn();
+	relayerServer.handleWebSocketConnection = jest.fn();
+	relayerServer.sendInfo = jest.fn();
+	const wss = {
+		clients: ['ws'],
+		on: jest.fn()
+	};
+	relayerServer.initializeWsServer(wss as any);
+	expect((global.setInterval as jest.Mock).mock.calls).toMatchSnapshot();
+	(global.setInterval as jest.Mock).mock.calls[0][0]();
+	expect((relayerServer.sendInfo as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(wss.on.mock.calls).toMatchSnapshot();
+	wss.on.mock.calls[0][1]('ws', {
+		headers: {},
+		connection: {
+			remoteAddress: 'ip'
+		}
+	});
+	wss.on.mock.calls[0][1]('ws', {
+		headers: {
+			'x-forwarded-for': 'ip'
+		}
+	});
+	expect((relayerServer.handleWebSocketConnection as jest.Mock).mock.calls).toMatchSnapshot();
 });
