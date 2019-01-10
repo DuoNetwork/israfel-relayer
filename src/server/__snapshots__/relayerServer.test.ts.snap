@@ -904,53 +904,165 @@ Array [
 ]
 `;
 
+exports[`handleTradeRequest invalid method 1`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "channel": "channel",
+      "method": "method",
+      "pair": "pair",
+    },
+    "invalid request",
+  ],
+  Array [
+    "ws",
+    Object {
+      "channel": "channel",
+      "method": "subscribe",
+      "pair": "pair",
+    },
+    "invalid request",
+  ],
+]
+`;
+
+exports[`handleTradeRequest subscribe 1`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "channel": "channel",
+      "method": "subscribe",
+      "pair": "pair",
+    },
+  ],
+]
+`;
+
+exports[`handleTradeRequest unsubscribe 1`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "channel": "channel",
+      "method": "unsubscribe",
+      "pair": "pair",
+    },
+  ],
+]
+`;
+
+exports[`handleTradeSubscribeRequest empty list 1`] = `
+Array [
+  Array [
+    "ws",
+    "{\\"method\\":\\"trades\\",\\"channel\\":\\"trades\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"trades\\":[{\\"pair\\":\\"pair\\",\\"transactionHash\\":\\"txHash2\\",\\"taker\\":{\\"orderHash\\":\\"orderHash1\\",\\"address\\":\\"address\\",\\"side\\":\\"bid\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"orderHash2\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"feeAsset\\":\\"aETH\\",\\"timestamp\\":1234567880},{\\"pair\\":\\"pair\\",\\"transactionHash\\":\\"txHash\\",\\"taker\\":{\\"orderHash\\":\\"orderHash1\\",\\"address\\":\\"address\\",\\"side\\":\\"bid\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"orderHash2\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"feeAsset\\":\\"aETH\\",\\"timestamp\\":1234567890}]}",
+  ],
+]
+`;
+
+exports[`handleTradeSubscribeRequest existing pair existing ws 1`] = `
+Array [
+  Array [
+    "ws",
+    "{\\"method\\":\\"trades\\",\\"channel\\":\\"trades\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"trades\\":[{\\"pair\\":\\"pair\\",\\"transactionHash\\":\\"txHash2\\",\\"taker\\":{\\"orderHash\\":\\"orderHash1\\",\\"address\\":\\"address\\",\\"side\\":\\"bid\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"orderHash2\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"feeAsset\\":\\"aETH\\",\\"timestamp\\":1234567880},{\\"pair\\":\\"pair\\",\\"transactionHash\\":\\"txHash\\",\\"taker\\":{\\"orderHash\\":\\"orderHash1\\",\\"address\\":\\"address\\",\\"side\\":\\"bid\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"orderHash2\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"feeAsset\\":\\"aETH\\",\\"timestamp\\":1234567890}]}",
+  ],
+]
+`;
+
+exports[`handleTradeSubscribeRequest existing pair new ws 1`] = `
+Array [
+  Array [
+    "ws",
+    "{\\"method\\":\\"trades\\",\\"channel\\":\\"trades\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"trades\\":[{\\"pair\\":\\"pair\\",\\"transactionHash\\":\\"txHash2\\",\\"taker\\":{\\"orderHash\\":\\"orderHash1\\",\\"address\\":\\"address\\",\\"side\\":\\"bid\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"orderHash2\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"feeAsset\\":\\"aETH\\",\\"timestamp\\":1234567880},{\\"pair\\":\\"pair\\",\\"transactionHash\\":\\"txHash\\",\\"taker\\":{\\"orderHash\\":\\"orderHash1\\",\\"address\\":\\"address\\",\\"side\\":\\"bid\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"orderHash2\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"feeAsset\\":\\"aETH\\",\\"timestamp\\":1234567890}]}",
+  ],
+]
+`;
+
+exports[`handleTradeSubscribeRequest new pair 1`] = `
+Array [
+  Array [
+    "ws",
+    "{\\"method\\":\\"trades\\",\\"channel\\":\\"trades\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"trades\\":[{\\"pair\\":\\"pair\\",\\"transactionHash\\":\\"txHash2\\",\\"taker\\":{\\"orderHash\\":\\"orderHash1\\",\\"address\\":\\"address\\",\\"side\\":\\"bid\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"orderHash2\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"feeAsset\\":\\"aETH\\",\\"timestamp\\":1234567880},{\\"pair\\":\\"pair\\",\\"transactionHash\\":\\"txHash\\",\\"taker\\":{\\"orderHash\\":\\"orderHash1\\",\\"address\\":\\"address\\",\\"side\\":\\"bid\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"orderHash2\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"feeAsset\\":\\"aETH\\",\\"timestamp\\":1234567890}]}",
+  ],
+]
+`;
+
+exports[`handleTradeUnsubscribeRequest 1`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "channel": "channel",
+      "method": "method",
+      "pair": "pair",
+    },
+    "ok",
+  ],
+]
+`;
+
+exports[`handleTradeUnsubscribeRequest existing pair non existing ws 1`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "channel": "channel",
+      "method": "method",
+      "pair": "pair",
+    },
+    "ok",
+  ],
+]
+`;
+
+exports[`handleTradeUnsubscribeRequest no more subscription 1`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "channel": "channel",
+      "method": "method",
+      "pair": "pair",
+    },
+    "ok",
+  ],
+]
+`;
+
+exports[`handleTradeUnsubscribeRequest non existing pair 1`] = `
+Array [
+  Array [
+    "ws",
+    Object {
+      "channel": "channel",
+      "method": "method",
+      "pair": "pair",
+    },
+    "ok",
+  ],
+]
+`;
+
+exports[`handleTradeUpdate empty ws list 1`] = `
+Object {
+  "pair": Array [
+    Object {
+      "pair": "pair",
+    },
+    Object {
+      "pair": "pair",
+    },
+  ],
+}
+`;
+
 exports[`handleTradeUpdate, have previous trades 1`] = `
 Array [
   Array [
-    Object {},
-    Object {
-      "feeAsset": "aETH",
-      "maker": Object {
-        "amount": 20,
-        "fee": 0.1,
-        "orderHash": "orderHash2",
-        "price": 0.01,
-      },
-      "pair": "pair",
-      "taker": Object {
-        "address": "address",
-        "amount": 20,
-        "fee": 0.1,
-        "orderHash": "orderHash1",
-        "price": 0.01,
-        "side": "bid",
-      },
-      "timestamp": 1234567890,
-      "transactionHash": "txHash2",
-    },
-  ],
-  Array [
-    Object {},
-    Object {
-      "feeAsset": "aETH",
-      "maker": Object {
-        "amount": 20,
-        "fee": 0.1,
-        "orderHash": "orderHash2",
-        "price": 0.01,
-      },
-      "pair": "pair",
-      "taker": Object {
-        "address": "address",
-        "amount": 20,
-        "fee": 0.1,
-        "orderHash": "orderHash1",
-        "price": 0.01,
-        "side": "bid",
-      },
-      "timestamp": 1234567890,
-      "transactionHash": "txHash2",
-    },
+    "ws",
+    "{\\"method\\":\\"update\\",\\"channel\\":\\"orderBooks\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"trades\\":[{\\"pair\\":\\"pair\\",\\"transactionHash\\":\\"txHash2\\",\\"taker\\":{\\"orderHash\\":\\"orderHash1\\",\\"address\\":\\"address\\",\\"side\\":\\"bid\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"orderHash2\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"feeAsset\\":\\"aETH\\",\\"timestamp\\":1234567880}]}",
   ],
 ]
 `;
@@ -975,8 +1087,8 @@ Object {
         "price": 0.01,
         "side": "bid",
       },
-      "timestamp": 1234567890,
-      "transactionHash": "txHash",
+      "timestamp": 1234567880,
+      "transactionHash": "txHash2",
     },
     Object {
       "feeAsset": "aETH",
@@ -996,7 +1108,7 @@ Object {
         "side": "bid",
       },
       "timestamp": 1234567890,
-      "transactionHash": "txHash2",
+      "transactionHash": "txHash",
     },
   ],
 }
@@ -1005,50 +1117,8 @@ Object {
 exports[`handleTradeUpdate, no previous trades 1`] = `
 Array [
   Array [
-    Object {},
-    Object {
-      "feeAsset": "aETH",
-      "maker": Object {
-        "amount": 20,
-        "fee": 0.1,
-        "orderHash": "orderHash2",
-        "price": 0.01,
-      },
-      "pair": "pair",
-      "taker": Object {
-        "address": "address",
-        "amount": 20,
-        "fee": 0.1,
-        "orderHash": "orderHash1",
-        "price": 0.01,
-        "side": "bid",
-      },
-      "timestamp": 1234567890,
-      "transactionHash": "txHash",
-    },
-  ],
-  Array [
-    Object {},
-    Object {
-      "feeAsset": "aETH",
-      "maker": Object {
-        "amount": 20,
-        "fee": 0.1,
-        "orderHash": "orderHash2",
-        "price": 0.01,
-      },
-      "pair": "pair",
-      "taker": Object {
-        "address": "address",
-        "amount": 20,
-        "fee": 0.1,
-        "orderHash": "orderHash1",
-        "price": 0.01,
-        "side": "bid",
-      },
-      "timestamp": 1234567890,
-      "transactionHash": "txHash",
-    },
+    "ws",
+    "{\\"method\\":\\"update\\",\\"channel\\":\\"orderBooks\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"trades\\":[{\\"pair\\":\\"pair\\",\\"transactionHash\\":\\"txHash\\",\\"taker\\":{\\"orderHash\\":\\"orderHash1\\",\\"address\\":\\"address\\",\\"side\\":\\"bid\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"orderHash2\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"feeAsset\\":\\"aETH\\",\\"timestamp\\":1234567890}]}",
   ],
 ]
 `;
@@ -1085,28 +1155,7 @@ Array [
   Array [
     Object {
       "name": "ws",
-      "on": [MockFunction] {
-        "calls": Array [
-          Array [
-            "message",
-            [Function],
-          ],
-          Array [
-            "close",
-            [Function],
-          ],
-        ],
-        "results": Array [
-          Object {
-            "isThrow": false,
-            "value": undefined,
-          },
-          Object {
-            "isThrow": false,
-            "value": undefined,
-          },
-        ],
-      },
+      "on": [MockFunction],
     },
     "pair",
   ],
@@ -1114,6 +1163,30 @@ Array [
 `;
 
 exports[`handleWebSocketClose 2`] = `
+Array [
+  Array [
+    Object {
+      "name": "ws",
+      "on": [MockFunction],
+    },
+    "account",
+  ],
+]
+`;
+
+exports[`handleWebSocketClose 3`] = `
+Array [
+  Array [
+    Object {
+      "name": "ws",
+      "on": [MockFunction],
+    },
+    "pair",
+  ],
+]
+`;
+
+exports[`handleWebSocketConnection 1`] = `
 Array [
   Array [
     Object {
@@ -1141,20 +1214,41 @@ Array [
         ],
       },
     },
-    "account",
+    "ip",
+    "testMessage",
   ],
 ]
 `;
 
-exports[`handleWebSocketConnection 1`] = `
+exports[`handleWebSocketConnection 2`] = `
 Array [
   Array [
-    "message",
-    [Function],
-  ],
-  Array [
-    "close",
-    [Function],
+    Object {
+      "name": "ws",
+      "on": [MockFunction] {
+        "calls": Array [
+          Array [
+            "message",
+            [Function],
+          ],
+          Array [
+            "close",
+            [Function],
+          ],
+        ],
+        "results": Array [
+          Object {
+            "isThrow": false,
+            "value": undefined,
+          },
+          Object {
+            "isThrow": false,
+            "value": undefined,
+          },
+        ],
+      },
+    },
+    "ip",
   ],
 ]
 `;
@@ -1171,15 +1265,6 @@ Array [
     Object {
       "channel": "channel",
       "method": "method",
-      "pair": "pair",
-    },
-    "invalid request",
-  ],
-  Array [
-    "ws",
-    Object {
-      "channel": "orders",
-      "method": "",
       "pair": "pair",
     },
     "invalid request",
@@ -1209,6 +1294,66 @@ Array [
       "method": "method",
       "pair": "pair",
     },
+  ],
+]
+`;
+
+exports[`handleWebSocketMessage trades 1`] = `
+Array [
+  Array [
+    Object {},
+    Object {
+      "channel": "trades",
+      "method": "method",
+      "pair": "pair",
+    },
+  ],
+]
+`;
+
+exports[`loadAndSubscribeMarketTrades 1`] = `
+Array [
+  Array [
+    "code1|WETH",
+    1227367890,
+    1234567890,
+  ],
+  Array [
+    "code2|WETH",
+    1227367890,
+    1234567890,
+  ],
+]
+`;
+
+exports[`loadAndSubscribeMarketTrades 2`] = `
+Array [
+  Array [
+    "code1|WETH",
+    [Function],
+  ],
+  Array [
+    "code2|WETH",
+    [Function],
+  ],
+]
+`;
+
+exports[`loadAndSubscribeMarketTrades 3`] = `
+Object {
+  "pair": Array [
+    Object {
+      "pair": "pair",
+    },
+  ],
+}
+`;
+
+exports[`loadAndSubscribeMarketTrades 4`] = `
+Array [
+  Array [
+    "channel",
+    "trade",
   ],
 ]
 `;
@@ -1250,31 +1395,6 @@ Array [
 ]
 `;
 
-exports[`loadMarketTrades 1`] = `
-Array [
-  Array [
-    "code1|WETH",
-    1227367890,
-    1234567890,
-  ],
-  Array [
-    "code2|WETH",
-    1227367890,
-    1234567890,
-  ],
-]
-`;
-
-exports[`loadMarketTrades 2`] = `
-Object {
-  "pair": Array [
-    Object {
-      "pair": "pair",
-    },
-  ],
-}
-`;
-
 exports[`sendErrorOrderResponse 1`] = `
 Array [
   Array [
@@ -1287,6 +1407,14 @@ exports[`sendInfo 1`] = `
 Array [
   Array [
     "{\\"channel\\":\\"info\\",\\"method\\":\\"info\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"acceptedPrices\\":{\\"custodian\\":[\\"acceptedPrices\\"]},\\"exchangePrices\\":{},\\"tokens\\":[\\"token1\\"],\\"processStatus\\":[\\"status1\\"]}",
+  ],
+]
+`;
+
+exports[`sendInfo no web3Util 1`] = `
+Array [
+  Array [
+    "{\\"channel\\":\\"info\\",\\"method\\":\\"info\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"acceptedPrices\\":{\\"custodian\\":[\\"acceptedPrices\\"]},\\"exchangePrices\\":{},\\"tokens\\":[],\\"processStatus\\":[\\"status1\\"]}",
   ],
 ]
 `;

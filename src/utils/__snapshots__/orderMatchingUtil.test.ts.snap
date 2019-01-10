@@ -2057,35 +2057,28 @@ Array [
 exports[`processMatchSuccess 2`] = `
 Array [
   Array [
+    "txHash",
+    1234567890000,
     Object {
-      "feeAsset": "code1",
-      "maker": Object {
-        "amount": 10,
+      "ask": Object {
         "fee": 0.1,
+        "matchingAmount": 10,
+        "orderAmount": 10,
         "orderHash": "0xrightHash",
         "price": 0.001,
       },
-      "pair": "code1|code2",
-      "taker": Object {
-        "address": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
-        "amount": 10,
+      "bid": Object {
         "fee": 0.1,
+        "matchingAmount": 10,
+        "orderAmount": 10,
         "orderHash": "0xleftHash",
         "price": 0.001,
-        "side": "bid",
       },
-      "timestamp": 1234567890000,
-      "transactionHash": "txHash",
+      "feeAsset": "code1",
+      "pair": "code1|code2",
+      "takerSide": "bid",
     },
-  ],
-]
-`;
-
-exports[`processMatchSuccess 3`] = `
-Array [
-  Array [
-    "trades|pubsub|code1|code2",
-    "{\\"pair\\":\\"code1|code2\\",\\"transactionHash\\":\\"txHash\\",\\"feeAsset\\":\\"code1\\",\\"taker\\":{\\"orderHash\\":\\"0xleftHash\\",\\"address\\":\\"0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872\\",\\"side\\":\\"bid\\",\\"price\\":0.001,\\"amount\\":10,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"0xrightHash\\",\\"price\\":0.001,\\"amount\\":10,\\"fee\\":0.1},\\"timestamp\\":1234567890000}",
+    "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
   ],
 ]
 `;
@@ -2122,35 +2115,28 @@ Array [
 exports[`processMatchSuccess ask 2`] = `
 Array [
   Array [
+    "txHash",
+    1234567890000,
     Object {
-      "feeAsset": "code1",
-      "maker": Object {
-        "amount": 10,
+      "ask": Object {
         "fee": 0.1,
+        "matchingAmount": 10,
+        "orderAmount": 10,
+        "orderHash": "0xrightHash",
+        "price": 0.001,
+      },
+      "bid": Object {
+        "fee": 0.1,
+        "matchingAmount": 10,
+        "orderAmount": 10,
         "orderHash": "0xleftHash",
         "price": 0.001,
       },
+      "feeAsset": "code1",
       "pair": "code1|code2",
-      "taker": Object {
-        "address": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
-        "amount": 10,
-        "fee": 0.1,
-        "orderHash": "0xrightHash",
-        "price": 0.001,
-        "side": "ask",
-      },
-      "timestamp": 1234567890000,
-      "transactionHash": "txHash",
+      "takerSide": "ask",
     },
-  ],
-]
-`;
-
-exports[`processMatchSuccess ask 3`] = `
-Array [
-  Array [
-    "trades|pubsub|code1|code2",
-    "{\\"pair\\":\\"code1|code2\\",\\"transactionHash\\":\\"txHash\\",\\"feeAsset\\":\\"code1\\",\\"taker\\":{\\"orderHash\\":\\"0xrightHash\\",\\"address\\":\\"0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872\\",\\"side\\":\\"ask\\",\\"price\\":0.001,\\"amount\\":10,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"0xleftHash\\",\\"price\\":0.001,\\"amount\\":10,\\"fee\\":0.1},\\"timestamp\\":1234567890000}",
+    "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
   ],
 ]
 `;
@@ -2187,35 +2173,28 @@ Array [
 exports[`processMatchSuccess full fill 2`] = `
 Array [
   Array [
+    "txHash",
+    1234567890000,
     Object {
-      "feeAsset": "code1",
-      "maker": Object {
-        "amount": 10,
+      "ask": Object {
         "fee": 0.1,
+        "matchingAmount": 10,
+        "orderAmount": 10,
         "orderHash": "0xrightHash",
         "price": 0.001,
       },
-      "pair": "code1|code2",
-      "taker": Object {
-        "address": "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
-        "amount": 10,
+      "bid": Object {
         "fee": 0.1,
+        "matchingAmount": 10,
+        "orderAmount": 10,
         "orderHash": "0xleftHash",
         "price": 0.001,
-        "side": "bid",
       },
-      "timestamp": 1234567890000,
-      "transactionHash": "txHash",
+      "feeAsset": "code1",
+      "pair": "code1|code2",
+      "takerSide": "bid",
     },
-  ],
-]
-`;
-
-exports[`processMatchSuccess full fill 3`] = `
-Array [
-  Array [
-    "trades|pubsub|code1|code2",
-    "{\\"pair\\":\\"code1|code2\\",\\"transactionHash\\":\\"txHash\\",\\"feeAsset\\":\\"code1\\",\\"taker\\":{\\"orderHash\\":\\"0xleftHash\\",\\"address\\":\\"0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872\\",\\"side\\":\\"bid\\",\\"price\\":0.001,\\"amount\\":10,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"0xrightHash\\",\\"price\\":0.001,\\"amount\\":10,\\"fee\\":0.1},\\"timestamp\\":1234567890000}",
+    "0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872",
   ],
 ]
 `;
@@ -2225,14 +2204,6 @@ Array [
   Array [
     "match|queue",
     "\\"matchRequest\\"",
-  ],
-]
-`;
-
-exports[`subscribeTradeUpdate 1`] = `
-Array [
-  Array [
-    "trades|pubsub|pair",
   ],
 ]
 `;

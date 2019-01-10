@@ -180,8 +180,8 @@ export interface IWsUserOrderResponse extends IWsOrderResponse {
 	userOrder: IUserOrder;
 }
 
-export interface IWsTradeUpdateResponse extends IWsResponse {
-	trade: ITrade;
+export interface IWsTradeResponse extends IWsResponse {
+	trades: ITrade[];
 }
 
 export interface IWsOrderBookResponse extends IWsResponse {

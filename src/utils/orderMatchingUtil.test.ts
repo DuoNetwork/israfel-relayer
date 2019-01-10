@@ -1,26 +1,17 @@
 import { BigNumber } from '0x.js';
 import { IOrderMatchRequest, IRawOrder, IStringSignedOrder } from '../common/types';
-import dynamoUtil from '../utils/dynamoUtil';
+// import dynamoUtil from '../utils/dynamoUtil';
 import orderMatchingUtil from './orderMatchingUtil';
 import orderPersistenceUtil from './orderPersistenceUtil';
 import orderUtil from './orderUtil';
 import redisUtil from './redisUtil';
+import tradePriceUtil from './tradePriceUtil';
 import util from './util';
 
 test('queueMatchRequest', () => {
 	redisUtil.push = jest.fn();
 	orderMatchingUtil.queueMatchRequest('matchRequest' as any);
 	expect((redisUtil.push as jest.Mock).mock.calls).toMatchSnapshot();
-});
-
-test('subscribeTradeUpdate', () => {
-	redisUtil.subscribe = jest.fn();
-	redisUtil.onTradeUpdate = jest.fn();
-	const handleTradeUpdate = jest.fn();
-	orderMatchingUtil.subscribeTradeUpdate('pair', handleTradeUpdate);
-	expect((redisUtil.subscribe as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(redisUtil.onTradeUpdate as jest.Mock).toBeCalledTimes(1);
-	expect((redisUtil.onTradeUpdate as jest.Mock).mock.calls[0][0]).toBe(handleTradeUpdate);
 });
 
 const orderBook = {
@@ -283,8 +274,7 @@ test('processMatchSuccess', async () => {
 		getFilledTakerAssetAmount: jest.fn(() => new BigNumber(1))
 	} as any;
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
-	redisUtil.publish = jest.fn(() => Promise.resolve());
-	dynamoUtil.addTrade = jest.fn(() => Promise.resolve());
+	tradePriceUtil.persistTrade = jest.fn(() => Promise.resolve());
 	const bidSignedOrder: IStringSignedOrder = {
 		exchangeAddress: '0x48bacb9266a570d521063ef5dd96e61686dbe788',
 		makerAddress: '0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872',
@@ -330,8 +320,7 @@ test('processMatchSuccess', async () => {
 		orderUtil.parseSignedOrder(askSignedOrder)
 	);
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((dynamoUtil.addTrade as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((redisUtil.publish as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((tradePriceUtil.persistTrade as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('processMatchSuccess full fill', async () => {
@@ -339,8 +328,7 @@ test('processMatchSuccess full fill', async () => {
 		getFilledTakerAssetAmount: jest.fn(() => new BigNumber(1000000000000000000))
 	} as any;
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
-	redisUtil.publish = jest.fn(() => Promise.resolve());
-	dynamoUtil.addTrade = jest.fn(() => Promise.resolve());
+	tradePriceUtil.persistTrade = jest.fn(() => Promise.resolve());
 	const bidSignedOrder: IStringSignedOrder = {
 		exchangeAddress: '0x48bacb9266a570d521063ef5dd96e61686dbe788',
 		makerAddress: '0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872',
@@ -386,8 +374,7 @@ test('processMatchSuccess full fill', async () => {
 		orderUtil.parseSignedOrder(askSignedOrder)
 	);
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((dynamoUtil.addTrade as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((redisUtil.publish as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((tradePriceUtil.persistTrade as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('processMatchSuccess ask', async () => {
@@ -396,8 +383,7 @@ test('processMatchSuccess ask', async () => {
 		getFilledTakerAssetAmount: jest.fn(() => new BigNumber(1))
 	} as any;
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
-	redisUtil.publish = jest.fn(() => Promise.resolve());
-	dynamoUtil.addTrade = jest.fn(() => Promise.resolve());
+	tradePriceUtil.persistTrade = jest.fn(() => Promise.resolve());
 	const bidSignedOrder: IStringSignedOrder = {
 		exchangeAddress: '0x48bacb9266a570d521063ef5dd96e61686dbe788',
 		makerAddress: '0xa8dda8d7f5310e4a9e24f8eba77e091ac264f872',
@@ -443,8 +429,7 @@ test('processMatchSuccess ask', async () => {
 		orderUtil.parseSignedOrder(askSignedOrder)
 	);
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((dynamoUtil.addTrade as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((redisUtil.publish as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((tradePriceUtil.persistTrade as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('processMatchQueue, empty queue', async () => {
@@ -616,7 +601,6 @@ test('processMatchQueue, awaitTransactionSuccessAsync success', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1528117918000);
 	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
 	redisUtil.putBack = jest.fn(() => Promise.resolve());
-	dynamoUtil.addTrade = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.getRawOrderInPersistence = jest.fn((pair, hash) => {
 		rawOrders[hash].pair = pair;
 		return Promise.resolve(rawOrders[hash]);

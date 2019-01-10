@@ -24,28 +24,28 @@ import {
 	IWsRequest,
 	IWsResponse,
 	IWsTerminateOrderRequest,
-	IWsTradeUpdateResponse,
+	IWsTradeResponse,
 	IWsUserOrderResponse
 } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
-import orderMatchUtil from '../utils/orderMatchingUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import orderUtil from '../utils/orderUtil';
+import tradePriceUtil from '../utils/tradePriceUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 
 class RelayerServer {
 	public processStatus: IStatus[] = [];
 	public web3Util: Web3Util | null = null;
-	public wsServer: WebSocket.Server | null = null;
+	private wsServer: WebSocket.Server | null = null;
+	public tradePairs: { [pair: string]: WebSocket[] } = {};
 	public orderBookPairs: { [pair: string]: WebSocket[] } = {};
 	public accountClients: { [account: string]: WebSocket[] } = {};
 	public duoAcceptedPrices: { [custodian: string]: IAcceptedPrice[] } = {};
 	public duoExchangePrices: { [source: string]: IPrice[] } = {};
 	public marketTrades: { [pair: string]: ITrade[] } = {};
 	public ipList: { [ip: string]: string } = {};
-	public trades: { [key: string]: ITrade[] } = {};
 
 	public sendResponse(ws: WebSocket, req: IWsRequest, status: string) {
 		const orderResponse: IWsResponse = {
@@ -85,16 +85,6 @@ class RelayerServer {
 		util.safeWsSend(ws, JSON.stringify(orderResponse));
 	}
 
-	public sendTradeUpdate(ws: WebSocket, trade: ITrade) {
-		const tradeResponse: IWsTradeUpdateResponse = {
-			method: CST.DB_UPDATE,
-			channel: CST.DB_TRADES,
-			status: CST.WS_OK,
-			pair: trade.pair,
-			trade: trade
-		};
-		util.safeWsSend(ws, JSON.stringify(tradeResponse));
-	}
 	public async handleAddOrderRequest(ws: WebSocket, req: IWsAddOrderRequest) {
 		util.logDebug(`add new order ${req.orderHash}`);
 		if (!req.orderHash || !this.web3Util) {
@@ -250,7 +240,7 @@ class RelayerServer {
 				return this.handleOrderHistorySubscribeRequest(ws, req as IWsOrderHistoryRequest);
 			case CST.WS_UNSUB:
 				this.handleOrderHistoryUnsubscribeRequest(ws, req as IWsOrderHistoryRequest);
-				return Promise.resolve;
+				return Promise.resolve();
 			case CST.DB_ADD:
 				return this.handleAddOrderRequest(ws, req as IWsAddOrderRequest);
 			case CST.DB_TERMINATE:
@@ -282,17 +272,6 @@ class RelayerServer {
 				this.sendUserOrderResponse(ws, userOrder, orderQueueItem.method)
 			);
 		}
-	}
-
-	public handleTradeUpdate(channel: string, trade: ITrade) {
-		util.logDebug('receive update from channel: ' + channel);
-		if (!this.trades[trade.pair]) this.trades[trade.pair] = [trade];
-		else {
-			this.trades[trade.pair].push(trade);
-			this.trades[trade.pair].sort((a, b) => a.timestamp - b.timestamp);
-			this.trades[trade.pair].slice(0, 10);
-		}
-		if (this.wsServer) this.wsServer.clients.forEach(ws => this.sendTradeUpdate(ws, trade));
 	}
 
 	public handleOrderBookUpdate(
@@ -368,24 +347,89 @@ class RelayerServer {
 		if (req.method === CST.WS_SUB) return this.handleOrderBookSubscribeRequest(ws, req);
 		else {
 			this.handleOrderBookUnsubscribeRequest(ws, req);
-			return Promise.resolve;
+			return Promise.resolve();
 		}
+	}
+
+	public handleTradeUpdate(channel: string, trade: ITrade) {
+		util.logDebug('receive update from channel: ' + channel);
+		const pair = trade.pair;
+		if (!this.marketTrades[pair]) this.marketTrades[pair] = [trade];
+		else {
+			this.marketTrades[pair].push(trade);
+			this.marketTrades[pair].sort((a, b) => a.timestamp - b.timestamp);
+			this.marketTrades[pair].slice(1, 21);
+		}
+
+		if (!this.tradePairs[pair] || !this.tradePairs[pair].length) return;
+
+		this.tradePairs[pair].forEach(ws => {
+			const tradeResponse: IWsTradeResponse = {
+				method: CST.DB_UPDATE,
+				channel: CST.DB_ORDER_BOOKS,
+				status: CST.WS_OK,
+				pair: pair,
+				trades: [trade]
+			};
+			util.safeWsSend(ws, JSON.stringify(tradeResponse));
+		});
+	}
+
+	public handleTradeSubscribeRequest(ws: WebSocket, req: IWsRequest) {
+		if (!this.tradePairs[req.pair] || !this.tradePairs[req.pair].length)
+			this.tradePairs[req.pair] = [ws];
+		else if (!this.tradePairs[req.pair].includes(ws)) this.tradePairs[req.pair].push(ws);
+
+		const tradeResponse: IWsTradeResponse = {
+			method: CST.DB_TRADES,
+			channel: CST.DB_TRADES,
+			status: CST.WS_OK,
+			pair: req.pair,
+			trades: this.marketTrades[req.pair]
+		};
+		util.safeWsSend(ws, JSON.stringify(tradeResponse));
+	}
+
+	public unsubscribeTrade(ws: WebSocket, pair: string) {
+		if (this.tradePairs[pair] && this.tradePairs[pair].includes(ws)) {
+			this.tradePairs[pair] = this.tradePairs[pair].filter(e => e !== ws);
+			if (!this.tradePairs[pair].length) delete this.tradePairs[pair];
+		}
+	}
+
+	public handleTradeUnsubscribeRequest(ws: WebSocket, req: IWsRequest) {
+		this.unsubscribeTrade(ws, req.pair);
+		this.sendResponse(ws, req, CST.WS_OK);
+	}
+
+	public handleTradeRequest(ws: WebSocket, req: IWsRequest) {
+		if (
+			![CST.WS_SUB, CST.WS_UNSUB].includes(req.method) ||
+			!this.web3Util ||
+			!this.web3Util.isValidPair(req.pair)
+		) {
+			this.sendResponse(ws, req, CST.WS_INVALID_REQ);
+			return;
+		}
+
+		if (req.method === CST.WS_SUB) this.handleTradeSubscribeRequest(ws, req);
+		else this.handleTradeUnsubscribeRequest(ws, req);
 	}
 
 	public handleWebSocketMessage(ws: WebSocket, ip: string, m: string) {
 		util.logDebug('received: ' + m + ' from ' + ip);
 		const req: IWsRequest = JSON.parse(m);
-		if (![CST.DB_ORDERS, CST.DB_ORDER_BOOKS].includes(req.channel) || !req.method) {
-			this.sendResponse(ws, req, CST.WS_INVALID_REQ);
-			return Promise.resolve();
-		}
 
 		switch (req.channel) {
 			case CST.DB_ORDERS:
 				return this.handleOrderRequest(ws, req);
 			case CST.DB_ORDER_BOOKS:
 				return this.handleOrderBookRequest(ws, req);
+			case CST.DB_TRADES:
+				this.handleTradeRequest(ws, req);
+				return Promise.resolve();
 			default:
+				this.sendResponse(ws, req, CST.WS_INVALID_REQ);
 				return Promise.resolve();
 		}
 	}
@@ -414,6 +458,7 @@ class RelayerServer {
 	public handleWebSocketClose(ws: WebSocket, ip: string) {
 		util.logInfo('connection close from ' + ip);
 		for (const pair in this.orderBookPairs) this.unsubscribeOrderBook(ws, pair);
+		for (const pair in this.tradePairs) this.unsubscribeTrade(ws, pair);
 		for (const account in this.accountClients) this.unsubscribeOrderHistory(ws, account);
 	}
 
@@ -449,17 +494,17 @@ class RelayerServer {
 		util.logDebug('loaded duo exchange prices');
 	}
 
-	public async loadMarketTrades() {
+	public async loadAndSubscribeMarketTrades() {
 		if (this.web3Util) {
 			const now = util.getUTCNowTimestamp();
 			const start = now - 3600000 * 2;
 			for (const token of this.web3Util.tokens) {
-				const trades = await dynamoUtil.getTrades(
-					token.code + '|' + CST.TOKEN_WETH,
-					start,
-					now
-				);
+				const pair = token.code + '|' + CST.TOKEN_WETH;
+				const trades = await dynamoUtil.getTrades(pair, start, now);
 				if (trades.length) this.marketTrades[trades[0].pair] = trades;
+				tradePriceUtil.subscribeTradeUpdate(pair, (c, trade) =>
+					this.handleTradeUpdate(c, trade)
+				);
 			}
 		}
 	}
@@ -488,7 +533,7 @@ class RelayerServer {
 
 		this.loadDuoAcceptedPrices();
 		this.loadDuoExchangePrices();
-		this.loadMarketTrades();
+		this.loadAndSubscribeMarketTrades();
 		this.ipList = await dynamoUtil.scanIpList();
 		util.logDebug('loaded ip list');
 		setInterval(() => this.loadDuoAcceptedPrices(), 600000);
@@ -532,7 +577,7 @@ class RelayerServer {
 		}
 
 		this.web3Util.tokens.forEach(token => {
-			orderMatchUtil.subscribeTradeUpdate(
+			tradePriceUtil.subscribeTradeUpdate(
 				token.code + '|' + CST.TOKEN_WETH,
 				(channel, trade) => this.handleTradeUpdate(channel, trade)
 			);

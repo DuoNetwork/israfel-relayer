@@ -8,13 +8,13 @@ import {
 	IOrderBookLevel,
 	IOrderBookLevelUpdate,
 	IOrderMatchRequest,
-	IStringSignedOrder,
-	ITrade
+	IStringSignedOrder
 } from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import orderPersistenceUtil from './orderPersistenceUtil';
 import orderUtil from './orderUtil';
 import redisUtil from './redisUtil';
+import tradePriceUtil from './tradePriceUtil';
 import util from './util';
 import Web3Util from './Web3Util';
 
@@ -29,18 +29,6 @@ class OrderMatchingUtil {
 	public queueMatchRequest(orderMatchRequest: IOrderMatchRequest) {
 		// push request into queue
 		redisUtil.push(this.getMatchQueueKey(), JSON.stringify(orderMatchRequest));
-	}
-
-	private getTradePubSubChannel(pair: string) {
-		return `${CST.DB_TRADES}|${CST.DB_PUBSUB}|${pair}`;
-	}
-
-	public subscribeTradeUpdate(
-		pair: string,
-		handleTradeUpdate: (channel: string, trade: ITrade) => any
-	) {
-		redisUtil.onTradeUpdate(handleTradeUpdate);
-		redisUtil.subscribe(this.getTradePubSubChannel(pair));
 	}
 
 	public findMatchingOrders(
@@ -207,32 +195,12 @@ class OrderMatchingUtil {
 			transactionHash: txHash
 		});
 
-		const takerIsBid = takerSide === CST.DB_BID;
-		const takerOrder = takerIsBid ? bid : ask;
-		const makerOrder = takerIsBid ? ask : bid;
-		const takerRawOrder = takerIsBid ? bidOrder : askOrder;
-		const trade = {
-			pair: pair,
-			transactionHash: txHash,
-			feeAsset: matchRequest.feeAsset,
-			taker: {
-				orderHash: takerOrder.orderHash,
-				address: takerRawOrder.makerAddress,
-				side: takerSide,
-				price: takerOrder.price,
-				amount: takerOrder.matchingAmount,
-				fee: takerOrder.fee
-			},
-			maker: {
-				orderHash: makerOrder.orderHash,
-				price: makerOrder.price,
-				amount: makerOrder.matchingAmount,
-				fee: makerOrder.fee
-			},
-			timestamp: matchTimeStamp
-		};
-		await dynamoUtil.addTrade(trade);
-		await redisUtil.publish(this.getTradePubSubChannel(pair), JSON.stringify(trade));
+		await tradePriceUtil.persistTrade(
+			txHash,
+			matchTimeStamp,
+			matchRequest,
+			(takerSide === CST.DB_BID ? bidOrder : askOrder).makerAddress
+		);
 	}
 
 	public async processMatchQueue(web3Util: Web3Util) {

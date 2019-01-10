@@ -6,6 +6,7 @@ import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import orderUtil from '../utils/orderUtil';
+import tradePriceUtil from '../utils/tradePriceUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 import relayerServer from './relayerServer';
@@ -17,6 +18,19 @@ test('sendInfo', () => {
 	relayerServer.web3Util = {
 		tokens: ['token1']
 	} as any;
+	relayerServer.duoAcceptedPrices = {
+		custodian: ['acceptedPrices'] as any
+	};
+	relayerServer.processStatus = ['status1'] as any;
+	relayerServer.sendInfo(ws as any);
+	expect((ws.send as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('sendInfo no web3Util', () => {
+	const ws = {
+		send: jest.fn()
+	};
+	relayerServer.web3Util = null;
 	relayerServer.duoAcceptedPrices = {
 		custodian: ['acceptedPrices'] as any
 	};
@@ -676,49 +690,6 @@ test('handleOrderRequest unsubscribe', async () => {
 	).toMatchSnapshot();
 });
 
-const trade = {
-	pair: 'pair',
-	transactionHash: 'txHash',
-	taker: {
-		orderHash: 'orderHash1',
-		address: 'address',
-		side: 'bid',
-		price: 0.01,
-		amount: 20,
-		fee: 0.1
-	},
-	maker: {
-		orderHash: 'orderHash2',
-		price: 0.01,
-		amount: 20,
-		fee: 0.1
-	},
-	feeAsset: 'aETH',
-	timestamp: 1234567890
-};
-test('handleTradeUpdate, no previous trades', () => {
-	relayerServer.wsServer = {
-		clients: [{} as any, {} as any]
-	} as any;
-	relayerServer.sendTradeUpdate = jest.fn();
-	relayerServer.handleTradeUpdate('channel', trade);
-	expect((relayerServer.sendTradeUpdate as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(relayerServer.trades).toMatchSnapshot();
-});
-
-test('handleTradeUpdate, have previous trades', () => {
-	relayerServer.trades['pair'] = [trade];
-	relayerServer.wsServer = {
-		clients: [{} as any, {} as any]
-	} as any;
-	relayerServer.sendTradeUpdate = jest.fn();
-	const secondTrade = util.clone(trade);
-	secondTrade.transactionHash = 'txHash2';
-	relayerServer.handleTradeUpdate('channel', secondTrade);
-	expect((relayerServer.sendTradeUpdate as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(relayerServer.trades).toMatchSnapshot();
-});
-
 test('handleOrderBookUpdate empty ws list', () => {
 	relayerServer.orderBookPairs = {};
 	util.safeWsSend = jest.fn();
@@ -988,6 +959,245 @@ test('handleOrderBookRequest unsubscribe', async () => {
 	).toMatchSnapshot();
 });
 
+const trade = {
+	pair: 'pair',
+	transactionHash: 'txHash',
+	taker: {
+		orderHash: 'orderHash1',
+		address: 'address',
+		side: 'bid',
+		price: 0.01,
+		amount: 20,
+		fee: 0.1
+	},
+	maker: {
+		orderHash: 'orderHash2',
+		price: 0.01,
+		amount: 20,
+		fee: 0.1
+	},
+	feeAsset: 'aETH',
+	timestamp: 1234567890
+};
+
+test('handleTradeUpdate empty ws list', () => {
+	relayerServer.tradePairs = {};
+	util.safeWsSend = jest.fn();
+	relayerServer.handleTradeUpdate('channel', {
+		pair: 'pair'
+	} as any);
+	relayerServer.tradePairs = {
+		pair: []
+	};
+	relayerServer.handleTradeUpdate('channel', {
+		pair: 'pair'
+	} as any);
+	expect(util.safeWsSend as jest.Mock).not.toBeCalled();
+	expect(relayerServer.marketTrades).toMatchSnapshot();
+});
+
+test('handleTradeUpdate, no previous trades', () => {
+	relayerServer.tradePairs = { pair: ['ws' as any] };
+	util.safeWsSend = jest.fn();
+	relayerServer.marketTrades = {};
+	relayerServer.handleTradeUpdate('channel', trade);
+	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(relayerServer.marketTrades).toMatchSnapshot();
+});
+
+test('handleTradeUpdate, have previous trades', () => {
+	relayerServer.tradePairs = { pair: ['ws' as any] };
+	relayerServer.marketTrades['pair'] = [trade];
+	util.safeWsSend = jest.fn();
+	const secondTrade = util.clone(trade);
+	secondTrade.transactionHash = 'txHash2';
+	secondTrade.timestamp = 1234567880;
+	relayerServer.handleTradeUpdate('channel', secondTrade);
+	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(relayerServer.marketTrades).toMatchSnapshot();
+});
+
+test('handleTradeSubscribeRequest new pair', async () => {
+	relayerServer.tradePairs = {};
+	util.safeWsSend = jest.fn();
+	await relayerServer.handleTradeSubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: 'pair'
+	});
+	expect(relayerServer.tradePairs).toEqual({
+		pair: ['ws']
+	});
+	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleTradeSubscribeRequest empty list', async () => {
+	relayerServer.tradePairs = {
+		pair: []
+	};
+	util.safeWsSend = jest.fn();
+	await relayerServer.handleTradeSubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: 'pair'
+	});
+	expect(relayerServer.tradePairs).toEqual({
+		pair: ['ws']
+	});
+	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleTradeSubscribeRequest existing pair new ws', async () => {
+	relayerServer.tradePairs = {
+		pair: ['ws1'] as any
+	};
+	util.safeWsSend = jest.fn();
+	await relayerServer.handleTradeSubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: 'pair'
+	});
+	expect(relayerServer.tradePairs).toEqual({
+		pair: ['ws1', 'ws']
+	});
+	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleTradeSubscribeRequest existing pair existing ws', async () => {
+	relayerServer.tradePairs = {
+		pair: ['ws'] as any
+	};
+	util.safeWsSend = jest.fn();
+	await relayerServer.handleTradeSubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: 'pair'
+	});
+	expect(relayerServer.tradePairs).toEqual({
+		pair: ['ws']
+	});
+	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleTradeUnsubscribeRequest non existing pair', () => {
+	relayerServer.tradePairs = {};
+	relayerServer.sendResponse = jest.fn();
+	relayerServer.handleTradeUnsubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: 'pair'
+	});
+	expect(relayerServer.tradePairs).toEqual({});
+	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleTradeUnsubscribeRequest existing pair non existing ws', () => {
+	relayerServer.tradePairs = {
+		pair: []
+	};
+	relayerServer.sendResponse = jest.fn();
+	relayerServer.handleTradeUnsubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: 'pair'
+	});
+	expect(relayerServer.tradePairs).toEqual({
+		pair: []
+	});
+	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleTradeUnsubscribeRequest no more subscription', () => {
+	relayerServer.tradePairs = {
+		pair: ['ws'] as any
+	};
+	relayerServer.sendResponse = jest.fn();
+	relayerServer.handleTradeUnsubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: 'pair'
+	});
+	expect(relayerServer.tradePairs).toEqual({});
+	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleTradeUnsubscribeRequest', () => {
+	relayerServer.tradePairs = {
+		pair: ['ws', 'ws1'] as any
+	};
+	relayerServer.sendResponse = jest.fn();
+	relayerServer.handleTradeUnsubscribeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: 'pair'
+	});
+	expect(relayerServer.tradePairs).toEqual({
+		pair: ['ws1']
+	});
+	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleTradeRequest invalid method', async () => {
+	relayerServer.web3Util = null;
+	relayerServer.sendResponse = jest.fn();
+	relayerServer.handleTradeSubscribeRequest = jest.fn();
+	relayerServer.handleTradeUnsubscribeRequest = jest.fn();
+	await relayerServer.handleTradeRequest('ws' as any, {
+		channel: 'channel',
+		method: 'method',
+		pair: 'pair'
+	});
+	relayerServer.web3Util = {
+		isValidPair: jest.fn(() => false)
+	} as any;
+	await relayerServer.handleTradeRequest('ws' as any, {
+		channel: 'channel',
+		method: CST.WS_SUB,
+		pair: 'pair'
+	});
+	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(relayerServer.handleTradeSubscribeRequest as jest.Mock).not.toBeCalled();
+	expect(relayerServer.handleTradeUnsubscribeRequest as jest.Mock).not.toBeCalled();
+});
+
+test('handleTradeRequest subscribe', async () => {
+	relayerServer.sendResponse = jest.fn();
+	relayerServer.handleTradeSubscribeRequest = jest.fn();
+	relayerServer.handleTradeUnsubscribeRequest = jest.fn();
+	relayerServer.web3Util = {
+		isValidPair: jest.fn(() => true)
+	} as any;
+	await relayerServer.handleTradeRequest('ws' as any, {
+		channel: 'channel',
+		method: CST.WS_SUB,
+		pair: 'pair'
+	});
+	expect(relayerServer.sendResponse as jest.Mock).not.toBeCalled();
+	expect(
+		(relayerServer.handleTradeSubscribeRequest as jest.Mock).mock.calls
+	).toMatchSnapshot();
+	expect(relayerServer.handleTradeUnsubscribeRequest as jest.Mock).not.toBeCalled();
+});
+
+test('handleTradeRequest unsubscribe', async () => {
+	relayerServer.sendResponse = jest.fn();
+	relayerServer.handleTradeSubscribeRequest = jest.fn();
+	relayerServer.handleTradeUnsubscribeRequest = jest.fn();
+	relayerServer.web3Util = {
+		isValidPair: jest.fn(() => true)
+	} as any;
+	await relayerServer.handleTradeRequest('ws' as any, {
+		channel: 'channel',
+		method: CST.WS_UNSUB,
+		pair: 'pair'
+	});
+	expect(relayerServer.sendResponse as jest.Mock).not.toBeCalled();
+	expect(relayerServer.handleTradeSubscribeRequest as jest.Mock).not.toBeCalled();
+	expect(
+		(relayerServer.handleTradeUnsubscribeRequest as jest.Mock).mock.calls
+	).toMatchSnapshot();
+});
+
 test('handleWebSocketMessage invalid requests', () => {
 	relayerServer.sendResponse = jest.fn();
 	relayerServer.handleWebSocketMessage('ws' as any, 'ip', JSON.stringify({}));
@@ -997,15 +1207,6 @@ test('handleWebSocketMessage invalid requests', () => {
 		JSON.stringify({
 			channel: 'channel',
 			method: 'method',
-			pair: 'pair'
-		})
-	);
-	relayerServer.handleWebSocketMessage(
-		'ws' as any,
-		'ip',
-		JSON.stringify({
-			channel: CST.DB_ORDERS,
-			method: '',
 			pair: 'pair'
 		})
 	);
@@ -1040,6 +1241,21 @@ test('handleWebSocketMessage orderBooks', () => {
 		})
 	);
 	expect((relayerServer.handleOrderBookRequest as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleWebSocketMessage trades', () => {
+	const ws = {};
+	relayerServer.handleTradeRequest = jest.fn();
+	relayerServer.handleWebSocketMessage(
+		ws as any,
+		'ip',
+		JSON.stringify({
+			channel: CST.DB_TRADES,
+			method: 'method',
+			pair: 'pair'
+		})
+	);
+	expect((relayerServer.handleTradeRequest as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('loadDuoAcceptedPrices no web3Util', async () => {
@@ -1085,40 +1301,75 @@ test('loadDuoExchangePrices', async () => {
 	expect((duoDynamoUtil.getPrices as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('loadMarketTrades', async () => {
+test('loadAndSubscribeMarketTrades no web3Util', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.getTrades = jest
 		.fn()
-		.mockResolvedValueOnce([{pair: 'pair'}])
+		.mockResolvedValueOnce([{ pair: 'pair' }])
+		.mockResolvedValueOnce([]);
+	relayerServer.web3Util = null;
+	tradePriceUtil.subscribeTradeUpdate = jest.fn();
+	relayerServer.marketTrades = {};
+	await relayerServer.loadAndSubscribeMarketTrades();
+	expect(dynamoUtil.getTrades as jest.Mock).not.toBeCalled();
+	expect(tradePriceUtil.subscribeTradeUpdate as jest.Mock).not.toBeCalled();
+	expect(relayerServer.marketTrades).toEqual({});
+});
+
+test('loadAndSubscribeMarketTrades', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	dynamoUtil.getTrades = jest
+		.fn()
+		.mockResolvedValueOnce([{ pair: 'pair' }])
 		.mockResolvedValueOnce([]);
 	relayerServer.web3Util = {
 		tokens: [{ code: 'code1' }, { code: 'code2' }]
 	} as any;
-	await relayerServer.loadMarketTrades();
+	tradePriceUtil.subscribeTradeUpdate = jest.fn();
+	relayerServer.marketTrades = {};
+	relayerServer.handleTradeUpdate = jest.fn();
+	await relayerServer.loadAndSubscribeMarketTrades();
 	expect((dynamoUtil.getTrades as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((tradePriceUtil.subscribeTradeUpdate as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(relayerServer.marketTrades).toMatchSnapshot();
+	(tradePriceUtil.subscribeTradeUpdate as jest.Mock).mock.calls[0][1]('channel', 'trade');
+	expect((relayerServer.handleTradeUpdate as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 const ws1 = {
 	name: 'ws',
 	on: jest.fn()
 };
-test('handleWebSocketConnection', () => {
-	relayerServer.sendInfo = jest.fn();
-	relayerServer.handleWebSocketConnection(ws1 as any, 'ip');
-	expect((ws1.on as jest.Mock).mock.calls).toMatchSnapshot();
-});
 
 test('handleWebSocketClose', () => {
 	relayerServer.unsubscribeOrderBook = jest.fn();
 	relayerServer.unsubscribeOrderHistory = jest.fn();
+	relayerServer.unsubscribeTrade = jest.fn();
 	relayerServer.orderBookPairs = {
 		pair: ['ws'] as any
 	};
 	relayerServer.accountClients = {
 		account: ['ws'] as any
 	};
+	relayerServer.tradePairs = {
+		pair: ['ws'] as any
+	};
 	relayerServer.handleWebSocketClose(ws1 as any, 'ip');
 	expect((relayerServer.unsubscribeOrderBook as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((relayerServer.unsubscribeOrderHistory as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((relayerServer.unsubscribeTrade as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleWebSocketConnection', () => {
+	relayerServer.sendInfo = jest.fn();
+	relayerServer.handleWebSocketMessage = jest.fn();
+	relayerServer.handleWebSocketClose = jest.fn();
+	relayerServer.handleWebSocketConnection(ws1 as any, 'ip');
+	expect(ws1.on).toBeCalledTimes(2);
+	expect(ws1.on.mock.calls[0][0]).toBe('message');
+	ws1.on.mock.calls[0][1]('testMessage');
+	expect((relayerServer.handleWebSocketMessage as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(ws1.on.mock.calls[1][0]).toBe('close');
+	ws1.on.mock.calls[1][1]();
+	expect((relayerServer.handleWebSocketClose as jest.Mock).mock.calls).toMatchSnapshot();
 });

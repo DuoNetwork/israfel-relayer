@@ -1,12 +1,17 @@
 import * as CST from '../common/constants';
-import {
-	IOrderBookSnapshot,
-	IOrderBookSnapshotUpdate
-} from '../common/types';
+import { IOrderBookSnapshot, IOrderBookSnapshotUpdate } from '../common/types';
 import redisUtil from './redisUtil';
 import util from './util';
 
 class OrderBookPersistenceUtil {
+	private getOrderBookSnapshotKey(pair: string) {
+		return `${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${pair}`;
+	}
+
+	private getOrderBookPubSubChannel(pair: string) {
+		return `${CST.DB_ORDER_BOOKS}|${CST.DB_UPDATE}|${pair}`;
+	}
+
 	public subscribeOrderBookUpdate(
 		pair: string,
 		handleOrderBookUpdate: (
@@ -15,11 +20,11 @@ class OrderBookPersistenceUtil {
 		) => any
 	) {
 		redisUtil.onOrderBookUpdate(handleOrderBookUpdate);
-		redisUtil.subscribe(`${CST.DB_ORDER_BOOKS}|${CST.DB_UPDATE}|${pair}`);
+		redisUtil.subscribe(this.getOrderBookPubSubChannel(pair));
 	}
 
 	public unsubscribeOrderBookUpdate(pair: string) {
-		redisUtil.unsubscribe(`${CST.DB_ORDER_BOOKS}|${CST.DB_UPDATE}|${pair}`);
+		redisUtil.unsubscribe(this.getOrderBookPubSubChannel(pair));
 	}
 
 	public async publishOrderBookUpdate(
@@ -29,12 +34,12 @@ class OrderBookPersistenceUtil {
 	): Promise<boolean> {
 		try {
 			await redisUtil.set(
-				`${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${pair}`,
+				this.getOrderBookSnapshotKey(pair),
 				JSON.stringify(orderBookSnapshot)
 			);
 			if (orderBookSnapshotUpdate)
 				await redisUtil.publish(
-					`${CST.DB_ORDER_BOOKS}|${CST.DB_UPDATE}|${pair}`,
+					this.getOrderBookPubSubChannel(pair),
 					JSON.stringify(orderBookSnapshotUpdate)
 				);
 			return true;
@@ -45,9 +50,7 @@ class OrderBookPersistenceUtil {
 	}
 
 	public async getOrderBookSnapshot(pair: string) {
-		const snapshotString = await redisUtil.get(
-			`${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${pair}`
-		);
+		const snapshotString = await redisUtil.get(this.getOrderBookSnapshotKey(pair));
 		if (!snapshotString) return null;
 		else return JSON.parse(snapshotString) as IOrderBookSnapshot;
 	}
