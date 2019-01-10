@@ -1505,6 +1505,13 @@ Array [
     0,
     "ETH|USD",
   ],
+  Array [
+    "bitstamp",
+    60,
+    1148167890,
+    0,
+    "ETH|USD",
+  ],
 ]
 `;
 

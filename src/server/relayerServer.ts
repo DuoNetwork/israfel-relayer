@@ -1,7 +1,12 @@
 import * as fs from 'fs';
 import * as https from 'https';
 import WebSocket, { VerifyClientCallbackSync } from 'ws';
-import { API_GDAX, API_GEMINI, API_KRAKEN } from '../../../duo-admin/src/common/constants';
+import {
+	API_BITSTAMP,
+	API_GDAX,
+	API_GEMINI,
+	API_KRAKEN
+} from '../../../duo-admin/src/common/constants';
 import duoDynamoUtil from '../../../duo-admin/src/utils/dynamoUtil';
 import * as CST from '../common/constants';
 import {
@@ -492,7 +497,7 @@ class RelayerServer {
 
 	public async loadDuoExchangePrices() {
 		const start = util.getUTCNowTimestamp() - 24 * 3600000;
-		for (const source of [API_GDAX, API_GEMINI, API_KRAKEN])
+		for (const source of [API_GDAX, API_GEMINI, API_KRAKEN, API_BITSTAMP])
 			this.duoExchangePrices[source] = await duoDynamoUtil.getPrices(
 				source,
 				60,
