@@ -1085,7 +1085,7 @@ test('loadDuoExchangePrices', async () => {
 	expect((duoDynamoUtil.getPrices as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test.only('loadMarketTrades', async () => {
+test('loadMarketTrades', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.getTrades = jest
 		.fn()

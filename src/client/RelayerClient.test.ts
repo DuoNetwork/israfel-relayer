@@ -624,7 +624,6 @@ test('reconnect, less than 5 times', () => {
 	const handleReconnect = jest.fn();
 	relayerClient.onConnection(handleConnected, handleReconnect);
 	const ws = {
-		removeAllListeners: jest.fn(),
 		terminate: jest.fn()
 	}
 	relayerClient.ws = ws as any;
@@ -633,7 +632,6 @@ test('reconnect, less than 5 times', () => {
 	relayerClient.connectToRelayer = jest.fn();
 	relayerClient.reconnect();
 	expect(handleReconnect).toBeCalledTimes(1);
-	expect(ws.removeAllListeners).toBeCalledTimes(1);
 	expect(ws.terminate).toBeCalledTimes(1);
 	expect(relayerClient.ws).toBeNull();
 	expect(relayerClient.reconnectionNumber).toBe(4);
