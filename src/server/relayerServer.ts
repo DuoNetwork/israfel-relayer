@@ -366,7 +366,7 @@ class RelayerServer {
 		this.tradePairs[pair].forEach(ws => {
 			const tradeResponse: IWsTradeResponse = {
 				method: CST.DB_UPDATE,
-				channel: CST.DB_ORDER_BOOKS,
+				channel: CST.DB_TRADES,
 				status: CST.WS_OK,
 				pair: pair,
 				trades: [trade]
@@ -501,7 +501,7 @@ class RelayerServer {
 			for (const token of this.web3Util.tokens) {
 				const pair = token.code + '|' + CST.TOKEN_WETH;
 				const trades = await dynamoUtil.getTrades(pair, start, now);
-				if (trades.length) this.marketTrades[trades[0].pair] = trades;
+				this.marketTrades[pair] = trades;
 				tradePriceUtil.subscribeTradeUpdate(pair, (c, trade) =>
 					this.handleTradeUpdate(c, trade)
 				);

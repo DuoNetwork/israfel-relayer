@@ -1062,7 +1062,7 @@ exports[`handleTradeUpdate, have previous trades 1`] = `
 Array [
   Array [
     "ws",
-    "{\\"method\\":\\"update\\",\\"channel\\":\\"orderBooks\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"trades\\":[{\\"pair\\":\\"pair\\",\\"transactionHash\\":\\"txHash2\\",\\"taker\\":{\\"orderHash\\":\\"orderHash1\\",\\"address\\":\\"address\\",\\"side\\":\\"bid\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"orderHash2\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"feeAsset\\":\\"aETH\\",\\"timestamp\\":1234567880}]}",
+    "{\\"method\\":\\"update\\",\\"channel\\":\\"trades\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"trades\\":[{\\"pair\\":\\"pair\\",\\"transactionHash\\":\\"txHash2\\",\\"taker\\":{\\"orderHash\\":\\"orderHash1\\",\\"address\\":\\"address\\",\\"side\\":\\"bid\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"orderHash2\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"feeAsset\\":\\"aETH\\",\\"timestamp\\":1234567880}]}",
   ],
 ]
 `;
@@ -1118,7 +1118,7 @@ exports[`handleTradeUpdate, no previous trades 1`] = `
 Array [
   Array [
     "ws",
-    "{\\"method\\":\\"update\\",\\"channel\\":\\"orderBooks\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"trades\\":[{\\"pair\\":\\"pair\\",\\"transactionHash\\":\\"txHash\\",\\"taker\\":{\\"orderHash\\":\\"orderHash1\\",\\"address\\":\\"address\\",\\"side\\":\\"bid\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"orderHash2\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"feeAsset\\":\\"aETH\\",\\"timestamp\\":1234567890}]}",
+    "{\\"method\\":\\"update\\",\\"channel\\":\\"trades\\",\\"status\\":\\"ok\\",\\"pair\\":\\"pair\\",\\"trades\\":[{\\"pair\\":\\"pair\\",\\"transactionHash\\":\\"txHash\\",\\"taker\\":{\\"orderHash\\":\\"orderHash1\\",\\"address\\":\\"address\\",\\"side\\":\\"bid\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"maker\\":{\\"orderHash\\":\\"orderHash2\\",\\"price\\":0.01,\\"amount\\":20,\\"fee\\":0.1},\\"feeAsset\\":\\"aETH\\",\\"timestamp\\":1234567890}]}",
   ],
 ]
 `;
@@ -1341,11 +1341,12 @@ Array [
 
 exports[`loadAndSubscribeMarketTrades 3`] = `
 Object {
-  "pair": Array [
+  "code1|WETH": Array [
     Object {
       "pair": "pair",
     },
   ],
+  "code2|WETH": Array [],
 }
 `;
 
