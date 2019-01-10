@@ -20,9 +20,6 @@ test('sendInfo', () => {
 	relayerServer.duoAcceptedPrices = {
 		custodian: ['acceptedPrices'] as any
 	};
-	relayerServer.historyMarketTrades = {
-		pair: ['historyTrades'] as any
-	};
 	relayerServer.processStatus = ['status1'] as any;
 	relayerServer.sendInfo(ws as any);
 	expect((ws.send as jest.Mock).mock.calls).toMatchSnapshot();
@@ -1088,11 +1085,18 @@ test('loadDuoExchangePrices', async () => {
 	expect((duoDynamoUtil.getPrices as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('loadHistoryTrades', async () => {
+test.only('loadMarketTrades', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.getTrades = jest.fn(() => Promise.resolve());
-	await relayerServer.loadHistoryTrades('pair', 1);
+	dynamoUtil.getTrades = jest
+		.fn()
+		.mockResolvedValueOnce([{pair: 'pair'}])
+		.mockResolvedValueOnce([]);
+	relayerServer.web3Util = {
+		tokens: [{ code: 'code1' }, { code: 'code2' }]
+	} as any;
+	await relayerServer.loadMarketTrades();
 	expect((dynamoUtil.getTrades as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(relayerServer.marketTrades).toMatchSnapshot();
 });
 
 const ws1 = {

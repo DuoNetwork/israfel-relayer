@@ -199,7 +199,6 @@ export interface IWsOrderHistoryResponse extends IWsResponse {
 export interface IWsInfoResponse extends IWsResponse {
 	acceptedPrices: { [custodian: string]: IAcceptedPrice[] };
 	exchangePrices: { [source: string]: IPrice[] };
-	historyMarketTrades: { [pair: string]: ITrade[] };
 	tokens: IToken[];
 	processStatus: IStatus[];
 }

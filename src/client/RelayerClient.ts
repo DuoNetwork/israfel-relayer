@@ -57,8 +57,9 @@ export default class RelayerClient {
 
 	public reconnect() {
 		if (this.ws) {
-			this.ws.removeAllListeners();
-			this.ws.terminate();
+			if (this.ws.removeAllListeners) this.ws.removeAllListeners();
+			if (this.ws.terminate) this.ws.terminate();
+			else this.ws.close();
 		}
 		this.ws = null;
 		this.handleReconnect();

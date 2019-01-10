@@ -1250,14 +1250,29 @@ Array [
 ]
 `;
 
-exports[`loadHistoryTrades 1`] = `
+exports[`loadMarketTrades 1`] = `
 Array [
   Array [
-    "pair",
-    1148167890,
+    "code1|WETH",
+    1227367890,
+    1234567890,
+  ],
+  Array [
+    "code2|WETH",
+    1227367890,
     1234567890,
   ],
 ]
+`;
+
+exports[`loadMarketTrades 2`] = `
+Object {
+  "pair": Array [
+    Object {
+      "pair": "pair",
+    },
+  ],
+}
 `;
 
 exports[`sendErrorOrderResponse 1`] = `
@@ -1271,7 +1286,7 @@ Array [
 exports[`sendInfo 1`] = `
 Array [
   Array [
-    "{\\"channel\\":\\"info\\",\\"method\\":\\"info\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"acceptedPrices\\":{\\"custodian\\":[\\"acceptedPrices\\"]},\\"exchangePrices\\":{},\\"historyMarketTrades\\":{\\"pair\\":[\\"historyTrades\\"]},\\"tokens\\":[\\"token1\\"],\\"processStatus\\":[\\"status1\\"]}",
+    "{\\"channel\\":\\"info\\",\\"method\\":\\"info\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"acceptedPrices\\":{\\"custodian\\":[\\"acceptedPrices\\"]},\\"exchangePrices\\":{},\\"tokens\\":[\\"token1\\"],\\"processStatus\\":[\\"status1\\"]}",
   ],
 ]
 `;

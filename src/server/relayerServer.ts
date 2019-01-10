@@ -43,7 +43,7 @@ class RelayerServer {
 	public accountClients: { [account: string]: WebSocket[] } = {};
 	public duoAcceptedPrices: { [custodian: string]: IAcceptedPrice[] } = {};
 	public duoExchangePrices: { [source: string]: IPrice[] } = {};
-	public historyMarketTrades: { [pair: string]: ITrade[] } = {};
+	public marketTrades: { [pair: string]: ITrade[] } = {};
 	public ipList: { [ip: string]: string } = {};
 	public trades: { [key: string]: ITrade[] } = {};
 
@@ -398,7 +398,6 @@ class RelayerServer {
 			pair: '',
 			acceptedPrices: this.duoAcceptedPrices,
 			exchangePrices: this.duoExchangePrices,
-			historyMarketTrades: this.historyMarketTrades,
 			tokens: this.web3Util ? this.web3Util.tokens : [],
 			processStatus: this.processStatus
 		};
@@ -450,11 +449,19 @@ class RelayerServer {
 		util.logDebug('loaded duo exchange prices');
 	}
 
-	public async loadHistoryTrades(pair: string, numOfDays: number) {
-		const now = util.getUTCNowTimestamp();
-		const start = util.getUTCNowTimestamp() - numOfDays * 3600000 * 24;
-		const trades = await dynamoUtil.getTrades(pair, start, now);
-		return trades;
+	public async loadMarketTrades() {
+		if (this.web3Util) {
+			const now = util.getUTCNowTimestamp();
+			const start = now - 3600000 * 2;
+			for (const token of this.web3Util.tokens) {
+				const trades = await dynamoUtil.getTrades(
+					token.code + '|' + CST.TOKEN_WETH,
+					start,
+					now
+				);
+				if (trades.length) this.marketTrades[trades[0].pair] = trades;
+			}
+		}
 	}
 
 	public async startServer(config: object, option: IOption) {
@@ -481,11 +488,7 @@ class RelayerServer {
 
 		this.loadDuoAcceptedPrices();
 		this.loadDuoExchangePrices();
-		const promiseList = this.web3Util.tokens.map(async token => {
-			const trades = await this.loadHistoryTrades(token.code + '|' + CST.TOKEN_WETH, 1);
-			this.historyMarketTrades[trades[0].pair] = trades;
-		});
-		await Promise.all(promiseList);
+		this.loadMarketTrades();
 		this.ipList = await dynamoUtil.scanIpList();
 		util.logDebug('loaded ip list');
 		setInterval(() => this.loadDuoAcceptedPrices(), 600000);
