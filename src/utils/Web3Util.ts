@@ -220,13 +220,17 @@ export default class Web3Util {
 			this.contractWrappers.exchange.address
 		);
 		order.salt = generatePseudoRandomSalt();
+		console.log('############### ' + order.salt);
 
 		const orderHash = orderHashUtils.getOrderHashHex(order);
+		console.log('################' + orderHash);
 		const signedOrder = await signatureUtils.ecSignOrderAsync(
 			this.web3Wrapper.getProvider(),
 			order,
 			order.makerAddress
 		);
+		console.log('signed Order');
+		console.log(signedOrder);
 		return {
 			pair: pair,
 			orderHash: orderHash,
