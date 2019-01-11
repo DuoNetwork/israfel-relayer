@@ -18,6 +18,7 @@ import {
 	IWsRequest,
 	IWsResponse,
 	IWsTerminateOrderRequest,
+	IWsTradeResponse,
 	IWsUserOrderResponse
 } from '../common/types';
 import orderBookUtil from '../utils/orderBookUtil';
@@ -38,6 +39,8 @@ export default class RelayerClient {
 	) => any = () => ({});
 	private handleOrderUpdate: (userOrder: IUserOrder) => any = () => ({});
 	private handleOrderHistoryUpdate: (userOrders: IUserOrder[]) => any = () => ({});
+	private handleTradeUpdate: (trade: IWsTradeResponse) => any = () => ({});
+	private handleTradeError: (method: string, pair: string, error: string) => any = () => ({});
 	private handleOrderError: (
 		method: string,
 		orderHash: string,
@@ -82,6 +85,16 @@ export default class RelayerClient {
 			console.log('ws close');
 			this.reconnect();
 		};
+	}
+
+	public handleTradeResponse(response: IWsResponse) {
+		if (response.status !== CST.WS_OK)
+			this.handleTradeError(
+				response.method,
+				(response as IWsTradeResponse).pair,
+				response.status
+			);
+		else this.handleTradeUpdate(response as IWsTradeResponse);
 	}
 
 	public handleOrderResponse(response: IWsResponse) {
@@ -154,6 +167,9 @@ export default class RelayerClient {
 				case CST.DB_ORDER_BOOKS:
 					this.handleOrderBookResponse(res);
 					break;
+				case CST.DB_TRADES:
+					this.handleTradeResponse(res as IWsTradeResponse);
+					break;
 				case CST.WS_INFO:
 					const {
 						tokens,
@@ -173,22 +189,26 @@ export default class RelayerClient {
 		if (!this.ws) return;
 		this.orderBookSnapshotAvailable[pair] = false;
 		if (!this.pendingOrderBookUpdates[pair]) this.pendingOrderBookUpdates[pair] = [];
-		const msg: IWsRequest = {
-			method: CST.WS_SUB,
-			channel: CST.DB_ORDER_BOOKS,
-			pair: pair
-		};
+		const msg: IWsRequest = { method: CST.WS_SUB, channel: CST.DB_ORDER_BOOKS, pair: pair };
+		this.ws.send(JSON.stringify(msg));
+	}
+
+	public subscribeTrade(pair: string) {
+		if (!this.ws) return;
+		const msg: IWsRequest = { method: CST.WS_SUB, channel: CST.DB_TRADES, pair: pair };
+		if (this.ws) this.ws.send(JSON.stringify(msg));
+	}
+
+	public unsubscribeTrade(pair: string) {
+		if (!this.ws) return;
+		const msg: IWsRequest = { method: CST.WS_UNSUB, channel: CST.DB_TRADES, pair: pair };
 		this.ws.send(JSON.stringify(msg));
 	}
 
 	public unsubscribeOrderBook(pair: string) {
 		if (!this.ws) return;
 
-		const msg: IWsRequest = {
-			method: CST.WS_UNSUB,
-			channel: CST.DB_ORDER_BOOKS,
-			pair: pair
-		};
+		const msg: IWsRequest = { method: CST.WS_UNSUB, channel: CST.DB_ORDER_BOOKS, pair: pair };
 		this.ws.send(JSON.stringify(msg));
 		this.orderBookSnapshotAvailable[pair] = false;
 		delete this.orderBookSnapshots[pair];
@@ -197,7 +217,6 @@ export default class RelayerClient {
 
 	public subscribeOrderHistory(account: string) {
 		if (!this.ws) return;
-
 		if (!Web3Util.isValidAddress(account)) return;
 
 		const msg: IWsOrderHistoryRequest = {
@@ -287,6 +306,14 @@ export default class RelayerClient {
 		this.handleOrderHistoryUpdate = handleHistory;
 		this.handleOrderUpdate = handleUpdate;
 		this.handleOrderError = handleError;
+	}
+
+	public onTrade(
+		handleUpdate: (trades: IWsTradeResponse) => any,
+		handleError: (method: string, pair: string, error: string) => any
+	) {
+		this.handleTradeUpdate = handleUpdate;
+		this.handleTradeError = handleError;
 	}
 
 	public onOrderBook(
