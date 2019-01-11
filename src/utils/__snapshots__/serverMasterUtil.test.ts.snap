@@ -13,6 +13,12 @@ Array [
 
 exports[`launchTkenPair debug not win32 2`] = `
 Object {
+  "default": Object {
+    "failCount": 1,
+    "instance": undefined,
+    "lastFailTimestamp": 1234567890,
+    "token": "default",
+  },
   "token": Object {
     "failCount": 0,
     "instance": undefined,
@@ -33,6 +39,12 @@ Array [
 
 exports[`launchTokenPair debug win32 2`] = `
 Object {
+  "default": Object {
+    "failCount": 1,
+    "instance": undefined,
+    "lastFailTimestamp": 1234567890,
+    "token": "default",
+  },
   "token": Object {
     "failCount": 0,
     "instance": undefined,
@@ -55,6 +67,12 @@ Array [
 
 exports[`launchTokenPair fail not win32 2`] = `
 Object {
+  "default": Object {
+    "failCount": 1,
+    "instance": undefined,
+    "lastFailTimestamp": 1234567890,
+    "token": "default",
+  },
   "token": Object {
     "failCount": 0,
     "instance": undefined,
@@ -89,6 +107,12 @@ Array [
 
 exports[`launchTokenPair fail win32 2`] = `
 Object {
+  "default": Object {
+    "failCount": 1,
+    "instance": undefined,
+    "lastFailTimestamp": 1234567890,
+    "token": "default",
+  },
   "token": Object {
     "failCount": 0,
     "instance": undefined,
@@ -125,6 +149,12 @@ Array [
 
 exports[`launchTokenPair success not win32 2`] = `
 Object {
+  "default": Object {
+    "failCount": 1,
+    "instance": undefined,
+    "lastFailTimestamp": 1234567890,
+    "token": "default",
+  },
   "token": Object {
     "failCount": 0,
     "instance": Object {
@@ -169,6 +199,12 @@ Array [
 
 exports[`launchTokenPair success win 32 2`] = `
 Object {
+  "default": Object {
+    "failCount": 1,
+    "instance": undefined,
+    "lastFailTimestamp": 1234567890,
+    "token": "default",
+  },
   "token": Object {
     "failCount": 0,
     "instance": Object {
@@ -219,3 +255,13 @@ Object {
   "token": "token",
 }
 `;
+
+exports[`startLaunching 1`] = `Promise {}`;
+
+exports[`startLaunching Token Length 1`] = `Promise {}`;
+
+exports[`startLaunching Token Length 2`] = `Promise {}`;
+
+exports[`startLaunching no rawToken 1`] = `Promise {}`;
+
+exports[`startLaunching normal 1`] = `Promise {}`;
