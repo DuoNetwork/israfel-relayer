@@ -53,7 +53,32 @@ test('constructor, with window, metaMask', () => {
 	expect(testWeb3Util.wallet).toMatchSnapshot();
 });
 
+test('constructor, with window, metaMask, live', () => {
+	const window = {
+		web3: {
+			currentProvider: 'provider'
+		}
+	} as any;
+	const testWeb3Util = new Web3Util(window, true, 'mnemonic', false);
+	expect(testWeb3Util.wallet).toMatchSnapshot();
+});
+
 test('constructor, no window, local', () => {
+	const testWeb3Util = new Web3Util(null, false, 'mnemonic', true);
+	expect(testWeb3Util.wallet).toMatchSnapshot();
+});
+
+test('constructor, no window, non local', () => {
 	const testWeb3Util = new Web3Util(null, false, 'mnemonic', false);
+	expect(testWeb3Util.wallet).toMatchSnapshot();
+});
+
+test('constructor, no window, non local, live', () => {
+	const testWeb3Util = new Web3Util(null, true, 'mnemonic', false);
+	expect(testWeb3Util.wallet).toMatchSnapshot();
+});
+
+test('constructor, no window, non local, no mnemonic', () => {
+	const testWeb3Util = new Web3Util(null, false, '', false);
 	expect(testWeb3Util.wallet).toMatchSnapshot();
 });

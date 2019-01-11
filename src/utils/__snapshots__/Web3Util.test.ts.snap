@@ -2,4 +2,12 @@
 
 exports[`constructor, no window, local 1`] = `1`;
 
+exports[`constructor, no window, non local 1`] = `1`;
+
+exports[`constructor, no window, non local, live 1`] = `1`;
+
+exports[`constructor, no window, non local, no mnemonic 1`] = `0`;
+
 exports[`constructor, with window, metaMask 1`] = `2`;
+
+exports[`constructor, with window, metaMask, live 1`] = `2`;
