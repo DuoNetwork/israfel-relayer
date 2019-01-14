@@ -1,5 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`createRawOrder 1`] = `
+Object {
+  "orderHash": "orderHash",
+  "pair": "aETH|WETH",
+  "signedOrder": Object {},
+}
+`;
+
 exports[`createRawOrder, cannot sign 1`] = `[Error: cannot sign]`;
 
 exports[`createRawOrderWithoutSalt 1`] = `
