@@ -110,6 +110,114 @@ test('handleOrderResponse not ok', () => {
 	expect(handleError.mock.calls).toMatchSnapshot();
 });
 
+test('handleTradeResponse ok', () => {
+	const handleUpdate = jest.fn();
+	const handleError = jest.fn();
+	const handleHistory = jest.fn();
+	relayerClient.onOrder(handleHistory, handleUpdate, handleError);
+	relayerClient.handleTradeResponse({
+		channel: 'channel',
+		method: 'method',
+		status: CST.WS_OK,
+		orderHash: '0xOrderHash',
+		pair: 'pair',
+		trades: [
+			{
+				pair: 'test',
+				transactionHash: 'test',
+				taker: {
+					orderHash: 'test',
+					address: 'test',
+					side: 'test',
+					price: 123,
+					amount: 123,
+					fee: 123
+				},
+				maker: {
+					orderHash: 'test',
+					price: 123,
+					amount: 123,
+					fee: 123
+				},
+				feeAsset: 'test',
+				timestamp: 123
+			}
+		]
+	} as any);
+	expect(handleUpdate.mock.calls).toMatchSnapshot();
+	expect(handleHistory).not.toBeCalled();
+	expect(handleError).not.toBeCalled();
+});
+
+test('handleTradeResponse not ok', () => {
+	const handleUpdate = jest.fn();
+	const handleError = jest.fn();
+	const handleHistory = jest.fn();
+	relayerClient.onOrder(handleHistory, handleUpdate, handleError);
+	relayerClient.handleTradeResponse({
+		channel: 'channel',
+		method: 'method',
+		status: 'status',
+		orderHash: '0xOrderHash',
+		pair: 'pair'
+	} as any);
+	expect(handleUpdate).not.toBeCalled();
+	expect(handleHistory).not.toBeCalled();
+	expect(handleError.mock.calls).toMatchSnapshot();
+});
+
+test('handleTradeResponse OK', () => {
+	const handleUpdate = jest.fn();
+	const handleError = jest.fn();
+	relayerClient.onTrade(handleUpdate, handleError);
+	relayerClient.handleTradeResponse({
+		channel: 'channel',
+		method: CST.DB_TRADES,
+		status: CST.WS_OK,
+		pair: 'pair',
+		orderHistory: 'orderHistory',
+		trades: [
+			{
+				pair: 'test',
+				transactionHash: 'test',
+				taker: {
+					orderHash: 'test',
+					address: 'test',
+					side: 'test',
+					price: 123,
+					amount: 123,
+					fee: 123
+				},
+				maker: {
+					orderHash: 'test',
+					price: 123,
+					amount: 123,
+					fee: 123
+				},
+				feeAsset: 'test',
+				timestamp: 123
+			}
+		]
+	} as any);
+	expect(handleUpdate.mock.calls).toMatchSnapshot();
+	expect(handleError).not.toBeCalled();
+});
+
+test('handleTradeResponse NOT OK', () => {
+	const handleUpdate = jest.fn();
+	const handleError = jest.fn();
+	relayerClient.onTrade(handleUpdate, handleError);
+	relayerClient.handleTradeResponse({
+		channel: 'channel',
+		method: 'method',
+		status: 'status',
+		orderHash: '0xOrderHash',
+		pair: 'pair'
+	} as any);
+	expect(handleUpdate).not.toBeCalled();
+	expect(handleError.mock.calls).toMatchSnapshot();
+});
+
 test('handleOrderBookResponse update before snapshot', () => {
 	const handleUpdate = jest.fn();
 	const handleError = jest.fn();
@@ -360,7 +468,7 @@ test('handleOrderBookResponse update after obsolete', () => {
 	expect(handleUpdate).not.toBeCalled();
 	expect(handleError).not.toBeCalled();
 	expect(relayerClient.subscribeOrderBook as jest.Mock).not.toBeCalled();
-	expect(relayerClient.pendingOrderBookUpdates['pair']).toEqual([])
+	expect(relayerClient.pendingOrderBookUpdates['pair']).toEqual([]);
 });
 
 test('handleOrderBookResponse not ok', () => {
@@ -438,7 +546,25 @@ test('handleMessage orders', () => {
 	expect(handleInfo).not.toBeCalled();
 });
 
+test('handleMessage trades', () => {
+	relayerClient.handleTradeResponse = jest.fn();
+	relayerClient.handleOrderResponse = jest.fn();
+	relayerClient.handleOrderBookResponse = jest.fn();
+	const handleInfo = jest.fn();
+	relayerClient.onInfoUpdate(handleInfo);
+	relayerClient.handleMessage(
+		JSON.stringify({
+			channel: CST.DB_TRADES
+		})
+	);
+	expect((relayerClient.handleTradeResponse as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(relayerClient.handleOrderResponse as jest.Mock).not.toBeCalled();
+	expect(relayerClient.handleOrderBookResponse as jest.Mock).not.toBeCalled();
+	expect(handleInfo).not.toBeCalled();
+});
+
 test('handleMessage orderBooks', () => {
+	relayerClient.handleTradeResponse = jest.fn();
 	relayerClient.handleOrderResponse = jest.fn();
 	relayerClient.handleOrderBookResponse = jest.fn();
 	const handleInfo = jest.fn();
@@ -448,6 +574,7 @@ test('handleMessage orderBooks', () => {
 			channel: CST.DB_ORDER_BOOKS
 		})
 	);
+	expect(relayerClient.handleTradeResponse as jest.Mock).not.toBeCalled();
 	expect(relayerClient.handleOrderResponse as jest.Mock).not.toBeCalled();
 	expect((relayerClient.handleOrderBookResponse as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(handleInfo).not.toBeCalled();
@@ -455,6 +582,7 @@ test('handleMessage orderBooks', () => {
 
 test('handleMessage info', () => {
 	web3Util.setTokens = jest.fn();
+	relayerClient.handleTradeResponse = jest.fn();
 	relayerClient.handleOrderResponse = jest.fn();
 	relayerClient.handleOrderBookResponse = jest.fn();
 	const handleInfo = jest.fn();
@@ -468,6 +596,7 @@ test('handleMessage info', () => {
 			exchangePrices: 'exchangePrices'
 		})
 	);
+	expect(relayerClient.handleTradeResponse as jest.Mock).not.toBeCalled();
 	expect(relayerClient.handleOrderResponse as jest.Mock).not.toBeCalled();
 	expect(relayerClient.handleOrderBookResponse as jest.Mock).not.toBeCalled();
 	expect((web3Util.setTokens as jest.Mock).mock.calls).toMatchSnapshot();
@@ -498,7 +627,9 @@ test('unsubscribeOrderHistory', () => {
 test('addOrder no ws', async () => {
 	relayerClient.ws = null;
 	web3Util.isValidPair = jest.fn(() => false);
-	expect(await relayerClient.addOrder('account', 'code1|code2', 123, 456, true, 1234567890)).toBe('');
+	expect(await relayerClient.addOrder('account', 'code1|code2', 123, 456, true, 1234567890)).toBe(
+		''
+	);
 	expect(web3Util.isValidPair as jest.Mock).not.toBeCalled();
 });
 
@@ -577,7 +708,9 @@ test('addOrder bid', async () => {
 		orderHash: 'orderHash',
 		signedOrder: 'signedOrder'
 	}));
-	expect(await relayerClient.addOrder('account', 'code1|code2', 123, 456, true, 1234567890)).toBe('orderHash');
+	expect(await relayerClient.addOrder('account', 'code1|code2', 123, 456, true, 1234567890)).toBe(
+		'orderHash'
+	);
 	expect(send.mock.calls).toMatchSnapshot();
 	expect((orderUtil.getAmountAfterFee as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((web3Util.createRawOrder as jest.Mock).mock.calls).toMatchSnapshot();
@@ -606,7 +739,9 @@ test('addOrder ask', async () => {
 		orderHash: 'orderHash',
 		signedOrder: 'signedOrder'
 	}));
-	expect(await relayerClient.addOrder('account', 'code1|code2', 123, 456, false, 1234567890)).toBe('orderHash');
+	expect(
+		await relayerClient.addOrder('account', 'code1|code2', 123, 456, false, 1234567890)
+	).toBe('orderHash');
 	expect(send.mock.calls).toMatchSnapshot();
 	expect((orderUtil.getAmountAfterFee as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((web3Util.createRawOrder as jest.Mock).mock.calls).toMatchSnapshot();
@@ -625,7 +760,7 @@ test('reconnect, less than 5 times', () => {
 	relayerClient.onConnection(handleConnected, handleReconnect);
 	const ws = {
 		terminate: jest.fn()
-	}
+	};
 	relayerClient.ws = ws as any;
 	relayerClient.reconnectionNumber = 3;
 	global.setTimeout = jest.fn();
