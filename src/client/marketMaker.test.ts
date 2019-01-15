@@ -396,7 +396,7 @@ test('initialize, no b token', async () => {
 	}
 });
 
-test.only('initialize', async () => {
+test('initialize', async () => {
 	const web3Util = {
 		getTokenByCode: jest.fn(() => tokens[0]),
 		tokens: tokens,
