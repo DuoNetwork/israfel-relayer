@@ -227,7 +227,7 @@ test('maintainBalance, isMaintainingBalance', async () => {
 	const dualClassWrapper = {
 		getStates: jest.fn(() => Promise.resolve(custodianStates)),
 		createRaw: jest.fn(() => Promise.resolve()),
-		redeemRaw: jest.fn(() => Promise.resolve()),
+		redeem: jest.fn(() => Promise.resolve()),
 		wrapEther: jest.fn(() => Promise.resolve())
 	} as any;
 	await marketMaker.maintainBalance(web3Util, dualClassWrapper);
@@ -236,7 +236,7 @@ test('maintainBalance, isMaintainingBalance', async () => {
 	expect(web3Util.awaitTransactionSuccessAsync).not.toBeCalled();
 	expect(dualClassWrapper.getStates).not.toBeCalled();
 	expect(dualClassWrapper.createRaw).not.toBeCalled();
-	expect(dualClassWrapper.redeemRaw).not.toBeCalled();
+	expect(dualClassWrapper.redeem).not.toBeCalled();
 	expect(dualClassWrapper.wrapEther).not.toBeCalled();
 	expect(marketMaker.isMaintainingBalance).toBeTruthy();
 });
@@ -255,7 +255,7 @@ test('maintainBalance, short of token', async () => {
 	const dualClassWrapper = {
 		getStates: jest.fn(() => Promise.resolve(custodianStates)),
 		createRaw: jest.fn(() => Promise.resolve('createRawHash')),
-		redeemRaw: jest.fn(() => Promise.resolve('redeemRawHash')),
+		redeem: jest.fn(() => Promise.resolve('redeemHash')),
 		wrapEther: jest.fn(() => Promise.resolve('wrapEtherHash'))
 	} as any;
 	marketMaker.tokenBalances = [11, 50, 50];
@@ -266,7 +266,7 @@ test('maintainBalance, short of token', async () => {
 	expect(web3Util.awaitTransactionSuccessAsync).toBeCalledTimes(1);
 	expect(web3Util.tokenTransfer).not.toBeCalled();
 	expect(dualClassWrapper.getStates).toBeCalledTimes(1);
-	expect(dualClassWrapper.redeemRaw).not.toBeCalled();
+	expect(dualClassWrapper.redeem).not.toBeCalled();
 	expect(dualClassWrapper.wrapEther).not.toBeCalled();
 	expect(marketMaker.isMaintainingBalance).toBeFalsy();
 });
@@ -286,13 +286,13 @@ test('maintainBalance, surplus of token', async () => {
 	const dualClassWrapper = {
 		getStates: jest.fn(() => Promise.resolve(custodianStates)),
 		createRaw: jest.fn(() => Promise.resolve('createRawHash')),
-		redeemRaw: jest.fn(() => Promise.resolve('redeemRawHash')),
+		redeem: jest.fn(() => Promise.resolve('redeemHash')),
 		wrapEther: jest.fn(() => Promise.resolve('wrapEtherHash'))
 	} as any;
 	marketMaker.tokenBalances = [2, 500, 500];
 	await marketMaker.maintainBalance(web3Util, dualClassWrapper);
 	expect(marketMaker.tokenBalances).toMatchSnapshot();
-	expect(dualClassWrapper.redeemRaw.mock.calls).toMatchSnapshot();
+	expect(dualClassWrapper.redeem.mock.calls).toMatchSnapshot();
 	expect(web3Util.wrapEther.mock.calls).toMatchSnapshot();
 	expect(web3Util.getGasPrice).toBeCalledTimes(1);
 	expect(web3Util.awaitTransactionSuccessAsync).toBeCalledTimes(2);
@@ -315,7 +315,7 @@ test('maintainBalance, surplus of weth', async () => {
 	const dualClassWrapper = {
 		getStates: jest.fn(() => Promise.resolve(custodianStates)),
 		createRaw: jest.fn(() => Promise.resolve('createRawHash')),
-		redeemRaw: jest.fn(() => Promise.resolve('redeemRawHash')),
+		redeem: jest.fn(() => Promise.resolve('redeemHash')),
 		wrapEther: jest.fn(() => Promise.resolve('wrapEtherHash'))
 	} as any;
 	marketMaker.tokenBalances = [12, 200, 200];
@@ -325,7 +325,7 @@ test('maintainBalance, surplus of weth', async () => {
 	expect(web3Util.wrapEther).not.toBeCalled();
 	expect(web3Util.getGasPrice).toBeCalledTimes(1);
 	expect(web3Util.awaitTransactionSuccessAsync).toBeCalledTimes(1);
-	expect(dualClassWrapper.redeemRaw).not.toBeCalled();
+	expect(dualClassWrapper.redeem).not.toBeCalled();
 	expect(dualClassWrapper.createRaw).not.toBeCalled();
 });
 
@@ -344,7 +344,7 @@ test('maintainBalance, short of weth', async () => {
 	const dualClassWrapper = {
 		getStates: jest.fn(() => Promise.resolve(custodianStates)),
 		createRaw: jest.fn(() => Promise.resolve('createRawHash')),
-		redeemRaw: jest.fn(() => Promise.resolve('redeemRawHash')),
+		redeem: jest.fn(() => Promise.resolve('redeemHash')),
 		wrapEther: jest.fn(() => Promise.resolve('wrapEtherHash'))
 	} as any;
 	marketMaker.tokenBalances = [1, 200, 200];
@@ -354,7 +354,7 @@ test('maintainBalance, short of weth', async () => {
 	expect(web3Util.wrapEther).not.toBeCalled();
 	expect(web3Util.getGasPrice).toBeCalledTimes(1);
 	expect(web3Util.awaitTransactionSuccessAsync).toBeCalledTimes(1);
-	expect(dualClassWrapper.redeemRaw).not.toBeCalled();
+	expect(dualClassWrapper.redeem).not.toBeCalled();
 	expect(dualClassWrapper.createRaw).not.toBeCalled();
 });
 
@@ -396,7 +396,7 @@ test('initialize, no b token', async () => {
 	}
 });
 
-test('initialize', async () => {
+test.only('initialize', async () => {
 	const web3Util = {
 		getTokenByCode: jest.fn(() => tokens[0]),
 		tokens: tokens,
@@ -409,8 +409,9 @@ test('initialize', async () => {
 
 	marketMaker.checkAllowance = jest.fn(() => Promise.resolve());
 	marketMaker.maintainBalance = jest.fn(() => Promise.resolve());
-	await marketMaker.initialize(relayerClient, option);
+	marketMaker.getDualWrapper = jest.fn();
 
+	await marketMaker.initialize(relayerClient, option);
 	expect((relayerClient.web3Util.getTokenByCode as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((relayerClient.web3Util.getTokenBalance as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((relayerClient.subscribeOrderHistory as jest.Mock).mock.calls).toMatchSnapshot();

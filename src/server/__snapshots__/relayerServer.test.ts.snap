@@ -1507,7 +1507,7 @@ Array [
     "ETH|USD",
   ],
   Array [
-    "bitstamp",
+    undefined,
     60,
     1148167890,
     0,
