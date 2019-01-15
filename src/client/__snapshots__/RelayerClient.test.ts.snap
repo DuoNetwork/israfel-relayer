@@ -278,42 +278,32 @@ Array [
 exports[`handleTradeResponse OK 1`] = `
 Array [
   Array [
-    Object {
-      "channel": "channel",
-      "method": "trades",
-      "orderHistory": "orderHistory",
-      "pair": "pair",
-      "status": "ok",
-      "trades": Array [
-        Object {
-          "feeAsset": "test",
-          "maker": Object {
-            "amount": 123,
-            "fee": 123,
-            "orderHash": "test",
-            "price": 123,
-          },
-          "pair": "test",
-          "taker": Object {
-            "address": "test",
-            "amount": 123,
-            "fee": 123,
-            "orderHash": "test",
-            "price": 123,
-            "side": "test",
-          },
-          "timestamp": 123,
-          "transactionHash": "test",
+    "pair",
+    Array [
+      Object {
+        "feeAsset": "test",
+        "maker": Object {
+          "amount": 123,
+          "fee": 123,
+          "orderHash": "test",
+          "price": 123,
         },
-      ],
-    },
+        "pair": "test",
+        "taker": Object {
+          "address": "test",
+          "amount": 123,
+          "fee": 123,
+          "orderHash": "test",
+          "price": 123,
+          "side": "test",
+        },
+        "timestamp": 123,
+        "transactionHash": "test",
+      },
+    ],
   ],
 ]
 `;
-
-exports[`handleTradeResponse not ok 1`] = `Array []`;
-
-exports[`handleTradeResponse ok 1`] = `Array []`;
 
 exports[`reconnect, less than 5 times 1`] = `
 Array [

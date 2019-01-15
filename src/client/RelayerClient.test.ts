@@ -110,62 +110,6 @@ test('handleOrderResponse not ok', () => {
 	expect(handleError.mock.calls).toMatchSnapshot();
 });
 
-test('handleTradeResponse ok', () => {
-	const handleUpdate = jest.fn();
-	const handleError = jest.fn();
-	const handleHistory = jest.fn();
-	relayerClient.onOrder(handleHistory, handleUpdate, handleError);
-	relayerClient.handleTradeResponse({
-		channel: 'channel',
-		method: 'method',
-		status: CST.WS_OK,
-		orderHash: '0xOrderHash',
-		pair: 'pair',
-		trades: [
-			{
-				pair: 'test',
-				transactionHash: 'test',
-				taker: {
-					orderHash: 'test',
-					address: 'test',
-					side: 'test',
-					price: 123,
-					amount: 123,
-					fee: 123
-				},
-				maker: {
-					orderHash: 'test',
-					price: 123,
-					amount: 123,
-					fee: 123
-				},
-				feeAsset: 'test',
-				timestamp: 123
-			}
-		]
-	} as any);
-	expect(handleUpdate.mock.calls).toMatchSnapshot();
-	expect(handleHistory).not.toBeCalled();
-	expect(handleError).not.toBeCalled();
-});
-
-test('handleTradeResponse not ok', () => {
-	const handleUpdate = jest.fn();
-	const handleError = jest.fn();
-	const handleHistory = jest.fn();
-	relayerClient.onOrder(handleHistory, handleUpdate, handleError);
-	relayerClient.handleTradeResponse({
-		channel: 'channel',
-		method: 'method',
-		status: 'status',
-		orderHash: '0xOrderHash',
-		pair: 'pair'
-	} as any);
-	expect(handleUpdate).not.toBeCalled();
-	expect(handleHistory).not.toBeCalled();
-	expect(handleError.mock.calls).toMatchSnapshot();
-});
-
 test('handleTradeResponse OK', () => {
 	const handleUpdate = jest.fn();
 	const handleError = jest.fn();
