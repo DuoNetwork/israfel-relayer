@@ -158,13 +158,14 @@ class MarketMaker {
 
 		if (bTokenToRedeem) {
 			util.logDebug(`redeem ${ethAmountForRedemption} WETH from tokens`);
-			let tx = await dualClassWrapper.redeemRaw(
+			let tx = await dualClassWrapper.redeem(
 				this.makerAccount.address,
-				this.makerAccount.privateKey,
 				util.round(bTokenToRedeem) * alpha,
 				util.round(bTokenToRedeem),
-				gasPrice,
-				CST.REDEEM_GAS
+				{
+					gasPrice: gasPrice,
+					gasLimit: CST.REDEEM_GAS
+				}
 			);
 			util.logDebug(`tx hash: ${tx}`);
 			await web3Util.awaitTransactionSuccessAsync(tx);
@@ -574,6 +575,14 @@ class MarketMaker {
 		// TODO: handle add and terminate error
 	}
 
+	public getDualWrapper(infuraProvider: string, aToken: IToken, live: boolean) {
+		const dualClassWrapper = new DualClassWrapper(
+			new Web3Wrapper(null, infuraProvider, this.makerAccount.privateKey, live),
+			aToken.custodian
+		);
+		return dualClassWrapper;
+	}
+
 	public async initialize(relayerClient: RelayerClient, option: IOption) {
 		util.logInfo('initializing dual class wrapper');
 		this.isSendingOrder = false;
@@ -598,10 +607,7 @@ class MarketMaker {
 		}
 		const infuraProvider =
 			(live ? CST.PROVIDER_INFURA_MAIN : CST.PROVIDER_INFURA_KOVAN) + '/' + infura.token;
-		const dualClassWrapper = new DualClassWrapper(
-			new Web3Wrapper(null, 'source', infuraProvider, live),
-			aToken.custodian
-		);
+		const dualClassWrapper = this.getDualWrapper(infuraProvider, aToken, live);
 		const address = this.makerAccount.address;
 		util.logDebug(`updating balance for maker address ${address}`);
 		this.tokenBalances = [

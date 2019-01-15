@@ -7,6 +7,7 @@ import {
 	IPrice,
 	IStatus,
 	IToken,
+	ITrade,
 	IUserOrder,
 	IWsAddOrderRequest,
 	IWsInfoResponse,
@@ -39,7 +40,7 @@ export default class RelayerClient {
 	) => any = () => ({});
 	private handleOrderUpdate: (userOrder: IUserOrder) => any = () => ({});
 	private handleOrderHistoryUpdate: (userOrders: IUserOrder[]) => any = () => ({});
-	private handleTradeUpdate: (trade: IWsTradeResponse) => any = () => ({});
+	private handleTradeUpdate: (pair: string, trades: ITrade[]) => any = () => ({});
 	private handleTradeError: (method: string, pair: string, error: string) => any = () => ({});
 	private handleOrderError: (
 		method: string,
@@ -94,7 +95,7 @@ export default class RelayerClient {
 				(response as IWsTradeResponse).pair,
 				response.status
 			);
-		else this.handleTradeUpdate(response as IWsTradeResponse);
+		else this.handleTradeUpdate(response.pair, (response as IWsTradeResponse).trades);
 	}
 
 	public handleOrderResponse(response: IWsResponse) {
@@ -309,7 +310,7 @@ export default class RelayerClient {
 	}
 
 	public onTrade(
-		handleUpdate: (trades: IWsTradeResponse) => any,
+		handleUpdate: (pair: string, trades: ITrade[]) => any,
 		handleError: (method: string, pair: string, error: string) => any
 	) {
 		this.handleTradeUpdate = handleUpdate;

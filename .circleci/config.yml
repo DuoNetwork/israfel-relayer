@@ -47,7 +47,7 @@ jobs:
                   command: npm install
             - run:
                   name: test
-                  command: npm test -- -w 1
+                  command: npm test -- -w 1 --forceExit
     test-coverage:
         working_directory: /home/circleci/israfel-relayer
         docker:
@@ -63,7 +63,7 @@ jobs:
                   command: npm install
             - run:
                   name: test
-                  command: npm test -- -w 1
+                  command: npm test -- -w 1 --forceExit
             - run:
                   name: coverage
                   command: npm test -- -w 1 --coverage --forceExit --detectOpenHandles

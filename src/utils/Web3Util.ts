@@ -27,16 +27,16 @@ const Web3Personal = require('web3-eth-personal');
 const Web3Utils = require('web3-utils');
 
 export default class Web3Util {
-	private contractWrappers: ContractWrappers;
-	private web3Wrapper: Web3Wrapper;
+	public contractWrappers: ContractWrappers;
+	public web3Wrapper: Web3Wrapper;
 	public wallet: Wallet = Wallet.None;
 	public accountIndex: number = 0;
 	public networkId: number = CST.NETWORK_ID_KOVAN;
 	public tokens: IToken[] = [];
-	private rawMetamaskProvider: any = null;
+	public rawMetamaskProvider: any = null;
 	private web3Eth: any = null;
-	private web3Accounts: any = null;
-	private web3Personal: any = null;
+	public web3Accounts: any = null;
+	public web3Personal: any = null;
 	public contractAddresses: ContractAddresses;
 	public readonly relayerAddress: string;
 
@@ -131,7 +131,7 @@ export default class Web3Util {
 	}
 
 	public web3PersonalSign(account: string, message: string): Promise<string> {
-		if (this.wallet === Wallet.None) return Promise.reject();
+		if (this.wallet === Wallet.None) return Promise.reject('canot sign');
 		return this.web3Personal.sign(message, account);
 	}
 
@@ -301,7 +301,7 @@ export default class Web3Util {
 					tokenAddress,
 					account
 				);
-		return Promise.reject();
+		return Promise.reject('no tokenAddress');
 	}
 
 	public async getTokenAllowance(code: string, ownerAddr: string, spender?: string) {

@@ -1,5 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`awaitTransactionSuccessAsync 1`] = `
+Array [
+  Array [
+    "txHash",
+    undefined,
+    undefined,
+  ],
+]
+`;
+
 exports[`constructor, no window, local 1`] = `1`;
 
 exports[`constructor, no window, non local 1`] = `1`;
@@ -11,3 +21,227 @@ exports[`constructor, no window, non local, no mnemonic 1`] = `0`;
 exports[`constructor, with window, metaMask 1`] = `2`;
 
 exports[`constructor, with window, metaMask, live 1`] = `2`;
+
+exports[`getAvailableAddresses 1`] = `
+Array [
+  "addr1",
+  "addr2",
+]
+`;
+
+exports[`getCurrentAddress 1`] = `"addr1"`;
+
+exports[`getCurrentNetwork 1`] = `42`;
+
+exports[`getEthBalance 1`] = `
+Array [
+  Array [
+    "address",
+  ],
+]
+`;
+
+exports[`getFilledTakerAssetAmount 1`] = `
+Array [
+  Array [
+    "orderHash",
+    Object {
+      "defaultBlock": "latest",
+    },
+  ],
+]
+`;
+
+exports[`getGasPrice 1`] = `1000000000`;
+
+exports[`getProvider 1`] = `"provider"`;
+
+exports[`getTokenAddressFromCode 1`] = `"0xd0a1e359811322d97991e03f863a0c30c2cf029c"`;
+
+exports[`getTokenAddressFromCode, other token 1`] = `"otherTokenAddress"`;
+
+exports[`getTokenAllowance, no spender 1`] = `
+Array [
+  Array [
+    "tokenAddress",
+    "owneraddr",
+  ],
+]
+`;
+
+exports[`getTokenAllowance, no tokenAddress 1`] = `0`;
+
+exports[`getTokenAllowance, with spender 1`] = `
+Array [
+  Array [
+    "tokenAddress",
+    "owneraddr",
+    "spender",
+  ],
+]
+`;
+
+exports[`getTokenBalance, no tokenAddress 1`] = `0`;
+
+exports[`getTokenBalance, with tokenAddress 1`] = `
+Array [
+  Array [
+    "tokenAddress",
+    "address",
+  ],
+]
+`;
+
+exports[`getTokenByCode 1`] = `
+Object {
+  "code": "code",
+}
+`;
+
+exports[`getTransactionCount 1`] = `10`;
+
+exports[`getTransactionReceipt 1`] = `
+Array [
+  Array [
+    "txHash",
+  ],
+]
+`;
+
+exports[`matchOrders 1`] = `
+Array [
+  Array [
+    Object {
+      "leftOrder": "leftOrder",
+    },
+    Object {
+      "rightOrder": "rightOrder",
+    },
+    "senderAddr",
+    Object {},
+  ],
+]
+`;
+
+exports[`setTokens 1`] = `
+Array [
+  Object {
+    "address": "address",
+    "code": "code1",
+    "custodian": "custodian",
+    "denomination": 1,
+    "feeSchedules": Object {
+      "WETH": Object {
+        "minimum": 0.1,
+        "rate": 0,
+      },
+    },
+    "precisions": Object {
+      "WETH": 0.0001,
+    },
+  },
+  Object {
+    "address": "address",
+    "code": "code2",
+    "custodian": "custodian",
+    "denomination": 1,
+    "feeSchedules": Object {
+      "WETH": Object {
+        "minimum": 0.1,
+        "rate": 0,
+      },
+    },
+    "precisions": Object {
+      "WETH": 0.0001,
+    },
+  },
+]
+`;
+
+exports[`setUnlimitedTokenAllowance, no spender 1`] = `
+Array [
+  Array [
+    "tokenAddress",
+    "account",
+  ],
+]
+`;
+
+exports[`setUnlimitedTokenAllowance, no tokenAddress 1`] = `"no tokenAddress"`;
+
+exports[`setUnlimitedTokenAllowance, with spender 1`] = `
+Array [
+  Array [
+    "tokenAddress",
+    "account",
+    "spender",
+  ],
+]
+`;
+
+exports[`tokenTransfer, sneder != from 1`] = `
+Array [
+  Array [
+    "0xtokenAddr",
+    "fromAddr",
+    "toAddr",
+    "senderAddr",
+    undefined,
+  ],
+]
+`;
+
+exports[`tokenTransfer, sneder = from 1`] = `
+Array [
+  Array [
+    "0xtokenAddr",
+    "fromAddr",
+    "toAddr",
+    undefined,
+  ],
+]
+`;
+
+exports[`unwrapEther 1`] = `
+Array [
+  Array [
+    "etherTokenAddress",
+    10000000000000000000,
+    "address",
+  ],
+]
+`;
+
+exports[`validateOrder 1`] = `"orderHash"`;
+
+exports[`web3AccountsRecover 1`] = `
+Array [
+  Array [
+    "message",
+    "signature",
+  ],
+]
+`;
+
+exports[`web3AccountsRecover, no web3Accounts 1`] = `""`;
+
+exports[`web3PersonalSign 1`] = `
+Array [
+  Array [
+    "message",
+    "account",
+  ],
+]
+`;
+
+exports[`web3PersonalSign, reject 1`] = `"canot sign"`;
+
+exports[`wrapEther 1`] = `
+Array [
+  Array [
+    "etherTokenAddress",
+    10000000000000000000,
+    "address",
+  ],
+]
+`;
