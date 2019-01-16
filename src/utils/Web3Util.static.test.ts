@@ -136,3 +136,9 @@ test('getAccountFromMnemonic', () => {
 		)
 	).toMatchSnapshot();
 });
+
+test('isValidAddress', () => {
+	expect(Web3Util.isValidAddress(CST.DUMMY_ADDR)).toBeFalsy();
+	expect(Web3Util.isValidAddress('test')).toBeFalsy();
+	expect(Web3Util.isValidAddress('0x08cb8054201a9FdfE63fbdB1b3028E12d284D0dD')).toBeTruthy();
+});

@@ -123,6 +123,15 @@ Array [
 ]
 `;
 
+exports[`onWeb3AccountUpdate 1`] = `
+Array [
+  Array [
+    "selectedAddress",
+    123,
+  ],
+]
+`;
+
 exports[`setTokens 1`] = `
 Array [
   Object {
