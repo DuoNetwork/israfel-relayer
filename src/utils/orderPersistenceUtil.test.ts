@@ -573,7 +573,8 @@ test('getAllLiveOrdersInPersistence add and terminate in redis', async () => {
 	redisUtil.hashGetAll = jest.fn(() =>
 		Promise.resolve({
 			'code1|code2|add|0xOrderHash': JSON.stringify({ liveOrder: 'add' }),
-			'code1|code2|terminate|0xOrderHash': JSON.stringify({ liveOrder: 'terminate' })
+			'code1|code2|terminate|0xOrderHash': JSON.stringify({ liveOrder: 'terminate' }),
+			'code1|code2|terminate|0xOrderHash1': JSON.stringify({ liveOrder: 'terminate' })
 		})
 	);
 	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([]));
@@ -723,3 +724,11 @@ test('getRawOrderInPersistence not in neither', async () => {
 	).toBeNull();
 	expect((dynamoUtil.getRawOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });
+
+test('hashDeleteAll', async () => {
+	redisUtil.hashDeleteAll = jest.fn(() => Promise.resolve());
+	await orderPersistenceUtil.hashDeleteAll({
+		token: 'token'
+	} as any);
+	expect((redisUtil.hashDeleteAll as jest.Mock).mock.calls).toMatchSnapshot();
+})

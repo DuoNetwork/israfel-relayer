@@ -101,7 +101,8 @@ class DynamoUtil {
 
 		const allFees = data[CST.DB_FEE_SCHEDULES].M || {};
 		for (const code in allFees) {
-			const fee = allFees[code].M || {};
+			const fee = allFees[code].M;
+			if (!fee) continue;
 			const parsedFee: IFeeSchedule = {
 				rate: Number(fee[CST.DB_RATE].N),
 				minimum: Number(fee[CST.DB_MIN].N)

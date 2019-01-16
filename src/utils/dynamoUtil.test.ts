@@ -228,6 +228,55 @@ test('scanTokens', async () => {
 					}
 				},
 				[CST.DB_MATURITY]: { N: 1234567890 }
+			},
+			{
+				[CST.DB_CUSTODIAN]: { S: 'custodian3' },
+				[CST.DB_ADDRESS]: { S: 'addr3' },
+				[CST.DB_CODE]: { S: 'code3' },
+				[CST.DB_DENOMINATION]: { N: '10' },
+				[CST.DB_PRECISIONS]: {
+					M: {
+						WETH: { N: '0.000005' }
+					}
+				},
+				[CST.DB_FEE_SCHEDULES]: {
+					M: {
+						WETH: {
+							M: {
+								[CST.DB_ASSET]: {},
+								[CST.DB_RATE]: { N: '0' },
+								[CST.DB_MIN]: { N: '1' }
+							}
+						}
+					}
+				},
+				[CST.DB_MATURITY]: { N: 1234567890 }
+			},
+			{
+				[CST.DB_CUSTODIAN]: { S: 'custodian4' },
+				[CST.DB_ADDRESS]: { S: 'addr4' },
+				[CST.DB_CODE]: { S: 'code4' },
+				[CST.DB_DENOMINATION]: { N: '10' },
+				[CST.DB_PRECISIONS]: {
+					M: {
+						WETH: { N: '0.000005' }
+					}
+				},
+				[CST.DB_FEE_SCHEDULES]: {
+					M: {
+						WETH: {}
+					}
+				},
+				[CST.DB_MATURITY]: { N: 1234567890 }
+			},
+			{
+				[CST.DB_CUSTODIAN]: {},
+				[CST.DB_ADDRESS]: {},
+				[CST.DB_CODE]: {},
+				[CST.DB_DENOMINATION]: { N: '10' },
+				[CST.DB_PRECISIONS]: {},
+				[CST.DB_FEE_SCHEDULES]: {},
+				[CST.DB_MATURITY]: { N: 1234567890 }
 			}
 		]
 	};
@@ -300,6 +349,11 @@ test('scanStatus', async () => {
 				[CST.DB_PROCESS]: { S: 'tool|tool|hostname' },
 				[CST.DB_UPDATED_AT]: { N: '1234567890' },
 				[CST.DB_HOSTNAME]: { S: 'hostname' }
+			},
+			{
+				[CST.DB_PROCESS]: {},
+				[CST.DB_UPDATED_AT]: { N: '1234567890' },
+				[CST.DB_HOSTNAME]: {}
 			}
 		]
 	};
@@ -403,6 +457,33 @@ test('getLiveOrders with orderHash', async () => {
 	expect(await dynamoUtil.getLiveOrders('code1|code2', 'orderHash')).toMatchSnapshot();
 
 	queryOutput = {
+		Items: [
+			{
+				[CST.DB_ACCOUNT]: {},
+				[CST.DB_PAIR]: {},
+				[CST.DB_ORDER_HASH]: {},
+				[CST.DB_PRICE]: {
+					N: '123'
+				},
+				[CST.DB_AMOUNT]: { N: '456' },
+				[CST.DB_BALANCE]: { N: '123' },
+				[CST.DB_MATCHING]: { N: '111' },
+				[CST.DB_FILL]: { N: '234' },
+				[CST.DB_SIDE]: {},
+				[CST.DB_EXP]: { N: '1234567890' },
+				[CST.DB_FEE]: { N: '1' },
+				[CST.DB_FEE_ASSET]: {},
+				[CST.DB_INITIAL_SEQ]: { N: '1' },
+				[CST.DB_CURRENT_SEQ]: { N: '2' },
+				[CST.DB_CREATED_AT]: { N: '1234560000' },
+				[CST.DB_UPDATED_AT]: { N: '1234567890' }
+			}
+		]
+	};
+	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
+	expect(await dynamoUtil.getLiveOrders('code1|code2', 'orderHash')).toMatchSnapshot();
+
+	queryOutput = {
 		Items: [{}, {}]
 	};
 	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
@@ -449,6 +530,33 @@ test('getRawOrder', async () => {
 					S: '1234567890'
 				},
 				[CST.DB_0X_SIGNATURE]: { S: 'signature' },
+				[CST.DB_CREATED_AT]: { N: '1234567890' },
+				[CST.DB_UPDATED_AT]: { N: '1234567890' }
+			}
+		]
+	};
+	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
+	expect(await dynamoUtil.getRawOrder('0xOrderHash')).toMatchSnapshot();
+
+	queryOutput = {
+		Items: [
+			{
+				[CST.DB_ORDER_HASH]: {},
+				[CST.DB_PAIR]: {},
+				[CST.DB_0X_SENDER_ADDR]: {},
+				[CST.DB_0X_MAKER_ADDR]: {},
+				[CST.DB_0X_TAKER_ADDR]: {},
+				[CST.DB_0X_MAKER_FEE]: {},
+				[CST.DB_0X_TAKER_FEE]: {},
+				[CST.DB_0X_MAKER_ASSET_AMT]: {},
+				[CST.DB_0X_TAKER_ASSET_AMT]: {},
+				[CST.DB_0X_MAKER_ASSET_DATA]: {},
+				[CST.DB_0X_TAKER_ASSET_DATA]: {},
+				[CST.DB_0X_SALT]: {},
+				[CST.DB_0X_EXCHANGE_ADDR]: {},
+				[CST.DB_0X_FEE_RECIPIENT_ADDR]: {},
+				[CST.DB_0X_EXPIRATION_TIME_SECONDS]: {},
+				[CST.DB_0X_SIGNATURE]: {},
 				[CST.DB_CREATED_AT]: { N: '1234567890' },
 				[CST.DB_UPDATED_AT]: { N: '1234567890' }
 			}
@@ -612,6 +720,28 @@ test('getUserOrdersForMonth', async () => {
 				[CST.DB_UPDATED_BY]: { S: 'updatedBy' },
 				[CST.DB_PROCESSED]: { BOOL: true },
 				[CST.DB_TX_HASH]: { S: 'txHash' }
+			},
+			{
+				[CST.DB_ACCOUNT_YM]: {},
+				[CST.DB_PAIR_OH_SEQ_STATUS]: {},
+				[CST.DB_TYPE]: {},
+				[CST.DB_PRICE]: {
+					N: '123'
+				},
+				[CST.DB_BALANCE]: { N: '123' },
+				[CST.DB_AMOUNT]: { N: '456' },
+				[CST.DB_MATCHING]: { N: '111' },
+				[CST.DB_FILL]: { N: '234' },
+				[CST.DB_SIDE]: {},
+				[CST.DB_EXP]: { N: '1234567890' },
+				[CST.DB_FEE]: { N: '1' },
+				[CST.DB_FEE_ASSET]: {},
+				[CST.DB_INITIAL_SEQ]: { N: '1' },
+				[CST.DB_CREATED_AT]: { N: '1234560000' },
+				[CST.DB_UPDATED_AT]: { N: '1234567890' },
+				[CST.DB_UPDATED_BY]: {},
+				[CST.DB_PROCESSED]: { BOOL: true },
+				[CST.DB_TX_HASH]: {}
 			}
 		]
 	};
@@ -626,6 +756,13 @@ test('getUserOrders', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 9876543210);
 	dynamoUtil.getUserOrdersForMonth = jest.fn(() => Promise.resolve([]));
 	await dynamoUtil.getUserOrders('0xAccount', 1000000000);
+	expect((dynamoUtil.getUserOrdersForMonth as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('getUserOrders end pair', async () => {
+	util.getUTCNowTimestamp = jest.fn(() => 9876543210);
+	dynamoUtil.getUserOrdersForMonth = jest.fn(() => Promise.resolve([]));
+	await dynamoUtil.getUserOrders('0xAccount', 1000000000, 9876543210, 'pair');
 	expect((dynamoUtil.getUserOrdersForMonth as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
@@ -679,6 +816,21 @@ test('getTradesForHour', async () => {
 				[CST.DB_MK_PX]: { N: '987' },
 				[CST.DB_MK_AMT]: { N: '654' },
 				[CST.DB_MK_FEE]: { N: '321' }
+			},
+			{
+				[CST.DB_PAIR_DATE_HOUR]: {},
+				[CST.DB_TS_TX_HASH]: {},
+				[CST.DB_FEE_ASSET]: {},
+				[CST.DB_TK_OH]: {},
+				[CST.DB_TK_ADDR]: {},
+				[CST.DB_TK_SIDE]: {},
+				[CST.DB_TK_PX]: { N: '123' },
+				[CST.DB_TK_AMT]: { N: '456' },
+				[CST.DB_TK_FEE]: { N: '789' },
+				[CST.DB_MK_OH]: {},
+				[CST.DB_MK_PX]: { N: '987' },
+				[CST.DB_MK_AMT]: { N: '654' },
+				[CST.DB_MK_FEE]: { N: '321' }
 			}
 		]
 	};
@@ -691,6 +843,12 @@ test('getTrades', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 9876543210);
 	dynamoUtil.getTradesForHour = jest.fn(() => Promise.resolve([]));
 	await dynamoUtil.getTrades('code1|code2', 9870000000);
+	expect((dynamoUtil.getTradesForHour as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('getTrades end', async () => {
+	dynamoUtil.getTradesForHour = jest.fn(() => Promise.resolve([]));
+	await dynamoUtil.getTrades('code1|code2', 9870000000, 9876543210);
 	expect((dynamoUtil.getTradesForHour as jest.Mock).mock.calls).toMatchSnapshot();
 });
 

@@ -441,7 +441,30 @@ Array [
 ]
 `;
 
-exports[`getLiveOrders with orderHash 3`] = `[Error: multiple record for order hash orderHash]`;
+exports[`getLiveOrders with orderHash 3`] = `
+Array [
+  Object {
+    "account": "",
+    "amount": 456,
+    "balance": 123,
+    "createdAt": 1234560000,
+    "currentSequence": 2,
+    "expiry": 1234567890,
+    "fee": 1,
+    "feeAsset": "",
+    "fill": 234,
+    "initialSequence": 1,
+    "matching": 111,
+    "orderHash": "",
+    "pair": "",
+    "price": 123,
+    "side": "",
+    "updatedAt": 1234567890,
+  },
+]
+`;
+
+exports[`getLiveOrders with orderHash 4`] = `[Error: multiple record for order hash orderHash]`;
 
 exports[`getRawOrder 1`] = `
 Array [
@@ -487,6 +510,31 @@ Object {
 exports[`getRawOrder 3`] = `
 Object {
   "createdAt": 1234567890,
+  "orderHash": "",
+  "pair": "",
+  "signedOrder": Object {
+    "exchangeAddress": "",
+    "expirationTimeSeconds": "0",
+    "feeRecipientAddress": "",
+    "makerAddress": "",
+    "makerAssetAmount": "0",
+    "makerAssetData": "",
+    "makerFee": "0",
+    "salt": "0",
+    "senderAddress": "",
+    "signature": "",
+    "takerAddress": "",
+    "takerAssetAmount": "0",
+    "takerAssetData": "",
+    "takerFee": "0",
+  },
+  "updatedAt": 1234567890,
+}
+`;
+
+exports[`getRawOrder 4`] = `
+Object {
+  "createdAt": 1234567890,
   "orderHash": "0xOrderHash",
   "pair": "code1|code2",
   "signedOrder": Object {
@@ -509,9 +557,26 @@ Object {
 }
 `;
 
-exports[`getRawOrder 4`] = `[Error: multiple record for order hash 0xOrderHash]`;
+exports[`getRawOrder 5`] = `[Error: multiple record for order hash 0xOrderHash]`;
 
 exports[`getTrades 1`] = `
+Array [
+  Array [
+    "code1|code2",
+    "1970-04-25-05",
+  ],
+  Array [
+    "code1|code2",
+    "1970-04-25-06",
+  ],
+  Array [
+    "code1|code2",
+    "1970-04-25-07",
+  ],
+]
+`;
+
+exports[`getTrades end 1`] = `
 Array [
   Array [
     "code1|code2",
@@ -549,6 +614,26 @@ Array [
     },
     "timestamp": 1234567890,
     "transactionHash": "txHash",
+  },
+  Object {
+    "feeAsset": "",
+    "maker": Object {
+      "amount": 654,
+      "fee": 321,
+      "orderHash": "",
+      "price": 987,
+    },
+    "pair": "|undefined",
+    "taker": Object {
+      "address": "",
+      "amount": 456,
+      "fee": 789,
+      "orderHash": "",
+      "price": 123,
+      "side": "",
+    },
+    "timestamp": 0,
+    "transactionHash": undefined,
   },
 ]
 `;
@@ -590,6 +675,31 @@ Array [
     "0xAccount",
     "1970-04",
     "",
+  ],
+]
+`;
+
+exports[`getUserOrders end pair 1`] = `
+Array [
+  Array [
+    "0xAccount",
+    "1970-01",
+    "pair",
+  ],
+  Array [
+    "0xAccount",
+    "1970-02",
+    "pair",
+  ],
+  Array [
+    "0xAccount",
+    "1970-03",
+    "pair",
+  ],
+  Array [
+    "0xAccount",
+    "1970-04",
+    "pair",
   ],
 ]
 `;
@@ -640,6 +750,29 @@ Array [
     "type": "type",
     "updatedAt": 1234567890,
     "updatedBy": "updatedBy",
+  },
+  Object {
+    "account": "",
+    "amount": 456,
+    "balance": 123,
+    "createdAt": 1234560000,
+    "currentSequence": NaN,
+    "expiry": 1234567890,
+    "fee": 1,
+    "feeAsset": "",
+    "fill": 234,
+    "initialSequence": 1,
+    "matching": 111,
+    "orderHash": undefined,
+    "pair": "|undefined",
+    "price": 123,
+    "processed": true,
+    "side": "",
+    "status": undefined,
+    "transactionHash": undefined,
+    "type": "",
+    "updatedAt": 1234567890,
+    "updatedBy": "",
   },
 ]
 `;
@@ -747,6 +880,12 @@ Array [
     "tool": "tool",
     "updatedAt": 1234567890,
   },
+  Object {
+    "hostname": "",
+    "pair": undefined,
+    "tool": "",
+    "updatedAt": 1234567890,
+  },
 ]
 `;
 
@@ -793,6 +932,43 @@ Array [
     "precisions": Object {
       "WETH": 0.000005,
     },
+  },
+  Object {
+    "address": "addr3",
+    "code": "code3",
+    "custodian": "custodian3",
+    "denomination": 10,
+    "feeSchedules": Object {
+      "WETH": Object {
+        "asset": "",
+        "minimum": 1,
+        "rate": 0,
+      },
+    },
+    "maturity": 1234567890,
+    "precisions": Object {
+      "WETH": 0.000005,
+    },
+  },
+  Object {
+    "address": "addr4",
+    "code": "code4",
+    "custodian": "custodian4",
+    "denomination": 10,
+    "feeSchedules": Object {},
+    "maturity": 1234567890,
+    "precisions": Object {
+      "WETH": 0.000005,
+    },
+  },
+  Object {
+    "address": "",
+    "code": "",
+    "custodian": "",
+    "denomination": 10,
+    "feeSchedules": Object {},
+    "maturity": 1234567890,
+    "precisions": Object {},
   },
 ]
 `;
