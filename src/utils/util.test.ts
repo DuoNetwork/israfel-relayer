@@ -1,3 +1,4 @@
+import * as CST from '../common/constants';
 import util from './util';
 
 test('isNumber() return true for numbers', () => {
@@ -107,4 +108,37 @@ test('sleep', async () => {
 test('formatFixedNumber', () => {
 	expect(util.formatFixedNumber(123.456789, 0)).toBe('123.456789');
 	expect(util.formatFixedNumber(123.456789, 0.5)).toBe('123.5');
+});
+
+test('log debug', () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	console.log = jest.fn();
+
+	util.logLevel = CST.LOG_DEBUG;
+	util.logError('error');
+	util.logInfo('info');
+	util.logDebug('debug');
+	expect((console.log as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('log info', () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	console.log = jest.fn();
+
+	util.logLevel = CST.LOG_INFO;
+	util.logError('error');
+	util.logInfo('info');
+	util.logDebug('debug');
+	expect((console.log as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('log error', () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	console.log = jest.fn();
+
+	util.logLevel = CST.LOG_ERROR;
+	util.logError('error');
+	util.logInfo('info');
+	util.logDebug('debug');
+	expect((console.log as jest.Mock).mock.calls).toMatchSnapshot();
 });
