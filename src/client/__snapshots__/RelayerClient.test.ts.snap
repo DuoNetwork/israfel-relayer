@@ -265,7 +265,7 @@ Array [
 ]
 `;
 
-exports[`handleTradeResponse NOT OK 1`] = `
+exports[`handleTradeResponse not ok 1`] = `
 Array [
   Array [
     "method",
@@ -275,7 +275,7 @@ Array [
 ]
 `;
 
-exports[`handleTradeResponse OK 1`] = `
+exports[`handleTradeResponse ok 1`] = `
 Array [
   Array [
     "pair",
@@ -347,6 +347,14 @@ Array [
 ]
 `;
 
+exports[`subscribeTrade 1`] = `
+Array [
+  Array [
+    "{\\"method\\":\\"subscribe\\",\\"channel\\":\\"trades\\",\\"pair\\":\\"WETH|ETH\\"}",
+  ],
+]
+`;
+
 exports[`unsubscribeOrderBook 1`] = `
 Array [
   Array [
@@ -359,6 +367,14 @@ exports[`unsubscribeOrderHistory 1`] = `
 Array [
   Array [
     "{\\"method\\":\\"unsubscribe\\",\\"channel\\":\\"orders\\",\\"pair\\":\\"\\",\\"account\\":\\"account\\"}",
+  ],
+]
+`;
+
+exports[`unsubscribeTrade 1`] = `
+Array [
+  Array [
+    "{\\"method\\":\\"unsubscribe\\",\\"channel\\":\\"trades\\",\\"pair\\":\\"\\"}",
   ],
 ]
 `;

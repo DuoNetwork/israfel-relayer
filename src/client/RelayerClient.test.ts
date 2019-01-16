@@ -110,7 +110,7 @@ test('handleOrderResponse not ok', () => {
 	expect(handleError.mock.calls).toMatchSnapshot();
 });
 
-test('handleTradeResponse OK', () => {
+test('handleTradeResponse ok', () => {
 	const handleUpdate = jest.fn();
 	const handleError = jest.fn();
 	relayerClient.onTrade(handleUpdate, handleError);
@@ -147,7 +147,7 @@ test('handleTradeResponse OK', () => {
 	expect(handleError).not.toBeCalled();
 });
 
-test('handleTradeResponse NOT OK', () => {
+test('handleTradeResponse not ok', () => {
 	const handleUpdate = jest.fn();
 	const handleError = jest.fn();
 	relayerClient.onTrade(handleUpdate, handleError);
@@ -565,6 +565,21 @@ test('unsubscribeOrderHistory', () => {
 	const send = jest.fn();
 	relayerClient.ws = { send } as any;
 	relayerClient.unsubscribeOrderHistory('account');
+	expect(send.mock.calls).toMatchSnapshot();
+});
+
+test('subscribeTrade', () => {
+	const send = jest.fn();
+	relayerClient.ws = { send } as any;
+	relayerClient.subscribeTrade('WETH|ETH');
+	// expect(send.mock.calls).toBeCalled();
+	expect(send.mock.calls).toMatchSnapshot();
+});
+
+test('unsubscribeTrade', () => {
+	const send = jest.fn();
+	relayerClient.ws = { send } as any;
+	relayerClient.unsubscribeTrade('');
 	expect(send.mock.calls).toMatchSnapshot();
 });
 
