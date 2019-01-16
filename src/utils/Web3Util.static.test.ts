@@ -127,3 +127,12 @@ test('createRawOrder', async () => {
 	);
 	expect(res).toMatchSnapshot();
 });
+
+test('getAccountFromMnemonic', () => {
+	expect(
+		Web3Util.getAccountFromMnemonic(
+			'candy maple cake sugar pudding cream honey rich smooth crumble sweet treat',
+			0
+		)
+	).toMatchSnapshot();
+});
