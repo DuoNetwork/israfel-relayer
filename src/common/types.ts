@@ -207,9 +207,6 @@ export interface IOption {
 	env: string;
 	tokens: string[];
 	token: string;
-	maker: number;
-	spender: number;
-	amount: number;
 	debug: boolean;
 	server: boolean;
 }

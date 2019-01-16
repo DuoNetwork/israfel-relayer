@@ -11,14 +11,27 @@ Array [
 
 exports[`parseOptions 1`] = `
 Object {
-  "amount": 123,
   "debug": true,
   "env": "live",
-  "maker": 456,
   "server": true,
-  "spender": 789,
   "token": "token",
-  "tokens": Array [],
+  "tokens": Array [
+    "token1",
+    "token2",
+  ],
+}
+`;
+
+exports[`parseOptions defaults 1`] = `
+Object {
+  "debug": true,
+  "env": "live",
+  "server": true,
+  "token": "token",
+  "tokens": Array [
+    "token1",
+    "token2",
+  ],
 }
 `;
 
@@ -33,3 +46,12 @@ exports[`round 4`] = `12345.12345679`;
 exports[`round 5`] = `0.12345679`;
 
 exports[`round 6`] = `12345.12345679`;
+
+exports[`sleep 1`] = `
+Array [
+  Array [
+    [Function],
+    1,
+  ],
+]
+`;
