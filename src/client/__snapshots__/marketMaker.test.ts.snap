@@ -573,11 +573,12 @@ exports[`maintainBalance, short of token 2`] = `
 Array [
   Array [
     "address",
-    "privateKey",
-    9000000000,
-    160000,
     3.88500389,
     "wethAddr",
+    Object {
+      "gasLimit": 160000,
+      "gasPrice": 9000000000,
+    },
   ],
 ]
 `;

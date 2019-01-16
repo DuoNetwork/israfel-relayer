@@ -141,13 +141,14 @@ class MarketMaker {
 
 		if (bTokenToCreate) {
 			util.logDebug(`create tokens from ${ethAmountForCreation} WETH`);
-			const tx = await dualClassWrapper.createRaw(
+			const tx = await dualClassWrapper.create(
 				this.makerAccount.address,
-				this.makerAccount.privateKey,
-				gasPrice,
-				CST.CREATE_GAS,
 				util.round(ethAmountForCreation),
-				web3Util.contractAddresses.etherToken
+				web3Util.contractAddresses.etherToken,
+				{
+					gasPrice: gasPrice,
+					gasLimit: CST.CREATE_GAS
+				}
 			);
 			util.logDebug(`tx hash: ${tx}`);
 			await web3Util.awaitTransactionSuccessAsync(tx);

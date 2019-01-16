@@ -254,14 +254,14 @@ test('maintainBalance, short of token', async () => {
 
 	const dualClassWrapper = {
 		getStates: jest.fn(() => Promise.resolve(custodianStates)),
-		createRaw: jest.fn(() => Promise.resolve('createRawHash')),
+		create: jest.fn(() => Promise.resolve('createRawHash')),
 		redeem: jest.fn(() => Promise.resolve('redeemHash')),
 		wrapEther: jest.fn(() => Promise.resolve('wrapEtherHash'))
 	} as any;
 	marketMaker.tokenBalances = [11, 50, 50];
 	await marketMaker.maintainBalance(web3Util, dualClassWrapper);
 	expect(marketMaker.tokenBalances).toMatchSnapshot();
-	expect(dualClassWrapper.createRaw.mock.calls).toMatchSnapshot();
+	expect(dualClassWrapper.create.mock.calls).toMatchSnapshot();
 	expect(web3Util.getGasPrice).toBeCalledTimes(1);
 	expect(web3Util.awaitTransactionSuccessAsync).toBeCalledTimes(1);
 	expect(web3Util.tokenTransfer).not.toBeCalled();
