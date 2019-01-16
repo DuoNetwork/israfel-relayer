@@ -54,12 +54,15 @@ test('parseOptions', () => {
 		'env=live',
 		'debug',
 		'token=token',
-		'amount=123',
-		'maker=456',
-		'spender=789',
+		'tokens=token1,token2',
 		'dummy=dummy',
 		'server'
 	];
+	expect(util.parseOptions(command)).toMatchSnapshot();
+});
+
+test('parseOptions defaults', () => {
+	const command = ['npm', 'run', 'tool', 'env=', 'debug', 'token=', 'dummy=dummy', 'server'];
 	expect(util.parseOptions(command)).toMatchSnapshot();
 });
 
@@ -93,4 +96,15 @@ test('getExpiryTimeStamp', () => {
 	expect(util.getExpiryTimestamp(true)).toBe(1548403200000);
 	util.getUTCNowTimestamp = jest.fn(() => 1546214400000);
 	expect(util.getExpiryTimestamp(true)).toBe(1548403200000);
+});
+
+test('sleep', async () => {
+	global.setTimeout = jest.fn(resolve => resolve());
+	await util.sleep(1);
+	expect((global.setTimeout as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('formatFixedNumber', () => {
+	expect(util.formatFixedNumber(123.456789, 0)).toBe('123.456789');
+	expect(util.formatFixedNumber(123.456789, 0.5)).toBe('123.5');
 });

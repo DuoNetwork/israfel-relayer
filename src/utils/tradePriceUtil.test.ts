@@ -13,6 +13,12 @@ test('subscribeTradeUpdate', () => {
 	expect((redisUtil.onTradeUpdate as jest.Mock).mock.calls[0][0]).toBe(handleTradeUpdate);
 });
 
+test('unsubscribeTradeUpdate', () => {
+	redisUtil.unsubscribe = jest.fn();
+	tradePriceUtil.unsubscribeTradeUpdate('pair');
+	expect((redisUtil.unsubscribe as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
 const orderMatchReq: IOrderMatchRequest = {
 	pair: 'code1|code2',
 	feeAsset: 'code1',

@@ -3,9 +3,10 @@ import '@babel/polyfill';
 
 import { Web3Wrapper } from '@0x/web3-wrapper';
 import { BigNumber } from 'bignumber.js';
-import util from '../../../duo-admin/src/utils/util';
+import { DUMMY_ADDR } from '../common/constants';
 import { Wallet } from '../common/types';
 import orderUtil from './orderUtil';
+import util from './util';
 import Web3Util from './Web3Util';
 
 // jest.mock('web3-utils');
@@ -14,21 +15,27 @@ jest.mock('@0x/subproviders', () => ({
 	MnemonicWalletSubprovider: jest.fn()
 }));
 
+let isValid = true;
 jest.mock('@0x/json-schemas', () => ({
 	schemas: {},
 	SchemaValidator: jest.fn(() => ({
 		validate: jest.fn(() => ({
-			valid: true
+			valid: isValid
 		}))
 	}))
 }));
+
+let isValidSig = true;
+let validOrder = true;
 
 jest.mock('0x.js', () => ({
 	ContractWrappers: jest.fn(() => ({
 		exchange: {
 			matchOrdersAsync: jest.fn(),
 			getFilledTakerAssetAmountAsync: jest.fn(),
-			validateOrderFillableOrThrowAsync: jest.fn(() => Promise.resolve(true))
+			validateOrderFillableOrThrowAsync: jest.fn(() =>
+				validOrder ? Promise.resolve(true) : Promise.reject('invalid order')
+			)
 		},
 		erc20Token: {
 			setUnlimitedAllowanceAsync: jest.fn(),
@@ -60,7 +67,7 @@ jest.mock('0x.js', () => ({
 		getOrderHashHex: jest.fn(() => 'orderHash')
 	},
 	signatureUtils: {
-		isValidSignatureAsync: jest.fn(() => Promise.resolve(true))
+		isValidSignatureAsync: jest.fn(() => Promise.resolve(isValidSig))
 	}
 }));
 
@@ -151,6 +158,44 @@ test('constructor, no window, non local, live', () => {
 test('constructor, no window, non local, no mnemonic', () => {
 	const testWeb3Util = new Web3Util(null, false, '', false);
 	expect(testWeb3Util.wallet).toMatchSnapshot();
+});
+
+test('onWeb3AccountUpdate', () => {
+	const testWeb3Util = new Web3Util(null, false, '', false);
+	const handleOn = jest.fn();
+	testWeb3Util.rawMetamaskProvider = {
+		publicConfigStore: {
+			on: handleOn,
+			getState: () => ({
+				selectedAddress: '',
+				networkVersion: ''
+			})
+		}
+	};
+
+	testWeb3Util.onWeb3AccountUpdate(() => ({}));
+	expect(handleOn).not.toBeCalled();
+	testWeb3Util.wallet = Wallet.MetaMask;
+	const onUpdate = jest.fn();
+	testWeb3Util.onWeb3AccountUpdate(onUpdate);
+	expect(handleOn).toBeCalledTimes(1);
+	expect(handleOn.mock.calls[0][0]).toBe('update');
+	handleOn.mock.calls[0][1]();
+	expect(onUpdate).not.toBeCalled();
+	testWeb3Util.rawMetamaskProvider = {
+		publicConfigStore: {
+			on: handleOn,
+			getState: () => ({
+				selectedAddress: 'selectedAddress',
+				networkVersion: '123'
+			})
+		}
+	};
+	testWeb3Util.onWeb3AccountUpdate(onUpdate);
+	expect(handleOn).toBeCalledTimes(2);
+	expect(handleOn.mock.calls[1][0]).toBe('update');
+	handleOn.mock.calls[1][1]();
+	expect(onUpdate.mock.calls).toMatchSnapshot();
 });
 
 test('getTokenByCode', () => {
@@ -308,6 +353,8 @@ test('setTokens', async () => {
 test('getCurrentAddress', async () => {
 	const testWeb3Util = new Web3Util(null, false, 'mnemonic', false);
 	expect(await testWeb3Util.getCurrentAddress()).toMatchSnapshot();
+	testWeb3Util.accountIndex = 3;
+	expect(await testWeb3Util.getCurrentAddress()).toBe(DUMMY_ADDR);
 });
 
 test('getCurrentNetwork', async () => {
@@ -336,6 +383,12 @@ test('validateOrder', async () => {
 	expect(
 		await testWeb3Util.validateOrder(orderUtil.parseSignedOrder(signedOrder))
 	).toMatchSnapshot();
+
+	isValidSig = false;
+	expect(await testWeb3Util.validateOrder(orderUtil.parseSignedOrder(signedOrder))).toBe('');
+
+	isValid = false;
+	expect(await testWeb3Util.validateOrder(orderUtil.parseSignedOrder(signedOrder))).toBe('');
 });
 
 test('getTokenAddressFromCode', async () => {
@@ -461,6 +514,10 @@ test('validateOrderFillable', async () => {
 	expect(
 		await testWeb3Util.validateOrderFillable(orderUtil.parseSignedOrder(signedOrder))
 	).toBeTruthy();
+	validOrder = false;
+	expect(
+		await testWeb3Util.validateOrderFillable(orderUtil.parseSignedOrder(signedOrder))
+	).toBeFalsy();
 });
 
 test('isValidPair, codes.length wrong', async () => {

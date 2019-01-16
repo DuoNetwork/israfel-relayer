@@ -137,6 +137,14 @@ Array [
 ]
 `;
 
+exports[`hashDeleteAll 1`] = `
+Array [
+  Array [
+    "orders|cache|token|WETH",
+  ],
+]
+`;
+
 exports[`persistOrder add 1`] = `
 Array [
   Array [

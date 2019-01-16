@@ -7,7 +7,7 @@ test('onMessage orderBooks', () => {
 	redisUtil.onOrderUpdate(handleOrderUpdate);
 	const handleTradeUpdate = jest.fn();
 	redisUtil.onTradeUpdate(handleTradeUpdate);
-	redisUtil.onMessage('orderBooks|any', JSON.stringify('test'));
+	redisUtil.onMessage('orderBooks|any', JSON.stringify('test'), 'pattern');
 	expect(handleOrderBookUpdate.mock.calls).toMatchSnapshot();
 	expect(handleOrderUpdate).not.toBeCalled();
 	expect(handleTradeUpdate).not.toBeCalled();
@@ -145,7 +145,7 @@ test('hashDeleteAll', async () => {
 	} as any;
 	await redisUtil.hashDeleteAll('key');
 	expect(((redisUtil.redisPub as any).del as jest.Mock).mock.calls).toMatchSnapshot();
-})
+});
 
 test('subscribe', async () => {
 	redisUtil.redisSub = {

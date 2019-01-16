@@ -40,9 +40,6 @@ class Util {
 		env: CST.DB_DEV,
 		tokens: [],
 		token: '',
-		amount: 1,
-		maker: 0,
-		spender: 1,
 		debug: false,
 		server: false
 	};
@@ -66,15 +63,6 @@ class Util {
 					break;
 				case 'token':
 					option.token = args[1] || option.token;
-					break;
-				case 'amount':
-					option.amount = Number(args[1]) || option.amount;
-					break;
-				case 'maker':
-					option.maker = Number(args[1]) || option.maker;
-					break;
-				case 'spender':
-					option.spender = Number(args[1]) || option.spender;
 					break;
 				default:
 					break;
@@ -100,7 +88,7 @@ class Util {
 
 	public sleep(ms: number) {
 		return new Promise(resolve => {
-			setTimeout(resolve, ms);
+			global.setTimeout(resolve, ms);
 		});
 	}
 
@@ -162,7 +150,7 @@ class Util {
 
 	public formatFixedNumber(num: number, precision: number) {
 		const decimal = precision && precision < 1 ? (precision + '').length - 2 : 0;
-		const roundedNumber = Math.round(Number(num) / precision) * precision;
+		const roundedNumber = Math.round(num / precision) * precision;
 		return precision ? roundedNumber.toFixed(decimal) : num + '';
 	}
 }

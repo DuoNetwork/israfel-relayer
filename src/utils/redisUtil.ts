@@ -6,13 +6,15 @@ import util from './util';
 class RedisUtil {
 	public redisPub: Redis.Redis | null = null;
 	public redisSub: Redis.Redis | null = null;
-	private handleOrderBookUpdate:
-		| ((channel: string, orderBookUpdate: IOrderBookSnapshotUpdate) => any)
-		| null = null;
-	private handleOrderUpdate:
-		| ((channel: string, orderQueueItem: IOrderQueueItem) => any)
-		| null = null;
-	private handleTradeUpdate: ((channel: string, trade: ITrade) => any) | null = null;
+	private handleOrderBookUpdate: ((
+		channel: string,
+		orderBookUpdate: IOrderBookSnapshotUpdate
+	) => any) = () => ({});
+	private handleOrderUpdate: ((
+		channel: string,
+		orderQueueItem: IOrderQueueItem
+	) => any) = () => ({});
+	private handleTradeUpdate: ((channel: string, trade: ITrade) => any) = () => ({});
 
 	public init(redisKey: { host: string; password: string; servername: string }) {
 		this.redisPub = new Redis(6379, redisKey.host, {
@@ -34,14 +36,13 @@ class RedisUtil {
 		const type = channel.split('|')[0];
 		switch (type) {
 			case CST.DB_ORDER_BOOKS:
-				if (this.handleOrderBookUpdate)
-					this.handleOrderBookUpdate(channel, JSON.parse(message));
+				this.handleOrderBookUpdate(channel, JSON.parse(message));
 				break;
 			case CST.DB_ORDERS:
-				if (this.handleOrderUpdate) this.handleOrderUpdate(channel, JSON.parse(message));
+				this.handleOrderUpdate(channel, JSON.parse(message));
 				break;
 			case CST.DB_TRADES:
-				if (this.handleTradeUpdate) this.handleTradeUpdate(channel, JSON.parse(message));
+				this.handleTradeUpdate(channel, JSON.parse(message));
 				break;
 			default:
 				break;
