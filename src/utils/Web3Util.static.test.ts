@@ -47,14 +47,14 @@ test('getSideFromSignedOrder, ask', () => {
 test('createRawOrderWithoutSalt', async () => {
 	expect(
 		Web3Util.createRawOrderWithoutSalt(
-			'userAddr',
-			'relayerAddr',
-			'makerAssetAddr',
-			'takerAssetAddr',
+			'0xf474e7E554D98a580282726434d1281aA273E87F',
+			'0xf474e7E554D98a580282726434d1281aA273E87F',
+			'0xf474e7E554D98a580282726434d1281aA273E87F',
+			'0xf474e7E554D98a580282726434d1281aA273E87F',
 			new BigNumber(123),
 			new BigNumber(456),
 			1234567890,
-			'exchangeAddr'
+			'0xf474e7E554D98a580282726434d1281aA273E87F'
 		)
 	).toMatchSnapshot();
 });

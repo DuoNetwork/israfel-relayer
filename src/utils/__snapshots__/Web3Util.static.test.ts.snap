@@ -12,18 +12,18 @@ exports[`createRawOrder, cannot sign 1`] = `[Error: cannot sign]`;
 
 exports[`createRawOrderWithoutSalt 1`] = `
 Object {
-  "exchangeAddress": "exchangeaddr",
+  "exchangeAddress": "0xf474e7e554d98a580282726434d1281aa273e87f",
   "expirationTimeSeconds": "1234567890",
-  "feeRecipientAddress": "relayeraddr",
-  "makerAddress": "useraddr",
+  "feeRecipientAddress": "0xf474e7e554d98a580282726434d1281aa273e87f",
+  "makerAddress": "0xf474e7e554d98a580282726434d1281aa273e87f",
   "makerAssetAmount": "123000000000000000000",
-  "makerAssetData": "0xf47261b00000000000000000000000000000000000000000000000000000d327e5a0bb51",
+  "makerAssetData": "0xf47261b0000000000000000000000000f474e7e554d98a580282726434d1281aa273e87f",
   "makerFee": "0",
   "salt": "0",
   "senderAddress": "0x0000000000000000000000000000000000000000",
   "takerAddress": "0x0000000000000000000000000000000000000000",
   "takerAssetAmount": "456000000000000000000",
-  "takerAssetData": "0xf47261b0000000000000000000000000000000000000000000000000000112d20ac31b51",
+  "takerAssetData": "0xf47261b0000000000000000000000000f474e7e554d98a580282726434d1281aa273e87f",
   "takerFee": "0",
 }
 `;
