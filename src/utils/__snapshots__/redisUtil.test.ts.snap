@@ -77,6 +77,33 @@ Array [
 ]
 `;
 
+exports[`init 1`] = `
+Array [
+  Array [
+    "message",
+    [Function],
+  ],
+  Array [
+    "pmessage",
+    [Function],
+  ],
+]
+`;
+
+exports[`init 2`] = `
+Array [
+  Array [
+    "channel",
+    "message",
+  ],
+  Array [
+    "channel",
+    "message",
+    "pattern",
+  ],
+]
+`;
+
 exports[`onMessage orderBooks 1`] = `
 Array [
   Array [

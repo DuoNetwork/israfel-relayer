@@ -1,5 +1,11 @@
 import redisUtil from './redisUtil';
 
+jest.mock('ioredis', () =>
+	jest.fn().mockImplementation(() => ({
+		on: jest.fn()
+	}))
+);
+
 test('onMessage orderBooks', () => {
 	const handleOrderBookUpdate = jest.fn();
 	redisUtil.onOrderBookUpdate(handleOrderBookUpdate);
@@ -47,6 +53,17 @@ test('onMessage anything else', () => {
 	redisUtil.onMessage('any', JSON.stringify('test'));
 	expect(handleOrderUpdate).not.toBeCalled();
 	expect(handleOrderBookUpdate).not.toBeCalled();
+});
+
+test('init', () => {
+	redisUtil.onMessage = jest.fn();
+	redisUtil.init({ host: 'host', password: 'pwd', servername: 'server' });
+	expect(redisUtil.redisPub).toBeTruthy();
+	expect(redisUtil.redisSub).toBeTruthy();
+	expect(((redisUtil.redisSub as any).on as jest.Mock).mock.calls).toMatchSnapshot();
+	((redisUtil.redisSub as any).on as jest.Mock).mock.calls[0][1]('channel', 'message');
+	((redisUtil.redisSub as any).on as jest.Mock).mock.calls[1][1]('pattern', 'channel', 'message');
+	expect((redisUtil.onMessage as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('publish', async () => {
