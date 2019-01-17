@@ -591,7 +591,7 @@ test('getTransactionReceipt', async () => {
 	).toMatchSnapshot();
 });
 
-test('tokenTransfer, sneder = from', async () => {
+test('tokenTransfer, sender === from', async () => {
 	const testWeb3Util = new Web3Util(null, false, 'mnemonic', false);
 	testWeb3Util.getTokenAddressFromCode = jest.fn(() => '0xtokenAddr');
 	Web3Wrapper.toBaseUnitAmount = jest.fn();
@@ -601,7 +601,7 @@ test('tokenTransfer, sneder = from', async () => {
 	).toMatchSnapshot();
 });
 
-test('tokenTransfer, sneder != from', async () => {
+test('tokenTransfer, sender !== from', async () => {
 	const testWeb3Util = new Web3Util(null, false, 'mnemonic', false);
 	testWeb3Util.getTokenAddressFromCode = jest.fn(() => '0xtokenAddr');
 	Web3Wrapper.toBaseUnitAmount = jest.fn();

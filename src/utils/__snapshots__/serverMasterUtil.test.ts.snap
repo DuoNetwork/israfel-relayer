@@ -3,7 +3,7 @@
 exports[`launchTkenPair debug not win32 1`] = `
 Array [
   Array [
-    "npm run tool token=token env=live  debug &> tool.token.log",
+    "npm run tool token=token env=live debug &> tool.token.log",
     Object {
       "shell": "/bin/bash",
     },
@@ -13,12 +13,6 @@ Array [
 
 exports[`launchTkenPair debug not win32 2`] = `
 Object {
-  "default": Object {
-    "failCount": 1,
-    "instance": undefined,
-    "lastFailTimestamp": 1234567890,
-    "token": "default",
-  },
   "token": Object {
     "failCount": 0,
     "instance": undefined,
@@ -31,7 +25,7 @@ Object {
 exports[`launchTokenPair debug win32 1`] = `
 Array [
   Array [
-    "npm run tool token=token env=dev  debug >> tool.token.log",
+    "npm run tool token=token env=dev debug >> tool.token.log",
     Object {},
   ],
 ]
@@ -39,12 +33,6 @@ Array [
 
 exports[`launchTokenPair debug win32 2`] = `
 Object {
-  "default": Object {
-    "failCount": 1,
-    "instance": undefined,
-    "lastFailTimestamp": 1234567890,
-    "token": "default",
-  },
   "token": Object {
     "failCount": 0,
     "instance": undefined,
@@ -57,7 +45,7 @@ Object {
 exports[`launchTokenPair fail not win32 1`] = `
 Array [
   Array [
-    "npm run tool token=token env=live  &> tool.token.log",
+    "npm run tool token=token env=live &> tool.token.log",
     Object {
       "shell": "/bin/bash",
     },
@@ -67,12 +55,6 @@ Array [
 
 exports[`launchTokenPair fail not win32 2`] = `
 Object {
-  "default": Object {
-    "failCount": 1,
-    "instance": undefined,
-    "lastFailTimestamp": 1234567890,
-    "token": "default",
-  },
   "token": Object {
     "failCount": 0,
     "instance": undefined,
@@ -99,7 +81,7 @@ Array [
 exports[`launchTokenPair fail win32 1`] = `
 Array [
   Array [
-    "npm run tool token=token env=dev  >> tool.token.log",
+    "npm run tool token=token env=dev >> tool.token.log",
     Object {},
   ],
 ]
@@ -107,12 +89,6 @@ Array [
 
 exports[`launchTokenPair fail win32 2`] = `
 Object {
-  "default": Object {
-    "failCount": 1,
-    "instance": undefined,
-    "lastFailTimestamp": 1234567890,
-    "token": "default",
-  },
   "token": Object {
     "failCount": 0,
     "instance": undefined,
@@ -139,7 +115,7 @@ Array [
 exports[`launchTokenPair success not win32 1`] = `
 Array [
   Array [
-    "npm run tool token=token env=live  &> tool.token.log",
+    "npm run tool token=token env=live &> tool.token.log",
     Object {
       "shell": "/bin/bash",
     },
@@ -149,12 +125,6 @@ Array [
 
 exports[`launchTokenPair success not win32 2`] = `
 Object {
-  "default": Object {
-    "failCount": 1,
-    "instance": undefined,
-    "lastFailTimestamp": 1234567890,
-    "token": "default",
-  },
   "token": Object {
     "failCount": 0,
     "instance": Object {
@@ -191,7 +161,7 @@ Array [
 exports[`launchTokenPair success win 32 1`] = `
 Array [
   Array [
-    "npm run tool token=token env=dev  >> tool.token.log",
+    "npm run tool token=token env=dev server >> tool.token.log",
     Object {},
   ],
 ]
@@ -199,12 +169,6 @@ Array [
 
 exports[`launchTokenPair success win 32 2`] = `
 Object {
-  "default": Object {
-    "failCount": 1,
-    "instance": undefined,
-    "lastFailTimestamp": 1234567890,
-    "token": "default",
-  },
   "token": Object {
     "failCount": 0,
     "instance": Object {
@@ -238,6 +202,21 @@ Array [
 ]
 `;
 
+exports[`launchTokenPair success win 32 4`] = `
+Array [
+  Array [
+    "tool",
+    Object {
+      "debug": false,
+      "env": "dev",
+      "live": false,
+      "server": true,
+    },
+    "token",
+  ],
+]
+`;
+
 exports[`retry after long enought time 1`] = `
 Object {
   "failCount": 1,
@@ -245,6 +224,29 @@ Object {
   "lastFailTimestamp": 1234567890,
   "token": "token",
 }
+`;
+
+exports[`retry after long enought time 2`] = `
+Array [
+  Array [
+    [Function],
+    5000,
+  ],
+]
+`;
+
+exports[`retry after long enought time 3`] = `
+Array [
+  Array [
+    "tool",
+    "token",
+    Object {
+      "debug": false,
+      "live": false,
+      "server": false,
+    },
+  ],
+]
 `;
 
 exports[`retry within short time 1`] = `
@@ -256,12 +258,65 @@ Object {
 }
 `;
 
-exports[`startLaunching 1`] = `Promise {}`;
+exports[`startLaunching 1`] = `
+Array [
+  Array [
+    Object {
+      "amount": 123,
+      "debug": true,
+      "env": "test",
+      "maker": 123,
+      "server": true,
+      "spender": 123,
+      "token": "test",
+      "tokens": Array [
+        "test",
+        "test1",
+      ],
+    },
+  ],
+]
+`;
 
-exports[`startLaunching Token Length 1`] = `Promise {}`;
+exports[`startLaunching invalid token 1`] = `[Error: invalid token specified]`;
 
-exports[`startLaunching Token Length 2`] = `Promise {}`;
+exports[`startLaunching no tokens 1`] = `
+Array [
+  Array [
+    "test",
+    "test",
+    Object {
+      "amount": 123,
+      "debug": true,
+      "env": "test",
+      "maker": 123,
+      "server": true,
+      "spender": 123,
+      "token": "",
+      "tokens": Array [],
+    },
+  ],
+]
+`;
 
-exports[`startLaunching no rawToken 1`] = `Promise {}`;
-
-exports[`startLaunching normal 1`] = `Promise {}`;
+exports[`startLaunching tokens 1`] = `
+Array [
+  Array [
+    "test",
+    "test",
+    Object {
+      "amount": 123,
+      "debug": true,
+      "env": "test",
+      "maker": 123,
+      "server": true,
+      "spender": 123,
+      "token": "",
+      "tokens": Array [
+        "test",
+        "test1",
+      ],
+    },
+  ],
+]
+`;

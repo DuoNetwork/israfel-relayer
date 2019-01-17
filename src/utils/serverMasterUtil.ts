@@ -20,9 +20,10 @@ class ServerMasterUtil {
 
 			util.logInfo(`[${option.token}]: start launching ${tool}`);
 			startServer(option);
-		} else if (!option.tokens.length) {
+		} else {
 			util.logInfo('launching all pairs ' + tokens.map(token => token.code).join(','));
 			for (const token of tokens) {
+				if (option.tokens.length && !option.tokens.includes(token.code)) continue;
 				util.logInfo(`[${token.code}]: start launching ${tool}`);
 				await util.sleep(1000);
 				this.subProcesses[token.code] = {
@@ -33,29 +34,13 @@ class ServerMasterUtil {
 				};
 				this.launchTokenPair(tool, token.code, option);
 			}
-		} else if (option.tokens.length)
-			for (const token of tokens) {
-				if (!option.tokens.includes(token.code)) continue;
-
-				util.logInfo(`[${token.code}]: start launching ${tool}`);
-				await util.sleep(1000);
-				this.subProcesses[token.code] = {
-					token: token.code,
-					lastFailTimestamp: 0,
-					failCount: 0,
-					instance: undefined as any
-				};
-				this.launchTokenPair(tool, token.code, option);
-			}
+		}
 	}
 
 	public launchTokenPair(tool: string, token: string, option: IOption) {
-		const cmd =
-			`npm run ${tool} token=${token} env=${option.env} ${option.server ? ' server' : ''}${
-				option.debug ? ' debug' : ''
-			}` +
-			(osUtil.isWindows() ? ' >>' : ' &>') +
-			` ${tool}.${token}.log`;
+		const cmd = `npm run ${tool} token=${token} env=${option.env}${
+			option.server ? ' server' : ''
+		}${option.debug ? ' debug' : ''} ${osUtil.isWindows() ? '>>' : '&>'} ${tool}.${token}.log`;
 
 		util.logInfo(`[${token}]: ${cmd}`);
 
@@ -89,7 +74,7 @@ class ServerMasterUtil {
 		this.subProcesses[token].lastFailTimestamp = now;
 
 		if (this.subProcesses[token].failCount < 3)
-			setTimeout(() => this.launchTokenPair(tool, token, option), 5000);
+			global.setTimeout(() => this.launchTokenPair(tool, token, option), 5000);
 		else util.logError('Retry Aborted ' + token);
 	}
 }

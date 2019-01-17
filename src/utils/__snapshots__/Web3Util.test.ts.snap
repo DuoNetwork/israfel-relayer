@@ -188,7 +188,7 @@ Array [
 ]
 `;
 
-exports[`tokenTransfer, sneder != from 1`] = `
+exports[`tokenTransfer, sender !== from 1`] = `
 Array [
   Array [
     "0xtokenAddr",
@@ -200,7 +200,7 @@ Array [
 ]
 `;
 
-exports[`tokenTransfer, sneder = from 1`] = `
+exports[`tokenTransfer, sender === from 1`] = `
 Array [
   Array [
     "0xtokenAddr",
