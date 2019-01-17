@@ -156,7 +156,7 @@ exports[`connectToRelayer 5`] = `
 Array [
   Array [
     [Function],
-    3600000,
+    900000,
   ],
 ]
 `;

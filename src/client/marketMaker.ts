@@ -674,7 +674,7 @@ class MarketMaker {
 			util.logInfo('hourly reinitialize');
 			dualClassWrapper = null;
 			this.isInitialized = false;
-		}, 3600000);
+		}, 900000);
 	}
 
 	public startProcessing(option: IOption) {
