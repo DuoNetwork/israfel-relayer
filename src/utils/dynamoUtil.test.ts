@@ -2,7 +2,26 @@ import * as CST from '../common/constants';
 import dynamoUtil from './dynamoUtil';
 import util from './util';
 
+jest.mock('aws-sdk/clients/dynamodb', () => jest.fn().mockImplementation(() => ({})));
+jest.mock('aws-sdk/global', () => ({
+	config: {
+		update: jest.fn()
+	}
+}));
+
+import AWS from 'aws-sdk/global';
+
+test('init', async () => {
+	await dynamoUtil.init('config' as any, 'env', 't', 'h');
+	expect(dynamoUtil.ddb).toBeTruthy();
+	expect(dynamoUtil.env).toBe('env');
+	expect(dynamoUtil.tool).toBe('t');
+	expect(dynamoUtil.hostname).toBe('h');
+	expect((AWS.config.update as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
 test('putData no ddb', async () => {
+	dynamoUtil.ddb = undefined;
 	try {
 		await dynamoUtil.putData({} as any);
 	} catch (error) {

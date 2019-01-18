@@ -57,7 +57,7 @@ Array [
                 "N": "9876543210",
               },
             },
-            "TableName": "israfel.dev.liveOrders",
+            "TableName": "israfel.env.liveOrders",
           },
         },
         Object {
@@ -118,7 +118,7 @@ Array [
                 "N": "9876543210",
               },
             },
-            "TableName": "israfel.dev.rawOrders",
+            "TableName": "israfel.env.rawOrders",
           },
         },
       ],
@@ -172,7 +172,7 @@ Array [
           "S": "1234567890|txHash",
         },
       },
-      "TableName": "israfel.dev.trades",
+      "TableName": "israfel.env.trades",
     },
   ],
 ]
@@ -235,7 +235,7 @@ Array [
           "S": "updatedBy",
         },
       },
-      "TableName": "israfel.dev.userOrders",
+      "TableName": "israfel.env.userOrders",
     },
   ],
 ]
@@ -301,7 +301,7 @@ Array [
           "S": "updatedBy",
         },
       },
-      "TableName": "israfel.dev.userOrders",
+      "TableName": "israfel.env.userOrders",
     },
   ],
 ]
@@ -335,7 +335,7 @@ Array [
                 "S": "code1|code2",
               },
             },
-            "TableName": "israfel.dev.liveOrders",
+            "TableName": "israfel.env.liveOrders",
           },
         },
         Object {
@@ -350,7 +350,7 @@ Array [
                 "S": "0xOrderHash",
               },
             },
-            "TableName": "israfel.dev.rawOrders",
+            "TableName": "israfel.env.rawOrders",
             "UpdateExpression": "SET updatedAt = :updatedAt REMOVE signature",
           },
         },
@@ -370,7 +370,7 @@ Array [
         },
       },
       "KeyConditionExpression": "pair = :pair",
-      "TableName": "israfel.dev.liveOrders",
+      "TableName": "israfel.env.liveOrders",
     },
   ],
 ]
@@ -412,7 +412,7 @@ Array [
         },
       },
       "KeyConditionExpression": "pair = :pair AND orderHash = :orderHash",
-      "TableName": "israfel.dev.liveOrders",
+      "TableName": "israfel.env.liveOrders",
     },
   ],
 ]
@@ -476,7 +476,7 @@ Array [
         },
       },
       "KeyConditionExpression": "orderHash = :orderHash",
-      "TableName": "israfel.dev.rawOrders",
+      "TableName": "israfel.env.rawOrders",
     },
   ],
 ]
@@ -648,7 +648,7 @@ Array [
         },
       },
       "KeyConditionExpression": "pairDateHour = :pairDateHour",
-      "TableName": "israfel.dev.trades",
+      "TableName": "israfel.env.trades",
     },
   ],
 ]
@@ -793,8 +793,16 @@ Array [
         },
       },
       "KeyConditionExpression": "accountYearMonth = :accountYearMonth AND pairOrderHashSequenceStatus BETWEEN :start AND :end",
-      "TableName": "israfel.dev.userOrders",
+      "TableName": "israfel.env.userOrders",
     },
+  ],
+]
+`;
+
+exports[`init 1`] = `
+Array [
+  Array [
+    "config",
   ],
 ]
 `;
@@ -842,7 +850,7 @@ exports[`scanIpList 1`] = `
 Array [
   Array [
     Object {
-      "TableName": "israfel.dev.ipList",
+      "TableName": "israfel.env.ipList",
     },
   ],
 ]
@@ -859,7 +867,7 @@ exports[`scanStatus 1`] = `
 Array [
   Array [
     Object {
-      "TableName": "israfel.dev.status",
+      "TableName": "israfel.env.status",
     },
   ],
 ]
@@ -893,7 +901,7 @@ exports[`scanTokens 1`] = `
 Array [
   Array [
     Object {
-      "TableName": "israfel.dev.tokens",
+      "TableName": "israfel.env.tokens",
     },
   ],
 ]
@@ -1028,7 +1036,7 @@ Array [
           "S": "code1|code2",
         },
       },
-      "TableName": "israfel.dev.liveOrders",
+      "TableName": "israfel.env.liveOrders",
       "UpdateExpression": "SET balance = :balance, matching = :matching, fill = :fill, updatedAt = :updatedAt, currentSequence = :currentSequence ",
     },
   ],
@@ -1041,16 +1049,16 @@ Array [
     Object {
       "Item": Object {
         "hostname": Object {
-          "S": "hostname",
+          "S": "h",
         },
         "process": Object {
-          "S": "tool|someProcess|hostname",
+          "S": "t|someProcess|h",
         },
         "updatedAt": Object {
           "N": "1234567890",
         },
       },
-      "TableName": "israfel.dev.status",
+      "TableName": "israfel.env.status",
     },
   ],
   Array [
@@ -1060,16 +1068,16 @@ Array [
           "N": "123",
         },
         "hostname": Object {
-          "S": "hostname",
+          "S": "h",
         },
         "process": Object {
-          "S": "tool|someProcess|hostname",
+          "S": "t|someProcess|h",
         },
         "updatedAt": Object {
           "N": "1234567890",
         },
       },
-      "TableName": "israfel.dev.status",
+      "TableName": "israfel.env.status",
     },
   ],
 ]
@@ -1081,16 +1089,16 @@ Array [
     Object {
       "Item": Object {
         "hostname": Object {
-          "S": "hostname",
+          "S": "h",
         },
         "process": Object {
-          "S": "tool|someProcess|hostname",
+          "S": "t|someProcess|h",
         },
         "updatedAt": Object {
           "N": "1234567890",
         },
       },
-      "TableName": "israfel.dev.status",
+      "TableName": "israfel.env.status",
     },
   ],
 ]

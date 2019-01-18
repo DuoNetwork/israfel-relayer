@@ -25,9 +25,9 @@ import util from './util';
 
 class DynamoUtil {
 	public ddb: undefined | DynamoDB = undefined;
-	private env: string = CST.DB_DEV;
-	private hostname: string = 'hostname';
-	private tool: string = 'tool';
+	public env: string = CST.DB_DEV;
+	public hostname: string = 'hostname';
+	public tool: string = 'tool';
 	public init(config: object, env: string, tool: string = 'tool', hostname: string = 'hostname') {
 		this.env = env;
 		this.tool = tool;
