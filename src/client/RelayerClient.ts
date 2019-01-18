@@ -124,7 +124,7 @@ export default class RelayerClient {
 			let hasGap = false;
 			if (pendingUpdates && pendingUpdates.length) {
 				pendingUpdates.sort((a, b) => a.version - b.version);
-				while (pendingUpdates.length) {
+				while (true) {
 					const update = pendingUpdates.shift();
 					if (!update) break;
 					if (update.prevVersion < orderBookSnapshot.version) continue;
@@ -187,38 +187,42 @@ export default class RelayerClient {
 	}
 
 	public subscribeOrderBook(pair: string) {
-		if (!this.ws) return;
+		if (!this.ws) return false;
 		this.orderBookSnapshotAvailable[pair] = false;
 		if (!this.pendingOrderBookUpdates[pair]) this.pendingOrderBookUpdates[pair] = [];
 		const msg: IWsRequest = { method: CST.WS_SUB, channel: CST.DB_ORDER_BOOKS, pair: pair };
 		this.ws.send(JSON.stringify(msg));
+		return true;
 	}
 
 	public subscribeTrade(pair: string) {
-		if (!this.ws) return;
+		if (!this.ws) return false;
 		const msg: IWsRequest = { method: CST.WS_SUB, channel: CST.DB_TRADES, pair: pair };
-		if (this.ws) this.ws.send(JSON.stringify(msg));
+		this.ws.send(JSON.stringify(msg));
+		return true;
 	}
 
 	public unsubscribeTrade(pair: string) {
-		if (!this.ws) return;
+		if (!this.ws) return false;
 		const msg: IWsRequest = { method: CST.WS_UNSUB, channel: CST.DB_TRADES, pair: pair };
 		this.ws.send(JSON.stringify(msg));
+		return true;
 	}
 
 	public unsubscribeOrderBook(pair: string) {
-		if (!this.ws) return;
+		if (!this.ws) return false;
 
 		const msg: IWsRequest = { method: CST.WS_UNSUB, channel: CST.DB_ORDER_BOOKS, pair: pair };
 		this.ws.send(JSON.stringify(msg));
 		this.orderBookSnapshotAvailable[pair] = false;
 		delete this.orderBookSnapshots[pair];
 		this.pendingOrderBookUpdates[pair] = [];
+		return true;
 	}
 
 	public subscribeOrderHistory(account: string) {
-		if (!this.ws) return;
-		if (!Web3Util.isValidAddress(account)) return;
+		if (!this.ws) return false;
+		if (!Web3Util.isValidAddress(account)) return false;
 
 		const msg: IWsOrderHistoryRequest = {
 			method: CST.WS_SUB,
@@ -227,10 +231,11 @@ export default class RelayerClient {
 			account: account
 		};
 		this.ws.send(JSON.stringify(msg));
+		return true;
 	}
 
 	public unsubscribeOrderHistory(account: string) {
-		if (!this.ws) return;
+		if (!this.ws) return false;
 
 		const msg: IWsOrderHistoryRequest = {
 			method: CST.WS_UNSUB,
@@ -239,6 +244,7 @@ export default class RelayerClient {
 			account: account
 		};
 		this.ws.send(JSON.stringify(msg));
+		return true;
 	}
 
 	public async addOrder(
@@ -287,7 +293,7 @@ export default class RelayerClient {
 	}
 
 	public deleteOrder(pair: string, orderHashes: string[], signature: string) {
-		if (!this.ws) return;
+		if (!this.ws) return false;
 
 		const msg: IWsTerminateOrderRequest = {
 			method: CST.DB_TERMINATE,
@@ -297,6 +303,7 @@ export default class RelayerClient {
 			signature: signature
 		};
 		this.ws.send(JSON.stringify(msg));
+		return true;
 	}
 
 	public onOrder(

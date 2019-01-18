@@ -11,7 +11,7 @@ const relayerClient = new RelayerClient(web3Util as any, CST.DB_DEV);
 test('subscribeOrderBook no ws', () => {
 	relayerClient.ws = null;
 	relayerClient.pendingOrderBookUpdates = {};
-	relayerClient.subscribeOrderBook('pair');
+	expect(relayerClient.subscribeOrderBook('pair')).toBeFalsy();
 	expect(relayerClient.orderBookSnapshotAvailable['pair']).toBeFalsy();
 	expect(relayerClient.pendingOrderBookUpdates['pair']).toBeFalsy();
 });
@@ -20,7 +20,7 @@ test('subscribeOrderBook new pair', () => {
 	const send = jest.fn();
 	relayerClient.ws = { send } as any;
 	relayerClient.pendingOrderBookUpdates = {};
-	relayerClient.subscribeOrderBook('pair');
+	expect(relayerClient.subscribeOrderBook('pair')).toBeTruthy();
 	expect(send.mock.calls).toMatchSnapshot();
 	expect(relayerClient.orderBookSnapshotAvailable['pair']).toBeFalsy();
 	expect(relayerClient.pendingOrderBookUpdates['pair']).toEqual([]);
@@ -30,7 +30,7 @@ test('subscribeOrderBook existing pair', () => {
 	const send = jest.fn();
 	relayerClient.ws = { send } as any;
 	relayerClient.pendingOrderBookUpdates['pair'] = ['pending'] as any;
-	relayerClient.subscribeOrderBook('pair');
+	expect(relayerClient.subscribeOrderBook('pair')).toBeTruthy();
 	expect(send.mock.calls).toMatchSnapshot();
 	expect(relayerClient.orderBookSnapshotAvailable['pair']).toBeFalsy();
 	expect(relayerClient.pendingOrderBookUpdates['pair'].length).toBe(1);
@@ -41,7 +41,7 @@ test('unsubscribeOrderBook no ws', () => {
 	relayerClient.orderBookSnapshots['pair'] = 'snapshot' as any;
 	relayerClient.orderBookSnapshotAvailable['pair'] = true;
 	relayerClient.pendingOrderBookUpdates['pair'] = ['pending'] as any;
-	relayerClient.unsubscribeOrderBook('pair');
+	expect(relayerClient.unsubscribeOrderBook('pair')).toBeFalsy();
 	expect(relayerClient.orderBookSnapshotAvailable['pair']).toBeTruthy();
 	expect(relayerClient.pendingOrderBookUpdates['pair']).toEqual(['pending']);
 	expect(relayerClient.orderBookSnapshots['pair']).toBe('snapshot');
@@ -53,7 +53,7 @@ test('unsubscribeOrderBook', () => {
 	relayerClient.orderBookSnapshots['pair'] = 'snapshot' as any;
 	relayerClient.orderBookSnapshotAvailable['pair'] = true;
 	relayerClient.pendingOrderBookUpdates['pair'] = ['pending'] as any;
-	relayerClient.unsubscribeOrderBook('pair');
+	expect(relayerClient.unsubscribeOrderBook('pair')).toBeTruthy();
 	expect(send.mock.calls).toMatchSnapshot();
 	expect(relayerClient.orderBookSnapshotAvailable['pair']).toBeFalsy();
 	expect(relayerClient.pendingOrderBookUpdates['pair']).toEqual([]);
@@ -549,39 +549,60 @@ test('handleMessage info', () => {
 	expect(handleInfo.mock.calls).toMatchSnapshot();
 });
 
+test('subscribeOrderHistory no ws', () => {
+	relayerClient.ws = null;
+	expect(relayerClient.subscribeOrderHistory('account')).toBeFalsy();
+});
+
 test('subscribeOrderHistory invalid address', () => {
 	const send = jest.fn();
 	relayerClient.ws = { send } as any;
-	relayerClient.subscribeOrderHistory('account');
+	expect(relayerClient.subscribeOrderHistory('account')).toBeFalsy();
 	expect(send).not.toBeCalled();
 });
 
 test('subscribeOrderHistory', () => {
 	const send = jest.fn();
 	relayerClient.ws = { send } as any;
-	relayerClient.subscribeOrderHistory('0x48bacb9266a570d521063ef5dd96e61686dbe788');
+	expect(
+		relayerClient.subscribeOrderHistory('0x48bacb9266a570d521063ef5dd96e61686dbe788')
+	).toBeTruthy();
 	expect(send.mock.calls).toMatchSnapshot();
+});
+
+test('unsubscribeOrderHistory no ws', () => {
+	relayerClient.ws = null;
+	expect(relayerClient.unsubscribeOrderHistory('account')).toBeFalsy();
 });
 
 test('unsubscribeOrderHistory', () => {
 	const send = jest.fn();
 	relayerClient.ws = { send } as any;
-	relayerClient.unsubscribeOrderHistory('account');
+	expect(relayerClient.unsubscribeOrderHistory('account')).toBeTruthy();
 	expect(send.mock.calls).toMatchSnapshot();
+});
+
+test('subscribeTrade no ws', () => {
+	relayerClient.ws = null;
+	expect(relayerClient.subscribeTrade('WETH|ETH')).toBeFalsy();
 });
 
 test('subscribeTrade', () => {
 	const send = jest.fn();
 	relayerClient.ws = { send } as any;
-	relayerClient.subscribeTrade('WETH|ETH');
-	// expect(send.mock.calls).toBeCalled();
+	expect(relayerClient.subscribeTrade('WETH|ETH')).toBeTruthy();
 	expect(send.mock.calls).toMatchSnapshot();
+});
+
+test('unsubscribeTrade no ws', () => {
+	relayerClient.ws = null;
+	expect(relayerClient.unsubscribeTrade('')).toBeFalsy();
 });
 
 test('unsubscribeTrade', () => {
 	const send = jest.fn();
 	relayerClient.ws = { send } as any;
-	relayerClient.unsubscribeTrade('');
+	expect(relayerClient.unsubscribeTrade('')).toBeTruthy();
 	expect(send.mock.calls).toMatchSnapshot();
 });
 
@@ -708,10 +729,15 @@ test('addOrder ask', async () => {
 	expect((web3Util.createRawOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
+test('deleteOrder no ws', () => {
+	relayerClient.ws = null;
+	expect(relayerClient.deleteOrder('pair', ['orderHash'], 'signature')).toBeFalsy();
+});
+
 test('deleteOrder', () => {
 	const send = jest.fn();
 	relayerClient.ws = { send } as any;
-	relayerClient.deleteOrder('pair', ['orderHash'], 'signature');
+	expect(relayerClient.deleteOrder('pair', ['orderHash'], 'signature')).toBeTruthy();
 	expect(send.mock.calls).toMatchSnapshot();
 });
 
