@@ -146,11 +146,13 @@ test('hashGetAll', async () => {
 	expect(((redisUtil.redisPub as any).hgetall as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('hashDelete', async () => {
+test('hashDelete', () => {
+	redisUtil.redisPub = null;
+	expect(redisUtil.hashDelete('key', 'field')).toBe(0);
 	redisUtil.redisPub = {
 		hdel: jest.fn()
 	} as any;
-	await redisUtil.hashDelete('key', 'field');
+	redisUtil.hashDelete('key', 'field');
 	expect(((redisUtil.redisPub as any).hdel as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
@@ -165,46 +167,58 @@ test('hashDeleteAll', async () => {
 });
 
 test('subscribe', async () => {
+	redisUtil.redisSub = null;
+	expect(redisUtil.subscribe('channel')).toBeFalsy();
 	redisUtil.redisSub = {
 		subscribe: jest.fn()
 	} as any;
-	redisUtil.subscribe('channel');
+	expect(redisUtil.subscribe('channel')).toBeTruthy();
 	expect(((redisUtil.redisSub as any).subscribe as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('patternSubscribe', async () => {
+	redisUtil.redisSub = null;
+	expect(redisUtil.patternSubscribe('channel')).toBeFalsy();
 	redisUtil.redisSub = {
 		psubscribe: jest.fn()
 	} as any;
-	redisUtil.patternSubscribe('channel');
+	expect(redisUtil.patternSubscribe('channel')).toBeTruthy();
 	expect(((redisUtil.redisSub as any).psubscribe as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('unsubscribe', async () => {
+	redisUtil.redisSub = null;
+	expect(redisUtil.unsubscribe('channel')).toBeFalsy();
 	redisUtil.redisSub = {
 		unsubscribe: jest.fn()
 	} as any;
-	redisUtil.unsubscribe('channel');
+	expect(redisUtil.unsubscribe('channel')).toBeTruthy();
 	expect(((redisUtil.redisSub as any).unsubscribe as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('patternUnsubscribe', async () => {
+	redisUtil.redisSub = null;
+	expect(redisUtil.patternUnsubscribe('channel')).toBeFalsy();
 	redisUtil.redisSub = {
 		punsubscribe: jest.fn()
 	} as any;
-	redisUtil.patternUnsubscribe('channel');
+	expect(redisUtil.patternUnsubscribe('channel')).toBeTruthy();
 	expect(((redisUtil.redisSub as any).punsubscribe as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('push', async () => {
+	redisUtil.redisPub = null;
+	expect(redisUtil.push('key')).toBe(0);
 	redisUtil.redisPub = {
 		lpush: jest.fn()
 	} as any;
-	await redisUtil.push('key', 'field');
+	redisUtil.push('key', 'field');
 	expect(((redisUtil.redisPub as any).lpush as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('putBack', async () => {
+	redisUtil.redisPub = null;
+	expect(redisUtil.putBack('key', 'field')).toBe(0);
 	redisUtil.redisPub = {
 		rpush: jest.fn()
 	} as any;

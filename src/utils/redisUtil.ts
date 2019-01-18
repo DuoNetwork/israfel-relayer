@@ -111,6 +111,7 @@ class RedisUtil {
 
 	public hashDelete(key: string, field: string) {
 		if (this.redisPub) return this.redisPub.hdel(key, field);
+		return 0;
 	}
 
 	public hashDeleteAll(key: string) {
@@ -119,27 +120,37 @@ class RedisUtil {
 	}
 
 	public subscribe(channel: string) {
-		if (this.redisSub) this.redisSub.subscribe(channel);
+		if (!this.redisSub) return false;
+		this.redisSub.subscribe(channel);
+		return true;
 	}
 
 	public patternSubscribe(pattern: string) {
-		if (this.redisSub) this.redisSub.psubscribe(pattern);
+		if (!this.redisSub) return false;
+		this.redisSub.psubscribe(pattern);
+		return true;
 	}
 
 	public unsubscribe(channel: string) {
-		if (this.redisSub) this.redisSub.unsubscribe(channel);
+		if (!this.redisSub) return false;
+		this.redisSub.unsubscribe(channel);
+		return true;
 	}
 
 	public patternUnsubscribe(pattern: string) {
-		if (this.redisSub) this.redisSub.punsubscribe(pattern);
+		if (!this.redisSub) return false;
+		this.redisSub.punsubscribe(pattern);
+		return true;
 	}
 
 	public push(key: string, ...values: string[]) {
-		if (this.redisPub) this.redisPub.lpush(key, values);
+		if (this.redisPub) return this.redisPub.lpush(key, values);
+		return 0;
 	}
 
 	public putBack(key: string, ...values: string[]) {
-		if (this.redisPub) this.redisPub.rpush(key, values);
+		if (this.redisPub) return this.redisPub.rpush(key, values);
+		return 0;
 	}
 
 	public pop(key: string) {
