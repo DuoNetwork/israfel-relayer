@@ -72,6 +72,14 @@ exports[`addOrder invalid pair 1`] = `[Error: invalid pair]`;
 
 exports[`addOrder missing token 1`] = `[Error: invalid pair]`;
 
+exports[`connectToRelayer 1`] = `
+Array [
+  Array [
+    "message data",
+  ],
+]
+`;
+
 exports[`deleteOrder 1`] = `
 Array [
   Array [

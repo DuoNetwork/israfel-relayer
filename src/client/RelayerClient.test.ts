@@ -3,6 +3,8 @@ import { IWsOrderBookResponse, IWsOrderBookUpdateResponse } from '../common/type
 import orderUtil from '../utils/orderUtil';
 import RelayerClient from './RelayerClient';
 
+jest.mock('isomorphic-ws', () => jest.fn().mockImplementation(() => ({})));
+
 const web3Util: any = {};
 const relayerClient = new RelayerClient(web3Util as any, CST.DB_DEV);
 
@@ -711,6 +713,31 @@ test('deleteOrder', () => {
 	relayerClient.ws = { send } as any;
 	relayerClient.deleteOrder('pair', ['orderHash'], 'signature');
 	expect(send.mock.calls).toMatchSnapshot();
+});
+
+test('connectToRelayer', () => {
+	const handleConnected = jest.fn();
+	const handleReconnect = jest.fn();
+	const reconnectOriginal = relayerClient.reconnect;
+	const reconnectMock = jest.fn();
+	relayerClient.onConnection(handleConnected, handleReconnect);
+	relayerClient.handleMessage = jest.fn();
+	relayerClient.reconnect = reconnectMock;
+	relayerClient.connectToRelayer();
+	expect(relayerClient.ws).toBeTruthy();
+	expect((relayerClient.ws as any).onopen).toBeTruthy();
+	(relayerClient.ws as any).onopen();
+	expect(relayerClient.reconnectionNumber).toBe(0);
+	expect(handleConnected).toBeCalledTimes(1);
+	expect((relayerClient.ws as any).onmessage).toBeTruthy();
+	(relayerClient.ws as any).onmessage({ data: 'message data' });
+	expect((relayerClient.handleMessage as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((relayerClient.ws as any).onerror).toBeTruthy();
+	(relayerClient.ws as any).onerror('error');
+	expect((relayerClient.ws as any).onclose).toBeTruthy();
+	(relayerClient.ws as any).onclose();
+	expect(reconnectMock).toBeCalledTimes(2);
+	relayerClient.reconnect = reconnectOriginal;
 });
 
 test('reconnect, less than 5 times', () => {
