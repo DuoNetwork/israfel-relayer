@@ -923,3 +923,12 @@ test('deleteOrder', async () => {
 	await dynamoUtil.deleteOrder('code1|code2', '0xOrderHash');
 	expect((dynamoUtil.transactPutData as jest.Mock).mock.calls).toMatchSnapshot();
 });
+
+test('addIpList', async () => {
+	dynamoUtil.putData = jest.fn();
+	await dynamoUtil.addIpList({
+		ip: 'ip',
+		color: 'color'
+	});
+	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
+})

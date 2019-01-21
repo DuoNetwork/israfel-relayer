@@ -1,26 +1,8 @@
-import DynamoDB, {
-	AttributeMap,
-	DeleteItemInput,
-	PutItemInput,
-	QueryInput,
-	QueryOutput,
-	ScanInput,
-	ScanOutput,
-	TransactWriteItemsInput,
-	UpdateItemInput
-} from 'aws-sdk/clients/dynamodb';
+import DynamoDB, { AttributeMap, DeleteItemInput, PutItemInput, QueryInput, QueryOutput, ScanInput, ScanOutput, TransactWriteItemsInput, UpdateItemInput } from 'aws-sdk/clients/dynamodb';
 import AWS from 'aws-sdk/global';
 import moment from 'moment';
 import * as CST from '../common/constants';
-import {
-	IFeeSchedule,
-	ILiveOrder,
-	IRawOrder,
-	IStatus,
-	IToken,
-	ITrade,
-	IUserOrder
-} from '../common/types';
+import { IFeeSchedule, IIpStatus, ILiveOrder, IRawOrder, IStatus, IToken, ITrade, IUserOrder } from '../common/types';
 import util from './util';
 
 class DynamoUtil {
@@ -140,6 +122,21 @@ class DynamoUtil {
 			if (ipAddr && color) ipList[ipAddr] = color;
 		});
 		return ipList;
+	}
+
+	public convertIpStatusToDynamo(ipStatus: IIpStatus): AttributeMap {
+		return {
+			[CST.DB_IP]: { S: ipStatus.ip },
+			[CST.DB_COLOR]: { S: ipStatus.color },
+		};
+	}
+
+	public async addIpList(ipStatus: IIpStatus) {
+		return this.putData({
+			TableName: this.getTableName(CST.DB_IP_LIST),
+			Item: this.convertIpStatusToDynamo(ipStatus)
+		});
+
 	}
 
 	public updateStatus(process: string, count: number = 0) {

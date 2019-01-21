@@ -292,3 +292,8 @@ export interface ITrade {
 	feeAsset: string;
 	timestamp: number;
 }
+
+export interface IIpStatus {
+	ip: string;
+	color: string;
+}

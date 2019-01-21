@@ -1399,10 +1399,11 @@ test('handleWebSocketClose', () => {
 	expect((relayerServer.unsubscribeTrade as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('handleWebSocketConnection', () => {
+test('handleWebSocketConnection, first connection', () => {
 	relayerServer.sendInfo = jest.fn();
 	relayerServer.handleWebSocketMessage = jest.fn();
 	relayerServer.handleWebSocketClose = jest.fn();
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890000);
 	relayerServer.handleWebSocketConnection(ws1 as any, 'ip');
 	expect(ws1.on).toBeCalledTimes(2);
 	expect(ws1.on.mock.calls[0][0]).toBe('message');
@@ -1411,6 +1412,62 @@ test('handleWebSocketConnection', () => {
 	expect(ws1.on.mock.calls[1][0]).toBe('close');
 	ws1.on.mock.calls[1][1]();
 	expect((relayerServer.handleWebSocketClose as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('handleWebSocketConnection, no connection within last one minute', () => {
+	relayerServer.sendInfo = jest.fn();
+	relayerServer.handleWebSocketMessage = jest.fn();
+	relayerServer.handleWebSocketClose = jest.fn();
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890000);
+	relayerServer.connectedIp['ip'] = [];
+	relayerServer.handleWebSocketConnection(ws1 as any, 'ip');
+	expect(ws1.on).toBeCalledTimes(4);
+	expect(ws1.on.mock.calls[0][0]).toBe('message');
+	ws1.on.mock.calls[0][1]('testMessage');
+	expect((relayerServer.handleWebSocketMessage as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(ws1.on.mock.calls[1][0]).toBe('close');
+	ws1.on.mock.calls[1][1]();
+	expect((relayerServer.handleWebSocketClose as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+const ws2 = {
+	name: 'ws',
+	on: jest.fn()
+};
+test('handleWebSocketConnection, connect within one second', () => {
+	relayerServer.sendInfo = jest.fn();
+	relayerServer.handleWebSocketMessage = jest.fn();
+	relayerServer.handleWebSocketClose = jest.fn();
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890000);
+	util.safeWsSend = jest.fn();
+	relayerServer.connectedIp['ip'] = [1234567889000];
+	relayerServer.handleWebSocketConnection(ws2 as any, 'ip');
+	expect(relayerServer.connectedIp).toMatchSnapshot();
+	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(relayerServer.sendInfo as jest.Mock).not.toBeCalled();
+	expect(ws2.on as jest.Mock).not.toBeCalled();
+});
+
+const ws3 = {
+	name: 'ws',
+	on: jest.fn()
+};
+test('handleWebSocketConnection, connect too much in one minute', () => {
+	relayerServer.sendInfo = jest.fn();
+	relayerServer.handleWebSocketMessage = jest.fn();
+	relayerServer.handleWebSocketClose = jest.fn();
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890000);
+	util.safeWsSend = jest.fn();
+	relayerServer.connectedIp['ip'] = [];
+	dynamoUtil.addIpList = jest.fn();
+	for (let i = 0; i < 32; i++) relayerServer.connectedIp['ip'].push(1234567848000 + i);
+
+	relayerServer.handleWebSocketConnection(ws3 as any, 'ip');
+	expect(relayerServer.connectedIp).toMatchSnapshot();
+	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.addIpList as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(relayerServer.sendInfo as jest.Mock).not.toBeCalled();
+	expect(ws3.on as jest.Mock).not.toBeCalled();
 });
 
 test('initializeCache', async () => {

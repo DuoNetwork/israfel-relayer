@@ -50,6 +50,7 @@ class RelayerServer {
 	public duoExchangePrices: { [source: string]: IPrice[] } = {};
 	public marketTrades: { [pair: string]: ITrade[] } = {};
 	public ipList: { [ip: string]: string } = {};
+	public connectedIp: { [ip: string]: number[] } = {};
 
 	public sendResponse(ws: WebSocket, req: IWsRequest, status: string) {
 		const orderResponse: IWsResponse = {
@@ -464,6 +465,41 @@ class RelayerServer {
 
 	public handleWebSocketConnection(ws: WebSocket, ip: string) {
 		util.logInfo('new connection');
+		const currentTs = util.getUTCNowTimestamp();
+		if (!this.connectedIp[ip] || !this.connectedIp[ip].length)
+			this.connectedIp[ip] = [currentTs];
+		else {
+			const lastConnectionTs = this.connectedIp[ip][this.connectedIp[ip].length - 1];
+			this.connectedIp[ip].push(currentTs);
+			if (currentTs - lastConnectionTs <= 1000) {
+				util.safeWsSend(
+					ws,
+					JSON.stringify({
+						status: CST.WS_ERROR,
+						message: 'connection too frequent, please try again later!'
+					})
+				);
+				return;
+			} else {
+				this.connectedIp[ip] = this.connectedIp[ip].filter(ts => ts >= currentTs - 60000);
+				if (this.connectedIp[ip].length >= 30) {
+					this.ipList[ip] = CST.DB_BLACK;
+					util.safeWsSend(
+						ws,
+						JSON.stringify({
+							status: CST.WS_ERROR,
+							message: 'blocked to access, connection too frequent!'
+						})
+					);
+					dynamoUtil.addIpList({
+						ip: ip,
+						color: CST.DB_BLACK
+					});
+					return;
+				}
+			}
+		}
+
 		this.sendInfo(ws);
 		ws.on('message', message => this.handleWebSocketMessage(ws, ip, message.toString()));
 		ws.on('close', () => this.handleWebSocketClose(ws, ip));
