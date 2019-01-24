@@ -50,6 +50,7 @@ class RelayerServer {
 	public duoExchangePrices: { [source: string]: IPrice[] } = {};
 	public marketTrades: { [pair: string]: ITrade[] } = {};
 	public ipList: { [ip: string]: string } = {};
+	public connectedIp: { [ip: string]: number[] } = {};
 
 	public sendResponse(ws: WebSocket, req: IWsRequest, status: string) {
 		const orderResponse: IWsResponse = {
@@ -548,7 +549,27 @@ class RelayerServer {
 		if (this.ipList[ip] === CST.DB_BLACK) {
 			util.logDebug(`ip ${ip} in blacklist, refuse connection`);
 			return false;
+		} else if (this.ipList[ip] === CST.DB_WHITE) return true;
+
+		const currentTs = util.getUTCNowTimestamp();
+		if (!this.connectedIp[ip] || !this.connectedIp[ip].length) {
+			this.connectedIp[ip] = [currentTs];
+			return true;
 		}
+
+		const lastConnectionTs = this.connectedIp[ip][this.connectedIp[ip].length - 1];
+		this.connectedIp[ip].push(currentTs);
+		this.connectedIp[ip] = this.connectedIp[ip].filter(ts => ts > currentTs - 60000);
+		if (this.connectedIp[ip].length > 20) {
+			this.ipList[ip] = CST.DB_BLACK;
+			dynamoUtil.updateIpList(ip, CST.DB_BLACK);
+			delete this.connectedIp[ip];
+			return false;
+		} else if (currentTs - lastConnectionTs < 3000) {
+			util.logDebug(`ip ${ip} connects to frequently, refuse this connection request`);
+			return false;
+		}
+
 		return true;
 	};
 

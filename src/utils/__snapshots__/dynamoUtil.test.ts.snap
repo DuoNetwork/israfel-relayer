@@ -1007,6 +1007,24 @@ exports[`updateData error 1`] = `Object {}`;
 
 exports[`updateData no ddb 1`] = `"dynamo db connection is not initialized"`;
 
+exports[`updateIpList 1`] = `
+Array [
+  Array [
+    Object {
+      "Item": Object {
+        "color": Object {
+          "S": "color",
+        },
+        "ip": Object {
+          "S": "ip",
+        },
+      },
+      "TableName": "israfel.env.ipList",
+    },
+  ],
+]
+`;
+
 exports[`updateLiveOrder 1`] = `
 Array [
   Array [

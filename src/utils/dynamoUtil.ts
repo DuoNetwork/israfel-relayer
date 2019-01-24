@@ -142,6 +142,16 @@ class DynamoUtil {
 		return ipList;
 	}
 
+	public async updateIpList(ip: string, color: string) {
+		return this.putData({
+			TableName: this.getTableName(CST.DB_IP_LIST),
+			Item: {
+				[CST.DB_IP]: { S: ip },
+				[CST.DB_COLOR]: { S: color }
+			}
+		});
+	}
+
 	public updateStatus(process: string, count: number = 0) {
 		const params: PutItemInput = {
 			TableName: this.getTableName(CST.DB_STATUS),

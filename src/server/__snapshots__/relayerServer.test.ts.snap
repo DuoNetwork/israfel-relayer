@@ -1555,3 +1555,55 @@ Array [
   ],
 ]
 `;
+
+exports[`verifyClient, ban ip 1`] = `
+Object {
+  "ip": "black",
+}
+`;
+
+exports[`verifyClient, ban ip 2`] = `
+Array [
+  Array [
+    "ip",
+    "black",
+  ],
+]
+`;
+
+exports[`verifyClient, connect after 1 min 1`] = `
+Object {
+  "ip": Array [
+    1234567893000,
+    1234567895999,
+    1234567950000,
+  ],
+}
+`;
+
+exports[`verifyClient, connect after 3 seconds 1`] = `
+Object {
+  "ip": Array [
+    1234567890000,
+    1234567893000,
+  ],
+}
+`;
+
+exports[`verifyClient, connect within 3 seconds 1`] = `
+Object {
+  "ip": Array [
+    1234567890000,
+    1234567893000,
+    1234567895999,
+  ],
+}
+`;
+
+exports[`verifyClient, first connection 1`] = `
+Object {
+  "ip": Array [
+    1234567890000,
+  ],
+}
+`;

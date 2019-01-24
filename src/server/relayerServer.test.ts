@@ -1438,7 +1438,10 @@ test('initializeCache', async () => {
 	expect(web3Util.setTokens.mock.calls).toMatchSnapshot();
 });
 
-test('verifyClient', () => {
+test('verifyClient, first connection', () => {
+	relayerServer.ipList = {};
+	dynamoUtil.updateIpList = jest.fn(() => Promise.resolve());
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890000);
 	expect(
 		relayerServer.verifyClient({
 			req: {
@@ -1449,9 +1452,29 @@ test('verifyClient', () => {
 			}
 		} as any)
 	).toBeTruthy();
-	relayerServer.ipList = {
-		ip: CST.DB_BLACK
-	};
+	expect(relayerServer.connectedIp).toMatchSnapshot();
+	expect(dynamoUtil.updateIpList as jest.Mock).not.toBeCalled();
+});
+
+test('verifyClient, connect after 3 seconds', () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 3000);
+	dynamoUtil.updateIpList = jest.fn(() => Promise.resolve());
+	expect(
+		relayerServer.verifyClient({
+			req: {
+				headers: {
+					'x-forwarded-for': 'ip'
+				}
+			}
+		} as any)
+	).toBeTruthy();
+	expect(relayerServer.connectedIp).toMatchSnapshot();
+	expect(dynamoUtil.updateIpList as jest.Mock).not.toBeCalled();
+});
+
+test('verifyClient, connect within 3 seconds', () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 3000 + 2999);
+	dynamoUtil.updateIpList = jest.fn(() => Promise.resolve());
 	expect(
 		relayerServer.verifyClient({
 			req: {
@@ -1461,6 +1484,78 @@ test('verifyClient', () => {
 			}
 		} as any)
 	).toBeFalsy();
+	expect(relayerServer.connectedIp).toMatchSnapshot();
+	expect(dynamoUtil.updateIpList as jest.Mock).not.toBeCalled();
+});
+
+test('verifyClient, connect after 1 min', () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 60000);
+	dynamoUtil.updateIpList = jest.fn(() => Promise.resolve());
+	expect(
+		relayerServer.verifyClient({
+			req: {
+				headers: {
+					'x-forwarded-for': 'ip'
+				}
+			}
+		} as any)
+	).toBeTruthy();
+	expect(relayerServer.connectedIp).toMatchSnapshot();
+	expect(dynamoUtil.updateIpList as jest.Mock).not.toBeCalled();
+});
+
+test('verifyClient, ban ip', () => {
+	for (let i = 0; i < 19; i++)
+		relayerServer.connectedIp['ip'].push(1234567890000 + 60000 + i);
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 61000);
+	dynamoUtil.updateIpList = jest.fn(() => Promise.resolve());
+	expect(
+		relayerServer.verifyClient({
+			req: {
+				headers: {
+					'x-forwarded-for': 'ip'
+				}
+			}
+		} as any)
+	).toBeFalsy();
+	expect(relayerServer.connectedIp).toEqual({});
+	expect(relayerServer.ipList).toMatchSnapshot();
+	expect((dynamoUtil.updateIpList as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('verifyClient, block black ip', () => {
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 61000);
+	dynamoUtil.updateIpList = jest.fn(() => Promise.resolve());
+	expect(
+		relayerServer.verifyClient({
+			req: {
+				headers: {
+					'x-forwarded-for': 'ip'
+				}
+			}
+		} as any)
+	).toBeFalsy();
+	expect(relayerServer.connectedIp).toEqual({});
+	expect(dynamoUtil.updateIpList as jest.Mock).not.toBeCalled();
+});
+
+test('verifyClient, white', () => {
+	relayerServer.ipList = {
+		ip: CST.DB_WHITE
+	};
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 61000);
+	dynamoUtil.updateIpList = jest.fn(() => Promise.resolve());
+	expect(
+		relayerServer.verifyClient({
+			req: {
+				headers: {
+					'x-forwarded-for': 'ip'
+				}
+			}
+		} as any)
+	).toBeTruthy();
+	expect(relayerServer.connectedIp).toEqual({});
+	expect(dynamoUtil.updateIpList as jest.Mock).not.toBeCalled();
 });
 
 test('initializeWsServer', () => {
