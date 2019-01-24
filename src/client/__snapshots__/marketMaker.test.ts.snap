@@ -618,7 +618,7 @@ Array [
     200,
     200,
     Object {
-      "gasLimit": 80000,
+      "gasLimit": 160000,
       "gasPrice": 9000000000,
     },
   ],

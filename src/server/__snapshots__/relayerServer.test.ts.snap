@@ -1228,91 +1228,7 @@ Array [
 ]
 `;
 
-exports[`handleWebSocketConnection, connect too much in one minute 1`] = `
-Object {
-  "ip": Array [
-    1234567848000,
-    1234567848001,
-    1234567848002,
-    1234567848003,
-    1234567848004,
-    1234567848005,
-    1234567848006,
-    1234567848007,
-    1234567848008,
-    1234567848009,
-    1234567848010,
-    1234567848011,
-    1234567848012,
-    1234567848013,
-    1234567848014,
-    1234567848015,
-    1234567848016,
-    1234567848017,
-    1234567848018,
-    1234567848019,
-    1234567848020,
-    1234567848021,
-    1234567848022,
-    1234567848023,
-    1234567848024,
-    1234567848025,
-    1234567848026,
-    1234567848027,
-    1234567848028,
-    1234567848029,
-    1234567848030,
-    1234567848031,
-    1234567890000,
-  ],
-}
-`;
-
-exports[`handleWebSocketConnection, connect too much in one minute 2`] = `
-Array [
-  Array [
-    Object {
-      "name": "ws",
-      "on": [MockFunction],
-    },
-    "{\\"status\\":\\"error\\",\\"message\\":\\"blocked to access, connection too frequent!\\"}",
-  ],
-]
-`;
-
-exports[`handleWebSocketConnection, connect too much in one minute 3`] = `
-Array [
-  Array [
-    Object {
-      "color": "black",
-      "ip": "ip",
-    },
-  ],
-]
-`;
-
-exports[`handleWebSocketConnection, connect within one second 1`] = `
-Object {
-  "ip": Array [
-    1234567889000,
-    1234567890000,
-  ],
-}
-`;
-
-exports[`handleWebSocketConnection, connect within one second 2`] = `
-Array [
-  Array [
-    Object {
-      "name": "ws",
-      "on": [MockFunction],
-    },
-    "{\\"status\\":\\"error\\",\\"message\\":\\"connection too frequent, please try again later!\\"}",
-  ],
-]
-`;
-
-exports[`handleWebSocketConnection, first connection 1`] = `
+exports[`handleWebSocketConnection 1`] = `
 Array [
   Array [
     Object {
@@ -1346,7 +1262,7 @@ Array [
 ]
 `;
 
-exports[`handleWebSocketConnection, first connection 2`] = `
+exports[`handleWebSocketConnection 2`] = `
 Array [
   Array [
     Object {
@@ -1363,105 +1279,6 @@ Array [
           ],
         ],
         "results": Array [
-          Object {
-            "isThrow": false,
-            "value": undefined,
-          },
-          Object {
-            "isThrow": false,
-            "value": undefined,
-          },
-        ],
-      },
-    },
-    "ip",
-  ],
-]
-`;
-
-exports[`handleWebSocketConnection, no connection within last one minute 1`] = `
-Array [
-  Array [
-    Object {
-      "name": "ws",
-      "on": [MockFunction] {
-        "calls": Array [
-          Array [
-            "message",
-            [Function],
-          ],
-          Array [
-            "close",
-            [Function],
-          ],
-          Array [
-            "message",
-            [Function],
-          ],
-          Array [
-            "close",
-            [Function],
-          ],
-        ],
-        "results": Array [
-          Object {
-            "isThrow": false,
-            "value": undefined,
-          },
-          Object {
-            "isThrow": false,
-            "value": undefined,
-          },
-          Object {
-            "isThrow": false,
-            "value": undefined,
-          },
-          Object {
-            "isThrow": false,
-            "value": undefined,
-          },
-        ],
-      },
-    },
-    "ip",
-    "testMessage",
-  ],
-]
-`;
-
-exports[`handleWebSocketConnection, no connection within last one minute 2`] = `
-Array [
-  Array [
-    Object {
-      "name": "ws",
-      "on": [MockFunction] {
-        "calls": Array [
-          Array [
-            "message",
-            [Function],
-          ],
-          Array [
-            "close",
-            [Function],
-          ],
-          Array [
-            "message",
-            [Function],
-          ],
-          Array [
-            "close",
-            [Function],
-          ],
-        ],
-        "results": Array [
-          Object {
-            "isThrow": false,
-            "value": undefined,
-          },
-          Object {
-            "isThrow": false,
-            "value": undefined,
-          },
           Object {
             "isThrow": false,
             "value": undefined,
@@ -1737,4 +1554,50 @@ Array [
     "{\\"method\\":\\"type\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"userOrder\\":{\\"test\\":\\"liveOrder\\"}}",
   ],
 ]
+`;
+
+exports[`verifyClient, ban ip 1`] = `
+Array [
+  Array [
+    "ip",
+    "black",
+  ],
+]
+`;
+
+exports[`verifyClient, connect after 1 min 1`] = `
+Object {
+  "ip": Array [
+    1234567893000,
+    1234567895999,
+    1234567950000,
+  ],
+}
+`;
+
+exports[`verifyClient, connect after 3 seconds 1`] = `
+Object {
+  "ip": Array [
+    1234567890000,
+    1234567893000,
+  ],
+}
+`;
+
+exports[`verifyClient, connect within 3 seconds 1`] = `
+Object {
+  "ip": Array [
+    1234567890000,
+    1234567893000,
+    1234567895999,
+  ],
+}
+`;
+
+exports[`verifyClient, first connection 1`] = `
+Object {
+  "ip": Array [
+    1234567890000,
+  ],
+}
 `;

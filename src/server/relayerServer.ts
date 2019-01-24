@@ -465,41 +465,6 @@ class RelayerServer {
 
 	public handleWebSocketConnection(ws: WebSocket, ip: string) {
 		util.logInfo('new connection');
-		const currentTs = util.getUTCNowTimestamp();
-		if (!this.connectedIp[ip] || !this.connectedIp[ip].length)
-			this.connectedIp[ip] = [currentTs];
-		else {
-			const lastConnectionTs = this.connectedIp[ip][this.connectedIp[ip].length - 1];
-			this.connectedIp[ip].push(currentTs);
-			if (currentTs - lastConnectionTs <= 1000) {
-				util.safeWsSend(
-					ws,
-					JSON.stringify({
-						status: CST.WS_ERROR,
-						message: 'connection too frequent, please try again later!'
-					})
-				);
-				return;
-			} else {
-				this.connectedIp[ip] = this.connectedIp[ip].filter(ts => ts >= currentTs - 60000);
-				if (this.connectedIp[ip].length >= 30) {
-					this.ipList[ip] = CST.DB_BLACK;
-					util.safeWsSend(
-						ws,
-						JSON.stringify({
-							status: CST.WS_ERROR,
-							message: 'blocked to access, connection too frequent!'
-						})
-					);
-					dynamoUtil.addIpList({
-						ip: ip,
-						color: CST.DB_BLACK
-					});
-					return;
-				}
-			}
-		}
-
 		this.sendInfo(ws);
 		ws.on('message', message => this.handleWebSocketMessage(ws, ip, message.toString()));
 		ws.on('close', () => this.handleWebSocketClose(ws, ip));
@@ -585,6 +550,26 @@ class RelayerServer {
 			util.logDebug(`ip ${ip} in blacklist, refuse connection`);
 			return false;
 		}
+
+		const currentTs = util.getUTCNowTimestamp();
+		if (!this.connectedIp[ip] || !this.connectedIp[ip].length) {
+			this.connectedIp[ip] = [currentTs];
+			return true;
+		}
+
+		const lastConnectionTs = this.connectedIp[ip][this.connectedIp[ip].length - 1];
+		this.connectedIp[ip].push(currentTs);
+		this.connectedIp[ip] = this.connectedIp[ip].filter(ts => ts > currentTs - 60000);
+		if (this.connectedIp[ip].length > 20) {
+			this.ipList[ip] = CST.DB_BLACK;
+			dynamoUtil.updateIpList(ip, CST.DB_BLACK);
+			delete this.connectedIp[ip];
+			return false;
+		} else if (currentTs - lastConnectionTs < 3000) {
+			util.logDebug(`ip ${ip} connects to frequently, refuse this connection request`);
+			return false;
+		}
+
 		return true;
 	};
 
