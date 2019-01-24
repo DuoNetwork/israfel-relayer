@@ -60,7 +60,7 @@ export default class RelayerClient {
 	}
 
 	public reconnect() {
-		if (this.ws) this.ws.terminate();
+		if (this.ws) this.ws.close();
 
 		this.ws = null;
 		this.handleReconnect();
