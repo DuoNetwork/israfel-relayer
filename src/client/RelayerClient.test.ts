@@ -771,7 +771,7 @@ test('reconnect, less than 5 times', () => {
 	const handleReconnect = jest.fn();
 	relayerClient.onConnection(handleConnected, handleReconnect);
 	const ws = {
-		terminate: jest.fn()
+		close: jest.fn()
 	};
 	relayerClient.ws = ws as any;
 	relayerClient.reconnectionNumber = 3;
@@ -779,7 +779,7 @@ test('reconnect, less than 5 times', () => {
 	relayerClient.connectToRelayer = jest.fn();
 	relayerClient.reconnect();
 	expect(handleReconnect).toBeCalledTimes(1);
-	expect(ws.terminate).toBeCalledTimes(1);
+	expect(ws.close).toBeCalledTimes(1);
 	expect(relayerClient.ws).toBeNull();
 	expect(relayerClient.reconnectionNumber).toBe(4);
 	expect((global.setTimeout as jest.Mock).mock.calls).toMatchSnapshot();
