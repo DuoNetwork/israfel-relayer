@@ -1519,10 +1519,11 @@ test('verifyClient, ban ip', () => {
 		} as any)
 	).toBeFalsy();
 	expect(relayerServer.connectedIp).toEqual({});
+	expect(relayerServer.ipList).toMatchSnapshot();
 	expect((dynamoUtil.updateIpList as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('verifyClient, block black up', () => {
+test('verifyClient, block black ip', () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 61000);
 	dynamoUtil.updateIpList = jest.fn(() => Promise.resolve());
 	expect(
@@ -1538,23 +1539,24 @@ test('verifyClient, block black up', () => {
 	expect(dynamoUtil.updateIpList as jest.Mock).not.toBeCalled();
 });
 
-// test('handleWebSocketConnection, connect too much in one minute', () => {
-// 	relayerServer.sendInfo = jest.fn();
-// 	relayerServer.handleWebSocketMessage = jest.fn();
-// 	relayerServer.handleWebSocketClose = jest.fn();
-// 	util.getUTCNowTimestamp = jest.fn(() => 1234567890000);
-// 	util.safeWsSend = jest.fn();
-// 	relayerServer.connectedIp['ip'] = [];
-// 	dynamoUtil.addIpList = jest.fn();
-// 	for (let i = 0; i < 32; i++) relayerServer.connectedIp['ip'].push(1234567848000 + i);
-
-// 	relayerServer.handleWebSocketConnection(ws3 as any, 'ip');
-// 	expect(relayerServer.connectedIp).toMatchSnapshot();
-// 	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
-// 	expect((dynamoUtil.addIpList as jest.Mock).mock.calls).toMatchSnapshot();
-// 	expect(relayerServer.sendInfo as jest.Mock).not.toBeCalled();
-// 	expect(ws3.on as jest.Mock).not.toBeCalled();
-// });
+test('verifyClient, white', () => {
+	relayerServer.ipList = {
+		ip: CST.DB_WHITE
+	};
+	util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 61000);
+	dynamoUtil.updateIpList = jest.fn(() => Promise.resolve());
+	expect(
+		relayerServer.verifyClient({
+			req: {
+				headers: {
+					'x-forwarded-for': 'ip'
+				}
+			}
+		} as any)
+	).toBeTruthy();
+	expect(relayerServer.connectedIp).toEqual({});
+	expect(dynamoUtil.updateIpList as jest.Mock).not.toBeCalled();
+});
 
 test('initializeWsServer', () => {
 	global.setInterval = jest.fn();

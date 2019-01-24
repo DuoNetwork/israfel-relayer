@@ -1557,6 +1557,12 @@ Array [
 `;
 
 exports[`verifyClient, ban ip 1`] = `
+Object {
+  "ip": "black",
+}
+`;
+
+exports[`verifyClient, ban ip 2`] = `
 Array [
   Array [
     "ip",

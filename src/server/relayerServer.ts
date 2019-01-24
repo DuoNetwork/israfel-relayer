@@ -549,7 +549,7 @@ class RelayerServer {
 		if (this.ipList[ip] === CST.DB_BLACK) {
 			util.logDebug(`ip ${ip} in blacklist, refuse connection`);
 			return false;
-		}
+		} else if (this.ipList[ip] === CST.DB_WHITE) return true;
 
 		const currentTs = util.getUTCNowTimestamp();
 		if (!this.connectedIp[ip] || !this.connectedIp[ip].length) {
