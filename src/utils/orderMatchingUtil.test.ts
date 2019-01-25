@@ -1,5 +1,6 @@
 import { BigNumber } from '0x.js';
 import { IOrderMatchRequest, IRawOrder, IStringSignedOrder } from '../common/types';
+import dynamoUtil from './dynamoUtil';
 // import dynamoUtil from '../utils/dynamoUtil';
 import orderMatchingUtil from './orderMatchingUtil';
 import orderPersistenceUtil from './orderPersistenceUtil';
@@ -837,4 +838,96 @@ test('processMatchQueue, right order expired', async () => {
 	expect(redisUtil.putBack as jest.Mock).not.toBeCalled();
 	expect(web3Util.awaitTransactionSuccessAsync as jest.Mock).not.toBeCalled();
 	expect(isSuccess).toEqual(true);
+});
+
+test('startProcessing', async () => {
+	const then = jest.fn();
+	jest.mock('./Web3Util', () =>
+		jest.fn(() => ({
+			getAvailableAddresses: jest.fn(() => Promise.resolve(['addr1', 'addr2', 'addr3'])),
+			setTokens: jest.fn()
+		}))
+	);
+	dynamoUtil.scanTokens = jest.fn(() =>
+		Promise.resolve([
+			{
+				custodian: 'custodian',
+				address: 'address',
+				code: 'code',
+				denomination: 0.1,
+				precisions: {
+					WETH: 0.001
+				},
+				feeSchedules: {
+					WETH: {
+						minimum: 0,
+						rate: 0.01
+					}
+				}
+			}
+		])
+	);
+	dynamoUtil.updateStatus = jest.fn();
+	redisUtil.getQueueLength = jest.fn(() => Promise.resolve(100));
+	global.setTimeout = jest.fn();
+	global.setInterval = jest.fn();
+	orderMatchingUtil.processMatchQueue = jest.fn(() => ({
+		then: then
+	}));
+
+	await orderMatchingUtil.startProcessing({ server: true } as any);
+	expect((dynamoUtil.updateStatus as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((redisUtil.getQueueLength as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((global.setInterval as jest.Mock).mock.calls).toMatchSnapshot();
+
+	await (global.setInterval as jest.Mock).mock.calls[0][0]();
+	expect((dynamoUtil.updateStatus as jest.Mock).mock.calls[1]).toMatchSnapshot();
+	expect((redisUtil.getQueueLength as jest.Mock).mock.calls[1]).toMatchSnapshot();
+
+	(then as jest.Mock).mock.calls[0][0]();
+	expect((global.setTimeout as jest.Mock).mock.calls).toMatchSnapshot();
+
+	(then as jest.Mock).mock.calls[0][0]('result');
+	expect((global.setTimeout as jest.Mock).mock.calls[1]).toMatchSnapshot();
+});
+
+test('startProcessing, no serveer', async () => {
+	const then = jest.fn();
+	jest.mock('./Web3Util', () =>
+		jest.fn(() => ({
+			getAvailableAddresses: jest.fn(() => Promise.resolve(['addr1', 'addr2', 'addr3'])),
+			setTokens: jest.fn()
+		}))
+	);
+	dynamoUtil.scanTokens = jest.fn(() =>
+		Promise.resolve([
+			{
+				custodian: 'custodian',
+				address: 'address',
+				code: 'code',
+				denomination: 0.1,
+				precisions: {
+					WETH: 0.001
+				},
+				feeSchedules: {
+					WETH: {
+						minimum: 0,
+						rate: 0.01
+					}
+				}
+			}
+		])
+	);
+	dynamoUtil.updateStatus = jest.fn();
+	redisUtil.getQueueLength = jest.fn(() => Promise.resolve(100));
+	global.setTimeout = jest.fn();
+	global.setInterval = jest.fn();
+	orderMatchingUtil.processMatchQueue = jest.fn(() => ({
+		then: then
+	}));
+
+	await orderMatchingUtil.startProcessing({ server: false } as any);
+	expect(dynamoUtil.updateStatus as jest.Mock).not.toBeCalled();
+	expect(redisUtil.getQueueLength as jest.Mock).not.toBeCalled();
+	expect(global.setInterval as jest.Mock).not.toBeCalled();
 });

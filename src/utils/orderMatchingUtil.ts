@@ -381,7 +381,13 @@ class OrderMatchingUtil {
 	}
 
 	public async startProcessing(option: IOption) {
-		const mnemonic = require('../keys/mnemomic.json');
+		let mnemonic;
+		try {
+			mnemonic = require('../keys/mnemomic.json');
+		} catch (err) {
+			util.logError(JSON.stringify(err));
+		}
+
 		const web3Util = new Web3Util(null, option.env === CST.DB_LIVE, mnemonic.mnemomic, false);
 		this.availableAddrs = await web3Util.getAvailableAddresses();
 		web3Util.setTokens(await dynamoUtil.scanTokens());
@@ -392,7 +398,7 @@ class OrderMatchingUtil {
 				await redisUtil.getQueueLength(this.getMatchQueueKey())
 			);
 
-			setInterval(
+			global.setInterval(
 				async () =>
 					dynamoUtil.updateStatus(
 						CST.DB_ORDER_MATCHER,
@@ -404,7 +410,7 @@ class OrderMatchingUtil {
 
 		const loop = () =>
 			this.processMatchQueue(web3Util).then(result => {
-				setTimeout(() => loop(), result ? 0 : 500);
+				global.setTimeout(() => loop(), result ? 0 : 500);
 			});
 		loop();
 	}

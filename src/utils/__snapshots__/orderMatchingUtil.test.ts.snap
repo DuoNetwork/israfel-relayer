@@ -2207,3 +2207,66 @@ Array [
   ],
 ]
 `;
+
+exports[`startProcessing 1`] = `
+Array [
+  Array [
+    "orderMatcher",
+    100,
+  ],
+]
+`;
+
+exports[`startProcessing 2`] = `
+Array [
+  Array [
+    "match|queue",
+  ],
+]
+`;
+
+exports[`startProcessing 3`] = `
+Array [
+  Array [
+    [Function],
+    15000,
+  ],
+]
+`;
+
+exports[`startProcessing 4`] = `
+Array [
+  "orderMatcher",
+  100,
+]
+`;
+
+exports[`startProcessing 5`] = `
+Array [
+  "match|queue",
+]
+`;
+
+exports[`startProcessing 6`] = `
+Array [
+  Array [
+    [Function],
+    20000,
+  ],
+  Array [
+    [Function],
+    20000,
+  ],
+  Array [
+    [Function],
+    500,
+  ],
+]
+`;
+
+exports[`startProcessing 7`] = `
+Array [
+  [Function],
+  20000,
+]
+`;
