@@ -5,10 +5,10 @@ import marketMaker from './client/marketMaker';
 import * as CST from './common/constants';
 import { IOption } from './common/types';
 import orderBookServer from './server/orderBookServer';
+import orderMatchServer from './server/orderMatchingServer';
 import orderWatcherServer from './server/orderWatcherServer';
 import relayerServer from './server/relayerServer';
 import dynamoUtil from './utils/dynamoUtil';
-import orderMatchingUtil from './utils/orderMatchingUtil';
 import orderPersistenceUtil from './utils/orderPersistenceUtil';
 import osUtil from './utils/osUtil';
 import redisUtil from './utils/redisUtil';
@@ -40,7 +40,7 @@ switch (tool) {
 		serverMasterUtil.startLaunching(tool, option, opt => orderBookServer.startServer(opt));
 		break;
 	case CST.DB_ORDER_MATCHER:
-		orderMatchingUtil.startProcessing(option);
+		orderMatchServer.startServer(option);
 		break;
 	case CST.DB_NODE:
 		util.logInfo('starting node heart beat');
