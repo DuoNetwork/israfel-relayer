@@ -16,7 +16,7 @@ class OrderMatchServer {
 	}
 
 	public async startServer(option: IOption) {
-		let mnemonic;
+		let mnemonic = { mnemomic: '' };
 		try {
 			mnemonic = require('../keys/mnemomic.json');
 		} catch (err) {
