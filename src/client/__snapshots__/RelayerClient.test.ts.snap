@@ -75,6 +75,14 @@ exports[`addOrder missing token 1`] = `[Error: invalid pair]`;
 exports[`connectToRelayer 1`] = `
 Array [
   Array [
+    "wss://relayer.dev.israfel.info:8080",
+  ],
+]
+`;
+
+exports[`connectToRelayer 2`] = `
+Array [
+  Array [
     "message data",
   ],
 ]
