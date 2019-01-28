@@ -384,7 +384,7 @@ Array [
   Array [
     null,
     "infura",
-    "https://kovan.infura.io/WSDscoNUvMiL1M7TvMNP",
+    "https://kovan.infura.io/",
     false,
   ],
 ]
@@ -408,13 +408,13 @@ Array [
   Array [
     null,
     "infura",
-    "https://kovan.infura.io/WSDscoNUvMiL1M7TvMNP",
+    "https://kovan.infura.io/",
     false,
   ],
   Array [
     null,
     "infura",
-    "https://mainnet.infura.io/WSDscoNUvMiL1M7TvMNP",
+    "https://mainnet.infura.io/",
     true,
   ],
 ]

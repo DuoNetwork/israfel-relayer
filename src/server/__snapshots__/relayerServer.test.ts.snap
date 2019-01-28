@@ -1652,14 +1652,6 @@ Array [
 exports[`startServer no server 2`] = `
 Array [
   Array [
-    "./src/keys/websocket/key.live.pem",
-    "utf8",
-  ],
-  Array [
-    "./src/keys/websocket/cert.live.pem",
-    "utf8",
-  ],
-  Array [
     "./src/keys/websocket/key.dev.pem",
     "utf8",
   ],
