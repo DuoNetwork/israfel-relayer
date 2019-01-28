@@ -802,6 +802,24 @@ Array [
 exports[`init 1`] = `
 Array [
   Array [
+    Object {
+      "apiVersion": "2012-10-08",
+    },
+  ],
+  Array [
+    Object {
+      "apiVersion": "2012-10-08",
+    },
+  ],
+]
+`;
+
+exports[`init 2`] = `
+Array [
+  Array [
+    "config",
+  ],
+  Array [
     "config",
   ],
 ]
@@ -1067,10 +1085,10 @@ Array [
     Object {
       "Item": Object {
         "hostname": Object {
-          "S": "h",
+          "S": "hostname",
         },
         "process": Object {
-          "S": "t|someProcess|h",
+          "S": "tool|someProcess|hostname",
         },
         "updatedAt": Object {
           "N": "1234567890",
@@ -1086,10 +1104,10 @@ Array [
           "N": "123",
         },
         "hostname": Object {
-          "S": "h",
+          "S": "hostname",
         },
         "process": Object {
-          "S": "t|someProcess|h",
+          "S": "tool|someProcess|hostname",
         },
         "updatedAt": Object {
           "N": "1234567890",
@@ -1107,10 +1125,10 @@ Array [
     Object {
       "Item": Object {
         "hostname": Object {
-          "S": "h",
+          "S": "hostname",
         },
         "process": Object {
-          "S": "t|someProcess|h",
+          "S": "tool|someProcess|hostname",
         },
         "updatedAt": Object {
           "N": "1234567890",
