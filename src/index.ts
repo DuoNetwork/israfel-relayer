@@ -6,10 +6,10 @@ import * as CST from './common/constants';
 import { IOption } from './common/types';
 import orderBookServer from './server/orderBookServer';
 import orderMatchServer from './server/orderMatchingServer';
+import orderPersistanceServer from './server/orderPersistanceServer';
 import orderWatcherServer from './server/orderWatcherServer';
 import relayerServer from './server/relayerServer';
 import dynamoUtil from './utils/dynamoUtil';
-import orderPersistenceUtil from './utils/orderPersistenceUtil';
 import osUtil from './utils/osUtil';
 import redisUtil from './utils/redisUtil';
 import serverMasterUtil from './utils/serverMasterUtil';
@@ -28,7 +28,7 @@ dynamoUtil.init(config, option.env, tool, osUtil.getHostName());
 
 switch (tool) {
 	case CST.DB_ORDERS:
-		orderPersistenceUtil.startProcessing(option);
+		orderPersistanceServer.startServer(option);
 		break;
 	case CST.DB_RELAYER:
 		relayerServer.startServer(config, option);
@@ -62,9 +62,9 @@ switch (tool) {
 	case CST.DB_MKT_MAKER:
 		serverMasterUtil.startLaunching(tool, option, opt => marketMaker.startProcessing(opt));
 		break;
-	case CST.DB_HASH_DELETE_ALL:
-		orderPersistenceUtil.hashDeleteAll(option);
-		break;
+	// case CST.DB_HASH_DELETE_ALL:
+	// 	orderPersistenceUtil.hashDeleteAll(option);
+	// 	break;
 	default:
 		break;
 }
