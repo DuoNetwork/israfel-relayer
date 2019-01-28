@@ -1,13 +1,20 @@
 // fix for @ledgerhq/hw-transport-u2f 4.28.0
 import '@babel/polyfill';
+import DualClassWrapper from '../../../duo-contract-wrapper/src/DualClassWrapper';
+import Web3Wrapper from '../../../duo-contract-wrapper/src/Web3Wrapper';
 import * as CST from '../common/constants';
 import liveOrders from '../samples/test/liveOrders.json';
+import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
 import orderBookUtil from '../utils/orderBookUtil';
 import orderMatchingUtil from '../utils/orderMatchingUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import util from '../utils/util';
 import orderBookServer from './orderBookServer';
+
+jest.mock('../../../duo-contract-wrapper/src/DualClassWrapper', () => jest.fn());
+
+jest.mock('../../../duo-contract-wrapper/src/Web3Wrapper', () => jest.fn());
 
 orderBookServer.pair = 'code1|code2';
 orderBookServer.loadingOrders = false;
@@ -391,4 +398,100 @@ test('initialize', async () => {
 		'orderQueueItem'
 	);
 	expect((orderBookServer.handleOrderUpdate as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('startServer', async () => {
+	dynamoUtil.scanTokens = jest.fn(() =>
+		Promise.resolve([
+			{
+				custodian: 'custodian',
+				address: 'address',
+				code: 'code',
+				denomination: 0.0001,
+				precisions: {
+					WETH: 0.001
+				},
+				feeSchedules: {
+					WETH: {
+						minimum: 0,
+						rate: 0.01
+					}
+				}
+			}
+		])
+	);
+	dynamoUtil.updateStatus = jest.fn();
+	global.setInterval = jest.fn();
+	await orderBookServer.startServer({
+		token: 'code'
+	} as any);
+	expect((DualClassWrapper as any).mock.calls).toMatchSnapshot();
+	expect((Web3Wrapper as any).mock.calls).toMatchSnapshot();
+	expect(dynamoUtil.updateStatus as jest.Mock).not.toBeCalled();
+	expect(global.setInterval as jest.Mock).not.toBeCalled();
+});
+
+test('startServer, server', async () => {
+	dynamoUtil.scanTokens = jest.fn(() =>
+		Promise.resolve([
+			{
+				custodian: 'custodian',
+				address: 'address',
+				code: 'code',
+				denomination: 0.0001,
+				precisions: {
+					WETH: 0.001
+				},
+				feeSchedules: {
+					WETH: {
+						minimum: 0,
+						rate: 0.01
+					}
+				}
+			}
+		])
+	);
+	global.setInterval = jest.fn();
+	dynamoUtil.updateStatus = jest.fn();
+	await orderBookServer.startServer({
+		token: 'code', server: true, env: 'live'
+	} as any);
+	expect((DualClassWrapper as any).mock.calls).toMatchSnapshot();
+	expect((Web3Wrapper as any).mock.calls).toMatchSnapshot();
+	expect((global.setInterval as any).mock.calls).toMatchSnapshot();
+
+	(global.setInterval as jest.Mock).mock.calls[0][0]();
+	expect((dynamoUtil.updateStatus as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('startServer, no token', async () => {
+	dynamoUtil.updateStatus = jest.fn();
+	dynamoUtil.scanTokens = jest.fn(() =>
+		Promise.resolve([
+			{
+				custodian: 'custodian',
+				address: 'address',
+				code: 'xxx',
+				denomination: 0.0001,
+				precisions: {
+					WETH: 0.001
+				},
+				feeSchedules: {
+					WETH: {
+						minimum: 0,
+						rate: 0.01
+					}
+				}
+			}
+		])
+	);
+	orderBookServer.initialize = jest.fn();
+	await orderBookServer.startServer({
+		token: 'code'
+	} as any);
+	global.setInterval = jest.fn();
+	dynamoUtil.updateStatus = jest.fn();
+	expect(orderBookServer.initialize as jest.Mock).not.toBeCalled();
+	expect(dynamoUtil.updateStatus as jest.Mock).not.toBeCalled();
+	expect(global.setInterval as jest.Mock).not.toBeCalled();
 });

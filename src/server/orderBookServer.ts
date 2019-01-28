@@ -273,7 +273,13 @@ class OrderBookServer {
 			return;
 		}
 
-		const infura = require('../keys/infura.json');
+		let infura = {token: ''};
+		try {
+			infura = require('../keys/infura.json');
+		} catch (err) {
+			util.logError(JSON.stringify(err));
+		}
+
 		this.initialize(
 			new DualClassWrapper(
 				new Web3Wrapper(
@@ -291,7 +297,7 @@ class OrderBookServer {
 		);
 		if (option.server) {
 			dynamoUtil.updateStatus(this.pair);
-			setInterval(
+			global.setInterval(
 				() => dynamoUtil.updateStatus(this.pair, Object.keys(this.liveOrders).length),
 				15000
 			);
