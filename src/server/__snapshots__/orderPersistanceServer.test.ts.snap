@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`startProcessing, server 1`] = `
+exports[`startServer, server 1`] = `
 Array [
   Array [
     [Function],
@@ -9,7 +9,7 @@ Array [
 ]
 `;
 
-exports[`startProcessing, server 2`] = `
+exports[`startServer, server 2`] = `
 Array [
   Array [
     "orders|queue",
@@ -20,7 +20,7 @@ Array [
 ]
 `;
 
-exports[`startProcessing, server 3`] = `
+exports[`startServer, server 3`] = `
 Array [
   Array [
     "orders",
@@ -33,7 +33,7 @@ Array [
 ]
 `;
 
-exports[`startProcessing, server 4`] = `
+exports[`startServer, server 4`] = `
 Array [
   Array [
     [Function],

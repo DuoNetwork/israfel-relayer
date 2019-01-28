@@ -5,7 +5,7 @@ import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import redisUtil from '../utils/redisUtil';
 
 class OrderPersistanceServer {
-	public async startProcessing(option: IOption) {
+	public async startServer(option: IOption) {
 		if (option.server) {
 			dynamoUtil.updateStatus(
 				CST.DB_ORDERS,

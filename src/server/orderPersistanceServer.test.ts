@@ -3,7 +3,7 @@ import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import redisUtil from '../utils/redisUtil';
 import orderPersistenceServer from './orderPersistanceServer';
 
-test('startProcessing, server', async () => {
+test('startServer, server', async () => {
 	dynamoUtil.updateStatus = jest.fn();
 	redisUtil.getQueueLength = jest.fn(() => Promise.resolve(10));
 	global.setInterval = jest.fn();
@@ -11,7 +11,7 @@ test('startProcessing, server', async () => {
 
 	let result = false;
 	orderPersistenceUtil.processOrderQueue = jest.fn(() => Promise.resolve(result));
-	await orderPersistenceServer.startProcessing({ server: true } as any);
+	await orderPersistenceServer.startServer({ server: true } as any);
 
 	expect((global.setInterval as jest.Mock).mock.calls).toMatchSnapshot();
 
@@ -24,13 +24,13 @@ test('startProcessing, server', async () => {
 	expect((global.setTimeout as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('startProcessing, no server', async () => {
+test('startServer, no server', async () => {
 	dynamoUtil.updateStatus = jest.fn();
 	redisUtil.getQueueLength = jest.fn(() => Promise.resolve(10));
 	global.setInterval = jest.fn();
 	global.setTimeout = jest.fn();
 
-	await orderPersistenceServer.startProcessing({ server: false } as any);
+	await orderPersistenceServer.startServer({ server: false } as any);
 
 	expect(dynamoUtil.updateStatus as jest.Mock).not.toBeCalled();
 	expect(redisUtil.getQueueLength as jest.Mock).not.toBeCalled();
