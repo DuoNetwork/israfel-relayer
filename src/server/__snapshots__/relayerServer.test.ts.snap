@@ -1475,7 +1475,7 @@ Array [
 exports[`loadDuoAcceptedPrices 1`] = `
 Array [
   Array [
-    "0xf474e7E554D98a580282726434d1281aA273E87F",
+    "0xf474e7e554d98a580282726434d1281aa273e87f",
     Array [
       "YYYY-MM-DD",
     ],
@@ -1552,6 +1552,137 @@ exports[`sendUserOrderResponse 1`] = `
 Array [
   Array [
     "{\\"method\\":\\"type\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"userOrder\\":{\\"test\\":\\"liveOrder\\"}}",
+  ],
+]
+`;
+
+exports[`startServer 1`] = `
+Array [
+  Array [
+    null,
+    true,
+    "",
+    false,
+  ],
+]
+`;
+
+exports[`startServer 2`] = `
+Array [
+  Array [
+    "config",
+    true,
+    "relayer",
+    [MockFunction],
+    [Function],
+  ],
+]
+`;
+
+exports[`startServer 3`] = `null`;
+
+exports[`startServer 4`] = `
+Object {
+  "status": "status",
+}
+`;
+
+exports[`startServer 5`] = `
+Array [
+  Array [
+    "./src/keys/websocket/key.live.pem",
+    "utf8",
+  ],
+  Array [
+    "./src/keys/websocket/cert.live.pem",
+    "utf8",
+  ],
+]
+`;
+
+exports[`startServer 6`] = `
+Array [
+  Array [
+    Object {
+      "server": 8080,
+      "verifyClient": [Function],
+    },
+  ],
+]
+`;
+
+exports[`startServer 7`] = `
+Array [
+  Array [
+    [Function],
+    30000,
+  ],
+]
+`;
+
+exports[`startServer 8`] = `
+Array [
+  Array [
+    "relayer",
+  ],
+  Array [
+    "relayer",
+    123,
+  ],
+]
+`;
+
+exports[`startServer no server 1`] = `
+Array [
+  Array [
+    null,
+    true,
+    "",
+    false,
+  ],
+  Array [
+    null,
+    false,
+    "",
+    false,
+  ],
+]
+`;
+
+exports[`startServer no server 2`] = `
+Array [
+  Array [
+    "./src/keys/websocket/key.live.pem",
+    "utf8",
+  ],
+  Array [
+    "./src/keys/websocket/cert.live.pem",
+    "utf8",
+  ],
+  Array [
+    "./src/keys/websocket/key.dev.pem",
+    "utf8",
+  ],
+  Array [
+    "./src/keys/websocket/cert.dev.pem",
+    "utf8",
+  ],
+]
+`;
+
+exports[`startServer no server 3`] = `
+Array [
+  Array [
+    Object {
+      "server": 8080,
+      "verifyClient": [Function],
+    },
+  ],
+  Array [
+    Object {
+      "server": 8080,
+      "verifyClient": [Function],
+    },
   ],
 ]
 `;
