@@ -46,9 +46,6 @@ jobs:
                   name: Install npm
                   command: npm install
             - run:
-                  name: test
-                  command: npm test -- -w 1 --forceExit
-            - run:
                   name: coverage
                   command: npm test -- -w 1 --coverage --forceExit --detectOpenHandles
             - run:
