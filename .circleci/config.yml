@@ -48,22 +48,6 @@ jobs:
             - run:
                   name: test
                   command: npm test -- -w 1 --forceExit
-    test-coverage:
-        working_directory: /home/circleci/israfel-relayer
-        docker:
-            - image: circleci/node:8.11.1
-        steps:
-            - checkout
-            - restore_cache:
-                  key: dependency-cache-{{ .Environment.CIRCLE_SHA1 }}
-            - restore_cache:
-                  key: dependency-assets-{{ .Environment.CIRCLE_SHA1 }}
-            - run:
-                  name: Install npm
-                  command: npm install
-            - run:
-                  name: test
-                  command: npm test -- -w 1 --forceExit
             - run:
                   name: coverage
                   command: npm test -- -w 1 --coverage --forceExit --detectOpenHandles
@@ -91,10 +75,6 @@ workflows:
         jobs:
             - build-duo-contract-wrapper
             - build-duo-admin
-            - test-coverage:
-                  requires:
-                      - build-duo-contract-wrapper
-                      - build-duo-admin
             - test:
                   requires:
                       - build-duo-contract-wrapper
@@ -109,7 +89,7 @@ workflows:
         jobs:
             - build-duo-contract-wrapper
             - build-duo-admin
-            - test-coverage:
+            - test:
                   requires:
                       - build-duo-contract-wrapper
                       - build-duo-admin
@@ -118,4 +98,4 @@ workflows:
                           only: master
             - deploy:
                   requires:
-                      - test-coverage
+                      - test
