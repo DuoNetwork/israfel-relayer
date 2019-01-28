@@ -1,0 +1,47 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`startServer, server 1`] = `
+Array [
+  Array [
+    [Function],
+    15000,
+  ],
+]
+`;
+
+exports[`startServer, server 2`] = `
+Array [
+  Array [
+    "orders|queue",
+  ],
+  Array [
+    "orders|queue",
+  ],
+]
+`;
+
+exports[`startServer, server 3`] = `
+Array [
+  Array [
+    "orders",
+    10,
+  ],
+  Array [
+    "orders",
+    10,
+  ],
+]
+`;
+
+exports[`startServer, server 4`] = `
+Array [
+  Array [
+    [Function],
+    500,
+  ],
+  Array [
+    [Function],
+    0,
+  ],
+]
+`;

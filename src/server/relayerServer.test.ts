@@ -1,5 +1,7 @@
 // fix for @ledgerhq/hw-transport-u2f 4.28.0
 import '@babel/polyfill';
+import * as fs from 'fs';
+import WebSocket from 'ws';
 import duoDynamoUtil from '../../../duo-admin/src/utils/dynamoUtil';
 import * as CST from '../common/constants';
 import dynamoUtil from '../utils/dynamoUtil';
@@ -10,6 +12,33 @@ import tradePriceUtil from '../utils/tradePriceUtil';
 import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 import relayerServer from './relayerServer';
+
+let hasTxReceipt = false;
+jest.mock('../utils/Web3Util', () =>
+	jest.fn(() => ({
+		getTransactionReceipt: jest.fn(() =>
+			Promise.resolve(hasTxReceipt ? { status: 'status' } : null)
+		)
+	}))
+);
+
+jest.mock('fs', () => ({
+	readFileSync: jest.fn()
+}));
+
+jest.mock('ws', () => ({
+	Server: jest.fn(() => ({
+		clients: {
+			size: 123
+		}
+	}))
+}));
+
+jest.mock('https', () => ({
+	createServer: jest.fn(() => ({
+		listen: jest.fn((port: number) => port)
+	}))
+}));
 
 test('sendInfo', () => {
 	const ws = {
@@ -1318,6 +1347,7 @@ test('loadDuoAcceptedPrices no tokens', async () => {
 });
 
 test('loadDuoAcceptedPrices', async () => {
+	Web3Util.toChecksumAddress = jest.fn(addr => addr);
 	util.getDates = () => ['YYYY-MM-DD'];
 	duoDynamoUtil.queryAcceptPriceEvent = jest.fn(() => Promise.resolve());
 	relayerServer.duoAcceptedPrices = {};
@@ -1505,8 +1535,7 @@ test('verifyClient, connect after 1 min', () => {
 });
 
 test('verifyClient, ban ip', () => {
-	for (let i = 0; i < 19; i++)
-		relayerServer.connectedIp['ip'].push(1234567890000 + 60000 + i);
+	for (let i = 0; i < 19; i++) relayerServer.connectedIp['ip'].push(1234567890000 + 60000 + i);
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 61000);
 	dynamoUtil.updateIpList = jest.fn(() => Promise.resolve());
 	expect(
@@ -1583,4 +1612,41 @@ test('initializeWsServer', () => {
 		}
 	});
 	expect((relayerServer.handleWebSocketConnection as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('startServer', async () => {
+	Web3Util.fromWei = jest.fn();
+	duoDynamoUtil.init = jest.fn();
+	relayerServer.initializeCache = jest.fn(() => Promise.resolve());
+	relayerServer.initializeWsServer = jest.fn();
+	dynamoUtil.updateStatus = jest.fn(() => Promise.resolve());
+	global.setInterval = jest.fn();
+
+	await relayerServer.startServer('config' as any, { server: true, env: CST.DB_LIVE } as any);
+	expect((Web3Util as any).mock.calls).toMatchSnapshot();
+	expect((duoDynamoUtil.init as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(await (duoDynamoUtil.init as jest.Mock).mock.calls[0][4]('txHash')).toMatchSnapshot();
+	hasTxReceipt = true;
+	expect(await (duoDynamoUtil.init as jest.Mock).mock.calls[0][4]('txHash')).toMatchSnapshot();
+	expect((fs.readFileSync as jest.Mock).mock.calls.slice(6)).toMatchSnapshot();
+	expect((WebSocket.Server as any).mock.calls).toMatchSnapshot();
+	expect((global.setInterval as jest.Mock).mock.calls).toMatchSnapshot();
+	await (global.setInterval as jest.Mock).mock.calls[0][0]();
+	expect((dynamoUtil.updateStatus as jest.Mock).mock.calls).toMatchSnapshot();
+});
+
+test('startServer no server', async () => {
+	Web3Util.fromWei = jest.fn();
+	duoDynamoUtil.init = jest.fn();
+	relayerServer.initializeCache = jest.fn(() => Promise.resolve());
+	relayerServer.initializeWsServer = jest.fn();
+	dynamoUtil.updateStatus = jest.fn(() => Promise.resolve());
+	global.setInterval = jest.fn();
+
+	await relayerServer.startServer('config' as any, { env: CST.DB_DEV } as any);
+	expect((Web3Util as any).mock.calls).toMatchSnapshot();
+	expect((fs.readFileSync as jest.Mock).mock.calls.slice(6)).toMatchSnapshot();
+	expect((WebSocket.Server as any).mock.calls).toMatchSnapshot();
+	expect(global.setInterval as jest.Mock).not.toBeCalled();
+	expect(dynamoUtil.updateStatus as jest.Mock).not.toBeCalled();
 });

@@ -370,6 +370,77 @@ Array [
 ]
 `;
 
+exports[`startServer 1`] = `
+Array [
+  Array [
+    mockConstructor {},
+    "custodian",
+  ],
+]
+`;
+
+exports[`startServer 2`] = `
+Array [
+  Array [
+    null,
+    "infura",
+    "https://kovan.infura.io/WSDscoNUvMiL1M7TvMNP",
+    false,
+  ],
+]
+`;
+
+exports[`startServer, server 1`] = `
+Array [
+  Array [
+    mockConstructor {},
+    "custodian",
+  ],
+  Array [
+    mockConstructor {},
+    "custodian",
+  ],
+]
+`;
+
+exports[`startServer, server 2`] = `
+Array [
+  Array [
+    null,
+    "infura",
+    "https://kovan.infura.io/WSDscoNUvMiL1M7TvMNP",
+    false,
+  ],
+  Array [
+    null,
+    "infura",
+    "https://mainnet.infura.io/WSDscoNUvMiL1M7TvMNP",
+    true,
+  ],
+]
+`;
+
+exports[`startServer, server 3`] = `
+Array [
+  Array [
+    [Function],
+    15000,
+  ],
+]
+`;
+
+exports[`startServer, server 4`] = `
+Array [
+  Array [
+    "code|WETH",
+  ],
+  Array [
+    "code|WETH",
+    0,
+  ],
+]
+`;
+
 exports[`terminateOrder 1`] = `
 Array [
   Array [

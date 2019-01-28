@@ -3,14 +3,14 @@ import moment from 'moment';
 import * as CST from '../common/constants';
 import {
 	ILiveOrder,
-	IOption,
+	// IOption,
 	IOrderBook,
 	IOrderBookLevel,
 	IOrderBookLevelUpdate,
 	IOrderMatchRequest,
 	IStringSignedOrder
 } from '../common/types';
-import dynamoUtil from './dynamoUtil';
+// import dynamoUtil from './dynamoUtil';
 import orderPersistenceUtil from './orderPersistenceUtil';
 import orderUtil from './orderUtil';
 import redisUtil from './redisUtil';
@@ -19,10 +19,7 @@ import util from './util';
 import Web3Util from './Web3Util';
 
 class OrderMatchingUtil {
-	public availableAddrs: string[] = [];
-	public currentAddrIdx: number = 0;
-
-	private getMatchQueueKey() {
+	public getMatchQueueKey() {
 		return `${CST.DB_MATCH}|${CST.DB_QUEUE}`;
 	}
 
@@ -203,7 +200,7 @@ class OrderMatchingUtil {
 		);
 	}
 
-	public async processMatchQueue(web3Util: Web3Util) {
+	public async processMatchQueue(web3Util: Web3Util, currentAddr: string) {
 		const reqString = await redisUtil.pop(this.getMatchQueueKey());
 		if (!reqString) return false;
 		const matchRequest: IOrderMatchRequest = JSON.parse(reqString);
@@ -262,7 +259,6 @@ class OrderMatchingUtil {
 				return true;
 			}
 
-			const currentAddr = this.getCurrentAddress();
 			util.logDebug('using sender address ' + currentAddr);
 			const currentNonce = await web3Util.getTransactionCount(currentAddr);
 			const curretnGasPrice = Math.max(await web3Util.getGasPrice(), 5000000000);
@@ -374,40 +370,6 @@ class OrderMatchingUtil {
 		}
 	}
 
-	public getCurrentAddress() {
-		const currentAddr = this.availableAddrs[this.currentAddrIdx];
-		this.currentAddrIdx = (this.currentAddrIdx + 1) % this.availableAddrs.length;
-		return currentAddr;
-	}
-
-	public async startProcessing(option: IOption) {
-		const mnemonic = require('../keys/mnemomic.json');
-		const web3Util = new Web3Util(null, option.env === CST.DB_LIVE, mnemonic.mnemomic, false);
-		this.availableAddrs = await web3Util.getAvailableAddresses();
-		web3Util.setTokens(await dynamoUtil.scanTokens());
-
-		if (option.server) {
-			dynamoUtil.updateStatus(
-				CST.DB_ORDER_MATCHER,
-				await redisUtil.getQueueLength(this.getMatchQueueKey())
-			);
-
-			setInterval(
-				async () =>
-					dynamoUtil.updateStatus(
-						CST.DB_ORDER_MATCHER,
-						await redisUtil.getQueueLength(this.getMatchQueueKey())
-					),
-				15000
-			);
-		}
-
-		const loop = () =>
-			this.processMatchQueue(web3Util).then(result => {
-				setTimeout(() => loop(), result ? 0 : 500);
-			});
-		loop();
-	}
 }
 
 const orderMatchingUtil = new OrderMatchingUtil();

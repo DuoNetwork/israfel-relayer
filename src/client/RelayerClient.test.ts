@@ -1,3 +1,4 @@
+import WebSocket from 'isomorphic-ws';
 import * as CST from '../common/constants';
 import { IWsOrderBookResponse, IWsOrderBookUpdateResponse } from '../common/types';
 import orderUtil from '../utils/orderUtil';
@@ -750,6 +751,7 @@ test('connectToRelayer', () => {
 	relayerClient.handleMessage = jest.fn();
 	relayerClient.reconnect = reconnectMock;
 	relayerClient.connectToRelayer();
+	expect((WebSocket as any).mock.calls).toMatchSnapshot();
 	expect(relayerClient.ws).toBeTruthy();
 	expect((relayerClient.ws as any).onopen).toBeTruthy();
 	(relayerClient.ws as any).onopen();

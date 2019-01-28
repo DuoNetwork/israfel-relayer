@@ -1,3 +1,4 @@
+import DynamoDB from 'aws-sdk/clients/dynamodb';
 import * as CST from '../common/constants';
 import dynamoUtil from './dynamoUtil';
 import util from './util';
@@ -13,10 +14,14 @@ import AWS from 'aws-sdk/global';
 
 test('init', async () => {
 	await dynamoUtil.init('config' as any, 'env', 't', 'h');
-	expect(dynamoUtil.ddb).toBeTruthy();
-	expect(dynamoUtil.env).toBe('env');
 	expect(dynamoUtil.tool).toBe('t');
 	expect(dynamoUtil.hostname).toBe('h');
+	await dynamoUtil.init('config' as any, 'env');
+	expect((DynamoDB as any).mock.calls).toMatchSnapshot();
+	expect(dynamoUtil.ddb).toBeTruthy();
+	expect(dynamoUtil.env).toBe('env');
+	expect(dynamoUtil.tool).toBe('tool');
+	expect(dynamoUtil.hostname).toBe('hostname');
 	expect((AWS.config.update as jest.Mock).mock.calls).toMatchSnapshot();
 });
 

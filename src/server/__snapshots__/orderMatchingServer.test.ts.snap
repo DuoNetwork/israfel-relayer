@@ -1,0 +1,47 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`startProcessing 1`] = `
+Array [
+  Array [
+    [Function],
+    15000,
+  ],
+]
+`;
+
+exports[`startProcessing 2`] = `
+Array [
+  Array [
+    "orderMatcher",
+    100,
+  ],
+  Array [
+    "orderMatcher",
+    100,
+  ],
+]
+`;
+
+exports[`startProcessing 3`] = `
+Array [
+  Array [
+    "match|queue",
+  ],
+  Array [
+    "match|queue",
+  ],
+]
+`;
+
+exports[`startProcessing 4`] = `
+Array [
+  Array [
+    [Function],
+    500,
+  ],
+  Array [
+    [Function],
+    0,
+  ],
+]
+`;

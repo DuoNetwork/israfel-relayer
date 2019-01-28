@@ -1,3 +1,4 @@
+import Redis from 'ioredis';
 import redisUtil from './redisUtil';
 
 jest.mock('ioredis', () =>
@@ -58,6 +59,7 @@ test('onMessage anything else', () => {
 test('init', () => {
 	redisUtil.onMessage = jest.fn();
 	redisUtil.init({ host: 'host', password: 'pwd', servername: 'server' });
+	expect((Redis as any).mock.calls).toMatchSnapshot();
 	expect(redisUtil.redisPub).toBeTruthy();
 	expect(redisUtil.redisSub).toBeTruthy();
 	expect(((redisUtil.redisSub as any).on as jest.Mock).mock.calls).toMatchSnapshot();

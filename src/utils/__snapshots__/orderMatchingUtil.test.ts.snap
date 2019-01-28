@@ -1443,7 +1443,7 @@ Array [
       "takerAssetData": "0xf47261b00000000000000000000000000b1ba0af832d7c05fd64161e0db78e85978e8082",
       "takerFee": "0",
     },
-    "address1",
+    "currentAddr",
     Object {
       "gasLimit": 300000,
       "gasPrice": "5000000000",
@@ -1556,7 +1556,7 @@ Array [
       "takerAssetData": "0xf47261b00000000000000000000000000b1ba0af832d7c05fd64161e0db78e85978e8082",
       "takerFee": "0",
     },
-    "address1",
+    "currentAddr",
     Object {
       "gasLimit": 300000,
       "gasPrice": "5000000000",
@@ -1658,7 +1658,7 @@ Array [
       "takerAssetData": "0xf47261b00000000000000000000000000b1ba0af832d7c05fd64161e0db78e85978e8082",
       "takerFee": "0",
     },
-    "address1",
+    "currentAddr",
     Object {
       "gasLimit": 300000,
       "gasPrice": "5000000000",
@@ -1760,7 +1760,7 @@ Array [
       "takerAssetData": "0xf47261b00000000000000000000000000b1ba0af832d7c05fd64161e0db78e85978e8082",
       "takerFee": "0",
     },
-    "address1",
+    "currentAddr",
     Object {
       "gasLimit": 300000,
       "gasPrice": "5000000000",

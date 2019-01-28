@@ -731,4 +731,4 @@ test('hashDeleteAll', async () => {
 		token: 'token'
 	} as any);
 	expect((redisUtil.hashDeleteAll as jest.Mock).mock.calls).toMatchSnapshot();
-})
+});

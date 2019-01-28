@@ -80,6 +80,31 @@ Array [
 exports[`init 1`] = `
 Array [
   Array [
+    6379,
+    "host",
+    Object {
+      "password": "pwd",
+      "tls": Object {
+        "servername": "server",
+      },
+    },
+  ],
+  Array [
+    6379,
+    "host",
+    Object {
+      "password": "pwd",
+      "tls": Object {
+        "servername": "server",
+      },
+    },
+  ],
+]
+`;
+
+exports[`init 2`] = `
+Array [
+  Array [
     "message",
     [Function],
   ],
@@ -90,7 +115,7 @@ Array [
 ]
 `;
 
-exports[`init 2`] = `
+exports[`init 3`] = `
 Array [
   Array [
     "channel",

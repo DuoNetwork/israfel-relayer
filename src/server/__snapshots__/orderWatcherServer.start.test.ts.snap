@@ -1,0 +1,102 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`startServer 1`] = `
+Array [
+  Array [
+    "provider",
+    42,
+    undefined,
+    Object {
+      "cleanupJobIntervalMs": 30000,
+      "expirationMarginMs": 180000,
+    },
+  ],
+]
+`;
+
+exports[`startServer 2`] = `
+Array [
+  Array [
+    null,
+    false,
+    "",
+    true,
+  ],
+]
+`;
+
+exports[`startServer 3`] = `
+Array [
+  Array [
+    Object {
+      "env": "dev",
+    },
+    Object {
+      "getStats": [MockFunction],
+    },
+  ],
+]
+`;
+
+exports[`startServer 4`] = `
+Array [
+  Array [
+    Array [
+      Object {
+        "address": "address",
+        "code": "code",
+        "custodian": "custodian",
+        "denomination": 0.0001,
+        "feeSchedules": Object {
+          "WETH": Object {
+            "minimum": 0,
+            "rate": 0.01,
+          },
+        },
+        "precisions": Object {
+          "WETH": 0.001,
+        },
+      },
+    ],
+  ],
+]
+`;
+
+exports[`startServer, server 1`] = `
+Array [
+  Array [
+    "pair1",
+  ],
+  Array [
+    "pair2",
+  ],
+]
+`;
+
+exports[`startServer, server 2`] = `
+Array [
+  Array [
+    [Function],
+    15000,
+  ],
+]
+`;
+
+exports[`startServer, server 3`] = `
+Array [
+  Array [
+    "pair1",
+  ],
+  Array [
+    "pair2",
+  ],
+  Array [
+    "pair1",
+    10,
+  ],
+  Array [
+    "pair2",
+    10,
+  ],
+]
+`;

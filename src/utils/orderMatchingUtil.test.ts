@@ -1,6 +1,5 @@
 import { BigNumber } from '0x.js';
 import { IOrderMatchRequest, IRawOrder, IStringSignedOrder } from '../common/types';
-// import dynamoUtil from '../utils/dynamoUtil';
 import orderMatchingUtil from './orderMatchingUtil';
 import orderPersistenceUtil from './orderPersistenceUtil';
 import orderUtil from './orderUtil';
@@ -445,7 +444,7 @@ test('processMatchQueue, empty queue', async () => {
 		awaitTransactionSuccessAsync: jest.fn(() => Promise.resolve())
 	} as any;
 	orderMatchingUtil.processMatchSuccess = jest.fn();
-	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util);
+	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util, 'currentAddr');
 	expect(redisUtil.putBack as jest.Mock).not.toBeCalled();
 	expect(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).not.toBeCalled();
 	expect(orderPersistenceUtil.persistOrder as jest.Mock).not.toBeCalled();
@@ -520,10 +519,8 @@ test('processMatchQueue, matchOrder revert', async () => {
 		awaitTransactionSuccessAsync: jest.fn(() => Promise.resolve())
 	} as any;
 
-	orderMatchingUtil.availableAddrs = ['address1', 'address2', 'address3'];
-	orderMatchingUtil.currentAddrIdx = 0;
 	orderMatchingUtil.processMatchSuccess = jest.fn();
-	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util);
+	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util, 'currentAddr');
 	expect((redisUtil.pop as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
 		(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).mock.calls
@@ -551,10 +548,8 @@ test('processMatchQueue, persistOrder reject', async () => {
 		awaitTransactionSuccessAsync: jest.fn(() => Promise.resolve())
 	} as any;
 
-	orderMatchingUtil.availableAddrs = ['address1', 'address2', 'address3'];
-	orderMatchingUtil.currentAddrIdx = 0;
 	orderMatchingUtil.processMatchSuccess = jest.fn();
-	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util);
+	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util, 'currentAddr');
 	expect((redisUtil.pop as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
 		(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).mock.calls
@@ -582,10 +577,8 @@ test('processMatchQueue, awaitTransactionSuccessAsync revert', async () => {
 		awaitTransactionSuccessAsync: jest.fn(() => Promise.reject())
 	} as any;
 
-	orderMatchingUtil.availableAddrs = ['address1', 'address2', 'address3'];
-	orderMatchingUtil.currentAddrIdx = 0;
 	orderMatchingUtil.processMatchSuccess = jest.fn();
-	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util);
+	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util, 'currentAddr');
 	expect((redisUtil.pop as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
 		(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).mock.calls
@@ -614,10 +607,8 @@ test('processMatchQueue, awaitTransactionSuccessAsync success', async () => {
 		awaitTransactionSuccessAsync: jest.fn(() => Promise.resolve({}))
 	} as any;
 
-	orderMatchingUtil.availableAddrs = ['address1', 'address2', 'address3'];
-	orderMatchingUtil.currentAddrIdx = 0;
 	orderMatchingUtil.processMatchSuccess = jest.fn();
-	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util);
+	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util, 'currentAddr');
 	expect((redisUtil.pop as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
 		(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).mock.calls
@@ -646,10 +637,8 @@ test('processMatchQueue, awaitTransactionSuccessAsync success partial', async ()
 		awaitTransactionSuccessAsync: jest.fn(() => Promise.resolve({}))
 	} as any;
 
-	orderMatchingUtil.availableAddrs = ['address1', 'address2', 'address3'];
-	orderMatchingUtil.currentAddrIdx = 0;
 	orderMatchingUtil.processMatchSuccess = jest.fn();
-	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util);
+	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util, 'currentAddr');
 	expect((redisUtil.pop as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
 		(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).mock.calls
@@ -679,10 +668,8 @@ test('processMatchQueue, awaitTransactionSuccessAsync success, not feeOnToken', 
 		awaitTransactionSuccessAsync: jest.fn(() => Promise.resolve({}))
 	} as any;
 
-	orderMatchingUtil.availableAddrs = ['address1', 'address2', 'address3'];
-	orderMatchingUtil.currentAddrIdx = 0;
 	orderMatchingUtil.processMatchSuccess = jest.fn();
-	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util);
+	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util, 'currentAddr');
 	expect((redisUtil.pop as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
 		(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).mock.calls
@@ -707,7 +694,7 @@ test('processMatchQueue, no leftRawOrder', async () => {
 		awaitTransactionSuccessAsync: jest.fn(() => Promise.resolve())
 	} as any;
 	orderMatchingUtil.processMatchSuccess = jest.fn();
-	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util);
+	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util, 'currentAddr');
 	expect((redisUtil.pop as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
 		(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).mock.calls
@@ -743,7 +730,7 @@ test('processMatchQueue, left order expired', async () => {
 		awaitTransactionSuccessAsync: jest.fn(() => Promise.resolve())
 	} as any;
 	orderMatchingUtil.processMatchSuccess = jest.fn();
-	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util);
+	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util, 'currentAddr');
 	expect((redisUtil.pop as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
 		(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).mock.calls
@@ -783,7 +770,7 @@ test('processMatchQueue, no rightRawOrder', async () => {
 		awaitTransactionSuccessAsync: jest.fn(() => Promise.resolve())
 	} as any;
 	orderMatchingUtil.processMatchSuccess = jest.fn();
-	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util);
+	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util, 'currentAddr');
 	expect((redisUtil.pop as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
 		(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).mock.calls
@@ -824,7 +811,7 @@ test('processMatchQueue, right order expired', async () => {
 		awaitTransactionSuccessAsync: jest.fn(() => Promise.resolve())
 	} as any;
 	orderMatchingUtil.processMatchSuccess = jest.fn();
-	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util);
+	const isSuccess = await orderMatchingUtil.processMatchQueue(web3Util, 'currentAddr');
 	expect((redisUtil.pop as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(
 		(orderPersistenceUtil.getRawOrderInPersistence as jest.Mock).mock.calls

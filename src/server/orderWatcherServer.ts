@@ -248,7 +248,7 @@ class OrderWatcherServer {
 		await this.initializeData(option, this.orderWatcher);
 		if (option.server) {
 			this.pairs.forEach(pair => dynamoUtil.updateStatus(pair));
-			setInterval(
+			global.setInterval(
 				() =>
 					this.pairs.forEach(pair =>
 						dynamoUtil.updateStatus(
