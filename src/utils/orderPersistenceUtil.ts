@@ -25,7 +25,7 @@ class OrderPersistenceUtil {
 		return `${CST.DB_ORDERS}|${CST.DB_CACHE}|${pair}`;
 	}
 
-	private getOrderQueueKey() {
+	public getOrderQueueKey() {
 		return `${CST.DB_ORDERS}|${CST.DB_QUEUE}`;
 	}
 
@@ -316,30 +316,6 @@ class OrderPersistenceUtil {
 		);
 
 		return true;
-	}
-
-	public async startProcessing(option: IOption) {
-		if (option.server) {
-			dynamoUtil.updateStatus(
-				CST.DB_ORDERS,
-				await redisUtil.getQueueLength(this.getOrderQueueKey())
-			);
-
-			setInterval(
-				async () =>
-					dynamoUtil.updateStatus(
-						CST.DB_ORDERS,
-						await redisUtil.getQueueLength(this.getOrderQueueKey())
-					),
-				15000
-			);
-		}
-
-		const loop = () =>
-			this.processOrderQueue().then(result => {
-				setTimeout(() => loop(), result ? 0 : 500);
-			});
-		loop();
 	}
 
 	public async hashDeleteAll(option: IOption) {
