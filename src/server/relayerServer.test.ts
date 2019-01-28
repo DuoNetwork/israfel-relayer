@@ -1628,7 +1628,7 @@ test('startServer', async () => {
 	expect(await (duoDynamoUtil.init as jest.Mock).mock.calls[0][4]('txHash')).toMatchSnapshot();
 	hasTxReceipt = true;
 	expect(await (duoDynamoUtil.init as jest.Mock).mock.calls[0][4]('txHash')).toMatchSnapshot();
-	expect((fs.readFileSync as jest.Mock).mock.calls.slice(6)).toMatchSnapshot();
+	expect((fs.readFileSync as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((WebSocket.Server as any).mock.calls).toMatchSnapshot();
 	expect((global.setInterval as jest.Mock).mock.calls).toMatchSnapshot();
 	await (global.setInterval as jest.Mock).mock.calls[0][0]();
@@ -1645,7 +1645,7 @@ test('startServer no server', async () => {
 
 	await relayerServer.startServer('config' as any, { env: CST.DB_DEV } as any);
 	expect((Web3Util as any).mock.calls).toMatchSnapshot();
-	expect((fs.readFileSync as jest.Mock).mock.calls.slice(6)).toMatchSnapshot();
+	expect((fs.readFileSync as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((WebSocket.Server as any).mock.calls).toMatchSnapshot();
 	expect(global.setInterval as jest.Mock).not.toBeCalled();
 	expect(dynamoUtil.updateStatus as jest.Mock).not.toBeCalled();
