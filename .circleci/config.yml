@@ -103,6 +103,9 @@ workflows:
         triggers:
             - schedule:
                   cron: '0 4 * * *'
+                  filters:
+                      branches:
+                          only: master
         jobs:
             - build-duo-contract-wrapper
             - build-duo-admin
