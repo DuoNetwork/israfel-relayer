@@ -613,7 +613,7 @@ class RelayerServer {
 		this.initializeWsServer(wsServer);
 		if (option.server) {
 			dynamoUtil.updateStatus(CST.DB_RELAYER);
-			setInterval(
+			global.setInterval(
 				() => dynamoUtil.updateStatus(CST.DB_RELAYER, wsServer.clients.size),
 				30000
 			);
