@@ -1,6 +1,6 @@
 // fix for @ledgerhq/hw-transport-u2f 4.28.0
 import '@babel/polyfill';
-import Web3Wrapper from '../../duo-contract-wrapper/src/Web3Wrapper';
+import { Web3Wrapper } from '@finbook/duo-contract-wrapper';
 import marketMaker from './client/marketMaker';
 import * as CST from './common/constants';
 import { IOption } from './common/types';
@@ -54,8 +54,8 @@ switch (tool) {
 			() =>
 				web3Wrapper
 					.getCurrentBlockNumber()
-					.then(bn => dynamoUtil.updateStatus(CST.DB_NODE, bn))
-					.catch(error => util.logInfo(JSON.stringify(error))),
+					.then((bn: number) => dynamoUtil.updateStatus(CST.DB_NODE, bn))
+					.catch((error: Error) => util.logInfo(JSON.stringify(error))),
 			30000
 		);
 		break;

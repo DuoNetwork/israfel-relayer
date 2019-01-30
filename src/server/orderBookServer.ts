@@ -1,6 +1,4 @@
-import { CTD_TRADING } from '../../../duo-contract-wrapper/src/constants';
-import DualClassWrapper from '../../../duo-contract-wrapper/src/DualClassWrapper';
-import Web3Wrapper from '../../../duo-contract-wrapper/src/Web3Wrapper';
+import { Constants as WrapperConstants, DualClassWrapper, Web3Wrapper } from '@finbook/duo-contract-wrapper';
 import * as CST from '../common/constants';
 import {
 	ILiveOrder,
@@ -214,7 +212,7 @@ class OrderBookServer {
 
 	public async checkCustodianState(dualClassWrapper: DualClassWrapper) {
 		const state = await dualClassWrapper.getStates();
-		this.custodianInTrading = state.state === CTD_TRADING;
+		this.custodianInTrading = state.state === WrapperConstants.CTD_TRADING;
 		if (!this.custodianInTrading) {
 			const prevVersion = this.orderBookSnapshot.version;
 			const updates = [

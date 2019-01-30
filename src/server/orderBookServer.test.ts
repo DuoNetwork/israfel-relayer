@@ -1,7 +1,6 @@
 // fix for @ledgerhq/hw-transport-u2f 4.28.0
 import '@babel/polyfill';
-import DualClassWrapper from '../../../duo-contract-wrapper/src/DualClassWrapper';
-import Web3Wrapper from '../../../duo-contract-wrapper/src/Web3Wrapper';
+import * as Constants from '@finbook/duo-contract-wrapper/dist/constants';
 import * as CST from '../common/constants';
 import liveOrders from '../samples/test/liveOrders.json';
 import dynamoUtil from '../utils/dynamoUtil';
@@ -12,9 +11,13 @@ import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import util from '../utils/util';
 import orderBookServer from './orderBookServer';
 
-jest.mock('../../../duo-contract-wrapper/src/DualClassWrapper', () => jest.fn());
+jest.mock('@finbook/duo-contract-wrapper', () => ({
+	Constants: Constants,
+	Web3Wrapper: jest.fn(),
+	DualClassWrapper: jest.fn()
+}));
 
-jest.mock('../../../duo-contract-wrapper/src/Web3Wrapper', () => jest.fn());
+import { DualClassWrapper, Web3Wrapper } from '@finbook/duo-contract-wrapper';
 
 orderBookServer.pair = 'code1|code2';
 orderBookServer.loadingOrders = false;
@@ -454,7 +457,9 @@ test('startServer, server', async () => {
 	global.setInterval = jest.fn();
 	dynamoUtil.updateStatus = jest.fn();
 	await orderBookServer.startServer({
-		token: 'code', server: true, env: 'live'
+		token: 'code',
+		server: true,
+		env: 'live'
 	} as any);
 	expect((DualClassWrapper as any).mock.calls).toMatchSnapshot();
 	expect((Web3Wrapper as any).mock.calls).toMatchSnapshot();

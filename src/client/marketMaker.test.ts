@@ -1,6 +1,6 @@
 // fix for @ledgerhq/hw-transport-u2f 4.28.0
 import '@babel/polyfill';
-import DualClassWrapper from '../../../duo-contract-wrapper/src/DualClassWrapper';
+import { DualClassWrapper } from '@finbook/duo-contract-wrapper';
 import * as CST from '../common/constants';
 import util from '../utils/util';
 import marketMaker from './marketMaker';

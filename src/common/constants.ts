@@ -1,13 +1,4 @@
-export {
-	BEETHOVEN,
-	MOZART,
-	TENOR_M19,
-	TENOR_PPT,
-	REDEEM_GAS,
-	DEFAULT_GAS_PRICE,
-	CREATE_GAS,
-	API_KRAKEN
-} from '../../../duo-admin/src/common/constants';
+export { API_KRAKEN } from '../../../duo-admin/src/common/constants';
 
 export const DB_ISRAFEL = 'israfel';
 export const DB_LIVE_ORDERS = 'liveOrders';
