@@ -1,9 +1,12 @@
-import DualClassWrapper from '../../../duo-contract-wrapper/src/DualClassWrapper';
-import Web3Wrapper from '../../../duo-contract-wrapper/src/Web3Wrapper';
+import {
+	Constants as WrapperConstants,
+	DualClassWrapper,
+	IDualClassStates,
+	Web3Wrapper
+} from '@finbook/duo-contract-wrapper';
 import * as CST from '../common/constants';
 import {
 	IAccount,
-	IDualClassStates,
 	IOption,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotLevel,
@@ -122,7 +125,7 @@ class MarketMaker {
 
 		const gasPrice = Math.max(
 			await web3Util.getGasPrice(),
-			CST.DEFAULT_GAS_PRICE * Math.pow(10, 9)
+			WrapperConstants.DEFAULT_GAS_PRICE * Math.pow(10, 9)
 		);
 
 		if (wethShortfall) {
@@ -147,7 +150,7 @@ class MarketMaker {
 				web3Util.contractAddresses.etherToken,
 				{
 					gasPrice: gasPrice,
-					gasLimit: CST.CREATE_GAS
+					gasLimit: WrapperConstants.CREATE_GAS
 				}
 			);
 			util.logDebug(`tx hash: ${tx}`);
@@ -165,7 +168,7 @@ class MarketMaker {
 				util.round(bTokenToRedeem),
 				{
 					gasPrice: gasPrice,
-					gasLimit: CST.REDEEM_GAS
+					gasLimit: WrapperConstants.REDEEM_GAS
 				}
 			);
 			util.logDebug(`tx hash: ${tx}`);
