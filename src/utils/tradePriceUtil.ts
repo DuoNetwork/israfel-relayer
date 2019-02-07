@@ -1,11 +1,11 @@
-import * as CST from '../common/constants';
-import { IOrderMatchRequest, ITrade } from '../common/types';
+import { Constants, ITrade } from '../../../israfel-common/src';
+import { IOrderMatchRequest } from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import redisUtil from './redisUtil';
 
 class TradePriceUtil {
 	private getTradePubSubChannel(pair: string) {
-		return `${CST.DB_TRADES}|${CST.DB_PUBSUB}|${pair}`;
+		return `${Constants.DB_TRADES}|${Constants.DB_PUBSUB}|${pair}`;
 	}
 
 	public subscribeTradeUpdate(
@@ -27,7 +27,7 @@ class TradePriceUtil {
 		takerAddress: string
 	) {
 		const { pair, bid, ask, takerSide } = matchRequest;
-		const takerIsBid = takerSide === CST.DB_BID;
+		const takerIsBid = takerSide === Constants.DB_BID;
 		const takerOrder = takerIsBid ? bid : ask;
 		const makerOrder = takerIsBid ? ask : bid;
 		const trade = {

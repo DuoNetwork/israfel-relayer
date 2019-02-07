@@ -2,16 +2,21 @@
 import '@babel/polyfill';
 
 import { OrderWatcher } from '0x.js';
+import * as Constants from '../../../israfel-common/src/constants';
+import OrderUtil from '../../../israfel-common/src/OrderUtil';
+import Util from '../../../israfel-common/src/Util';
 import dynamoUtil from '../utils/dynamoUtil';
-import Web3Util from '../utils/Web3Util';
 import orderWatcherServer from './orderWatcherServer';
 
-jest.mock('../utils/Web3Util', () =>
-	jest.fn(() => ({
+jest.mock('../../../israfel-common/src', () => ({
+	Constants: Constants,
+	OrderUtil: OrderUtil,
+	Util: Util,
+	Web3Util: jest.fn(() => ({
 		setTokens: jest.fn(),
 		getProvider: jest.fn(() => 'provider')
 	}))
-);
+}));
 
 jest.mock('0x.js', () => ({
 	OrderWatcher: jest.fn(() => ({
@@ -20,6 +25,8 @@ jest.mock('0x.js', () => ({
 		}))
 	}))
 }));
+
+import { Web3Util } from '../../../israfel-common/src';
 
 it('startServer', async () => {
 	orderWatcherServer.initializeData = jest.fn(() => Promise.resolve());

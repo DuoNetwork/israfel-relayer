@@ -1,16 +1,14 @@
-import * as CST from '../common/constants';
 import {
+	Constants,
 	ILiveOrder,
-	IOption,
-	IOrderPersistRequest,
-	IOrderQueueItem,
 	IStringSignedOrder,
-	IToken
-} from '../common/types';
+	IToken,
+	OrderUtil,
+	Util
+} from '../../../israfel-common/src';
+import { IOption, IOrderPersistRequest, IOrderQueueItem } from '../common/types';
 import dynamoUtil from './dynamoUtil';
-import orderUtil from './orderUtil';
 import redisUtil from './redisUtil';
-import util from './util';
 
 class OrderPersistenceUtil {
 	private getCacheMapField(pair: string, method: string, orderHash: string) {
@@ -18,15 +16,15 @@ class OrderPersistenceUtil {
 	}
 
 	private getOrderPubSubChannel(pair: string) {
-		return `${CST.DB_ORDERS}|${CST.DB_PUBSUB}|${pair}`;
+		return `${Constants.DB_ORDERS}|${Constants.DB_PUBSUB}|${pair}`;
 	}
 
 	private getOrderCacheMapKey(pair: string) {
-		return `${CST.DB_ORDERS}|${CST.DB_CACHE}|${pair}`;
+		return `${Constants.DB_ORDERS}|${Constants.DB_CACHE}|${pair}`;
 	}
 
 	public getOrderQueueKey() {
-		return `${CST.DB_ORDERS}|${CST.DB_QUEUE}`;
+		return `${Constants.DB_ORDERS}|${Constants.DB_QUEUE}`;
 	}
 
 	public subscribeOrderUpdate(
@@ -49,7 +47,7 @@ class OrderPersistenceUtil {
 		processed: boolean,
 		txHash?: string
 	) {
-		const userOrder = orderUtil.constructUserOrder(
+		const userOrder = OrderUtil.constructUserOrder(
 			liveOrder,
 			type,
 			status,
@@ -59,18 +57,18 @@ class OrderPersistenceUtil {
 		);
 		try {
 			await dynamoUtil.addUserOrder(userOrder);
-			util.logDebug(`added user order ${liveOrder.orderHash}|${type}|${status}|${updatedBy}`);
+			Util.logDebug(`added user order ${liveOrder.orderHash}|${type}|${status}|${updatedBy}`);
 		} catch (error) {
-			util.logError(error);
+			Util.logError(error);
 		}
 
 		return userOrder;
 	}
 
 	public async getLiveOrderInPersistence(pair: string, orderHash: string) {
-		const terminateKey = this.getCacheMapField(pair, CST.DB_TERMINATE, orderHash);
-		const updateKey = this.getCacheMapField(pair, CST.DB_UPDATE, orderHash);
-		const addKey = this.getCacheMapField(pair, CST.DB_ADD, orderHash);
+		const terminateKey = this.getCacheMapField(pair, Constants.DB_TERMINATE, orderHash);
+		const updateKey = this.getCacheMapField(pair, Constants.DB_UPDATE, orderHash);
+		const addKey = this.getCacheMapField(pair, Constants.DB_ADD, orderHash);
 		const queueStrings = await redisUtil.hashMultiGet(
 			this.getOrderCacheMapKey(pair),
 			terminateKey,
@@ -109,8 +107,8 @@ class OrderPersistenceUtil {
 			const method = parts[2];
 			const orderHash = parts[3];
 			const orderQueueItem: IOrderQueueItem = JSON.parse(redisOrders[key]);
-			if (method === CST.DB_TERMINATE) terminateOrders[orderHash] = orderQueueItem.liveOrder;
-			else if (method === CST.DB_ADD) addOrders[orderHash] = orderQueueItem.liveOrder;
+			if (method === Constants.DB_TERMINATE) terminateOrders[orderHash] = orderQueueItem.liveOrder;
+			else if (method === Constants.DB_ADD) addOrders[orderHash] = orderQueueItem.liveOrder;
 			else updateOrders[orderHash] = orderQueueItem.liveOrder;
 		}
 
@@ -125,8 +123,8 @@ class OrderPersistenceUtil {
 	}
 
 	public async getRawOrderInPersistence(pair: string, orderHash: string) {
-		const terminateKey = this.getCacheMapField(pair, CST.DB_TERMINATE, orderHash);
-		const addKey = this.getCacheMapField(pair, CST.DB_ADD, orderHash);
+		const terminateKey = this.getCacheMapField(pair, Constants.DB_TERMINATE, orderHash);
+		const addKey = this.getCacheMapField(pair, Constants.DB_ADD, orderHash);
 		const queueStrings = await redisUtil.hashMultiGet(
 			this.getOrderCacheMapKey(pair),
 			terminateKey,
@@ -151,7 +149,7 @@ class OrderPersistenceUtil {
 	}
 
 	public async persistOrder(orderPersistRequest: IOrderPersistRequest) {
-		util.logDebug('persist request: ' + JSON.stringify(orderPersistRequest));
+		Util.logDebug('persist request: ' + JSON.stringify(orderPersistRequest));
 		const {
 			pair,
 			orderHash,
@@ -163,28 +161,28 @@ class OrderPersistenceUtil {
 			requestor,
 			transactionHash
 		} = orderPersistRequest;
-		if (method === CST.DB_ADD && !token) {
-			util.logDebug(`invalid add request ${orderHash}, missing token`);
+		if (method === Constants.DB_ADD && !token) {
+			Util.logDebug(`invalid add request ${orderHash}, missing token`);
 			return null;
 		}
 
 		let liveOrder = await this.getLiveOrderInPersistence(pair, orderHash);
-		if (method === CST.DB_ADD && liveOrder) {
-			util.logDebug(`order ${orderHash} already exist, ignore add request`);
+		if (method === Constants.DB_ADD && liveOrder) {
+			Util.logDebug(`order ${orderHash} already exist, ignore add request`);
 			return null;
-		} else if (method !== CST.DB_ADD && !liveOrder) {
-			util.logDebug(`order ${orderHash} does not exist, ignore ${method} request`);
-			return null;
-		}
-
-		const sequence = await redisUtil.increment(`${CST.DB_SEQUENCE}|${pair}`);
-		if (!util.isNumber(sequence)) {
-			util.logDebug(`sequence ${sequence} is not a number ....`);
+		} else if (method !== Constants.DB_ADD && !liveOrder) {
+			Util.logDebug(`order ${orderHash} does not exist, ignore ${method} request`);
 			return null;
 		}
 
-		if (method === CST.DB_ADD) {
-			liveOrder = orderUtil.constructNewLiveOrder(
+		const sequence = await redisUtil.increment(`${Constants.DB_SEQUENCE}|${pair}`);
+		if (!Util.isNumber(sequence)) {
+			Util.logDebug(`sequence ${sequence} is not a number ....`);
+			return null;
+		}
+
+		if (method === Constants.DB_ADD) {
+			liveOrder = OrderUtil.constructNewLiveOrder(
 				orderPersistRequest.signedOrder as IStringSignedOrder,
 				token as IToken,
 				pair,
@@ -199,8 +197,8 @@ class OrderPersistenceUtil {
 			liveOrder: liveOrder as ILiveOrder
 		};
 		orderQueueItem.liveOrder.currentSequence = sequence;
-		if (method === CST.DB_ADD) orderQueueItem.signedOrder = orderPersistRequest.signedOrder;
-		else if (orderPersistRequest.status === CST.DB_FILL) {
+		if (method === Constants.DB_ADD) orderQueueItem.signedOrder = orderPersistRequest.signedOrder;
+		else if (orderPersistRequest.status === Constants.DB_FILL) {
 			orderQueueItem.liveOrder.fill = orderQueueItem.liveOrder.amount;
 			orderQueueItem.liveOrder.matching = 0;
 			orderQueueItem.liveOrder.balance = 0;
@@ -209,10 +207,10 @@ class OrderPersistenceUtil {
 			// matching will be a negative number to offset previous matching number
 			const matchinAdjust = Math.min(matching || 0, -fill + orderQueueItem.liveOrder.fill);
 			orderQueueItem.liveOrder.matching =
-				util.round(Math.max(orderQueueItem.liveOrder.matching + matchinAdjust, 0)) || 0;
-			orderQueueItem.liveOrder.fill = util.round(fill);
+				Util.round(Math.max(orderQueueItem.liveOrder.matching + matchinAdjust, 0)) || 0;
+			orderQueueItem.liveOrder.fill = Util.round(fill);
 			orderQueueItem.liveOrder.balance =
-				util.round(
+				Util.round(
 					Math.max(
 						orderQueueItem.liveOrder.amount -
 							orderQueueItem.liveOrder.fill -
@@ -223,14 +221,14 @@ class OrderPersistenceUtil {
 		} else if (!fill && matching) {
 			// only from orderMatcher
 			orderQueueItem.liveOrder.matching =
-				util.round(
+				Util.round(
 					Math.min(
 						orderQueueItem.liveOrder.amount - orderQueueItem.liveOrder.fill,
 						orderQueueItem.liveOrder.matching + matching
 					)
 				) || 0;
 			orderQueueItem.liveOrder.balance =
-				util.round(
+				Util.round(
 					Math.max(
 						orderQueueItem.liveOrder.amount -
 							orderQueueItem.liveOrder.fill -
@@ -243,18 +241,18 @@ class OrderPersistenceUtil {
 		if (transactionHash) orderQueueItem.transactionHash = transactionHash;
 
 		const orderQueueItemString = JSON.stringify(orderQueueItem);
-		util.logDebug(`storing order queue item in redis ${orderHash}: ${orderQueueItemString}`);
+		Util.logDebug(`storing order queue item in redis ${orderHash}: ${orderQueueItemString}`);
 		const key = this.getCacheMapField(pair, method, orderHash);
 		// store order in hash map
 		await redisUtil.hashSet(this.getOrderCacheMapKey(pair), key, orderQueueItemString);
 		// push orderhash into queue
 		redisUtil.push(this.getOrderQueueKey(), key);
-		util.logDebug(`done`);
+		Util.logDebug(`done`);
 
 		try {
 			await redisUtil.publish(this.getOrderPubSubChannel(pair), orderQueueItemString);
 		} catch (error) {
-			util.logError(error);
+			Util.logError(error);
 		}
 
 		return this.addUserOrderToDB(
@@ -273,34 +271,34 @@ class OrderPersistenceUtil {
 		const [code1, code2, method, orderHash] = queueKey.split('|');
 		const pair = `${code1}|${code2}`;
 		const queueItemString = await redisUtil.hashGet(this.getOrderCacheMapKey(pair), queueKey);
-		util.logDebug(`processing order: ${queueKey}`);
+		Util.logDebug(`processing order: ${queueKey}`);
 		if (!queueItemString) {
-			util.logDebug('empty queue item, ignore');
+			Util.logDebug('empty queue item, ignore');
 			return true;
 		}
 
 		const orderQueueItem: IOrderQueueItem = JSON.parse(queueItemString);
 		try {
-			util.logDebug(`${method} order`);
-			if (method === CST.DB_ADD) {
+			Util.logDebug(`${method} order`);
+			if (method === Constants.DB_ADD) {
 				await dynamoUtil.addOrder(orderQueueItem.liveOrder, {
 					pair: pair,
 					orderHash: orderHash,
 					signedOrder: orderQueueItem.signedOrder as IStringSignedOrder
 				});
-				util.logDebug(`add live & raw order`);
-			} else if (method === CST.DB_TERMINATE) {
+				Util.logDebug(`add live & raw order`);
+			} else if (method === Constants.DB_TERMINATE) {
 				await dynamoUtil.deleteOrder(pair, orderHash);
-				util.logDebug(`delete live & raw order`);
+				Util.logDebug(`delete live & raw order`);
 			} else {
 				await dynamoUtil.updateLiveOrder(orderQueueItem.liveOrder);
-				util.logDebug(`added live order`);
+				Util.logDebug(`added live order`);
 			}
 			redisUtil.hashDelete(this.getOrderCacheMapKey(pair), queueKey);
-			util.logDebug(`removed redis data`);
+			Util.logDebug(`removed redis data`);
 		} catch (err) {
-			util.logError(`error in processing for ${queueKey}`);
-			util.logError(err);
+			Util.logError(`error in processing for ${queueKey}`);
+			Util.logError(err);
 			await redisUtil.hashSet(this.getOrderCacheMapKey(pair), queueKey, queueItemString);
 			redisUtil.putBack(this.getOrderQueueKey(), queueKey);
 			return false;
@@ -320,9 +318,9 @@ class OrderPersistenceUtil {
 
 	public async hashDeleteAll(option: IOption) {
 		await redisUtil.hashDeleteAll(
-			this.getOrderCacheMapKey(option.token + '|' + CST.TOKEN_WETH)
+			this.getOrderCacheMapKey(option.token + '|' + Constants.TOKEN_WETH)
 		);
-		util.logDebug(`completed delete all cached orders for ${option.token}`);
+		Util.logDebug(`completed delete all cached orders for ${option.token}`);
 	}
 }
 const orderPersistenceUtil = new OrderPersistenceUtil();

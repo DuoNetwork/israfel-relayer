@@ -1,20 +1,19 @@
 import Redis from 'ioredis';
-import * as CST from '../common/constants';
-import { IOrderBookSnapshotUpdate, IOrderQueueItem, ITrade } from '../common/types';
-import util from './util';
+import { Constants, IOrderBookSnapshotUpdate, ITrade, Util } from '../../../israfel-common/src';
+import { IOrderQueueItem } from '../common/types';
 
 class RedisUtil {
 	public redisPub: Redis.Redis | null = null;
 	public redisSub: Redis.Redis | null = null;
-	private handleOrderBookUpdate: ((
+	private handleOrderBookUpdate: (
 		channel: string,
 		orderBookUpdate: IOrderBookSnapshotUpdate
-	) => any) = () => ({});
-	private handleOrderUpdate: ((
+	) => any = () => ({});
+	private handleOrderUpdate: (
 		channel: string,
 		orderQueueItem: IOrderQueueItem
-	) => any) = () => ({});
-	private handleTradeUpdate: ((channel: string, trade: ITrade) => any) = () => ({});
+	) => any = () => ({});
+	private handleTradeUpdate: (channel: string, trade: ITrade) => any = () => ({});
 
 	public init(redisKey: { host: string; password: string; servername: string }) {
 		this.redisPub = new Redis(6379, redisKey.host, {
@@ -32,16 +31,16 @@ class RedisUtil {
 	}
 
 	public onMessage(channel: string, message: string, pattern: string = '') {
-		util.logDebug(pattern + channel + message);
+		Util.logDebug(pattern + channel + message);
 		const type = channel.split('|')[0];
 		switch (type) {
-			case CST.DB_ORDER_BOOKS:
+			case Constants.DB_ORDER_BOOKS:
 				this.handleOrderBookUpdate(channel, JSON.parse(message));
 				break;
-			case CST.DB_ORDERS:
+			case Constants.DB_ORDERS:
 				this.handleOrderUpdate(channel, JSON.parse(message));
 				break;
-			case CST.DB_TRADES:
+			case Constants.DB_TRADES:
 				this.handleTradeUpdate(channel, JSON.parse(message));
 				break;
 			default:

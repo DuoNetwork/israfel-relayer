@@ -2,11 +2,13 @@
 import '@babel/polyfill';
 
 import { BigNumber, ExchangeContractErrs, OrderState } from '0x.js';
-import * as CST from '../common/constants';
+import {
+	Constants,
+	Util,
+	Web3Util
+} from '../../../israfel-common/src';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
-import util from '../utils/util';
-import Web3Util from '../utils/Web3Util';
 import orderWatcherServer from './orderWatcherServer';
 
 test('removeFromWatch, not a existing order', async () => {
@@ -52,7 +54,7 @@ test('updateOrder isValid no userOrder', async () => {
 	await orderWatcherServer.updateOrder({
 		method: 'method',
 		status: 'status',
-		requestor: CST.DB_ORDER_WATCHER,
+		requestor: Constants.DB_ORDER_WATCHER,
 		pair: 'pair',
 		orderHash: 'orderHash',
 		fill: 123
@@ -62,7 +64,7 @@ test('updateOrder isValid no userOrder', async () => {
 });
 
 test('updateOrder persist failed', async () => {
-	util.sleep = jest.fn(() => Promise.resolve()) as any;
+	Util.sleep = jest.fn(() => Promise.resolve()) as any;
 	orderPersistenceUtil.persistOrder = jest
 		.fn()
 		.mockRejectedValueOnce('persist error')
@@ -71,14 +73,14 @@ test('updateOrder persist failed', async () => {
 	await orderWatcherServer.updateOrder({
 		method: 'method',
 		status: 'status',
-		requestor: CST.DB_ORDER_WATCHER,
+		requestor: Constants.DB_ORDER_WATCHER,
 		pair: 'pair',
 		orderHash: 'orderHash',
 		fill: 123
 	});
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
-	expect((util.sleep as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((Util.sleep as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 const userOrder = {
@@ -103,7 +105,7 @@ test('updateOrder isValid userOrder', async () => {
 		method: 'method',
 		pair: 'pair',
 		status: 'status',
-		requestor: CST.DB_ORDER_WATCHER,
+		requestor: Constants.DB_ORDER_WATCHER,
 		orderHash: '0xOrderHash',
 		fill: 123
 	});
@@ -129,7 +131,7 @@ const signedOrder = {
 };
 
 test('addIntoWatch expired', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	const addOrderAsync = jest.fn(() => Promise.resolve());
 	orderWatcherServer.orderWatcher = {} as any;
 	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({} as any));
@@ -149,7 +151,7 @@ test('addIntoWatch expired', async () => {
 });
 
 test('addIntoWatch no order watcher', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	orderWatcherServer.orderWatcher = null;
 	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({} as any));
 	orderWatcherServer.watchingOrders = {};
@@ -167,7 +169,7 @@ test('addIntoWatch no order watcher', async () => {
 });
 
 test('addIntoWatch with signed order fillable', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	const addOrderAsync = jest.fn(() => Promise.resolve());
 	orderWatcherServer.orderWatcher = {
 		addOrderAsync: addOrderAsync
@@ -189,14 +191,14 @@ test('addIntoWatch with signed order fillable', async () => {
 });
 
 test('addIntoWatch with signed order non fillable', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	const addOrderAsync = jest.fn(() => Promise.resolve());
 	orderWatcherServer.orderWatcher = {
 		addOrderAsync: addOrderAsync
 	} as any;
 	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({} as any));
 	orderWatcherServer.watchingOrders = {};
-	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
+	Web3Util.getSideFromSignedOrder = jest.fn(() => Constants.DB_BID);
 	orderWatcherServer.web3Util = {
 		validateOrderFillable: jest.fn(() => Promise.resolve(false))
 	} as any;
@@ -212,7 +214,7 @@ test('addIntoWatch with signed order non fillable', async () => {
 });
 
 test('addIntoWatch no signed order fillable', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	const addOrderAsync = jest.fn(() => Promise.resolve());
 	orderWatcherServer.orderWatcher = {
 		addOrderAsync: addOrderAsync
@@ -240,7 +242,7 @@ test('addIntoWatch no signed order fillable', async () => {
 });
 
 test('addIntoWatch no signed order and no rawOrder', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	const addOrderAsync = jest.fn(() => Promise.resolve());
 	orderWatcherServer.orderWatcher = {
 		addOrderAsync: addOrderAsync
@@ -262,7 +264,7 @@ test('addIntoWatch no signed order and no rawOrder', async () => {
 });
 
 test('addIntoWatch error', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	const addOrderAsync = jest.fn(() => Promise.reject('addOrderError'));
 	orderWatcherServer.orderWatcher = {
 		addOrderAsync: addOrderAsync
@@ -292,7 +294,7 @@ test('addIntoWatch error', async () => {
 const orderQueueItem = {
 	method: 'method',
 	status: 'status',
-	requestor: CST.DB_ORDER_WATCHER,
+	requestor: Constants.DB_ORDER_WATCHER,
 	liveOrder: {
 		orderHash: '0xOrderHash'
 	} as any,
@@ -323,7 +325,7 @@ test('handleOrderUpdate add', async () => {
 	orderWatcherServer.orderWatcher = null;
 	orderWatcherServer.addIntoWatch = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
-	orderQueueItem.method = CST.DB_ADD;
+	orderQueueItem.method = Constants.DB_ADD;
 	await orderWatcherServer.handleOrderUpdate('channel', orderQueueItem);
 	expect((orderWatcherServer.addIntoWatch as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(orderWatcherServer.removeFromWatch as jest.Mock).not.toBeCalled();
@@ -334,7 +336,7 @@ test('handleOrderUpdate terminate', async () => {
 	orderWatcherServer.orderWatcher = null;
 	orderWatcherServer.addIntoWatch = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
-	orderQueueItem.method = CST.DB_TERMINATE;
+	orderQueueItem.method = Constants.DB_TERMINATE;
 	await orderWatcherServer.handleOrderUpdate('channel', orderQueueItem);
 	expect((orderWatcherServer.removeFromWatch as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(orderWatcherServer.addIntoWatch as jest.Mock).not.toBeCalled();

@@ -3,23 +3,22 @@ import {
 	DualClassWrapper,
 	Web3Wrapper
 } from '@finbook/duo-contract-wrapper';
-import * as CST from '../common/constants';
 import {
+	Constants,
 	ILiveOrder,
-	IOption,
 	IOrderBook,
 	IOrderBookLevelUpdate,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotUpdate,
-	IOrderQueueItem,
-	IOrderUpdate
-} from '../common/types';
+	OrderBookUtil,
+	Util
+} from '../../../israfel-common/src';
+import { ONE_MINUTE_MS } from '../common/constants';
+import { IOption, IOrderQueueItem, IOrderUpdate } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
-import orderBookUtil from '../utils/orderBookUtil';
 import orderMatchingUtil from '../utils/orderMatchingUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
-import util from '../utils/util';
 
 class OrderBookServer {
 	public pair: string = 'pair';
@@ -41,10 +40,10 @@ class OrderBookServer {
 	public custodianInTrading: boolean = false;
 
 	public async handleOrderUpdate(channel: string, orderQueueItem: IOrderQueueItem) {
-		util.logDebug('receive update from channel: ' + channel);
+		Util.logDebug('receive update from channel: ' + channel);
 
-		if (orderQueueItem.requestor === CST.DB_ORDER_BOOKS) {
-			util.logDebug('ignore order update requested by self');
+		if (orderQueueItem.requestor === Constants.DB_ORDER_BOOKS) {
+			Util.logDebug('ignore order update requested by self');
 			return;
 		}
 
@@ -52,19 +51,19 @@ class OrderBookServer {
 		const orderHash = liveOrder.orderHash;
 
 		if (!this.custodianInTrading) {
-			util.logDebug('custodian not in trading, terminate incoming order');
-			if (method !== CST.DB_TERMINATE) this.terminateOrder(orderHash);
+			Util.logDebug('custodian not in trading, terminate incoming order');
+			if (method !== Constants.DB_TERMINATE) this.terminateOrder(orderHash);
 			return;
 		}
 
 		if (this.loadingOrders) {
 			this.pendingUpdates.push(orderQueueItem);
-			util.logDebug('loading orders, queue update');
+			Util.logDebug('loading orders, queue update');
 			return;
 		}
 
-		if (![CST.DB_ADD, CST.DB_UPDATE, CST.DB_TERMINATE].includes(method)) {
-			util.logDebug('invalid method, ignore');
+		if (![Constants.DB_ADD, Constants.DB_UPDATE, Constants.DB_TERMINATE].includes(method)) {
+			Util.logDebug('invalid method, ignore');
 			return;
 		}
 
@@ -73,13 +72,13 @@ class OrderBookServer {
 			(this.processedUpdates[orderHash] &&
 				this.processedUpdates[orderHash] >= liveOrder.currentSequence)
 		) {
-			util.logDebug('obsolete order, ignore');
+			Util.logDebug('obsolete order, ignore');
 			return;
 		}
 
 		this.processedUpdates[orderHash] = liveOrder.currentSequence;
-		if (method === CST.DB_TERMINATE && !this.liveOrders[orderHash]) {
-			util.logDebug('terminating order not found in cache, ignore');
+		if (method === Constants.DB_TERMINATE && !this.liveOrders[orderHash]) {
+			Util.logDebug('terminating order not found in cache, ignore');
 			return;
 		}
 
@@ -90,7 +89,7 @@ class OrderBookServer {
 			})
 		];
 		const leftLiveOrder = orderQueueItem.liveOrder;
-		if (method !== CST.DB_TERMINATE && leftLiveOrder.balance > 0) {
+		if (method !== Constants.DB_TERMINATE && leftLiveOrder.balance > 0) {
 			const matchinResult = orderMatchingUtil.findMatchingOrders(
 				this.orderBook,
 				this.liveOrders,
@@ -109,7 +108,7 @@ class OrderBookServer {
 		const liveOrder = orderUpdate.liveOrder;
 		const method = orderUpdate.method;
 		const orderHash = liveOrder.orderHash;
-		const count = orderBookUtil.updateOrderBook(
+		const count = OrderBookUtil.updateOrderBook(
 			this.orderBook,
 			{
 				orderHash: orderHash,
@@ -117,20 +116,20 @@ class OrderBookServer {
 				balance: liveOrder.balance,
 				initialSequence: liveOrder.initialSequence
 			},
-			liveOrder.side === CST.DB_BID,
-			method === CST.DB_TERMINATE
+			liveOrder.side === Constants.DB_BID,
+			method === Constants.DB_TERMINATE
 		);
 
 		const orderBookLevelUpdates: IOrderBookLevelUpdate = {
 			price: liveOrder.price,
 			change:
-				(method === CST.DB_TERMINATE ? 0 : liveOrder.balance) -
+				(method === Constants.DB_TERMINATE ? 0 : liveOrder.balance) -
 				(this.liveOrders[orderHash] ? this.liveOrders[orderHash].balance : 0),
 			count: count,
 			side: liveOrder.side
 		};
 
-		if (method !== CST.DB_TERMINATE) this.liveOrders[orderHash] = liveOrder;
+		if (method !== Constants.DB_TERMINATE) this.liveOrders[orderHash] = liveOrder;
 		else delete this.liveOrders[orderHash];
 
 		return orderBookLevelUpdates;
@@ -141,7 +140,7 @@ class OrderBookServer {
 			pair: this.pair,
 			updates: [],
 			prevVersion: this.orderBookSnapshot.version,
-			version: util.getUTCNowTimestamp()
+			version: Util.getUTCNowTimestamp()
 		};
 
 		for (const update of orderBookLevelUpdates)
@@ -152,7 +151,7 @@ class OrderBookServer {
 				side: update.side
 			});
 
-		orderBookUtil.updateOrderBookSnapshot(this.orderBookSnapshot, orderBookSnapshotUpdate);
+		OrderBookUtil.updateOrderBookSnapshot(this.orderBookSnapshot, orderBookSnapshotUpdate);
 		await orderBookPersistenceUtil.publishOrderBookUpdate(
 			this.pair,
 			this.orderBookSnapshot,
@@ -176,10 +175,10 @@ class OrderBookServer {
 		if (this.custodianInTrading) {
 			this.loadingOrders = true;
 			this.liveOrders = await orderPersistenceUtil.getAllLiveOrdersInPersistence(this.pair);
-			util.logInfo('loaded live orders : ' + Object.keys(this.liveOrders).length);
+			Util.logInfo('loaded live orders : ' + Object.keys(this.liveOrders).length);
 			this.updateOrderSequences();
-			this.orderBook = orderBookUtil.constructOrderBook(this.liveOrders);
-			util.logDebug('start matchig ordderBook');
+			this.orderBook = OrderBookUtil.constructOrderBook(this.liveOrders);
+			Util.logDebug('start matchig ordderBook');
 			const matchingResult = orderMatchingUtil.findMatchingOrders(
 				this.orderBook,
 				this.liveOrders,
@@ -188,8 +187,8 @@ class OrderBookServer {
 			matchingResult.orderMatchRequests.forEach(omr =>
 				orderMatchingUtil.queueMatchRequest(omr)
 			);
-			util.logInfo('completed matching orderBook as a whole in cold start');
-			this.orderBookSnapshot = orderBookUtil.renderOrderBookSnapshot(
+			Util.logInfo('completed matching orderBook as a whole in cold start');
+			this.orderBookSnapshot = OrderBookUtil.renderOrderBookSnapshot(
 				this.pair,
 				this.orderBook
 			);
@@ -206,9 +205,9 @@ class OrderBookServer {
 
 	public terminateOrder(orderHash: string) {
 		return orderPersistenceUtil.persistOrder({
-			method: CST.DB_TERMINATE,
-			status: CST.DB_RESET,
-			requestor: CST.DB_ORDER_BOOKS,
+			method: Constants.DB_TERMINATE,
+			status: Constants.DB_RESET,
+			requestor: Constants.DB_ORDER_BOOKS,
 			pair: this.pair,
 			orderHash: orderHash
 		});
@@ -224,17 +223,17 @@ class OrderBookServer {
 					price: bid.price,
 					change: bid.balance,
 					count: -bid.count,
-					side: CST.DB_BID
+					side: Constants.DB_BID
 				})),
 				...this.orderBookSnapshot.asks.map(ask => ({
 					price: ask.price,
 					change: ask.balance,
 					count: -ask.count,
-					side: CST.DB_ASK
+					side: Constants.DB_ASK
 				}))
 			];
-			this.orderBook = orderBookUtil.constructOrderBook({});
-			this.orderBookSnapshot = orderBookUtil.renderOrderBookSnapshot(
+			this.orderBook = OrderBookUtil.constructOrderBook({});
+			this.orderBookSnapshot = OrderBookUtil.renderOrderBookSnapshot(
 				this.pair,
 				this.orderBook
 			);
@@ -263,15 +262,15 @@ class OrderBookServer {
 		);
 
 		await this.loadLiveOrders();
-		global.setInterval(() => this.loadLiveOrders(), CST.ONE_MINUTE_MS * 15);
+		global.setInterval(() => this.loadLiveOrders(), ONE_MINUTE_MS * 15);
 	}
 
 	public async startServer(option: IOption) {
-		this.pair = option.token + '|' + CST.TOKEN_WETH;
+		this.pair = option.token + '|' + Constants.TOKEN_WETH;
 		const tokens = await dynamoUtil.scanTokens();
 		const token = tokens.find(t => t.code === option.token);
 		if (!token) {
-			util.logInfo('Invalid token, exit');
+			Util.logInfo('Invalid token, exit');
 			return;
 		}
 
@@ -279,7 +278,7 @@ class OrderBookServer {
 		try {
 			infura = require('../keys/infura.json');
 		} catch (err) {
-			util.logError(JSON.stringify(err));
+			Util.logError(JSON.stringify(err));
 		}
 
 		this.initialize(
@@ -287,12 +286,12 @@ class OrderBookServer {
 				new Web3Wrapper(
 					null,
 					'infura',
-					(option.env === CST.DB_LIVE
-						? CST.PROVIDER_INFURA_MAIN
-						: CST.PROVIDER_INFURA_KOVAN) +
+					(option.env === Constants.DB_LIVE
+						? Constants.PROVIDER_INFURA_MAIN
+						: Constants.PROVIDER_INFURA_KOVAN) +
 						'/' +
 						infura.token,
-					option.env === CST.DB_LIVE
+					option.env === Constants.DB_LIVE
 				),
 				token.custodian
 			)

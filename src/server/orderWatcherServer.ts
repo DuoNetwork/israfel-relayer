@@ -6,20 +6,19 @@ import {
 	OrderWatcher,
 	SignedOrder
 } from '0x.js';
-import * as CST from '../common/constants';
 import {
+	Constants,
 	ILiveOrder,
-	IOption,
-	IOrderPersistRequest,
-	IOrderQueueItem,
 	IRawOrder,
-	IStringSignedOrder
-} from '../common/types';
+	IStringSignedOrder,
+	OrderUtil,
+	Util,
+	Web3Util
+} from '../../../israfel-common/src';
+import { ONE_MINUTE_MS } from '../common/constants';
+import { IOption, IOrderPersistRequest, IOrderQueueItem } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
-import orderUtil from '../utils/orderUtil';
-import util from '../utils/util';
-import Web3Util from '../utils/Web3Util';
 
 class OrderWatcherServer {
 	public pairs: string[] = [];
@@ -40,11 +39,11 @@ class OrderWatcherServer {
 				userOrder = await orderPersistenceUtil.persistOrder(orderPersistRequest);
 				done = true;
 			} catch (error) {
-				await util.sleep(2000);
+				await Util.sleep(2000);
 			}
 
 		if (!userOrder) {
-			util.logInfo(`invalid orderHash ${orderPersistRequest.orderHash}, ignore`);
+			Util.logInfo(`invalid orderHash ${orderPersistRequest.orderHash}, ignore`);
 			this.removeFromWatch(orderPersistRequest.orderHash);
 		}
 	}
@@ -52,24 +51,24 @@ class OrderWatcherServer {
 	public async handleOrderWatcherUpdate(orderState: OrderState) {
 		const orderHash = orderState.orderHash;
 		if (!this.watchingOrders[orderHash]) {
-			util.logDebug(orderHash + ' not in cache, ignored');
+			Util.logDebug(orderHash + ' not in cache, ignored');
 			return;
 		}
 		const signedOrder = this.watchingOrders[orderHash].signedOrder;
 		const orderPersistRequest: IOrderPersistRequest = {
-			method: CST.DB_TERMINATE,
-			status: CST.DB_TERMINATE,
-			requestor: CST.DB_ORDER_WATCHER,
+			method: Constants.DB_TERMINATE,
+			status: Constants.DB_TERMINATE,
+			requestor: Constants.DB_ORDER_WATCHER,
 			pair: this.watchingOrders[orderHash].pair,
 			orderHash: orderHash
 		};
-		util.logDebug(JSON.stringify(orderState));
+		Util.logDebug(JSON.stringify(orderState));
 		if (orderState.isValid) {
 			const {
 				remainingFillableTakerAssetAmount,
 				filledTakerAssetAmount
 			} = (orderState as OrderStateValid).orderRelevantState;
-			util.logDebug(
+			Util.logDebug(
 				`remainingFillableTakerAssetAmount ${remainingFillableTakerAssetAmount.valueOf()} filledTakerAssetAmount ${filledTakerAssetAmount.valueOf()} takerAssetAmount ${signedOrder.takerAssetAmount.valueOf()} add result: ${remainingFillableTakerAssetAmount.add(
 					filledTakerAssetAmount
 				)}`
@@ -78,29 +77,29 @@ class OrderWatcherServer {
 				.sub(remainingFillableTakerAssetAmount)
 				.sub(filledTakerAssetAmount);
 			if (diff.greaterThan(1000000) || diff.lessThan(-1000000))
-				orderPersistRequest.status = CST.DB_BALANCE;
+				orderPersistRequest.status = Constants.DB_BALANCE;
 			else return;
 		} else {
 			const error = (orderState as OrderStateInvalid).error;
 			switch (error) {
 				case ExchangeContractErrs.OrderFillRoundingError:
 				case ExchangeContractErrs.OrderRemainingFillAmountZero:
-					orderPersistRequest.status = CST.DB_FILL;
+					orderPersistRequest.status = Constants.DB_FILL;
 					break;
 				case ExchangeContractErrs.InsufficientMakerBalance:
 				case ExchangeContractErrs.InsufficientMakerAllowance:
-					orderPersistRequest.status = CST.DB_BALANCE;
+					orderPersistRequest.status = Constants.DB_BALANCE;
 					break;
 				case ExchangeContractErrs.OrderFillExpired:
 				case ExchangeContractErrs.OrderCancelled:
-					// orderPersistRequest.status = CST.DB_TERMINATE;
+					// orderPersistRequest.status = Constants.DB_TERMINATE;
 					break;
 				default:
 					return;
 			}
 		}
 
-		// if (orderPersistRequest.method === CST.DB_TERMINATE)
+		// if (orderPersistRequest.method === Constants.DB_TERMINATE)
 		this.removeFromWatch(orderHash);
 
 		return this.updateOrder(orderPersistRequest);
@@ -108,13 +107,13 @@ class OrderWatcherServer {
 
 	public async addIntoWatch(liveOrder: ILiveOrder, signedOrder?: IStringSignedOrder) {
 		const orderHash = liveOrder.orderHash;
-		if (orderUtil.isExpired(liveOrder.expiry)) {
-			util.logDebug(orderHash + ' expired, send update');
+		if (OrderUtil.isExpired(liveOrder.expiry)) {
+			Util.logDebug(orderHash + ' expired, send update');
 			this.removeFromWatch(orderHash);
 			await this.updateOrder({
-				method: CST.DB_TERMINATE,
-				status: CST.DB_TERMINATE,
-				requestor: CST.DB_ORDER_WATCHER,
+				method: Constants.DB_TERMINATE,
+				status: Constants.DB_TERMINATE,
+				requestor: Constants.DB_ORDER_WATCHER,
 				pair: liveOrder.pair,
 				orderHash: orderHash
 			});
@@ -126,19 +125,19 @@ class OrderWatcherServer {
 				if (!signedOrder) {
 					const rawOrder: IRawOrder | null = await dynamoUtil.getRawOrder(orderHash);
 					if (!rawOrder) {
-						util.logDebug('no signed order specified, failed to add');
+						Util.logDebug('no signed order specified, failed to add');
 						return;
 					}
 					signedOrder = rawOrder.signedOrder as IStringSignedOrder;
 				}
-				const rawSignedOrder: SignedOrder = orderUtil.parseSignedOrder(signedOrder);
+				const rawSignedOrder: SignedOrder = OrderUtil.parseSignedOrder(signedOrder);
 
 				if (!(await this.web3Util.validateOrderFillable(rawSignedOrder))) {
-					util.logDebug(orderHash + ' not fillable, send update');
+					Util.logDebug(orderHash + ' not fillable, send update');
 					await this.updateOrder({
-						method: CST.DB_TERMINATE,
-						status: CST.DB_BALANCE,
-						requestor: CST.DB_ORDER_WATCHER,
+						method: Constants.DB_TERMINATE,
+						status: Constants.DB_BALANCE,
+						requestor: Constants.DB_ORDER_WATCHER,
 						pair: liveOrder.pair,
 						orderHash: orderHash
 					});
@@ -150,43 +149,43 @@ class OrderWatcherServer {
 					pair: liveOrder.pair,
 					signedOrder: rawSignedOrder
 				};
-				util.logDebug('successfully added ' + orderHash);
+				Util.logDebug('successfully added ' + orderHash);
 			} catch (e) {
-				util.logDebug('failed to add ' + orderHash + 'error is ' + e);
+				Util.logDebug('failed to add ' + orderHash + 'error is ' + e);
 			}
 	}
 
 	public removeFromWatch(orderHash: string) {
 		if (!this.orderWatcher || !this.watchingOrders[orderHash]) {
-			util.logDebug('order is not currently watched');
+			Util.logDebug('order is not currently watched');
 			return;
 		}
 
 		try {
 			this.orderWatcher.removeOrder(orderHash);
 			delete this.watchingOrders[orderHash];
-			util.logDebug('successfully removed ' + orderHash);
+			Util.logDebug('successfully removed ' + orderHash);
 		} catch (e) {
-			util.logDebug('failed to remove ' + orderHash + 'error is ' + e);
+			Util.logDebug('failed to remove ' + orderHash + 'error is ' + e);
 		}
 	}
 
 	public handleOrderUpdate(channel: string, orderQueueItem: IOrderQueueItem) {
-		util.logDebug('receive update from channel: ' + channel);
-		if (orderQueueItem.requestor === CST.DB_ORDER_WATCHER) {
-			util.logDebug('ignore order update requested by self');
+		Util.logDebug('receive update from channel: ' + channel);
+		if (orderQueueItem.requestor === Constants.DB_ORDER_WATCHER) {
+			Util.logDebug('ignore order update requested by self');
 			return Promise.resolve();
 		}
 
 		const method = orderQueueItem.method;
 		switch (method) {
-			case CST.DB_ADD:
+			case Constants.DB_ADD:
 				return this.addIntoWatch(orderQueueItem.liveOrder, orderQueueItem.signedOrder);
-			case CST.DB_TERMINATE:
+			case Constants.DB_TERMINATE:
 				this.removeFromWatch(orderQueueItem.liveOrder.orderHash);
 				return Promise.resolve();
 			default:
-				util.logDebug('neither add nor terminate, ignore this update');
+				Util.logDebug('neither add nor terminate, ignore this update');
 				return Promise.resolve();
 		}
 	}
@@ -200,20 +199,20 @@ class OrderWatcherServer {
 		const currentLiveOrders: { [orderHash: string]: ILiveOrder } = {};
 		pairOrders.forEach(orders => Object.assign(currentLiveOrders, orders));
 		const currentOrdersOrderHash = Object.keys(currentLiveOrders);
-		util.logInfo('loaded live orders : ' + Object.keys(currentOrdersOrderHash).length);
+		Util.logInfo('loaded live orders : ' + Object.keys(currentOrdersOrderHash).length);
 		const ordersToRemove = prevOrderHashes.filter(
 			orderHash => !currentOrdersOrderHash.includes(orderHash)
 		);
 		for (const orderHash of ordersToRemove) await this.removeFromWatch(orderHash);
 		for (const orderHash of currentOrdersOrderHash)
 			await this.addIntoWatch(currentLiveOrders[orderHash]);
-		util.logInfo('added live orders into watch');
+		Util.logInfo('added live orders into watch');
 	}
 
 	public async initializeData(option: IOption, orderWatcher: OrderWatcher) {
 		orderWatcher.subscribe(async (err, orderState) => {
 			if (err || !orderState) {
-				util.logError(err ? err : 'orderState empty');
+				Util.logError(err ? err : 'orderState empty');
 				return;
 			}
 
@@ -221,8 +220,8 @@ class OrderWatcherServer {
 		});
 
 		if (option.tokens.length)
-			this.pairs = option.tokens.map(token => token + '|' + CST.TOKEN_WETH);
-		else if (option.token) this.pairs = [option.token + '|' + CST.TOKEN_WETH];
+			this.pairs = option.tokens.map(token => token + '|' + Constants.TOKEN_WETH);
+		else if (option.token) this.pairs = [option.token + '|' + Constants.TOKEN_WETH];
 
 		for (const pair of this.pairs)
 			orderPersistenceUtil.subscribeOrderUpdate(pair, (channel, orderQueueItem) =>
@@ -230,19 +229,21 @@ class OrderWatcherServer {
 			);
 
 		await this.loadOrders();
-		global.setInterval(() => this.loadOrders(), CST.ONE_MINUTE_MS * 60);
+		global.setInterval(() => this.loadOrders(), ONE_MINUTE_MS * 60);
 	}
 
 	public async startServer(option: IOption) {
-		this.web3Util = new Web3Util(null, option.env === CST.DB_LIVE, '', true);
+		this.web3Util = new Web3Util(null, option.env === Constants.DB_LIVE, '', true);
 		this.web3Util.setTokens(await dynamoUtil.scanTokens());
 		this.orderWatcher = new OrderWatcher(
 			this.web3Util.getProvider(),
-			option.env === CST.DB_LIVE ? CST.NETWORK_ID_MAIN : CST.NETWORK_ID_KOVAN,
+			option.env === Constants.DB_LIVE
+				? Constants.NETWORK_ID_MAIN
+				: Constants.NETWORK_ID_KOVAN,
 			undefined,
 			{
 				cleanupJobIntervalMs: 30000,
-				expirationMarginMs: CST.EXPIRY_MARGIN_MS
+				expirationMarginMs: Constants.EXPIRY_MARGIN_MS
 			}
 		);
 		await this.initializeData(option, this.orderWatcher);

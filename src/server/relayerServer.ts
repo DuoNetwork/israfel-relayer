@@ -7,11 +7,9 @@ import {
 import * as fs from 'fs';
 import * as https from 'https';
 import WebSocket, { VerifyClientCallbackSync } from 'ws';
-import * as CST from '../common/constants';
 import {
-	IOption,
+	Constants,
 	IOrderBookSnapshotUpdate,
-	IOrderQueueItem,
 	IStatus,
 	IStringSignedOrder,
 	ITrade,
@@ -27,15 +25,16 @@ import {
 	IWsResponse,
 	IWsTerminateOrderRequest,
 	IWsTradeResponse,
-	IWsUserOrderResponse
-} from '../common/types';
+	IWsUserOrderResponse,
+	OrderUtil,
+	Util,
+	Web3Util
+} from '../../../israfel-common/src';
+import { IOption, IOrderQueueItem } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
-import orderUtil from '../utils/orderUtil';
 import tradePriceUtil from '../utils/tradePriceUtil';
-import util from '../utils/util';
-import Web3Util from '../utils/Web3Util';
 
 class RelayerServer {
 	public processStatus: IStatus[] = [];
@@ -56,7 +55,7 @@ class RelayerServer {
 			status: status,
 			pair: req.pair
 		};
-		util.safeWsSend(ws, JSON.stringify(orderResponse));
+		Util.safeWsSend(ws, JSON.stringify(orderResponse));
 	}
 
 	public sendErrorOrderResponse(
@@ -72,100 +71,102 @@ class RelayerServer {
 			pair: req.pair,
 			orderHash: orderHash
 		};
-		util.safeWsSend(ws, JSON.stringify(orderResponse));
+		Util.safeWsSend(ws, JSON.stringify(orderResponse));
 	}
 
 	public sendUserOrderResponse(ws: WebSocket, userOrder: IUserOrder, method: string) {
 		const orderResponse: IWsUserOrderResponse = {
 			method: method,
-			channel: CST.DB_ORDERS,
-			status: CST.WS_OK,
+			channel: Constants.DB_ORDERS,
+			status: Constants.WS_OK,
 			pair: userOrder.pair,
 			orderHash: userOrder.orderHash,
 			userOrder: userOrder
 		};
-		util.safeWsSend(ws, JSON.stringify(orderResponse));
+		Util.safeWsSend(ws, JSON.stringify(orderResponse));
 	}
 
 	public async handleAddOrderRequest(ws: WebSocket, req: IWsAddOrderRequest) {
-		util.logDebug(`add new order ${req.orderHash}`);
+		Util.logDebug(`add new order ${req.orderHash}`);
 		if (!req.orderHash || !this.web3Util) {
-			util.logDebug('invalid request, ignore');
-			this.sendResponse(ws, req, CST.WS_INVALID_REQ);
+			Util.logDebug('invalid request, ignore');
+			this.sendResponse(ws, req, Constants.WS_INVALID_REQ);
 			return;
 		}
 		const stringSignedOrder = req.order as IStringSignedOrder;
 		const token = this.web3Util.getTokenByCode(req.pair.split('|')[0]);
 		if (!token) {
-			util.logDebug('invalid token, ignore');
-			this.sendErrorOrderResponse(ws, req, req.orderHash, CST.WS_INVALID_ORDER);
+			Util.logDebug('invalid token, ignore');
+			this.sendErrorOrderResponse(ws, req, req.orderHash, Constants.WS_INVALID_ORDER);
 			return;
 		}
 
 		try {
-			const orderHash = await orderUtil.validateOrder(
+			const orderHash = await OrderUtil.validateOrder(
 				this.web3Util,
 				req.pair,
 				token,
 				stringSignedOrder
 			);
 			if (orderHash === req.orderHash) {
-				util.logDebug('order valided, persisting');
+				Util.logDebug('order valided, persisting');
 
 				const userOrder = await orderPersistenceUtil.persistOrder({
 					method: req.method,
-					status: CST.DB_CONFIRMED,
-					requestor: CST.DB_RELAYER,
+					status: Constants.DB_CONFIRMED,
+					requestor: Constants.DB_RELAYER,
 					pair: req.pair,
 					orderHash: orderHash,
 					token: token,
 					signedOrder: stringSignedOrder
 				});
 				if (userOrder) this.sendUserOrderResponse(ws, userOrder, req.method);
-				else this.sendErrorOrderResponse(ws, req, req.orderHash, CST.WS_INVALID_ORDER);
+				else
+					this.sendErrorOrderResponse(ws, req, req.orderHash, Constants.WS_INVALID_ORDER);
 			} else {
-				util.logDebug('invalid orderHash, ignore');
+				Util.logDebug('invalid orderHash, ignore');
 				this.sendErrorOrderResponse(ws, req, req.orderHash, orderHash);
 			}
 		} catch (error) {
-			util.logError(error);
-			this.sendErrorOrderResponse(ws, req, req.orderHash, CST.WS_ERROR);
+			Util.logError(error);
+			this.sendErrorOrderResponse(ws, req, req.orderHash, Constants.WS_ERROR);
 		}
 	}
 
 	public async handleTerminateOrderRequest(ws: WebSocket, req: IWsTerminateOrderRequest) {
-		util.logDebug(`terminate order ${req.orderHashes.join(',')}`);
+		Util.logDebug(`terminate order ${req.orderHashes.join(',')}`);
 		if (!req.orderHashes.length || !this.web3Util) {
-			util.logDebug('invalid request, ignore');
-			this.sendResponse(ws, req, CST.WS_INVALID_REQ);
+			Util.logDebug('invalid request, ignore');
+			this.sendResponse(ws, req, Constants.WS_INVALID_REQ);
 			return;
 		}
 		const { pair, orderHashes, signature } = req;
 		const account = this.web3Util
-			.web3AccountsRecover(CST.TERMINATE_SIGN_MSG + orderHashes.join(','), signature)
+			.web3AccountsRecover(Constants.TERMINATE_SIGN_MSG + orderHashes.join(','), signature)
 			.toLowerCase();
-		util.logDebug(`recovered account: ${account}`);
+		Util.logDebug(`recovered account: ${account}`);
 		for (const orderHash of orderHashes) {
 			const rawOrder = await orderPersistenceUtil.getRawOrderInPersistence(pair, orderHash);
-			util.logDebug(`rawOrder account: ${rawOrder ? rawOrder.signedOrder.makerAddress : ''}`);
+			Util.logDebug(`rawOrder account: ${rawOrder ? rawOrder.signedOrder.makerAddress : ''}`);
 			if (account && rawOrder && rawOrder.signedOrder.makerAddress === account)
 				try {
 					const userOrder = await orderPersistenceUtil.persistOrder({
 						method: req.method,
-						status: CST.DB_CONFIRMED,
-						requestor: CST.DB_RELAYER,
+						status: Constants.DB_CONFIRMED,
+						requestor: Constants.DB_RELAYER,
 						pair: req.pair,
 						orderHash: orderHash
 					});
 					if (userOrder) this.sendUserOrderResponse(ws, userOrder, req.method);
-					else this.sendErrorOrderResponse(ws, req, orderHash, CST.WS_INVALID_ORDER);
+					else
+						this.sendErrorOrderResponse(ws, req, orderHash, Constants.WS_INVALID_ORDER);
 				} catch (error) {
-					util.logError(error);
-					this.sendErrorOrderResponse(ws, req, orderHash, CST.WS_ERROR);
+					Util.logError(error);
+					this.sendErrorOrderResponse(ws, req, orderHash, Constants.WS_ERROR);
 				}
 			else {
-				util.logDebug('invalid order, ignore');
-				this.sendErrorOrderResponse(ws, req, orderHash, CST.WS_INVALID_ORDER);
+				Util.logDebug('invalid order, ignore');
+				this.sendErrorOrderResponse(ws, req, orderHash, Constants.WS_INVALID_ORDER);
 			}
 		}
 	}
@@ -173,8 +174,8 @@ class RelayerServer {
 	public async handleOrderHistorySubscribeRequest(ws: WebSocket, req: IWsOrderHistoryRequest) {
 		if (this.web3Util) {
 			const { account } = req;
-			if (util.isEmptyObject(this.accountClients)) {
-				const deadline = util.getUTCNowTimestamp();
+			if (Util.isEmptyObject(this.accountClients)) {
+				const deadline = Util.getUTCNowTimestamp();
 				const tokens = this.web3Util.tokens;
 				for (const token of tokens)
 					if (!token.maturity || token.maturity > deadline)
@@ -189,25 +190,25 @@ class RelayerServer {
 			if (!this.accountClients[account]) this.accountClients[account] = [];
 			if (!this.accountClients[account].includes(ws)) this.accountClients[account].push(ws);
 
-			const now = util.getUTCNowTimestamp();
+			const now = Util.getUTCNowTimestamp();
 			const userOrders = await dynamoUtil.getUserOrders(account, now - 30 * 86400000, now);
 
 			const orderBookResponse: IWsOrderHistoryResponse = {
-				method: CST.WS_HISTORY,
-				channel: CST.DB_ORDERS,
-				status: CST.WS_OK,
+				method: Constants.WS_HISTORY,
+				channel: Constants.DB_ORDERS,
+				status: Constants.WS_OK,
 				pair: '',
 				orderHistory: userOrders
 			};
-			util.safeWsSend(ws, JSON.stringify(orderBookResponse));
+			Util.safeWsSend(ws, JSON.stringify(orderBookResponse));
 		} else {
 			const orderBookResponse: IWsResponse = {
-				method: CST.WS_HISTORY,
-				channel: CST.DB_ORDERS,
-				status: CST.WS_ERROR,
+				method: Constants.WS_HISTORY,
+				channel: Constants.DB_ORDERS,
+				status: Constants.WS_ERROR,
 				pair: ''
 			};
-			util.safeWsSend(ws, JSON.stringify(orderBookResponse));
+			Util.safeWsSend(ws, JSON.stringify(orderBookResponse));
 		}
 	}
 
@@ -216,7 +217,7 @@ class RelayerServer {
 			this.accountClients[account] = this.accountClients[account].filter(e => e !== ws);
 			if (!this.accountClients[account].length) delete this.accountClients[account];
 
-			if (util.isEmptyObject(this.accountClients) && this.web3Util) {
+			if (Util.isEmptyObject(this.accountClients) && this.web3Util) {
 				const tokens = this.web3Util.tokens;
 				for (const token of tokens)
 					for (const code in token.feeSchedules)
@@ -227,52 +228,52 @@ class RelayerServer {
 
 	public handleOrderHistoryUnsubscribeRequest(ws: WebSocket, req: IWsOrderHistoryRequest) {
 		this.unsubscribeOrderHistory(ws, req.account);
-		this.sendResponse(ws, req, CST.WS_OK);
+		this.sendResponse(ws, req, Constants.WS_OK);
 	}
 
 	public handleOrderRequest(ws: WebSocket, req: IWsRequest) {
 		if (
-			[CST.WS_SUB, CST.WS_UNSUB].includes(req.method) &&
+			[Constants.WS_SUB, Constants.WS_UNSUB].includes(req.method) &&
 			!(req as IWsOrderHistoryRequest).account
 		) {
-			this.sendResponse(ws, req, CST.WS_INVALID_REQ);
+			this.sendResponse(ws, req, Constants.WS_INVALID_REQ);
 			return Promise.resolve();
 		}
 
 		if (
-			[CST.DB_ADD, CST.DB_TERMINATE].includes(req.method) &&
+			[Constants.DB_ADD, Constants.DB_TERMINATE].includes(req.method) &&
 			(!this.web3Util || !this.web3Util.isValidPair(req.pair))
 		) {
-			this.sendResponse(ws, req, CST.WS_INVALID_REQ);
+			this.sendResponse(ws, req, Constants.WS_INVALID_REQ);
 			return Promise.resolve();
 		}
 
 		switch (req.method) {
-			case CST.WS_SUB:
+			case Constants.WS_SUB:
 				return this.handleOrderHistorySubscribeRequest(ws, req as IWsOrderHistoryRequest);
-			case CST.WS_UNSUB:
+			case Constants.WS_UNSUB:
 				this.handleOrderHistoryUnsubscribeRequest(ws, req as IWsOrderHistoryRequest);
 				return Promise.resolve();
-			case CST.DB_ADD:
+			case Constants.DB_ADD:
 				return this.handleAddOrderRequest(ws, req as IWsAddOrderRequest);
-			case CST.DB_TERMINATE:
+			case Constants.DB_TERMINATE:
 				return this.handleTerminateOrderRequest(ws, req as IWsTerminateOrderRequest);
 			default:
-				this.sendResponse(ws, req, CST.WS_INVALID_REQ);
+				this.sendResponse(ws, req, Constants.WS_INVALID_REQ);
 				return Promise.resolve();
 		}
 	}
 
 	public handleOrderUpdate(channel: string, orderQueueItem: IOrderQueueItem) {
-		util.logDebug('receive update from channel: ' + channel);
-		if (orderQueueItem.requestor === CST.DB_RELAYER) {
-			util.logDebug('ignore order update requested by self');
+		Util.logDebug('receive update from channel: ' + channel);
+		if (orderQueueItem.requestor === Constants.DB_RELAYER) {
+			Util.logDebug('ignore order update requested by self');
 			return;
 		}
 
 		const { account } = orderQueueItem.liveOrder;
 		if (this.accountClients[account] && this.accountClients[account].length) {
-			const userOrder = orderUtil.constructUserOrder(
+			const userOrder = OrderUtil.constructUserOrder(
 				orderQueueItem.liveOrder,
 				orderQueueItem.method,
 				orderQueueItem.status,
@@ -290,19 +291,19 @@ class RelayerServer {
 		channel: string,
 		orderBookSnapshotUpdate: IOrderBookSnapshotUpdate
 	) {
-		util.logDebug(`received order book updates from channel ${channel}`);
+		Util.logDebug(`received order book updates from channel ${channel}`);
 		const pair = orderBookSnapshotUpdate.pair;
 		if (!this.orderBookPairs[pair] || !this.orderBookPairs[pair].length) return;
 
 		this.orderBookPairs[pair].forEach(ws => {
 			const orderBookResponse: IWsOrderBookUpdateResponse = {
-				method: CST.DB_UPDATE,
-				channel: CST.DB_ORDER_BOOKS,
-				status: CST.WS_OK,
+				method: Constants.DB_UPDATE,
+				channel: Constants.DB_ORDER_BOOKS,
+				status: Constants.WS_OK,
 				pair: pair,
 				orderBookUpdate: orderBookSnapshotUpdate
 			};
-			util.safeWsSend(ws, JSON.stringify(orderBookResponse));
+			Util.safeWsSend(ws, JSON.stringify(orderBookResponse));
 		});
 	}
 
@@ -317,18 +318,18 @@ class RelayerServer {
 
 		const snapshot = await orderBookPersistenceUtil.getOrderBookSnapshot(req.pair);
 		if (!snapshot) {
-			this.sendResponse(ws, req, CST.WS_ERROR);
+			this.sendResponse(ws, req, Constants.WS_ERROR);
 			return Promise.resolve();
 		}
 
 		const orderBookResponse: IWsOrderBookResponse = {
-			method: CST.DB_SNAPSHOT,
-			channel: CST.DB_ORDER_BOOKS,
-			status: CST.WS_OK,
+			method: Constants.DB_SNAPSHOT,
+			channel: Constants.DB_ORDER_BOOKS,
+			status: Constants.WS_OK,
 			pair: req.pair,
 			orderBookSnapshot: snapshot
 		};
-		util.safeWsSend(ws, JSON.stringify(orderBookResponse));
+		Util.safeWsSend(ws, JSON.stringify(orderBookResponse));
 	}
 
 	public unsubscribeOrderBook(ws: WebSocket, pair: string) {
@@ -343,20 +344,20 @@ class RelayerServer {
 
 	public handleOrderBookUnsubscribeRequest(ws: WebSocket, req: IWsRequest) {
 		this.unsubscribeOrderBook(ws, req.pair);
-		this.sendResponse(ws, req, CST.WS_OK);
+		this.sendResponse(ws, req, Constants.WS_OK);
 	}
 
 	public handleOrderBookRequest(ws: WebSocket, req: IWsRequest) {
 		if (
-			![CST.WS_SUB, CST.WS_UNSUB].includes(req.method) ||
+			![Constants.WS_SUB, Constants.WS_UNSUB].includes(req.method) ||
 			!this.web3Util ||
 			!this.web3Util.isValidPair(req.pair)
 		) {
-			this.sendResponse(ws, req, CST.WS_INVALID_REQ);
+			this.sendResponse(ws, req, Constants.WS_INVALID_REQ);
 			return Promise.resolve();
 		}
 
-		if (req.method === CST.WS_SUB) return this.handleOrderBookSubscribeRequest(ws, req);
+		if (req.method === Constants.WS_SUB) return this.handleOrderBookSubscribeRequest(ws, req);
 		else {
 			this.handleOrderBookUnsubscribeRequest(ws, req);
 			return Promise.resolve();
@@ -364,7 +365,7 @@ class RelayerServer {
 	}
 
 	public handleTradeUpdate(channel: string, trade: ITrade) {
-		util.logDebug('receive update from channel: ' + channel);
+		Util.logDebug('receive update from channel: ' + channel);
 		const pair = trade.pair;
 		if (!this.marketTrades[pair]) this.marketTrades[pair] = [trade];
 		else {
@@ -377,13 +378,13 @@ class RelayerServer {
 
 		this.tradePairs[pair].forEach(ws => {
 			const tradeResponse: IWsTradeResponse = {
-				method: CST.DB_UPDATE,
-				channel: CST.DB_TRADES,
-				status: CST.WS_OK,
+				method: Constants.DB_UPDATE,
+				channel: Constants.DB_TRADES,
+				status: Constants.WS_OK,
 				pair: pair,
 				trades: [trade]
 			};
-			util.safeWsSend(ws, JSON.stringify(tradeResponse));
+			Util.safeWsSend(ws, JSON.stringify(tradeResponse));
 		});
 	}
 
@@ -393,13 +394,13 @@ class RelayerServer {
 		else if (!this.tradePairs[req.pair].includes(ws)) this.tradePairs[req.pair].push(ws);
 
 		const tradeResponse: IWsTradeResponse = {
-			method: CST.DB_TRADES,
-			channel: CST.DB_TRADES,
-			status: CST.WS_OK,
+			method: Constants.DB_TRADES,
+			channel: Constants.DB_TRADES,
+			status: Constants.WS_OK,
 			pair: req.pair,
 			trades: this.marketTrades[req.pair]
 		};
-		util.safeWsSend(ws, JSON.stringify(tradeResponse));
+		Util.safeWsSend(ws, JSON.stringify(tradeResponse));
 	}
 
 	public unsubscribeTrade(ws: WebSocket, pair: string) {
@@ -411,64 +412,64 @@ class RelayerServer {
 
 	public handleTradeUnsubscribeRequest(ws: WebSocket, req: IWsRequest) {
 		this.unsubscribeTrade(ws, req.pair);
-		this.sendResponse(ws, req, CST.WS_OK);
+		this.sendResponse(ws, req, Constants.WS_OK);
 	}
 
 	public handleTradeRequest(ws: WebSocket, req: IWsRequest) {
 		if (
-			![CST.WS_SUB, CST.WS_UNSUB].includes(req.method) ||
+			![Constants.WS_SUB, Constants.WS_UNSUB].includes(req.method) ||
 			!this.web3Util ||
 			!this.web3Util.isValidPair(req.pair)
 		) {
-			this.sendResponse(ws, req, CST.WS_INVALID_REQ);
+			this.sendResponse(ws, req, Constants.WS_INVALID_REQ);
 			return;
 		}
 
-		if (req.method === CST.WS_SUB) this.handleTradeSubscribeRequest(ws, req);
+		if (req.method === Constants.WS_SUB) this.handleTradeSubscribeRequest(ws, req);
 		else this.handleTradeUnsubscribeRequest(ws, req);
 	}
 
 	public handleWebSocketMessage(ws: WebSocket, ip: string, m: string) {
-		util.logDebug('received: ' + m + ' from ' + ip);
+		Util.logDebug('received: ' + m + ' from ' + ip);
 		const req: IWsRequest = JSON.parse(m);
 
 		switch (req.channel) {
-			case CST.DB_ORDERS:
+			case Constants.DB_ORDERS:
 				return this.handleOrderRequest(ws, req);
-			case CST.DB_ORDER_BOOKS:
+			case Constants.DB_ORDER_BOOKS:
 				return this.handleOrderBookRequest(ws, req);
-			case CST.DB_TRADES:
+			case Constants.DB_TRADES:
 				this.handleTradeRequest(ws, req);
 				return Promise.resolve();
 			default:
-				this.sendResponse(ws, req, CST.WS_INVALID_REQ);
+				this.sendResponse(ws, req, Constants.WS_INVALID_REQ);
 				return Promise.resolve();
 		}
 	}
 
 	public sendInfo(ws: WebSocket) {
 		const staticInfoResponse: IWsInfoResponse = {
-			channel: CST.WS_INFO,
-			method: CST.WS_INFO,
-			status: CST.WS_OK,
+			channel: Constants.WS_INFO,
+			method: Constants.WS_INFO,
+			status: Constants.WS_OK,
 			pair: '',
 			acceptedPrices: this.duoAcceptedPrices,
 			exchangePrices: this.duoExchangePrices,
 			tokens: this.web3Util ? this.web3Util.tokens : [],
 			processStatus: this.processStatus
 		};
-		util.safeWsSend(ws, JSON.stringify(staticInfoResponse));
+		Util.safeWsSend(ws, JSON.stringify(staticInfoResponse));
 	}
 
 	public handleWebSocketConnection(ws: WebSocket, ip: string) {
-		util.logInfo('new connection');
+		Util.logInfo('new connection');
 		this.sendInfo(ws);
 		ws.on('message', message => this.handleWebSocketMessage(ws, ip, message.toString()));
 		ws.on('close', () => this.handleWebSocketClose(ws, ip));
 	}
 
 	public handleWebSocketClose(ws: WebSocket, ip: string) {
-		util.logInfo('connection close from ' + ip);
+		Util.logInfo('connection close from ' + ip);
 		for (const pair in this.orderBookPairs) this.unsubscribeOrderBook(ws, pair);
 		for (const pair in this.tradePairs) this.unsubscribeTrade(ws, pair);
 		for (const account in this.accountClients) this.unsubscribeOrderHistory(ws, account);
@@ -480,21 +481,21 @@ class RelayerServer {
 			for (const token of this.web3Util.tokens)
 				if (!custodians.includes(token.custodian)) custodians.push(token.custodian);
 			if (!custodians.length) {
-				util.logDebug('no custodian, skip loading duo accepted prices');
+				Util.logDebug('no custodian, skip loading duo accepted prices');
 				return;
 			}
-			const dates = util.getDates(8, 1, 'day', 'YYYY-MM-DD');
+			const dates = Util.getDates(8, 1, 'day', 'YYYY-MM-DD');
 			for (const custodian of custodians)
 				this.duoAcceptedPrices[custodian] = await duoDynamoUtil.queryAcceptPriceEvent(
 					Web3Util.toChecksumAddress(custodian),
 					dates
 				);
-			util.logDebug('loaded duo accepted prices');
+			Util.logDebug('loaded duo accepted prices');
 		}
 	}
 
 	public async loadDuoExchangePrices(duoDynamoUtil: DuoDynamoUtil) {
-		const start = util.getUTCNowTimestamp() - 24 * 3600000;
+		const start = Util.getUTCNowTimestamp() - 24 * 3600000;
 		for (const source of [
 			DataConstants.API_GDAX,
 			DataConstants.API_GEMINI,
@@ -508,15 +509,15 @@ class RelayerServer {
 				0,
 				'ETH|USD'
 			);
-		util.logDebug('loaded duo exchange prices');
+		Util.logDebug('loaded duo exchange prices');
 	}
 
 	public async loadAndSubscribeMarketTrades() {
 		if (this.web3Util) {
-			const now = util.getUTCNowTimestamp();
+			const now = Util.getUTCNowTimestamp();
 			const start = now - 3600000 * 2;
 			for (const token of this.web3Util.tokens) {
-				const pair = token.code + '|' + CST.TOKEN_WETH;
+				const pair = token.code + '|' + Constants.TOKEN_WETH;
 				const trades = await dynamoUtil.getTrades(pair, start, now);
 				this.marketTrades[pair] = trades;
 				tradePriceUtil.subscribeTradeUpdate(pair, (c, trade) =>
@@ -535,25 +536,25 @@ class RelayerServer {
 		global.setInterval(() => this.loadDuoAcceptedPrices(duoDynamoUtil), 600000);
 		this.ipList = await dynamoUtil.scanIpList();
 		this.processStatus = await dynamoUtil.scanStatus();
-		util.logDebug('loaded ip list and status');
+		Util.logDebug('loaded ip list and status');
 		global.setInterval(async () => {
 			await this.loadDuoExchangePrices(duoDynamoUtil);
 			this.ipList = await dynamoUtil.scanIpList();
 			this.processStatus = await dynamoUtil.scanStatus();
-			util.logDebug('loaded up ip list and status');
+			Util.logDebug('loaded up ip list and status');
 		}, 30000);
 	}
 
 	public verifyClient: VerifyClientCallbackSync = info => {
 		const ip = (info.req.headers['x-forwarded-for'] ||
 			info.req.connection.remoteAddress) as string;
-		util.logDebug(ip);
-		if (this.ipList[ip] === CST.DB_BLACK) {
-			util.logDebug(`ip ${ip} in blacklist, refuse connection`);
+		Util.logDebug(ip);
+		if (this.ipList[ip] === Constants.DB_BLACK) {
+			Util.logDebug(`ip ${ip} in blacklist, refuse connection`);
 			return false;
-		} else if (this.ipList[ip] === CST.DB_WHITE) return true;
+		} else if (this.ipList[ip] === Constants.DB_WHITE) return true;
 
-		const currentTs = util.getUTCNowTimestamp();
+		const currentTs = Util.getUTCNowTimestamp();
 		if (!this.connectedIp[ip] || !this.connectedIp[ip].length) {
 			this.connectedIp[ip] = [currentTs];
 			return true;
@@ -563,12 +564,12 @@ class RelayerServer {
 		this.connectedIp[ip].push(currentTs);
 		this.connectedIp[ip] = this.connectedIp[ip].filter(ts => ts > currentTs - 60000);
 		if (this.connectedIp[ip].length > 20) {
-			this.ipList[ip] = CST.DB_BLACK;
-			dynamoUtil.updateIpList(ip, CST.DB_BLACK);
+			this.ipList[ip] = Constants.DB_BLACK;
+			dynamoUtil.updateIpList(ip, Constants.DB_BLACK);
 			delete this.connectedIp[ip];
 			return false;
 		} else if (currentTs - lastConnectionTs < 3000) {
-			util.logDebug(`ip ${ip} connects to frequently, refuse this connection request`);
+			Util.logDebug(`ip ${ip} connects to frequently, refuse this connection request`);
 			return false;
 		}
 
@@ -584,8 +585,12 @@ class RelayerServer {
 	}
 
 	public async startServer(config: object, option: IOption) {
-		this.web3Util = new Web3Util(null, option.env === CST.DB_LIVE, '', false);
-		const duoDynamoUtil = new DuoDynamoUtil(config, option.env === CST.DB_LIVE, CST.DB_RELAYER);
+		this.web3Util = new Web3Util(null, option.env === Constants.DB_LIVE, '', false);
+		const duoDynamoUtil = new DuoDynamoUtil(
+			config,
+			option.env === Constants.DB_LIVE,
+			Constants.DB_RELAYER
+		);
 		await this.initializeCache(this.web3Util, duoDynamoUtil);
 		const port = 8080;
 		const wsServer = new WebSocket.Server({
@@ -597,12 +602,12 @@ class RelayerServer {
 				.listen(port),
 			verifyClient: this.verifyClient
 		});
-		util.logInfo(`started relayer service at port ${port}`);
+		Util.logInfo(`started relayer service at port ${port}`);
 		this.initializeWsServer(wsServer);
 		if (option.server) {
-			dynamoUtil.updateStatus(CST.DB_RELAYER);
+			dynamoUtil.updateStatus(Constants.DB_RELAYER);
 			global.setInterval(
-				() => dynamoUtil.updateStatus(CST.DB_RELAYER, wsServer.clients.size),
+				() => dynamoUtil.updateStatus(Constants.DB_RELAYER, wsServer.clients.size),
 				30000
 			);
 		}

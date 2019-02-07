@@ -1,22 +1,26 @@
 // fix for @ledgerhq/hw-transport-u2f 4.28.0
 import '@babel/polyfill';
-import * as Constants from '@finbook/duo-market-data/dist/constants';
+import * as DataConstants from '@finbook/duo-market-data/dist/constants';
 import * as fs from 'fs';
 import WebSocket from 'ws';
-import * as CST from '../common/constants';
+import * as Constants from '../../../israfel-common/src/constants';
+import OrderUtil from '../../../israfel-common/src/OrderUtil';
+import Util from '../../../israfel-common/src/Util';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
-import orderUtil from '../utils/orderUtil';
 import tradePriceUtil from '../utils/tradePriceUtil';
-import util from '../utils/util';
-import Web3Util from '../utils/Web3Util';
 import relayerServer from './relayerServer';
 
-jest.mock('../utils/Web3Util', () => jest.fn(() => ({})));
+jest.mock('../../../israfel-common/src', () => ({
+	Constants: Constants,
+	OrderUtil: OrderUtil,
+	Util: Util,
+	Web3Util: jest.fn(() => ({}))
+}));
 
 jest.mock('@finbook/duo-market-data', () => ({
-	Constants: Constants,
+	Constants: DataConstants,
 	DynamoUtil: jest.fn().mockImplementation(() => ({ test: 'DynamoUtil' }))
 }));
 
@@ -39,6 +43,7 @@ jest.mock('https', () => ({
 }));
 
 import { DynamoUtil as DuoDynamoUtil } from '@finbook/duo-market-data';
+import { Web3Util } from '../../../israfel-common/src';
 
 test('sendInfo', () => {
 	const ws = {
@@ -134,8 +139,8 @@ test('handleAddOrderRequest invalid order', async () => {
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	// no orderHash
 	await relayerServer.handleAddOrderRequest({} as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_ADD,
+		channel: Constants.DB_ORDERS,
+		method: Constants.DB_ADD,
 		pair: 'pair',
 		order: signedOrder,
 		orderHash: ''
@@ -143,8 +148,8 @@ test('handleAddOrderRequest invalid order', async () => {
 
 	// no web3Util
 	await relayerServer.handleAddOrderRequest({} as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_ADD,
+		channel: Constants.DB_ORDERS,
+		method: Constants.DB_ADD,
 		pair: 'pair',
 		order: signedOrder,
 		orderHash: '0xOrderHash'
@@ -155,8 +160,8 @@ test('handleAddOrderRequest invalid order', async () => {
 	} as any;
 	// no token
 	await relayerServer.handleAddOrderRequest({} as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_ADD,
+		channel: Constants.DB_ORDERS,
+		method: Constants.DB_ADD,
 		pair: 'code1|code2',
 		order: signedOrder,
 		orderHash: '0xOrderHash'
@@ -165,21 +170,21 @@ test('handleAddOrderRequest invalid order', async () => {
 	relayerServer.web3Util = {
 		getTokenByCode: jest.fn((code: string) => code)
 	} as any;
-	orderUtil.validateOrder = jest.fn(() => Promise.resolve(''));
+	OrderUtil.validateOrder = jest.fn(() => Promise.resolve(''));
 	// failed validation test
 	await relayerServer.handleAddOrderRequest({} as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_ADD,
+		channel: Constants.DB_ORDERS,
+		method: Constants.DB_ADD,
 		pair: 'code1|code2',
 		order: signedOrder,
 		orderHash: '0xOrderHash'
 	});
 
-	orderUtil.validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
+	OrderUtil.validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
 	// invalid order hash
 	await relayerServer.handleAddOrderRequest({} as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_ADD,
+		channel: Constants.DB_ORDERS,
+		method: Constants.DB_ADD,
 		pair: 'code1|code2',
 		order: signedOrder,
 		orderHash: '0xInvalidOrderHash'
@@ -197,11 +202,11 @@ test('handleAddOrderRequest invalid persist', async () => {
 	relayerServer.web3Util = {
 		getTokenByCode: jest.fn((code: string) => code)
 	} as any;
-	orderUtil.validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
+	OrderUtil.validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	await relayerServer.handleAddOrderRequest({} as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_ADD,
+		channel: Constants.DB_ORDERS,
+		method: Constants.DB_ADD,
 		pair: 'code1|code2',
 		order: signedOrder,
 		orderHash: '0xOrderHash'
@@ -217,11 +222,11 @@ test('handleAddOrderRequest persist error', async () => {
 	relayerServer.web3Util = {
 		getTokenByCode: jest.fn((code: string) => code)
 	} as any;
-	orderUtil.validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
+	OrderUtil.validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.reject('handleAddOrderRequest'));
 	await relayerServer.handleAddOrderRequest({} as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_ADD,
+		channel: Constants.DB_ORDERS,
+		method: Constants.DB_ADD,
 		pair: 'code1|code2',
 		order: signedOrder,
 		orderHash: '0xOrderHash'
@@ -237,15 +242,15 @@ test('handleAddOrderRequest', async () => {
 	relayerServer.web3Util = {
 		getTokenByCode: jest.fn((code: string) => code)
 	} as any;
-	orderUtil.validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
+	OrderUtil.validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
 	orderPersistenceUtil.persistOrder = jest.fn(() =>
 		Promise.resolve({
 			userOrder: 'userOrder'
 		} as any)
 	);
 	await relayerServer.handleAddOrderRequest({} as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_ADD,
+		channel: Constants.DB_ORDERS,
+		method: Constants.DB_ADD,
 		pair: 'code1|code2',
 		order: signedOrder,
 		orderHash: '0xOrderHash'
@@ -259,15 +264,15 @@ test('handleTerminateOrderRequest invalid request and rawOrder does not exist', 
 	relayerServer.web3Util = null;
 	relayerServer.sendResponse = jest.fn();
 	await relayerServer.handleTerminateOrderRequest({} as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_TERMINATE,
+		channel: Constants.DB_ORDERS,
+		method: Constants.DB_TERMINATE,
 		pair: 'pair',
 		orderHashes: [],
 		signature: 'signature'
 	});
 	await relayerServer.handleTerminateOrderRequest({} as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_TERMINATE,
+		channel: Constants.DB_ORDERS,
+		method: Constants.DB_TERMINATE,
 		pair: 'pair',
 		orderHashes: ['0xOrderHash'],
 		signature: 'signature'
@@ -281,8 +286,8 @@ test('handleTerminateOrderRequest invalid request and rawOrder does not exist', 
 	} as any;
 
 	await relayerServer.handleTerminateOrderRequest({} as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_TERMINATE,
+		channel: Constants.DB_ORDERS,
+		method: Constants.DB_TERMINATE,
 		pair: 'pair',
 		orderHashes: ['0xOrderHash'],
 		signature: 'signature'
@@ -308,8 +313,8 @@ test('handleTerminateOrderRequest signature is wrong', async () => {
 		web3AccountsRecover: jest.fn(() => 'xxx')
 	} as any;
 	await relayerServer.handleTerminateOrderRequest({} as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_TERMINATE,
+		channel: Constants.DB_ORDERS,
+		method: Constants.DB_TERMINATE,
 		pair: 'pair',
 		orderHashes: ['0xOrderHash'],
 		signature: 'siganature'
@@ -334,8 +339,8 @@ test('handleTerminateOrderRequest persist no return', async () => {
 	} as any;
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	await relayerServer.handleTerminateOrderRequest({} as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_TERMINATE,
+		channel: Constants.DB_ORDERS,
+		method: Constants.DB_TERMINATE,
 		pair: 'pair',
 		orderHashes: ['0xOrderHash'],
 		signature: 'signature'
@@ -362,8 +367,8 @@ test('handleTerminateOrderRequest persist error', async () => {
 		Promise.reject('handleTerminateOrderRequest')
 	);
 	await relayerServer.handleTerminateOrderRequest({} as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_TERMINATE,
+		channel: Constants.DB_ORDERS,
+		method: Constants.DB_TERMINATE,
 		pair: 'pair',
 		orderHashes: ['0xOrderHash'],
 		signature: 'signature'
@@ -388,8 +393,8 @@ test('handleTerminateOrderRequest', async () => {
 	} as any;
 	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve('userOrder' as any));
 	await relayerServer.handleTerminateOrderRequest({} as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_TERMINATE,
+		channel: Constants.DB_ORDERS,
+		method: Constants.DB_TERMINATE,
 		pair: 'pair',
 		orderHashes: ['0xOrderHash'],
 		signature: 'signature'
@@ -405,7 +410,7 @@ test('handleOrderUpdate requested by self', () => {
 	};
 	relayerServer.sendUserOrderResponse = jest.fn();
 	relayerServer.handleOrderUpdate('channel', {
-		requestor: CST.DB_RELAYER
+		requestor: Constants.DB_RELAYER
 	} as any);
 	expect(relayerServer.sendUserOrderResponse as jest.Mock).not.toBeCalled();
 });
@@ -435,7 +440,7 @@ test('handleOrderUpdate requested existing pair account not exist', () => {
 
 test('handleOrderUpdate requested existing pair existing account', () => {
 	relayerServer.sendUserOrderResponse = jest.fn();
-	orderUtil.constructUserOrder = jest.fn(() => 'userOrder' as any);
+	OrderUtil.constructUserOrder = jest.fn(() => 'userOrder' as any);
 	relayerServer.handleOrderUpdate('channel', {
 		requestor: 'requestor',
 		method: 'method',
@@ -450,9 +455,9 @@ test('handleOrderUpdate requested existing pair existing account', () => {
 
 test('handleOrderHistorySubscribeRequest no web3Util', async () => {
 	relayerServer.accountClients = {};
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders' as any]));
-	util.safeWsSend = jest.fn();
+	Util.safeWsSend = jest.fn();
 	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
 	relayerServer.web3Util = null;
 	await relayerServer.handleOrderHistorySubscribeRequest('ws' as any, {
@@ -462,15 +467,15 @@ test('handleOrderHistorySubscribeRequest no web3Util', async () => {
 		account: 'account'
 	});
 	expect(relayerServer.accountClients).toEqual({});
-	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((Util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).not.toBeCalled();
 });
 
 test('handleOrderHistorySubscribeRequest new account ', async () => {
 	relayerServer.accountClients = {};
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders' as any]));
-	util.safeWsSend = jest.fn();
+	Util.safeWsSend = jest.fn();
 	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
 	relayerServer.web3Util = {
 		tokens: [
@@ -506,7 +511,7 @@ test('handleOrderHistorySubscribeRequest new account ', async () => {
 		account: 'account'
 	});
 	expect(relayerServer.accountClients).toMatchSnapshot();
-	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((Util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
 	expect((orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).mock.calls).toMatchSnapshot();
 	(orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).mock.calls[0][1](
 		'channel',
@@ -516,9 +521,9 @@ test('handleOrderHistorySubscribeRequest new account ', async () => {
 });
 
 test('handleOrderHistorySubscribeRequest existing account same ws', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders' as any]));
-	util.safeWsSend = jest.fn();
+	Util.safeWsSend = jest.fn();
 	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
 	await relayerServer.handleOrderHistorySubscribeRequest('ws' as any, {
 		channel: 'channel',
@@ -527,14 +532,14 @@ test('handleOrderHistorySubscribeRequest existing account same ws', async () => 
 		account: 'account'
 	});
 	expect(relayerServer.accountClients).toMatchSnapshot();
-	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((Util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).not.toBeCalled();
 });
 
 test('handleOrderHistorySubscribeRequest existing account new ws', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders' as any]));
-	util.safeWsSend = jest.fn();
+	Util.safeWsSend = jest.fn();
 	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
 	await relayerServer.handleOrderHistorySubscribeRequest('ws1' as any, {
 		channel: 'channel',
@@ -543,7 +548,7 @@ test('handleOrderHistorySubscribeRequest existing account new ws', async () => {
 		account: 'account'
 	});
 	expect(relayerServer.accountClients).toMatchSnapshot();
-	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((Util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).not.toBeCalled();
 });
 
@@ -630,23 +635,23 @@ test('handleOrderRequest invalid requests', async () => {
 	relayerServer.handleOrderHistorySubscribeRequest = jest.fn();
 	relayerServer.handleOrderHistoryUnsubscribeRequest = jest.fn();
 	await relayerServer.handleOrderRequest('ws' as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_ADD,
+		channel: Constants.DB_ORDERS,
+		method: Constants.DB_ADD,
 		pair: 'pair'
 	});
 	relayerServer.web3Util = {
 		isValidPair: jest.fn(() => false)
 	} as any;
 	await relayerServer.handleOrderRequest('ws' as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_ADD,
+		channel: Constants.DB_ORDERS,
+		method: Constants.DB_ADD,
 		pair: 'pair'
 	});
 	await relayerServer.handleOrderRequest(
 		'ws' as any,
 		{
-			channel: CST.DB_ORDERS,
-			method: CST.WS_SUB,
+			channel: Constants.DB_ORDERS,
+			method: Constants.WS_SUB,
 			pair: 'pair',
 			account: ''
 		} as any
@@ -654,7 +659,7 @@ test('handleOrderRequest invalid requests', async () => {
 	await relayerServer.handleOrderRequest(
 		'ws' as any,
 		{
-			channel: CST.DB_ORDERS,
+			channel: Constants.DB_ORDERS,
 			method: 'method',
 			pair: 'pair'
 		} as any
@@ -676,8 +681,8 @@ test('handleOrderRequest add', async () => {
 		isValidPair: jest.fn(() => true)
 	} as any;
 	await relayerServer.handleOrderRequest('ws' as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_ADD,
+		channel: Constants.DB_ORDERS,
+		method: Constants.DB_ADD,
 		pair: 'pair'
 	});
 	expect(relayerServer.sendResponse as jest.Mock).not.toBeCalled();
@@ -697,8 +702,8 @@ test('handleOrderRequest terminate', async () => {
 		isValidPair: jest.fn(() => true)
 	} as any;
 	await relayerServer.handleOrderRequest('ws' as any, {
-		channel: CST.DB_ORDERS,
-		method: CST.DB_TERMINATE,
+		channel: Constants.DB_ORDERS,
+		method: Constants.DB_TERMINATE,
 		pair: 'pair'
 	});
 	expect(relayerServer.sendResponse as jest.Mock).not.toBeCalled();
@@ -717,8 +722,8 @@ test('handleOrderRequest subscribe', async () => {
 	await relayerServer.handleOrderRequest(
 		'ws' as any,
 		{
-			channel: CST.DB_ORDERS,
-			method: CST.WS_SUB,
+			channel: Constants.DB_ORDERS,
+			method: Constants.WS_SUB,
 			pair: 'pair',
 			account: 'account'
 		} as any
@@ -741,8 +746,8 @@ test('handleOrderRequest unsubscribe', async () => {
 	await relayerServer.handleOrderRequest(
 		'ws' as any,
 		{
-			channel: CST.DB_ORDERS,
-			method: CST.WS_UNSUB,
+			channel: Constants.DB_ORDERS,
+			method: Constants.WS_UNSUB,
 			pair: 'pair',
 			account: 'account'
 		} as any
@@ -758,7 +763,7 @@ test('handleOrderRequest unsubscribe', async () => {
 
 test('handleOrderBookUpdate empty ws list', () => {
 	relayerServer.orderBookPairs = {};
-	util.safeWsSend = jest.fn();
+	Util.safeWsSend = jest.fn();
 	relayerServer.handleOrderBookUpdate('channel', {
 		pair: 'code1|code2'
 	} as any);
@@ -768,18 +773,18 @@ test('handleOrderBookUpdate empty ws list', () => {
 	relayerServer.handleOrderBookUpdate('channel', {
 		pair: 'code1|code2'
 	} as any);
-	expect(util.safeWsSend as jest.Mock).not.toBeCalled();
+	expect(Util.safeWsSend as jest.Mock).not.toBeCalled();
 });
 
 test('handleOrderBookUpdate', () => {
-	util.safeWsSend = jest.fn();
+	Util.safeWsSend = jest.fn();
 	relayerServer.orderBookPairs = {
 		'code1|code2': ['ws1', 'ws2'] as any
 	};
 	relayerServer.handleOrderBookUpdate('channel', {
 		pair: 'code1|code2'
 	} as any);
-	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((Util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleOrderBookSubscribeRequest new pair', async () => {
@@ -788,7 +793,7 @@ test('handleOrderBookSubscribeRequest new pair', async () => {
 	orderBookPersistenceUtil.getOrderBookSnapshot = jest.fn(() =>
 		Promise.resolve('snapshot' as any)
 	);
-	util.safeWsSend = jest.fn();
+	Util.safeWsSend = jest.fn();
 	relayerServer.handleOrderBookUpdate = jest.fn();
 	await relayerServer.handleOrderBookSubscribeRequest('ws' as any, {
 		channel: 'channel',
@@ -809,7 +814,7 @@ test('handleOrderBookSubscribeRequest new pair', async () => {
 	expect(
 		(orderBookPersistenceUtil.getOrderBookSnapshot as jest.Mock).mock.calls
 	).toMatchSnapshot();
-	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((Util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleOrderBookSubscribeRequest new pair no snapshot', async () => {
@@ -817,7 +822,7 @@ test('handleOrderBookSubscribeRequest new pair no snapshot', async () => {
 	orderBookPersistenceUtil.subscribeOrderBookUpdate = jest.fn();
 	orderBookPersistenceUtil.getOrderBookSnapshot = jest.fn(() => Promise.resolve(null));
 	relayerServer.sendResponse = jest.fn();
-	util.safeWsSend = jest.fn();
+	Util.safeWsSend = jest.fn();
 	await relayerServer.handleOrderBookSubscribeRequest('ws' as any, {
 		channel: 'channel',
 		method: 'method',
@@ -833,7 +838,7 @@ test('handleOrderBookSubscribeRequest new pair no snapshot', async () => {
 		(orderBookPersistenceUtil.getOrderBookSnapshot as jest.Mock).mock.calls
 	).toMatchSnapshot();
 	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(util.safeWsSend as jest.Mock).not.toBeCalled();
+	expect(Util.safeWsSend as jest.Mock).not.toBeCalled();
 });
 
 test('handleOrderBookSubscribeRequest empty list', async () => {
@@ -844,7 +849,7 @@ test('handleOrderBookSubscribeRequest empty list', async () => {
 	orderBookPersistenceUtil.getOrderBookSnapshot = jest.fn(() =>
 		Promise.resolve('snapshot' as any)
 	);
-	util.safeWsSend = jest.fn();
+	Util.safeWsSend = jest.fn();
 	await relayerServer.handleOrderBookSubscribeRequest('ws' as any, {
 		channel: 'channel',
 		method: 'method',
@@ -859,7 +864,7 @@ test('handleOrderBookSubscribeRequest empty list', async () => {
 	expect(
 		(orderBookPersistenceUtil.getOrderBookSnapshot as jest.Mock).mock.calls
 	).toMatchSnapshot();
-	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((Util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleOrderBookSubscribeRequest existing pair new ws', async () => {
@@ -870,7 +875,7 @@ test('handleOrderBookSubscribeRequest existing pair new ws', async () => {
 	orderBookPersistenceUtil.getOrderBookSnapshot = jest.fn(() =>
 		Promise.resolve('snapshot' as any)
 	);
-	util.safeWsSend = jest.fn();
+	Util.safeWsSend = jest.fn();
 	await relayerServer.handleOrderBookSubscribeRequest('ws' as any, {
 		channel: 'channel',
 		method: 'method',
@@ -883,7 +888,7 @@ test('handleOrderBookSubscribeRequest existing pair new ws', async () => {
 	expect(
 		(orderBookPersistenceUtil.getOrderBookSnapshot as jest.Mock).mock.calls
 	).toMatchSnapshot();
-	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((Util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleOrderBookSubscribeRequest existing pair existing ws', async () => {
@@ -894,7 +899,7 @@ test('handleOrderBookSubscribeRequest existing pair existing ws', async () => {
 	orderBookPersistenceUtil.getOrderBookSnapshot = jest.fn(() =>
 		Promise.resolve('snapshot' as any)
 	);
-	util.safeWsSend = jest.fn();
+	Util.safeWsSend = jest.fn();
 	await relayerServer.handleOrderBookSubscribeRequest('ws' as any, {
 		channel: 'channel',
 		method: 'method',
@@ -907,7 +912,7 @@ test('handleOrderBookSubscribeRequest existing pair existing ws', async () => {
 	expect(
 		(orderBookPersistenceUtil.getOrderBookSnapshot as jest.Mock).mock.calls
 	).toMatchSnapshot();
-	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((Util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleOrderBookUnsubscribeRequest non existing pair', () => {
@@ -993,7 +998,7 @@ test('handleOrderBookRequest invalid method', async () => {
 	} as any;
 	await relayerServer.handleOrderBookRequest('ws' as any, {
 		channel: 'channel',
-		method: CST.WS_SUB,
+		method: Constants.WS_SUB,
 		pair: 'pair'
 	});
 	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
@@ -1010,7 +1015,7 @@ test('handleOrderBookRequest subscribe', async () => {
 	} as any;
 	await relayerServer.handleOrderBookRequest('ws' as any, {
 		channel: 'channel',
-		method: CST.WS_SUB,
+		method: Constants.WS_SUB,
 		pair: 'pair'
 	});
 	expect(relayerServer.sendResponse as jest.Mock).not.toBeCalled();
@@ -1029,7 +1034,7 @@ test('handleOrderBookRequest unsubscribe', async () => {
 	} as any;
 	await relayerServer.handleOrderBookRequest('ws' as any, {
 		channel: 'channel',
-		method: CST.WS_UNSUB,
+		method: Constants.WS_UNSUB,
 		pair: 'pair'
 	});
 	expect(relayerServer.sendResponse as jest.Mock).not.toBeCalled();
@@ -1062,7 +1067,7 @@ const trade = {
 
 test('handleTradeUpdate empty ws list', () => {
 	relayerServer.tradePairs = {};
-	util.safeWsSend = jest.fn();
+	Util.safeWsSend = jest.fn();
 	relayerServer.handleTradeUpdate('channel', {
 		pair: 'pair'
 	} as any);
@@ -1072,34 +1077,34 @@ test('handleTradeUpdate empty ws list', () => {
 	relayerServer.handleTradeUpdate('channel', {
 		pair: 'pair'
 	} as any);
-	expect(util.safeWsSend as jest.Mock).not.toBeCalled();
+	expect(Util.safeWsSend as jest.Mock).not.toBeCalled();
 	expect(relayerServer.marketTrades).toMatchSnapshot();
 });
 
 test('handleTradeUpdate, no previous trades', () => {
 	relayerServer.tradePairs = { pair: ['ws' as any] };
-	util.safeWsSend = jest.fn();
+	Util.safeWsSend = jest.fn();
 	relayerServer.marketTrades = {};
 	relayerServer.handleTradeUpdate('channel', trade);
-	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((Util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(relayerServer.marketTrades).toMatchSnapshot();
 });
 
 test('handleTradeUpdate, have previous trades', () => {
 	relayerServer.tradePairs = { pair: ['ws' as any] };
 	relayerServer.marketTrades['pair'] = [trade];
-	util.safeWsSend = jest.fn();
-	const secondTrade = util.clone(trade);
+	Util.safeWsSend = jest.fn();
+	const secondTrade = Util.clone(trade);
 	secondTrade.transactionHash = 'txHash2';
 	secondTrade.timestamp = 1234567880;
 	relayerServer.handleTradeUpdate('channel', secondTrade);
-	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((Util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(relayerServer.marketTrades).toMatchSnapshot();
 });
 
 test('handleTradeSubscribeRequest new pair', async () => {
 	relayerServer.tradePairs = {};
-	util.safeWsSend = jest.fn();
+	Util.safeWsSend = jest.fn();
 	await relayerServer.handleTradeSubscribeRequest('ws' as any, {
 		channel: 'channel',
 		method: 'method',
@@ -1108,14 +1113,14 @@ test('handleTradeSubscribeRequest new pair', async () => {
 	expect(relayerServer.tradePairs).toEqual({
 		pair: ['ws']
 	});
-	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((Util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleTradeSubscribeRequest empty list', async () => {
 	relayerServer.tradePairs = {
 		pair: []
 	};
-	util.safeWsSend = jest.fn();
+	Util.safeWsSend = jest.fn();
 	await relayerServer.handleTradeSubscribeRequest('ws' as any, {
 		channel: 'channel',
 		method: 'method',
@@ -1124,14 +1129,14 @@ test('handleTradeSubscribeRequest empty list', async () => {
 	expect(relayerServer.tradePairs).toEqual({
 		pair: ['ws']
 	});
-	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((Util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleTradeSubscribeRequest existing pair new ws', async () => {
 	relayerServer.tradePairs = {
 		pair: ['ws1'] as any
 	};
-	util.safeWsSend = jest.fn();
+	Util.safeWsSend = jest.fn();
 	await relayerServer.handleTradeSubscribeRequest('ws' as any, {
 		channel: 'channel',
 		method: 'method',
@@ -1140,14 +1145,14 @@ test('handleTradeSubscribeRequest existing pair new ws', async () => {
 	expect(relayerServer.tradePairs).toEqual({
 		pair: ['ws1', 'ws']
 	});
-	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((Util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleTradeSubscribeRequest existing pair existing ws', async () => {
 	relayerServer.tradePairs = {
 		pair: ['ws'] as any
 	};
-	util.safeWsSend = jest.fn();
+	Util.safeWsSend = jest.fn();
 	await relayerServer.handleTradeSubscribeRequest('ws' as any, {
 		channel: 'channel',
 		method: 'method',
@@ -1156,7 +1161,7 @@ test('handleTradeSubscribeRequest existing pair existing ws', async () => {
 	expect(relayerServer.tradePairs).toEqual({
 		pair: ['ws']
 	});
-	expect((util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((Util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleTradeUnsubscribeRequest non existing pair', () => {
@@ -1232,7 +1237,7 @@ test('handleTradeRequest invalid method', async () => {
 	} as any;
 	await relayerServer.handleTradeRequest('ws' as any, {
 		channel: 'channel',
-		method: CST.WS_SUB,
+		method: Constants.WS_SUB,
 		pair: 'pair'
 	});
 	expect((relayerServer.sendResponse as jest.Mock).mock.calls).toMatchSnapshot();
@@ -1249,7 +1254,7 @@ test('handleTradeRequest subscribe', async () => {
 	} as any;
 	await relayerServer.handleTradeRequest('ws' as any, {
 		channel: 'channel',
-		method: CST.WS_SUB,
+		method: Constants.WS_SUB,
 		pair: 'pair'
 	});
 	expect(relayerServer.sendResponse as jest.Mock).not.toBeCalled();
@@ -1266,7 +1271,7 @@ test('handleTradeRequest unsubscribe', async () => {
 	} as any;
 	await relayerServer.handleTradeRequest('ws' as any, {
 		channel: 'channel',
-		method: CST.WS_UNSUB,
+		method: Constants.WS_UNSUB,
 		pair: 'pair'
 	});
 	expect(relayerServer.sendResponse as jest.Mock).not.toBeCalled();
@@ -1296,7 +1301,7 @@ test('handleWebSocketMessage orders', () => {
 		ws as any,
 		'ip',
 		JSON.stringify({
-			channel: CST.DB_ORDERS,
+			channel: Constants.DB_ORDERS,
 			method: 'method',
 			pair: 'pair'
 		})
@@ -1311,7 +1316,7 @@ test('handleWebSocketMessage orderBooks', () => {
 		ws as any,
 		'ip',
 		JSON.stringify({
-			channel: CST.DB_ORDER_BOOKS,
+			channel: Constants.DB_ORDER_BOOKS,
 			method: 'method',
 			pair: 'pair'
 		})
@@ -1326,7 +1331,7 @@ test('handleWebSocketMessage trades', () => {
 		ws as any,
 		'ip',
 		JSON.stringify({
-			channel: CST.DB_TRADES,
+			channel: Constants.DB_TRADES,
 			method: 'method',
 			pair: 'pair'
 		})
@@ -1360,7 +1365,7 @@ test('loadDuoAcceptedPrices no tokens', async () => {
 
 test('loadDuoAcceptedPrices', async () => {
 	Web3Util.toChecksumAddress = jest.fn(addr => addr);
-	util.getDates = () => ['YYYY-MM-DD'];
+	Util.getDates = () => ['YYYY-MM-DD'];
 	const queryAcceptPriceEvent = jest.fn(() => Promise.resolve());
 	relayerServer.duoAcceptedPrices = {};
 	relayerServer.web3Util = {
@@ -1377,7 +1382,7 @@ test('loadDuoAcceptedPrices', async () => {
 });
 
 test('loadDuoExchangePrices', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	const getPrices = jest.fn(() => Promise.resolve());
 	await relayerServer.loadDuoExchangePrices({
 		getPrices: getPrices
@@ -1387,7 +1392,7 @@ test('loadDuoExchangePrices', async () => {
 });
 
 test('loadAndSubscribeMarketTrades no web3Util', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.getTrades = jest
 		.fn()
 		.mockResolvedValueOnce([{ pair: 'pair' }])
@@ -1402,7 +1407,7 @@ test('loadAndSubscribeMarketTrades no web3Util', async () => {
 });
 
 test('loadAndSubscribeMarketTrades', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.getTrades = jest
 		.fn()
 		.mockResolvedValueOnce([{ pair: 'pair' }])
@@ -1487,7 +1492,7 @@ test('initializeCache', async () => {
 test('verifyClient, first connection', () => {
 	relayerServer.ipList = {};
 	dynamoUtil.updateIpList = jest.fn(() => Promise.resolve());
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890000);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890000);
 	expect(
 		relayerServer.verifyClient({
 			req: {
@@ -1503,7 +1508,7 @@ test('verifyClient, first connection', () => {
 });
 
 test('verifyClient, connect after 3 seconds', () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 3000);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 3000);
 	dynamoUtil.updateIpList = jest.fn(() => Promise.resolve());
 	expect(
 		relayerServer.verifyClient({
@@ -1519,7 +1524,7 @@ test('verifyClient, connect after 3 seconds', () => {
 });
 
 test('verifyClient, connect within 3 seconds', () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 3000 + 2999);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 3000 + 2999);
 	dynamoUtil.updateIpList = jest.fn(() => Promise.resolve());
 	expect(
 		relayerServer.verifyClient({
@@ -1535,7 +1540,7 @@ test('verifyClient, connect within 3 seconds', () => {
 });
 
 test('verifyClient, connect after 1 min', () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 60000);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 60000);
 	dynamoUtil.updateIpList = jest.fn(() => Promise.resolve());
 	expect(
 		relayerServer.verifyClient({
@@ -1552,7 +1557,7 @@ test('verifyClient, connect after 1 min', () => {
 
 test('verifyClient, ban ip', () => {
 	for (let i = 0; i < 19; i++) relayerServer.connectedIp['ip'].push(1234567890000 + 60000 + i);
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 61000);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 61000);
 	dynamoUtil.updateIpList = jest.fn(() => Promise.resolve());
 	expect(
 		relayerServer.verifyClient({
@@ -1569,7 +1574,7 @@ test('verifyClient, ban ip', () => {
 });
 
 test('verifyClient, block black ip', () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 61000);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 61000);
 	dynamoUtil.updateIpList = jest.fn(() => Promise.resolve());
 	expect(
 		relayerServer.verifyClient({
@@ -1586,9 +1591,9 @@ test('verifyClient, block black ip', () => {
 
 test('verifyClient, white', () => {
 	relayerServer.ipList = {
-		ip: CST.DB_WHITE
+		ip: Constants.DB_WHITE
 	};
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 61000);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890000 + 61000);
 	dynamoUtil.updateIpList = jest.fn(() => Promise.resolve());
 	expect(
 		relayerServer.verifyClient({
@@ -1637,7 +1642,10 @@ test('startServer', async () => {
 	dynamoUtil.updateStatus = jest.fn(() => Promise.resolve());
 	global.setInterval = jest.fn();
 
-	await relayerServer.startServer('config' as any, { server: true, env: CST.DB_LIVE } as any);
+	await relayerServer.startServer(
+		'config' as any,
+		{ server: true, env: Constants.DB_LIVE } as any
+	);
 	expect((Web3Util as any).mock.calls).toMatchSnapshot();
 	expect((DuoDynamoUtil as any).mock.calls).toMatchSnapshot();
 	const fsCalls = (fs.readFileSync as jest.Mock).mock.calls;
@@ -1655,7 +1663,7 @@ test('startServer no server', async () => {
 	dynamoUtil.updateStatus = jest.fn(() => Promise.resolve());
 	global.setInterval = jest.fn();
 
-	await relayerServer.startServer('config' as any, { env: CST.DB_DEV } as any);
+	await relayerServer.startServer('config' as any, { env: Constants.DB_DEV } as any);
 	expect((Web3Util as any).mock.calls).toMatchSnapshot();
 	const fsCalls = (fs.readFileSync as jest.Mock).mock.calls;
 	expect(fsCalls.slice(fsCalls.length - 2)).toMatchSnapshot();

@@ -1,10 +1,9 @@
-import * as CST from '../common/constants';
+import { Constants, Util, Web3Util } from '../../../israfel-common/src';
 import { IOption } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderMatchingUtil from '../utils/orderMatchingUtil';
 import redisUtil from '../utils/redisUtil';
-import util from '../utils/util';
-import Web3Util from '../utils/Web3Util';
+
 class OrderMatchServer {
 	public availableAddrs: string[] = [];
 	public currentAddrIdx: number = 0;
@@ -20,23 +19,28 @@ class OrderMatchServer {
 		try {
 			mnemonic = require('../keys/mnemomic.json');
 		} catch (err) {
-			util.logError(JSON.stringify(err));
+			Util.logError(JSON.stringify(err));
 		}
 
-		const web3Util = new Web3Util(null, option.env === CST.DB_LIVE, mnemonic.mnemomic, false);
+		const web3Util = new Web3Util(
+			null,
+			option.env === Constants.DB_LIVE,
+			mnemonic.mnemomic,
+			false
+		);
 		this.availableAddrs = await web3Util.getAvailableAddresses();
 		web3Util.setTokens(await dynamoUtil.scanTokens());
 
 		if (option.server) {
 			dynamoUtil.updateStatus(
-				CST.DB_ORDER_MATCHER,
+				Constants.DB_ORDER_MATCHER,
 				await redisUtil.getQueueLength(orderMatchingUtil.getMatchQueueKey())
 			);
 
 			global.setInterval(
 				async () =>
 					dynamoUtil.updateStatus(
-						CST.DB_ORDER_MATCHER,
+						Constants.DB_ORDER_MATCHER,
 						await redisUtil.getQueueLength(orderMatchingUtil.getMatchQueueKey())
 					),
 				15000

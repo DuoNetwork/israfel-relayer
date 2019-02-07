@@ -1,4 +1,4 @@
-import * as CST from '../common/constants';
+import { Constants } from '../../../israfel-common/src';
 import { IOption } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
@@ -8,14 +8,14 @@ class OrderPersistanceServer {
 	public async startServer(option: IOption) {
 		if (option.server) {
 			dynamoUtil.updateStatus(
-				CST.DB_ORDERS,
+				Constants.DB_ORDERS,
 				await redisUtil.getQueueLength(orderPersistenceUtil.getOrderQueueKey())
 			);
 
 			global.setInterval(
 				async () =>
 					dynamoUtil.updateStatus(
-						CST.DB_ORDERS,
+						Constants.DB_ORDERS,
 						await redisUtil.getQueueLength(orderPersistenceUtil.getOrderQueueKey())
 					),
 				15000

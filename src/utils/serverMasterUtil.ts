@@ -1,8 +1,8 @@
 import child_process from 'child_process';
-import { IOption, ISubProcess, IToken } from '../common/types';
+import { IToken, Util } from '../../../israfel-common/src';
+import { IOption, ISubProcess } from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import osUtil from './osUtil';
-import util from './util';
 
 class ServerMasterUtil {
 	public subProcesses: { [key: string]: ISubProcess } = {};
@@ -18,14 +18,14 @@ class ServerMasterUtil {
 			const rawToken = tokens.find(t => t.code === option.token);
 			if (!rawToken) throw new Error('invalid token specified');
 
-			util.logInfo(`[${option.token}]: start launching ${tool}`);
+			Util.logInfo(`[${option.token}]: start launching ${tool}`);
 			startServer(option);
 		} else {
-			util.logInfo('launching all pairs ' + tokens.map(token => token.code).join(','));
+			Util.logInfo('launching all pairs ' + tokens.map(token => token.code).join(','));
 			for (const token of tokens) {
 				if (option.tokens.length && !option.tokens.includes(token.code)) continue;
-				util.logInfo(`[${token.code}]: start launching ${tool}`);
-				await util.sleep(1000);
+				Util.logInfo(`[${token.code}]: start launching ${tool}`);
+				await Util.sleep(1000);
 				this.subProcesses[token.code] = {
 					token: token.code,
 					lastFailTimestamp: 0,
@@ -42,7 +42,7 @@ class ServerMasterUtil {
 			option.server ? ' server' : ''
 		}${option.debug ? ' debug' : ''} ${osUtil.isWindows() ? '>>' : '&>'} ${tool}.${token}.log`;
 
-		util.logInfo(`[${token}]: ${cmd}`);
+		Util.logInfo(`[${token}]: ${cmd}`);
 
 		const procInstance = child_process.exec(
 			cmd,
@@ -50,22 +50,22 @@ class ServerMasterUtil {
 		);
 
 		this.subProcesses[token].instance = procInstance;
-		this.subProcesses[token].lastFailTimestamp = util.getUTCNowTimestamp();
+		this.subProcesses[token].lastFailTimestamp = Util.getUTCNowTimestamp();
 
 		if (!procInstance) {
-			util.logError('Failed to launch ' + token);
+			Util.logError('Failed to launch ' + token);
 			this.retry(tool, option, token);
 		} else {
-			util.logInfo(`[${token}]: Launched ${tool}`);
+			Util.logInfo(`[${token}]: Launched ${tool}`);
 			procInstance.on('exit', code => {
-				util.logError(`[${token}]: Exit with code ${token}`);
+				Util.logError(`[${token}]: Exit with code ${token}`);
 				if (code) this.retry(tool, option, token);
 			});
 		}
 	}
 
 	public retry(tool: string, option: IOption, token: string) {
-		const now: number = util.getUTCNowTimestamp();
+		const now: number = Util.getUTCNowTimestamp();
 
 		if (now - this.subProcesses[token].lastFailTimestamp < 30000)
 			this.subProcesses[token].failCount++;
@@ -75,7 +75,7 @@ class ServerMasterUtil {
 
 		if (this.subProcesses[token].failCount < 3)
 			global.setTimeout(() => this.launchTokenPair(tool, token, option), 5000);
-		else util.logError('Retry Aborted ' + token);
+		else Util.logError('Retry Aborted ' + token);
 	}
 }
 

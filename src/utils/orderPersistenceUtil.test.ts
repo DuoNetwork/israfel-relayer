@@ -1,12 +1,9 @@
 // fix for @ledgerhq/hw-transport-u2f 4.28.0
 import '@babel/polyfill';
-
-import * as CST from '../common/constants';
+import { Constants, OrderUtil, Web3Util } from '../../../israfel-common/src';
 import dynamoUtil from './dynamoUtil';
 import orderPersistenceUtil from './orderPersistenceUtil';
-import orderUtil from './orderUtil';
 import redisUtil from './redisUtil';
-import Web3Util from './Web3Util';
 
 test('subscribeOrderUpdate', () => {
 	redisUtil.onOrderUpdate = jest.fn();
@@ -30,7 +27,7 @@ const liveOrder = {
 	balance: 123,
 	matching: 99,
 	fill: 234,
-	side: CST.DB_BID,
+	side: Constants.DB_BID,
 	fee: 1,
 	feeAsset: 'feeAsset',
 	createdAt: 1111111111,
@@ -163,12 +160,12 @@ test('persistOrder add missing token', async () => {
 	redisUtil.hashSet = jest.fn(() => Promise.resolve(1));
 	redisUtil.push = jest.fn();
 	redisUtil.publish = jest.fn(() => Promise.resolve(1));
-	orderUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' } as any));
+	OrderUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' } as any));
 	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({} as any));
 
 	expect(
 		await orderPersistenceUtil.persistOrder({
-			method: CST.DB_ADD,
+			method: Constants.DB_ADD,
 			status: 'status',
 			requestor: 'requestor',
 			pair: 'code1|code2',
@@ -189,12 +186,12 @@ test('persistOrder sequence not number', async () => {
 	redisUtil.hashSet = jest.fn(() => Promise.resolve(1));
 	redisUtil.push = jest.fn();
 	redisUtil.publish = jest.fn(() => Promise.resolve(1));
-	orderUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' } as any));
+	OrderUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' } as any));
 	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({} as any));
 
 	expect(
 		await orderPersistenceUtil.persistOrder({
-			method: CST.DB_ADD,
+			method: Constants.DB_ADD,
 			status: 'status',
 			requestor: 'requestor',
 			pair: 'code1|code2',
@@ -215,12 +212,12 @@ test('persistOrder add', async () => {
 	redisUtil.hashSet = jest.fn(() => Promise.resolve(1));
 	redisUtil.push = jest.fn();
 	redisUtil.publish = jest.fn(() => Promise.resolve(1));
-	orderUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' } as any));
+	OrderUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' } as any));
 	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({} as any));
 
 	expect(
 		await orderPersistenceUtil.persistOrder({
-			method: CST.DB_ADD,
+			method: Constants.DB_ADD,
 			status: 'status',
 			requestor: 'requestor',
 			pair: 'code1|code2',
@@ -241,12 +238,12 @@ test('persistOrder add publish failed', async () => {
 	redisUtil.hashSet = jest.fn(() => Promise.resolve(1));
 	redisUtil.push = jest.fn();
 	redisUtil.publish = jest.fn(() => Promise.reject('publishError'));
-	orderUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' } as any));
+	OrderUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' } as any));
 	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({} as any));
 
 	expect(
 		await orderPersistenceUtil.persistOrder({
-			method: CST.DB_ADD,
+			method: Constants.DB_ADD,
 			status: 'status',
 			requestor: 'requestor',
 			pair: 'code1|code2',
@@ -335,7 +332,7 @@ test('persistOrder add existing', async () => {
 
 	expect(
 		await orderPersistenceUtil.persistOrder({
-			method: CST.DB_ADD,
+			method: Constants.DB_ADD,
 			status: 'status',
 			requestor: 'requestor',
 			pair: 'code1|code2',
@@ -387,8 +384,8 @@ test('persistOrder terminate fill', async () => {
 
 	expect(
 		await orderPersistenceUtil.persistOrder({
-			method: CST.DB_TERMINATE,
-			status: CST.DB_FILL,
+			method: Constants.DB_TERMINATE,
+			status: Constants.DB_FILL,
 			requestor: 'requestor',
 			pair: 'code1|code2',
 			token: 'token' as any,
