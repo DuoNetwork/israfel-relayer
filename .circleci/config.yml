@@ -7,7 +7,7 @@ jobs:
         steps:
             - add_ssh_keys:
                   fingerprints:
-                      - '3d:80:45:8e:e6:d2:fd:fd:9b:94:73:80:b3:6c:3e:c2'
+                      - '23:3d:92:03:7b:1d:af:5e:a6:8b:b7:87:0f:30:b4:7b'
             - run:
                   name: Fix host authenticity for 192.30.253.113
                   command: |
