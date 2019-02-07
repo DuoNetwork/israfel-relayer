@@ -11,7 +11,9 @@ jobs:
             - run:
                   name: Fix host authenticity for 192.30.253.113
                   command: |
-                      ssh-keyscan 192.30.253.113 >> ~/.ssh/known_hosts
+                      ssh-keyscan -v 192.30.253.113 >> ~/.ssh/known_hosts &&
+                      ssh-keyscan -v github.com >> ~/.ssh/known_hosts
+            - run: ls -al ~/.ssh
             - run: git clone git@github.com:FinBook/israfel-common.git /home/circleci/israfel-common
             - run: cd /home/circleci/israfel-common
             - run:
