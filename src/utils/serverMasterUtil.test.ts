@@ -71,9 +71,9 @@ test('launchTokenPair fail win32', () => {
 		debug: false,
 		live: false
 	} as any);
-	expect(((child_process.exec as any) as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect(((child_process.exec as any) as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(serverMasterUtil.subProcesses).toMatchSnapshot();
-	expect((serverMasterUtil.retry as jest.Mock<void>).mock.calls).toMatchSnapshot();
+	expect((serverMasterUtil.retry as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('launchTokenPair success win 32', () => {
@@ -99,7 +99,7 @@ test('launchTokenPair success win 32', () => {
 		live: false,
 		server: true
 	} as any);
-	expect(((child_process.exec as any) as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect(((child_process.exec as any) as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(serverMasterUtil.subProcesses).toMatchSnapshot();
 	expect(execOn.mock.calls).toMatchSnapshot();
 	execOn.mock.calls[0][1]();
@@ -122,7 +122,7 @@ test('launchTokenPair debug win32', () => {
 		debug: true,
 		live: false
 	} as any);
-	expect(((child_process.exec as any) as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect(((child_process.exec as any) as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(serverMasterUtil.subProcesses).toMatchSnapshot();
 });
 
@@ -142,9 +142,9 @@ test('launchTokenPair fail not win32', () => {
 		debug: false,
 		live: false
 	} as any);
-	expect(((child_process.exec as any) as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect(((child_process.exec as any) as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(serverMasterUtil.subProcesses).toMatchSnapshot();
-	expect((serverMasterUtil.retry as jest.Mock<void>).mock.calls).toMatchSnapshot();
+	expect((serverMasterUtil.retry as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('launchTokenPair success not win32', () => {
@@ -167,10 +167,10 @@ test('launchTokenPair success not win32', () => {
 		debug: false,
 		live: false
 	} as any);
-	expect(((child_process.exec as any) as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect(((child_process.exec as any) as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(serverMasterUtil.subProcesses).toMatchSnapshot();
 	expect(
-		(serverMasterUtil.subProcesses['token'].instance.on as jest.Mock<void>).mock.calls
+		(serverMasterUtil.subProcesses['token'].instance.on as jest.Mock).mock.calls
 	).toMatchSnapshot();
 });
 
@@ -189,7 +189,7 @@ test('launchTkenPair debug not win32', () => {
 		debug: true,
 		live: false
 	} as any);
-	expect(((child_process.exec as any) as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect(((child_process.exec as any) as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(serverMasterUtil.subProcesses).toMatchSnapshot();
 });
 
@@ -211,7 +211,7 @@ test('startLaunching', async () => {
 			{
 				code: 'test'
 			}
-		])
+		] as any)
 	);
 	util.sleep = jest.fn();
 	util.logInfo = jest.fn();
@@ -266,7 +266,7 @@ test('startLaunching tokens', async () => {
 			{
 				code: 'test2'
 			}
-		])
+		] as any)
 	);
 	util.sleep = jest.fn();
 	util.logInfo = jest.fn();
@@ -294,7 +294,7 @@ test('startLaunching no tokens', async () => {
 			{
 				code: 'test'
 			}
-		])
+		] as any)
 	);
 	util.sleep = jest.fn();
 	util.logInfo = jest.fn();

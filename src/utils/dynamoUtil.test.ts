@@ -347,7 +347,7 @@ test('updateIpList', async () => {
 
 test('updateStatus', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
+	dynamoUtil.putData = jest.fn(() => Promise.resolve());
 	await dynamoUtil.updateStatus('someProcess');
 	await dynamoUtil.updateStatus('someProcess', 123);
 	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
@@ -393,7 +393,7 @@ test('scanStatus', async () => {
 
 test('updateLiveOrder', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.updateData = jest.fn(() => Promise.resolve({}));
+	dynamoUtil.updateData = jest.fn(() => Promise.resolve());
 	await dynamoUtil.updateLiveOrder({
 		account: '0xAccount',
 		pair: 'code1|code2',
@@ -642,7 +642,7 @@ test('getRawOrder', async () => {
 
 test('addUserOrder', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
+	dynamoUtil.putData = jest.fn(() => Promise.resolve());
 	await dynamoUtil.addUserOrder({
 		account: '0xAccount',
 		pair: 'code1|code2',
@@ -669,7 +669,7 @@ test('addUserOrder', async () => {
 
 test('addUserOrder with txHash', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
+	dynamoUtil.putData = jest.fn(() => Promise.resolve());
 	await dynamoUtil.addUserOrder({
 		account: '0xAccount',
 		pair: 'code1|code2',
@@ -797,7 +797,7 @@ test('getUserOrders end pair', async () => {
 });
 
 test('addTrade', async () => {
-	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
+	dynamoUtil.putData = jest.fn(() => Promise.resolve());
 	await dynamoUtil.addTrade({
 		pair: 'code1|code2',
 		transactionHash: 'txHash',

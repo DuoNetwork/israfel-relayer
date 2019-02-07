@@ -1,10 +1,9 @@
+import { IAcceptedPrice, IPrice } from '@finbook/duo-market-data';
 import WebSocket from 'isomorphic-ws';
 import * as CST from '../common/constants';
 import {
-	IAcceptedPrice,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotUpdate,
-	IPrice,
 	IStatus,
 	IToken,
 	ITrade,

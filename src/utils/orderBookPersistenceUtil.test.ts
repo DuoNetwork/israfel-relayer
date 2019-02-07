@@ -29,8 +29,8 @@ test('publishOrderBookUpdate, with update', async () => {
 		prevVersion: 1234567890000,
 		version: 1234567990000
 	};
-	redisUtil.publish = jest.fn(() => Promise.resolve({}));
-	redisUtil.set = jest.fn(() => Promise.resolve({}));
+	redisUtil.publish = jest.fn(() => Promise.resolve(1));
+	redisUtil.set = jest.fn(() => Promise.resolve(''));
 	const res = await orderBookPersistenceUtil.publishOrderBookUpdate(
 		'pair',
 		orderBookSnapshot,
@@ -42,8 +42,8 @@ test('publishOrderBookUpdate, with update', async () => {
 });
 
 test('publishOrderBookUpdate, withoutsnpashot update', async () => {
-	redisUtil.publish = jest.fn(() => Promise.resolve({}));
-	redisUtil.set = jest.fn(() => Promise.resolve({}));
+	redisUtil.publish = jest.fn(() => Promise.resolve(1));
+	redisUtil.set = jest.fn(() => Promise.resolve(''));
 	const res = await orderBookPersistenceUtil.publishOrderBookUpdate('pair', orderBookSnapshot);
 	expect((redisUtil.set as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(redisUtil.publish as jest.Mock).not.toBeCalled();
@@ -51,7 +51,7 @@ test('publishOrderBookUpdate, withoutsnpashot update', async () => {
 });
 
 test('publishOrderBookUpdate, throw Error', async () => {
-	redisUtil.publish = jest.fn(() => Promise.resolve({}));
+	redisUtil.publish = jest.fn(() => Promise.resolve(1));
 	redisUtil.set = jest.fn(() => Promise.reject());
 	const res = await orderBookPersistenceUtil.publishOrderBookUpdate('pair', orderBookSnapshot);
 	expect((redisUtil.set as jest.Mock).mock.calls).toMatchSnapshot();

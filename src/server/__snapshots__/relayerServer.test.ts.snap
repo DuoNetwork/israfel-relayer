@@ -1573,21 +1573,11 @@ Array [
     "config",
     true,
     "relayer",
-    [MockFunction],
-    [Function],
   ],
 ]
 `;
 
-exports[`startServer 3`] = `null`;
-
-exports[`startServer 4`] = `
-Object {
-  "status": "status",
-}
-`;
-
-exports[`startServer 5`] = `
+exports[`startServer 3`] = `
 Array [
   Array [
     "./src/keys/websocket/key.live.pem",
@@ -1600,7 +1590,7 @@ Array [
 ]
 `;
 
-exports[`startServer 6`] = `
+exports[`startServer 4`] = `
 Array [
   Array [
     Object {
@@ -1611,7 +1601,7 @@ Array [
 ]
 `;
 
-exports[`startServer 7`] = `
+exports[`startServer 5`] = `
 Array [
   Array [
     [Function],
@@ -1620,7 +1610,7 @@ Array [
 ]
 `;
 
-exports[`startServer 8`] = `
+exports[`startServer 6`] = `
 Array [
   Array [
     "relayer",

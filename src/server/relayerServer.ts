@@ -1,20 +1,17 @@
+import {
+	Constants as DataConstants,
+	DynamoUtil as DuoDynamoUtil,
+	IAcceptedPrice,
+	IPrice
+} from '@finbook/duo-market-data';
 import * as fs from 'fs';
 import * as https from 'https';
 import WebSocket, { VerifyClientCallbackSync } from 'ws';
-import {
-	API_BITSTAMP,
-	API_GDAX,
-	API_GEMINI,
-	API_KRAKEN
-} from '../../../duo-admin/src/common/constants';
-import duoDynamoUtil from '../../../duo-admin/src/utils/dynamoUtil';
 import * as CST from '../common/constants';
 import {
-	IAcceptedPrice,
 	IOption,
 	IOrderBookSnapshotUpdate,
 	IOrderQueueItem,
-	IPrice,
 	IStatus,
 	IStringSignedOrder,
 	ITrade,
@@ -477,7 +474,7 @@ class RelayerServer {
 		for (const account in this.accountClients) this.unsubscribeOrderHistory(ws, account);
 	}
 
-	public async loadDuoAcceptedPrices() {
+	public async loadDuoAcceptedPrices(duoDynamoUtil: DuoDynamoUtil) {
 		if (this.web3Util) {
 			const custodians: string[] = [];
 			for (const token of this.web3Util.tokens)
@@ -496,9 +493,14 @@ class RelayerServer {
 		}
 	}
 
-	public async loadDuoExchangePrices() {
+	public async loadDuoExchangePrices(duoDynamoUtil: DuoDynamoUtil) {
 		const start = util.getUTCNowTimestamp() - 24 * 3600000;
-		for (const source of [API_GDAX, API_GEMINI, API_KRAKEN, API_BITSTAMP])
+		for (const source of [
+			DataConstants.API_GDAX,
+			DataConstants.API_GEMINI,
+			DataConstants.API_KRAKEN,
+			DataConstants.API_BITSTAMP
+		])
 			this.duoExchangePrices[source] = await duoDynamoUtil.getPrices(
 				source,
 				60,
@@ -524,18 +526,18 @@ class RelayerServer {
 		}
 	}
 
-	public async initializeCache(web3Util: Web3Util) {
+	public async initializeCache(web3Util: Web3Util, duoDynamoUtil: DuoDynamoUtil) {
 		web3Util.setTokens(await dynamoUtil.scanTokens());
 		global.setInterval(async () => web3Util.setTokens(await dynamoUtil.scanTokens()), 3600000);
-		await this.loadDuoAcceptedPrices();
-		await this.loadDuoExchangePrices();
+		await this.loadDuoAcceptedPrices(duoDynamoUtil);
+		await this.loadDuoExchangePrices(duoDynamoUtil);
 		await this.loadAndSubscribeMarketTrades();
-		global.setInterval(() => this.loadDuoAcceptedPrices(), 600000);
+		global.setInterval(() => this.loadDuoAcceptedPrices(duoDynamoUtil), 600000);
 		this.ipList = await dynamoUtil.scanIpList();
 		this.processStatus = await dynamoUtil.scanStatus();
 		util.logDebug('loaded ip list and status');
 		global.setInterval(async () => {
-			await this.loadDuoExchangePrices();
+			await this.loadDuoExchangePrices(duoDynamoUtil);
 			this.ipList = await dynamoUtil.scanIpList();
 			this.processStatus = await dynamoUtil.scanStatus();
 			util.logDebug('loaded up ip list and status');
@@ -583,22 +585,8 @@ class RelayerServer {
 
 	public async startServer(config: object, option: IOption) {
 		this.web3Util = new Web3Util(null, option.env === CST.DB_LIVE, '', false);
-		duoDynamoUtil.init(
-			config,
-			option.env === CST.DB_LIVE,
-			CST.DB_RELAYER,
-			Web3Util.fromWei,
-			async txHash => {
-				const txReceipt = this.web3Util
-					? await this.web3Util.getTransactionReceipt(txHash)
-					: null;
-				if (!txReceipt) return null;
-				return {
-					status: txReceipt.status as string
-				};
-			}
-		);
-		await this.initializeCache(this.web3Util);
+		const duoDynamoUtil = new DuoDynamoUtil(config, option.env === CST.DB_LIVE, CST.DB_RELAYER);
+		await this.initializeCache(this.web3Util, duoDynamoUtil);
 		const port = 8080;
 		const wsServer = new WebSocket.Server({
 			server: https

@@ -11,7 +11,7 @@ test('isExpired', () => {
 	expect(orderUtil.isExpired(1234567890 + 180001)).toBeFalsy();
 	expect(orderUtil.isExpired(1234567890 + 180000)).toBeTruthy();
 	expect(orderUtil.isExpired(1234567890 + 179999)).toBeTruthy();
-})
+});
 
 const signedOrder = {
 	senderAddress: 'senderAddress',
@@ -55,7 +55,14 @@ test('constructNewLiveOrder bid', () => {
 		'takerCode|makerCode',
 		'0xOrderHash'
 	);
-	const userOrder = orderUtil.constructUserOrder(liveOrder, 'type', 'status', 'updatedBy', true, 'txHash');
+	const userOrder = orderUtil.constructUserOrder(
+		liveOrder,
+		'type',
+		'status',
+		'updatedBy',
+		true,
+		'txHash'
+	);
 	expect(liveOrder).toMatchSnapshot();
 	expect(userOrder).toMatchSnapshot();
 });
@@ -83,7 +90,14 @@ test('constructNewLiveOrder ask', () => {
 		'makerCode|takerCode',
 		'0xOrderHash'
 	);
-	const userOrder = orderUtil.constructUserOrder(liveOrder, 'type', 'status', 'updatedBy', true, 'txHash');
+	const userOrder = orderUtil.constructUserOrder(
+		liveOrder,
+		'type',
+		'status',
+		'updatedBy',
+		true,
+		'txHash'
+	);
 	expect(liveOrder).toMatchSnapshot();
 	expect(userOrder).toMatchSnapshot();
 });
@@ -361,9 +375,12 @@ test('validateOrder invalid 0x order', async () => {
 test('validateOrder invalid amount', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 123456789);
 	const validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
-	orderUtil.constructNewLiveOrder = jest.fn(() => ({
-		amount: 1.1
-	}));
+	orderUtil.constructNewLiveOrder = jest.fn(
+		() =>
+			({
+				amount: 1.1
+			} as any)
+	);
 	expect(
 		await orderUtil.validateOrder(
 			{
@@ -383,10 +400,13 @@ test('validateOrder invalid amount', async () => {
 test('validateOrder invalid price', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 123456789);
 	const validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
-	orderUtil.constructNewLiveOrder = jest.fn(() => ({
-		amount: 1,
-		price: 0.00055
-	}));
+	orderUtil.constructNewLiveOrder = jest.fn(
+		() =>
+			({
+				amount: 1,
+				price: 0.00055
+			} as any)
+	);
 	expect(
 		await orderUtil.validateOrder(
 			{
@@ -409,10 +429,13 @@ test('validateOrder invalid price', async () => {
 test('validateOrder invalid expiry', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 123456789);
 	const validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
-	orderUtil.constructNewLiveOrder = jest.fn(() => ({
-		amount: 10,
-		price:  0.00500000
-	}));
+	orderUtil.constructNewLiveOrder = jest.fn(
+		() =>
+			({
+				amount: 10,
+				price: 0.005
+			} as any)
+	);
 	expect(
 		await orderUtil.validateOrder(
 			{
@@ -437,10 +460,13 @@ test('validateOrder', async () => {
 	const validateOrder = jest.fn(() => Promise.resolve('0xOrderHash'));
 	util.getExpiryTimestamp = jest.fn(() => 133456789);
 	signedOrder.expirationTimeSeconds = Math.ceil(133456789 / 1000) + '';
-	orderUtil.constructNewLiveOrder = jest.fn(() => ({
-		amount: 10.00000000,
-		price: 0.00500000
-	}));
+	orderUtil.constructNewLiveOrder = jest.fn(
+		() =>
+			({
+				amount: 10.0,
+				price: 0.005
+			} as any)
+	);
 	expect(
 		await orderUtil.validateOrder(
 			{

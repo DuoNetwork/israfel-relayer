@@ -1,7 +1,7 @@
 // fix for @ledgerhq/hw-transport-u2f 4.28.0
 import '@babel/polyfill';
 import { DualClassWrapper } from '@finbook/duo-contract-wrapper';
-import * as CST from '../common/constants';
+import {Constants as DataConstants} from '@finbook/duo-market-data';
 import util from '../utils/util';
 import marketMaker from './marketMaker';
 
@@ -1081,7 +1081,7 @@ test('canMakeOrder', () => {
 });
 
 test('getEthPrice', () => {
-	marketMaker.exchangePrices[CST.API_KRAKEN] = [
+	marketMaker.exchangePrices[DataConstants.API_KRAKEN] = [
 		{
 			period: 1,
 			open: 100,
@@ -1099,7 +1099,7 @@ test('getEthPrice', () => {
 });
 
 test('getEthPrice, no ETH price', () => {
-	marketMaker.exchangePrices[CST.API_KRAKEN] = [];
+	marketMaker.exchangePrices[DataConstants.API_KRAKEN] = [];
 	expect(marketMaker.getEthPrice()).toBe(0);
 });
 
@@ -1108,7 +1108,7 @@ test('takeOneSideOrders bid', async () => {
 		addOrder: jest.fn(() => Promise.resolve('addOrderTxHash'))
 	} as any;
 	util.getExpiryTimestamp = jest.fn(() => 1234567890000);
-	util.sleep = jest.fn(() => Promise.resolve());
+	util.sleep = jest.fn(() => Promise.resolve()) as any;
 	marketMaker.pendingOrders = {};
 	await marketMaker.takeOneSideOrders(relayerClient, 'aETH|WETH', true, [
 		{
@@ -1136,7 +1136,7 @@ test('takeOneSideOrders ask', async () => {
 		addOrder: jest.fn(() => Promise.resolve('addOrderTxHash'))
 	} as any;
 	util.getExpiryTimestamp = jest.fn(() => 1234567890000);
-	util.sleep = jest.fn(() => Promise.resolve());
+	util.sleep = jest.fn(() => Promise.resolve()) as any;
 	marketMaker.pendingOrders = {};
 	await marketMaker.takeOneSideOrders(relayerClient, 'aETH|WETH', false, [
 		{
@@ -1164,7 +1164,7 @@ test('createOrderBookSide bid', async () => {
 		addOrder: jest.fn(() => Promise.resolve('addOrderTxHash'))
 	} as any;
 	util.getExpiryTimestamp = jest.fn(() => 1234567890000);
-	util.sleep = jest.fn(() => Promise.resolve());
+	util.sleep = jest.fn(() => Promise.resolve()) as any;
 	Math.random = jest.fn(() => 0.5);
 	marketMaker.pendingOrders = {};
 	await marketMaker.createOrderBookSide(relayerClient, 'aETH|WETH', 0.0001, true, 4);
@@ -1177,7 +1177,7 @@ test('createOrderBookSide bid, no price adjustment', async () => {
 		addOrder: jest.fn(() => Promise.resolve('addOrderTxHash'))
 	} as any;
 	util.getExpiryTimestamp = jest.fn(() => 1234567890000);
-	util.sleep = jest.fn(() => Promise.resolve());
+	util.sleep = jest.fn(() => Promise.resolve()) as any;
 	Math.random = jest.fn(() => 0.5);
 	marketMaker.pendingOrders = {};
 	await marketMaker.createOrderBookSide(relayerClient, 'aETH|WETH', 0.0001, true, 4, false);
@@ -1190,7 +1190,7 @@ test('createOrderBookSide ask', async () => {
 		addOrder: jest.fn(() => Promise.resolve('addOrderTxHash'))
 	} as any;
 	util.getExpiryTimestamp = jest.fn(() => 1234567890000);
-	util.sleep = jest.fn(() => Promise.resolve());
+	util.sleep = jest.fn(() => Promise.resolve()) as any;
 	Math.random = jest.fn(() => 0.5);
 	marketMaker.pendingOrders = {};
 	await marketMaker.createOrderBookSide(relayerClient, 'aETH|WETH', 0.0001, false, 4);

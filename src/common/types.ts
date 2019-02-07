@@ -1,7 +1,6 @@
 import { SignedOrder } from '0x.js';
+import { IAcceptedPrice, IPrice } from '@finbook/duo-market-data';
 import { ChildProcess } from 'child_process';
-export { IAcceptedPrice, IPrice } from '../../../duo-admin/src/common/types';
-import { IAcceptedPrice, IPrice } from '../../../duo-admin/src/common/types';
 
 export enum Wallet {
 	None,

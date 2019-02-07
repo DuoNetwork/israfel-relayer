@@ -21,9 +21,12 @@ test('toWei', () => {
 });
 
 test('getSideFromSignedOrder, bid', () => {
-	assetDataUtils.decodeERC20AssetData = jest.fn(() => ({
-		tokenAddress: '0xaddress'
-	}));
+	assetDataUtils.decodeERC20AssetData = jest.fn(
+		() =>
+			({
+				tokenAddress: '0xaddress'
+			} as any)
+	);
 	const token = {
 		address: '0xaddress'
 	} as any;
@@ -33,9 +36,12 @@ test('getSideFromSignedOrder, bid', () => {
 });
 
 test('getSideFromSignedOrder, ask', () => {
-	assetDataUtils.decodeERC20AssetData = jest.fn(() => ({
-		tokenAddress: '0xaddress'
-	}));
+	assetDataUtils.decodeERC20AssetData = jest.fn(
+		() =>
+			({
+				tokenAddress: '0xaddress'
+			} as any)
+	);
 	const token = {
 		address: '0xaddress1'
 	} as any;
@@ -86,23 +92,26 @@ test('createRawOrder, cannot sign', async () => {
 test('createRawOrder', async () => {
 	const web3Util = new Web3Util(null, false, '', false);
 	web3Util.wallet = Wallet.MetaMask;
-	Web3Util.createRawOrderWithoutSalt = jest.fn(() => ({
-		exchangeAddress: '0x2d6e2fE8233CD5C181f3bdC9EEBd12A1208a7061',
-		expirationTimeSeconds: '1234567890',
-		feeRecipientAddress: '0x9472021c8CBFe19F4f2720FC29AA65CBd0822a16',
-		makerAddress: '0x08cb8054201a9FdfE63fbdB1b3028E12d284D0dD',
-		makerAssetAmount: '123000000000000000000',
-		makerAssetData:
-			'0xf47261b00000000000000000000000000000000000000000000000000000d327e5a0bb51',
-		makerFee: '0',
-		salt: '0',
-		senderAddress: '0x0000000000000000000000000000000000000000',
-		takerAddress: '0x0000000000000000000000000000000000000000',
-		takerAssetAmount: '456000000000000000000',
-		takerAssetData:
-			'0xf47261b0000000000000000000000000000000000000000000000000000112d20ac31b51',
-		takerFee: '0'
-	}));
+	Web3Util.createRawOrderWithoutSalt = jest.fn(
+		() =>
+			({
+				exchangeAddress: '0x2d6e2fE8233CD5C181f3bdC9EEBd12A1208a7061',
+				expirationTimeSeconds: '1234567890',
+				feeRecipientAddress: '0x9472021c8CBFe19F4f2720FC29AA65CBd0822a16',
+				makerAddress: '0x08cb8054201a9FdfE63fbdB1b3028E12d284D0dD',
+				makerAssetAmount: '123000000000000000000',
+				makerAssetData:
+					'0xf47261b00000000000000000000000000000000000000000000000000000d327e5a0bb51',
+				makerFee: '0',
+				salt: '0',
+				senderAddress: '0x0000000000000000000000000000000000000000',
+				takerAddress: '0x0000000000000000000000000000000000000000',
+				takerAssetAmount: '456000000000000000000',
+				takerAssetData:
+					'0xf47261b0000000000000000000000000000000000000000000000000000112d20ac31b51',
+				takerFee: '0'
+			} as any)
+	);
 	jest.mock('0x.js', async () => ({
 		generatePseudoRandomSalt: jest.fn(() => 1234567890)
 	}));

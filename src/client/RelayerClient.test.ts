@@ -648,7 +648,7 @@ test('addOrder invalid amount', async () => {
 	orderUtil.getAmountAfterFee = jest.fn(() => ({
 		takerAssetAmount: 0,
 		makerAssetAmount: 0
-	}));
+	} as any));
 	web3Util.isValidPair = jest.fn(() => true);
 	web3Util.getTokenByCode = jest.fn(() => ({
 		address: 'code1address',
@@ -675,7 +675,7 @@ test('addOrder bid', async () => {
 	orderUtil.getAmountAfterFee = jest.fn(() => ({
 		takerAssetAmount: 123,
 		makerAssetAmount: 456
-	}));
+	} as any));
 	web3Util.isValidPair = jest.fn(() => true);
 	web3Util.getTokenByCode = jest.fn(() => ({
 		address: 'code1address',
@@ -706,7 +706,7 @@ test('addOrder ask', async () => {
 	orderUtil.getAmountAfterFee = jest.fn(() => ({
 		takerAssetAmount: 123,
 		makerAssetAmount: 456
-	}));
+	} as any));
 	web3Util.isValidPair = jest.fn(() => true);
 	web3Util.getTokenByCode = jest.fn(() => ({
 		address: 'code1address',

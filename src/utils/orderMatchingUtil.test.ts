@@ -272,7 +272,7 @@ test('processMatchSuccess', async () => {
 	const web3Util = {
 		getFilledTakerAssetAmount: jest.fn(() => new BigNumber(1))
 	} as any;
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	tradePriceUtil.persistTrade = jest.fn(() => Promise.resolve());
 	const bidSignedOrder: IStringSignedOrder = {
 		exchangeAddress: '0x48bacb9266a570d521063ef5dd96e61686dbe788',
@@ -326,7 +326,7 @@ test('processMatchSuccess full fill', async () => {
 	const web3Util = {
 		getFilledTakerAssetAmount: jest.fn(() => new BigNumber(1000000000000000000))
 	} as any;
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	tradePriceUtil.persistTrade = jest.fn(() => Promise.resolve());
 	const bidSignedOrder: IStringSignedOrder = {
 		exchangeAddress: '0x48bacb9266a570d521063ef5dd96e61686dbe788',
@@ -381,7 +381,7 @@ test('processMatchSuccess ask', async () => {
 	const web3Util = {
 		getFilledTakerAssetAmount: jest.fn(() => new BigNumber(1))
 	} as any;
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	tradePriceUtil.persistTrade = jest.fn(() => Promise.resolve());
 	const bidSignedOrder: IStringSignedOrder = {
 		exchangeAddress: '0x48bacb9266a570d521063ef5dd96e61686dbe788',
@@ -433,10 +433,10 @@ test('processMatchSuccess ask', async () => {
 
 test('processMatchQueue, empty queue', async () => {
 	orderMatchReq.takerSide = 'bid';
-	redisUtil.pop = jest.fn(() => null);
+	redisUtil.pop = jest.fn(() => Promise.resolve(''));
 	redisUtil.putBack = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.getRawOrderInPersistence = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.getRawOrderInPersistence = jest.fn(() => Promise.resolve(null));
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	const web3Util = {
 		getTransactionCount: jest.fn(() => 1),
 		getGasPrice: jest.fn(() => 100000000),
@@ -504,13 +504,13 @@ const rawOrders: { [key: string]: IRawOrder } = {
 
 test('processMatchQueue, matchOrder revert', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1528117918000);
-	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
+	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(orderMatchReq)));
 	redisUtil.putBack = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.getRawOrderInPersistence = jest.fn((pair, hash) => {
 		rawOrders[hash].pair = pair;
 		return Promise.resolve(rawOrders[hash]);
 	});
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	const web3Util = {
 		tokens: [],
 		getTransactionCount: jest.fn(() => 1),
@@ -533,7 +533,7 @@ test('processMatchQueue, matchOrder revert', async () => {
 
 test('processMatchQueue, persistOrder reject', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1528117918000);
-	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
+	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(orderMatchReq)));
 	redisUtil.putBack = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.getRawOrderInPersistence = jest.fn((pair, hash) => {
 		rawOrders[hash].pair = pair;
@@ -562,13 +562,13 @@ test('processMatchQueue, persistOrder reject', async () => {
 
 test('processMatchQueue, awaitTransactionSuccessAsync revert', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1528117918000);
-	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
+	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(orderMatchReq)));
 	redisUtil.putBack = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.getRawOrderInPersistence = jest.fn((pair, hash) => {
 		rawOrders[hash].pair = pair;
 		return Promise.resolve(rawOrders[hash]);
 	});
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	const web3Util = {
 		tokens: [],
 		getTransactionCount: jest.fn(() => 1),
@@ -592,13 +592,13 @@ test('processMatchQueue, awaitTransactionSuccessAsync revert', async () => {
 
 test('processMatchQueue, awaitTransactionSuccessAsync success', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1528117918000);
-	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
+	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(orderMatchReq)));
 	redisUtil.putBack = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.getRawOrderInPersistence = jest.fn((pair, hash) => {
 		rawOrders[hash].pair = pair;
 		return Promise.resolve(rawOrders[hash]);
 	});
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	const web3Util = {
 		tokens: [],
 		getTransactionCount: jest.fn(() => 1),
@@ -622,13 +622,13 @@ test('processMatchQueue, awaitTransactionSuccessAsync success', async () => {
 
 test('processMatchQueue, awaitTransactionSuccessAsync success partial', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1528117918000);
-	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
+	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(orderMatchReq)));
 	redisUtil.putBack = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.getRawOrderInPersistence = jest.fn((pair, hash) => {
 		rawOrders[hash].pair = pair;
 		return Promise.resolve(rawOrders[hash]);
 	});
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	const web3Util = {
 		tokens: [],
 		getTransactionCount: jest.fn(() => 1),
@@ -653,13 +653,13 @@ test('processMatchQueue, awaitTransactionSuccessAsync success partial', async ()
 test('processMatchQueue, awaitTransactionSuccessAsync success, not feeOnToken', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1528117918000);
 	orderMatchReq.feeAsset = 'code2';
-	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
+	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(orderMatchReq)));
 	redisUtil.putBack = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.getRawOrderInPersistence = jest.fn((pair, hash) => {
 		rawOrders[hash].pair = pair;
 		return Promise.resolve(rawOrders[hash]);
 	});
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve({}));
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve({} as any));
 	const web3Util = {
 		tokens: [],
 		getTransactionCount: jest.fn(() => 1),
@@ -682,10 +682,10 @@ test('processMatchQueue, awaitTransactionSuccessAsync success, not feeOnToken', 
 });
 
 test('processMatchQueue, no leftRawOrder', async () => {
-	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
+	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(orderMatchReq)));
 	redisUtil.putBack = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.getRawOrderInPersistence = jest.fn(() => Promise.resolve(null));
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	const web3Util = {
 		tokens: [],
 		getTransactionCount: jest.fn(() => 1),
@@ -711,17 +711,17 @@ test('processMatchQueue, no leftRawOrder', async () => {
 
 test('processMatchQueue, left order expired', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890000);
-	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
+	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(orderMatchReq)));
 	redisUtil.putBack = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.getRawOrderInPersistence = jest.fn(() =>
 		Promise.resolve({
 			signedOrder: 'signedOrder'
-		})
+		} as any)
 	);
 	orderUtil.parseSignedOrder = jest.fn(() => ({
 		expirationTimeSeconds: new BigNumber(1234567890 + 180)
-	}));
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	}as any));
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	const web3Util = {
 		tokens: [],
 		getTransactionCount: jest.fn(() => 1),
@@ -747,7 +747,7 @@ test('processMatchQueue, left order expired', async () => {
 
 test('processMatchQueue, no rightRawOrder', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890000);
-	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
+	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(orderMatchReq)));
 	redisUtil.putBack = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.getRawOrderInPersistence = jest.fn((pair: string, orderHash: string) =>
 		Promise.resolve(
@@ -755,13 +755,13 @@ test('processMatchQueue, no rightRawOrder', async () => {
 				? null
 				: {
 						signedOrder: pair
-				}
+				} as any
 		)
 	);
 	orderUtil.parseSignedOrder = jest.fn(() => ({
 		expirationTimeSeconds: new BigNumber(1234567890 + 181)
-	}));
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	} as any));
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	const web3Util = {
 		tokens: [],
 		getTransactionCount: jest.fn(() => 1),
@@ -787,12 +787,12 @@ test('processMatchQueue, no rightRawOrder', async () => {
 
 test('processMatchQueue, right order expired', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890000);
-	redisUtil.pop = jest.fn(() => JSON.stringify(orderMatchReq));
+	redisUtil.pop = jest.fn(() => Promise.resolve(JSON.stringify(orderMatchReq)));
 	redisUtil.putBack = jest.fn(() => Promise.resolve());
 	orderPersistenceUtil.getRawOrderInPersistence = jest.fn(() =>
 		Promise.resolve({
 			signedOrder: 'signedOrder'
-		})
+		} as any)
 	);
 	orderUtil.parseSignedOrder = jest
 		.fn()
@@ -802,7 +802,7 @@ test('processMatchQueue, right order expired', async () => {
 		.mockReturnValueOnce({
 			expirationTimeSeconds: new BigNumber(1234567890 + 180)
 		});
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	const web3Util = {
 		tokens: [],
 		getTransactionCount: jest.fn(() => 1),

@@ -47,7 +47,7 @@ test('removeFromWatch, exisitng order, error', async () => {
 });
 
 test('updateOrder isValid no userOrder', async () => {
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
 	await orderWatcherServer.updateOrder({
 		method: 'method',
@@ -62,11 +62,11 @@ test('updateOrder isValid no userOrder', async () => {
 });
 
 test('updateOrder persist failed', async () => {
-	util.sleep = jest.fn(() => Promise.resolve());
+	util.sleep = jest.fn(() => Promise.resolve()) as any;
 	orderPersistenceUtil.persistOrder = jest
 		.fn()
 		.mockRejectedValueOnce('persist error')
-		.mockResolvedValueOnce('');
+		.mockResolvedValueOnce('' as any) as any;
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
 	await orderWatcherServer.updateOrder({
 		method: 'method',
@@ -97,7 +97,7 @@ const userOrder = {
 };
 
 test('updateOrder isValid userOrder', async () => {
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(userOrder));
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(userOrder as any));
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());
 	await orderWatcherServer.updateOrder({
 		method: 'method',
@@ -132,7 +132,7 @@ test('addIntoWatch expired', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	const addOrderAsync = jest.fn(() => Promise.resolve());
 	orderWatcherServer.orderWatcher = {} as any;
-	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({}));
+	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({} as any));
 	orderWatcherServer.watchingOrders = {};
 	orderWatcherServer.web3Util = {} as any;
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
@@ -151,7 +151,7 @@ test('addIntoWatch expired', async () => {
 test('addIntoWatch no order watcher', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	orderWatcherServer.orderWatcher = null;
-	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({}));
+	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({} as any));
 	orderWatcherServer.watchingOrders = {};
 	orderWatcherServer.web3Util = {
 		validateOrderFillable: jest.fn(() => Promise.resolve(true))
@@ -172,7 +172,7 @@ test('addIntoWatch with signed order fillable', async () => {
 	orderWatcherServer.orderWatcher = {
 		addOrderAsync: addOrderAsync
 	} as any;
-	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({}));
+	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({} as any));
 	orderWatcherServer.watchingOrders = {};
 	orderWatcherServer.web3Util = {
 		validateOrderFillable: jest.fn(() => Promise.resolve(true))
@@ -194,7 +194,7 @@ test('addIntoWatch with signed order non fillable', async () => {
 	orderWatcherServer.orderWatcher = {
 		addOrderAsync: addOrderAsync
 	} as any;
-	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({}));
+	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve({} as any));
 	orderWatcherServer.watchingOrders = {};
 	Web3Util.getSideFromSignedOrder = jest.fn(() => CST.DB_BID);
 	orderWatcherServer.web3Util = {
@@ -225,7 +225,7 @@ test('addIntoWatch no signed order fillable', async () => {
 		Promise.resolve({
 			orderHash: 'orderHash',
 			signedOrder: signedOrder
-		})
+		} as any)
 	);
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	await orderWatcherServer.addIntoWatch({
@@ -250,7 +250,7 @@ test('addIntoWatch no signed order and no rawOrder', async () => {
 		validateOrderFillable: jest.fn(() => Promise.resolve(true))
 	} as any;
 
-	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve());
+	dynamoUtil.getRawOrder = jest.fn(() => Promise.resolve(null));
 	await orderWatcherServer.addIntoWatch({
 		orderHash: 'orderHash',
 		pair: 'pair',
@@ -275,7 +275,7 @@ test('addIntoWatch error', async () => {
 		Promise.resolve({
 			orderHash: 'orderHash',
 			signedOrder: signedOrder
-		})
+		} as any)
 	);
 	orderWatcherServer.updateOrder = jest.fn(() => Promise.resolve());
 	await orderWatcherServer.addIntoWatch({
@@ -519,7 +519,7 @@ test('loadOrders', async () => {
 		Promise.resolve({
 			orderHash1: {},
 			orderHash2: {}
-		})
+		} as any)
 	);
 	orderWatcherServer.addIntoWatch = jest.fn(() => Promise.resolve());
 	orderWatcherServer.removeFromWatch = jest.fn(() => Promise.resolve());

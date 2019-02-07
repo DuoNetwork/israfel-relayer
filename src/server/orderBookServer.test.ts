@@ -24,7 +24,7 @@ orderBookServer.loadingOrders = false;
 orderBookServer.custodianInTrading = true;
 
 test('terminateOrder', async () => {
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve(null));
 	await orderBookServer.terminateOrder('orderHash');
 	expect((orderPersistenceUtil.persistOrder as jest.Mock).mock.calls).toMatchSnapshot();
 });
@@ -87,7 +87,7 @@ test('updateOrderBook terminate', () => {
 test('updateOrderBookSnapshot', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	orderBookUtil.updateOrderBookSnapshot = jest.fn();
-	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve());
+	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve(false));
 	await orderBookServer.updateOrderBookSnapshot([
 		{ price: 1, change: 1, count: 0, side: CST.DB_BID },
 		{ price: 2, change: 2, count: 1, side: CST.DB_BID }
@@ -131,7 +131,7 @@ test('handleOrderUpdate current sequence too small', async () => {
 test('handleOrderUpdate order processed already', async () => {
 	orderQueueItem.method = CST.DB_ADD;
 	orderBookServer.processedUpdates[orderQueueItem.liveOrder.orderHash] = 200;
-	orderBookServer.updateOrderBook = jest.fn(() => 'orderBookLevelUpdate');
+	orderBookServer.updateOrderBook = jest.fn(() => 'orderBookLevelUpdate' as any);
 	await orderBookServer.handleOrderUpdate(channel, orderQueueItem);
 	expect(orderBookServer.updateOrderBook as jest.Mock).not.toBeCalled();
 });
@@ -139,7 +139,7 @@ test('handleOrderUpdate order processed already', async () => {
 test('handleOrderUpdate terminate a non existing liveOrder', async () => {
 	orderBookServer.orderSnapshotSequence = 1;
 	orderBookServer.processedUpdates[orderQueueItem.liveOrder.orderHash] = 1;
-	orderBookServer.updateOrderBook = jest.fn(() => 'orderBookLevelUpdate');
+	orderBookServer.updateOrderBook = jest.fn(() => 'orderBookLevelUpdate' as any);
 	orderQueueItem.method = CST.DB_TERMINATE;
 	await orderBookServer.handleOrderUpdate(channel, orderQueueItem);
 	expect(orderBookServer.processedUpdates).toMatchSnapshot();
@@ -149,7 +149,7 @@ test('handleOrderUpdate terminate a non existing liveOrder', async () => {
 test('handleOrderUpdate add', async () => {
 	orderBookServer.orderSnapshotSequence = 1;
 	orderBookServer.processedUpdates[orderQueueItem.liveOrder.orderHash] = 1;
-	orderBookServer.updateOrderBook = jest.fn(() => 'orderBookLevelUpdate');
+	orderBookServer.updateOrderBook = jest.fn(() => 'orderBookLevelUpdate' as any);
 	orderBookServer.updateOrderBookSnapshot = jest.fn(() => Promise.resolve());
 	orderQueueItem.method = CST.DB_ADD;
 	orderMatchingUtil.findMatchingOrders = jest.fn(() => ({
@@ -167,12 +167,12 @@ test('handleOrderUpdate add', async () => {
 test('handleOrderUpdate add match', async () => {
 	orderBookServer.orderSnapshotSequence = 1;
 	orderBookServer.processedUpdates[orderQueueItem.liveOrder.orderHash] = 1;
-	orderBookServer.updateOrderBook = jest.fn(() => 'orderBookLevelUpdate');
+	orderBookServer.updateOrderBook = jest.fn(() => 'orderBookLevelUpdate' as any);
 	orderBookServer.updateOrderBookSnapshot = jest.fn(() => Promise.resolve());
 	orderQueueItem.method = CST.DB_ADD;
 	orderMatchingUtil.findMatchingOrders = jest.fn(() => ({
-		orderMatchRequests: ['orderMatchRequests'],
-		orderBookLevelUpdates: ['orderBookLevelUpdates1', 'orderBookLevelUpdates2']
+		orderMatchRequests: ['orderMatchRequests' as any],
+		orderBookLevelUpdates: ['orderBookLevelUpdates1' as any, 'orderBookLevelUpdates2']
 	}));
 	orderMatchingUtil.queueMatchRequest = jest.fn(() => Promise.resolve());
 	await orderBookServer.handleOrderUpdate(channel, orderQueueItem);
@@ -187,7 +187,7 @@ test('handleOrderUpdate terminate', async () => {
 	orderBookServer.liveOrders[orderQueueItem.liveOrder.orderHash] = {} as any;
 	orderBookServer.orderSnapshotSequence = 1;
 	orderBookServer.processedUpdates[orderQueueItem.liveOrder.orderHash] = 1;
-	orderBookServer.updateOrderBook = jest.fn(() => 'orderBookLevelUpdate');
+	orderBookServer.updateOrderBook = jest.fn(() => 'orderBookLevelUpdate' as any);
 	orderBookServer.updateOrderBookSnapshot = jest.fn(() => Promise.resolve());
 	orderQueueItem.method = CST.DB_TERMINATE;
 	orderMatchingUtil.findMatchingOrders = jest.fn(() => ({
@@ -206,29 +206,29 @@ test('handleOrderUpdate loadingOrders', async () => {
 	orderQueueItem.requestor = 'requestor';
 	orderBookServer.loadingOrders = true;
 	orderQueueItem.method = CST.DB_ADD;
-	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve());
+	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve(false));
 	await orderBookServer.handleOrderUpdate(channel, orderQueueItem);
 	expect(orderBookServer.pendingUpdates).toMatchSnapshot();
 	expect(orderBookPersistenceUtil.publishOrderBookUpdate as jest.Mock).not.toBeCalled();
 });
 
 test('handleOrderUpdate custodian not in trading terminate', async () => {
-	orderBookServer.terminateOrder = jest.fn(() => Promise.resolve());
+	orderBookServer.terminateOrder = jest.fn(() => Promise.resolve(null));
 	orderBookServer.custodianInTrading = false;
 	orderQueueItem.requestor = 'requestor';
 	orderQueueItem.method = CST.DB_TERMINATE;
-	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve());
+	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve(false));
 	await orderBookServer.handleOrderUpdate(channel, orderQueueItem);
 	expect(orderBookServer.terminateOrder as jest.Mock).not.toBeCalled();
 	expect(orderBookPersistenceUtil.publishOrderBookUpdate as jest.Mock).not.toBeCalled();
 });
 
 test('handleOrderUpdate custodian not in trading', async () => {
-	orderBookServer.terminateOrder = jest.fn(() => Promise.resolve());
+	orderBookServer.terminateOrder = jest.fn(() => Promise.resolve(null));
 	orderBookServer.custodianInTrading = false;
 	orderQueueItem.requestor = 'requestor';
 	orderQueueItem.method = CST.DB_ADD;
-	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve());
+	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve(false));
 	await orderBookServer.handleOrderUpdate(channel, orderQueueItem);
 	expect((orderBookServer.terminateOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(orderBookPersistenceUtil.publishOrderBookUpdate as jest.Mock).not.toBeCalled();
@@ -244,14 +244,14 @@ test('updateOrderSequences', async () => {
 test('loadLiveOrders', async () => {
 	orderBookServer.custodianInTrading = true;
 	orderPersistenceUtil.getAllLiveOrdersInPersistence = jest.fn(() =>
-		Promise.resolve('liveOrders')
+		Promise.resolve('liveOrders' as any)
 	);
 	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve(true));
-	orderBookUtil.constructOrderBook = jest.fn(() => 'orderBook');
-	orderBookUtil.renderOrderBookSnapshot = jest.fn(() => 'orderBookSnapshot');
+	orderBookUtil.constructOrderBook = jest.fn(() => 'orderBook' as any);
+	orderBookUtil.renderOrderBookSnapshot = jest.fn(() => 'orderBookSnapshot' as any);
 	orderMatchingUtil.queueMatchRequest = jest.fn(() => Promise.resolve());
 	orderMatchingUtil.findMatchingOrders = jest.fn(() => ({
-		orderMatchRequests: ['orderMatchRequests'],
+		orderMatchRequests: ['orderMatchRequests' as any],
 		orderBookLevelUpdates: []
 	}));
 	orderBookServer.updateOrderSequences = jest.fn();
@@ -275,11 +275,11 @@ test('loadLiveOrders', async () => {
 test('loadLiveOrders no match', async () => {
 	orderBookServer.custodianInTrading = true;
 	orderPersistenceUtil.getAllLiveOrdersInPersistence = jest.fn(() =>
-		Promise.resolve('liveOrders')
+		Promise.resolve('liveOrders' as any)
 	);
 	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve(true));
-	orderBookUtil.constructOrderBook = jest.fn(() => 'orderBook');
-	orderBookUtil.renderOrderBookSnapshot = jest.fn(() => 'orderBookSnapshot');
+	orderBookUtil.constructOrderBook = jest.fn(() => 'orderBook' as any);
+	orderBookUtil.renderOrderBookSnapshot = jest.fn(() => 'orderBookSnapshot' as any);
 	orderMatchingUtil.queueMatchRequest = jest.fn(() => Promise.resolve());
 	orderMatchingUtil.findMatchingOrders = jest.fn(() => ({
 		orderMatchRequests: [],
@@ -306,11 +306,11 @@ test('loadLiveOrders no match', async () => {
 test('loadLiveOrders custodian not in trading', async () => {
 	orderBookServer.custodianInTrading = false;
 	orderPersistenceUtil.getAllLiveOrdersInPersistence = jest.fn(() =>
-		Promise.resolve('liveOrders')
+		Promise.resolve('liveOrders' as any)
 	);
 	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve(true));
-	orderBookUtil.constructOrderBook = jest.fn(() => 'orderBook');
-	orderBookUtil.renderOrderBookSnapshot = jest.fn(() => 'orderBookSnapshot');
+	orderBookUtil.constructOrderBook = jest.fn(() => 'orderBook' as any);
+	orderBookUtil.renderOrderBookSnapshot = jest.fn(() => 'orderBookSnapshot' as any);
 	orderMatchingUtil.queueMatchRequest = jest.fn(() => Promise.resolve());
 	orderMatchingUtil.findMatchingOrders = jest.fn(() => ({
 		orderMatchRequests: [],
@@ -347,13 +347,13 @@ test('checkCustodianState not in trading', async () => {
 		bids: [{ price: 123, balance: 456, count: 2 }],
 		asks: [{ price: 456, balance: 123, count: 3 }]
 	};
-	orderBookServer.terminateOrder = jest.fn(() => Promise.resolve());
-	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve());
-	orderBookUtil.constructOrderBook = jest.fn(() => 'orderBook');
+	orderBookServer.terminateOrder = jest.fn(() => Promise.resolve(null));
+	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve(false));
+	orderBookUtil.constructOrderBook = jest.fn(() => 'orderBook' as any);
 	orderBookUtil.renderOrderBookSnapshot = jest.fn(() => ({
 		pair: 'orderBookSnapshot',
 		version: 1234567890
-	}));
+	} as any));
 	await orderBookServer.checkCustodianState(dualClassWrapper as any);
 	expect(orderBookServer.custodianInTrading).toBeFalsy();
 	expect(orderBookServer.liveOrders).toEqual({});
@@ -374,8 +374,8 @@ test('checkCustodianState in trading', async () => {
 			})
 		)
 	};
-	orderBookServer.terminateOrder = jest.fn(() => Promise.resolve());
-	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve());
+	orderBookServer.terminateOrder = jest.fn(() => Promise.resolve(null));
+	orderBookPersistenceUtil.publishOrderBookUpdate = jest.fn(() => Promise.resolve(false));
 
 	await orderBookServer.checkCustodianState(dualClassWrapper as any);
 	expect(orderBookServer.custodianInTrading).toBeTruthy();

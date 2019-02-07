@@ -4,13 +4,13 @@ import {
 	IDualClassStates,
 	Web3Wrapper
 } from '@finbook/duo-contract-wrapper';
+import { Constants as DataConstants, IPrice } from '@finbook/duo-market-data';
 import * as CST from '../common/constants';
 import {
 	IAccount,
 	IOption,
 	IOrderBookSnapshot,
 	IOrderBookSnapshotLevel,
-	IPrice,
 	IToken,
 	IUserOrder
 } from '../common/types';
@@ -46,8 +46,9 @@ class MarketMaker {
 	}
 
 	public getEthPrice() {
-		return this.exchangePrices[CST.API_KRAKEN] && this.exchangePrices[CST.API_KRAKEN].length
-			? this.exchangePrices[CST.API_KRAKEN][0].close
+		return this.exchangePrices[DataConstants.API_KRAKEN] &&
+			this.exchangePrices[DataConstants.API_KRAKEN].length
+			? this.exchangePrices[DataConstants.API_KRAKEN][0].close
 			: 0;
 	}
 

@@ -1,4 +1,8 @@
-import { Constants as WrapperConstants, DualClassWrapper, Web3Wrapper } from '@finbook/duo-contract-wrapper';
+import {
+	Constants as WrapperConstants,
+	DualClassWrapper,
+	Web3Wrapper
+} from '@finbook/duo-contract-wrapper';
 import * as CST from '../common/constants';
 import {
 	ILiveOrder,
@@ -271,7 +275,7 @@ class OrderBookServer {
 			return;
 		}
 
-		let infura = {token: ''};
+		let infura = { token: '' };
 		try {
 			infura = require('../keys/infura.json');
 		} catch (err) {

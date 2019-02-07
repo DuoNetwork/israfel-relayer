@@ -398,9 +398,12 @@ test('getTokenAddressFromCode', async () => {
 
 test('getTokenAddressFromCode, other token', async () => {
 	const testWeb3Util = new Web3Util(null, false, 'mnemonic', false);
-	testWeb3Util.getTokenByCode = jest.fn(() => ({
-		address: 'otherTokenAddress'
-	}));
+	testWeb3Util.getTokenByCode = jest.fn(
+		() =>
+			({
+				address: 'otherTokenAddress'
+			} as any)
+	);
 	expect(await testWeb3Util.getTokenAddressFromCode('code')).toMatchSnapshot();
 });
 
@@ -490,7 +493,7 @@ test('wrapEther', async () => {
 	testWeb3Util.contractAddresses = {
 		etherToken: 'etherTokenAddress'
 	} as any;
-	Web3Wrapper.toWei = jest.fn(() => 10000000000000000000);
+	Web3Wrapper.toWei = jest.fn(() => 10000000000000000000 as any);
 	await testWeb3Util.wrapEther(1, 'address');
 	expect(
 		(testWeb3Util.contractWrappers.etherToken.depositAsync as jest.Mock).mock.calls
@@ -502,7 +505,7 @@ test('unwrapEther', async () => {
 	testWeb3Util.contractAddresses = {
 		etherToken: 'etherTokenAddress'
 	} as any;
-	Web3Wrapper.toWei = jest.fn(() => 10000000000000000000);
+	Web3Wrapper.toWei = jest.fn(() => 10000000000000000000 as any);
 	await testWeb3Util.unwrapEther(1, 'address');
 	expect(
 		(testWeb3Util.contractWrappers.etherToken.withdrawAsync as jest.Mock).mock.calls
@@ -527,51 +530,60 @@ test('isValidPair, codes.length wrong', async () => {
 
 test('isValidPair, no token', async () => {
 	const testWeb3Util = new Web3Util(null, false, 'mnemonic', false);
-	testWeb3Util.getTokenByCode = jest.fn(() => '');
+	testWeb3Util.getTokenByCode = jest.fn(() => '' as any);
 	expect(await testWeb3Util.isValidPair('code1|code2')).toBeFalsy();
 });
 
 test('isValidPair, inValidPair1', async () => {
 	const testWeb3Util = new Web3Util(null, false, 'mnemonic', false);
-	testWeb3Util.getTokenByCode = jest.fn(() => ({}));
+	testWeb3Util.getTokenByCode = jest.fn(() => ({} as any));
 	expect(await testWeb3Util.isValidPair('code1|code2')).toBeFalsy();
 });
 
 test('isValidPair, inValidPair2', async () => {
 	const testWeb3Util = new Web3Util(null, false, 'mnemonic', false);
-	testWeb3Util.getTokenByCode = jest.fn(() => ({
-		precisions: {
-			code2: 0.1
-		}
-	}));
+	testWeb3Util.getTokenByCode = jest.fn(
+		() =>
+			({
+				precisions: {
+					code2: 0.1
+				}
+			} as any)
+	);
 	expect(await testWeb3Util.isValidPair('code1|code2')).toBeFalsy();
 });
 
 test('isValidPair, inValidPair3', async () => {
 	const testWeb3Util = new Web3Util(null, false, 'mnemonic', false);
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890000);
-	testWeb3Util.getTokenByCode = jest.fn(() => ({
-		precisions: {
-			code2: 0.1
-		},
-		feeSchedules: {
-			code2: {}
-		},
-		maturity: 123456
-	}));
+	testWeb3Util.getTokenByCode = jest.fn(
+		() =>
+			({
+				precisions: {
+					code2: 0.1
+				},
+				feeSchedules: {
+					code2: {}
+				},
+				maturity: 123456
+			} as any)
+	);
 	expect(await testWeb3Util.isValidPair('code1|code2')).toBeFalsy();
 });
 
 test('isValidPair, validPair', async () => {
 	const testWeb3Util = new Web3Util(null, false, 'mnemonic', false);
-	testWeb3Util.getTokenByCode = jest.fn(() => ({
-		precisions: {
-			code2: 0.1
-		},
-		feeSchedules: {
-			code2: {}
-		}
-	}));
+	testWeb3Util.getTokenByCode = jest.fn(
+		() =>
+			({
+				precisions: {
+					code2: 0.1
+				},
+				feeSchedules: {
+					code2: {}
+				}
+			} as any)
+	);
 	expect(await testWeb3Util.isValidPair('code1|code2')).toBeTruthy();
 });
 

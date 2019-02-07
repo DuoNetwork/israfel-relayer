@@ -151,7 +151,7 @@ test('getLiveOrderInPersistence only in db', async () => {
 			['code1|code2|add|0xOrderHash']: null
 		})
 	);
-	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([{ liveOrder: 'test' }]));
+	dynamoUtil.getLiveOrders = jest.fn(() => Promise.resolve([{ liveOrder: 'test' } as any]));
 	expect(
 		await orderPersistenceUtil.getLiveOrderInPersistence('code1|code2', '0xOrderHash')
 	).toMatchSnapshot();
@@ -160,11 +160,11 @@ test('getLiveOrderInPersistence only in db', async () => {
 test('persistOrder add missing token', async () => {
 	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
 	redisUtil.increment = jest.fn(() => Promise.resolve(123));
-	redisUtil.hashSet = jest.fn(() => Promise.resolve());
+	redisUtil.hashSet = jest.fn(() => Promise.resolve(1));
 	redisUtil.push = jest.fn();
-	redisUtil.publish = jest.fn(() => Promise.resolve());
-	orderUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' }));
-	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
+	redisUtil.publish = jest.fn(() => Promise.resolve(1));
+	orderUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' } as any));
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({} as any));
 
 	expect(
 		await orderPersistenceUtil.persistOrder({
@@ -185,12 +185,12 @@ test('persistOrder add missing token', async () => {
 
 test('persistOrder sequence not number', async () => {
 	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
-	redisUtil.increment = jest.fn(() => Promise.resolve('NOT NUMBER'));
-	redisUtil.hashSet = jest.fn(() => Promise.resolve());
+	redisUtil.increment = jest.fn(() => Promise.resolve('NOT NUMBER' as any));
+	redisUtil.hashSet = jest.fn(() => Promise.resolve(1));
 	redisUtil.push = jest.fn();
-	redisUtil.publish = jest.fn(() => Promise.resolve());
-	orderUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' }));
-	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
+	redisUtil.publish = jest.fn(() => Promise.resolve(1));
+	orderUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' } as any));
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({} as any));
 
 	expect(
 		await orderPersistenceUtil.persistOrder({
@@ -212,11 +212,11 @@ test('persistOrder sequence not number', async () => {
 test('persistOrder add', async () => {
 	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
 	redisUtil.increment = jest.fn(() => Promise.resolve(123));
-	redisUtil.hashSet = jest.fn(() => Promise.resolve());
+	redisUtil.hashSet = jest.fn(() => Promise.resolve(1));
 	redisUtil.push = jest.fn();
-	redisUtil.publish = jest.fn(() => Promise.resolve());
-	orderUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' }));
-	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
+	redisUtil.publish = jest.fn(() => Promise.resolve(1));
+	orderUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' } as any));
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({} as any));
 
 	expect(
 		await orderPersistenceUtil.persistOrder({
@@ -238,11 +238,11 @@ test('persistOrder add', async () => {
 test('persistOrder add publish failed', async () => {
 	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
 	redisUtil.increment = jest.fn(() => Promise.resolve(123));
-	redisUtil.hashSet = jest.fn(() => Promise.resolve());
+	redisUtil.hashSet = jest.fn(() => Promise.resolve(1));
 	redisUtil.push = jest.fn();
 	redisUtil.publish = jest.fn(() => Promise.reject('publishError'));
-	orderUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' }));
-	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
+	orderUtil.constructNewLiveOrder = jest.fn(() => ({ test: 'liveOrder' } as any));
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({} as any));
 
 	expect(
 		await orderPersistenceUtil.persistOrder({
@@ -268,13 +268,13 @@ test('persistOrder not add fill', async () => {
 			matching: 50,
 			balance: 40,
 			fill: 10
-		})
+		} as any)
 	);
 	redisUtil.increment = jest.fn(() => Promise.resolve(123));
-	redisUtil.hashSet = jest.fn(() => Promise.resolve());
+	redisUtil.hashSet = jest.fn(() => Promise.resolve(1));
 	redisUtil.push = jest.fn();
-	redisUtil.publish = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
+	redisUtil.publish = jest.fn(() => Promise.resolve(1));
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({} as any));
 
 	expect(
 		await orderPersistenceUtil.persistOrder({
@@ -300,13 +300,13 @@ test('persistOrder not add match', async () => {
 			matching: 50,
 			balance: 40,
 			fill: 10
-		})
+		} as any)
 	);
 	redisUtil.increment = jest.fn(() => Promise.resolve(123));
-	redisUtil.hashSet = jest.fn(() => Promise.resolve());
+	redisUtil.hashSet = jest.fn(() => Promise.resolve(1));
 	redisUtil.push = jest.fn();
-	redisUtil.publish = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
+	redisUtil.publish = jest.fn(() => Promise.resolve(1));
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({} as any));
 
 	expect(
 		await orderPersistenceUtil.persistOrder({
@@ -327,11 +327,11 @@ test('persistOrder not add match', async () => {
 });
 
 test('persistOrder add existing', async () => {
-	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve({}));
-	redisUtil.hashSet = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve({} as any));
+	redisUtil.hashSet = jest.fn(() => Promise.resolve(1));
 	redisUtil.push = jest.fn();
-	redisUtil.publish = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
+	redisUtil.publish = jest.fn(() => Promise.resolve(1));
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({} as any));
 
 	expect(
 		await orderPersistenceUtil.persistOrder({
@@ -352,10 +352,10 @@ test('persistOrder add existing', async () => {
 
 test('persistOrder not add not existing', async () => {
 	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() => Promise.resolve(null));
-	redisUtil.hashSet = jest.fn(() => Promise.resolve());
+	redisUtil.hashSet = jest.fn(() => Promise.resolve(1));
 	redisUtil.push = jest.fn();
-	redisUtil.publish = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
+	redisUtil.publish = jest.fn(() => Promise.resolve(1));
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({} as any));
 
 	expect(
 		await orderPersistenceUtil.persistOrder({
@@ -377,13 +377,13 @@ test('persistOrder terminate fill', async () => {
 	orderPersistenceUtil.getLiveOrderInPersistence = jest.fn(() =>
 		Promise.resolve({
 			amount: 100
-		})
+		} as any)
 	);
 	redisUtil.increment = jest.fn(() => Promise.resolve(123));
-	redisUtil.hashSet = jest.fn(() => Promise.resolve());
+	redisUtil.hashSet = jest.fn(() => Promise.resolve(1));
 	redisUtil.push = jest.fn();
-	redisUtil.publish = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({}));
+	redisUtil.publish = jest.fn(() => Promise.resolve(1));
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({} as any));
 
 	expect(
 		await orderPersistenceUtil.persistOrder({
@@ -407,7 +407,7 @@ test('processOrderQueue empty queue', async () => {
 	dynamoUtil.addOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.updateLiveOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.deleteOrder = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({} as any));
 	const isSuccess = await orderPersistenceUtil.processOrderQueue();
 	expect(dynamoUtil.addOrder as jest.Mock).not.toBeCalled();
 	expect(dynamoUtil.updateLiveOrder as jest.Mock).not.toBeCalled();
@@ -425,7 +425,7 @@ test('processOrderQueue in queue but no key value', async () => {
 	dynamoUtil.addOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.updateLiveOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.deleteOrder = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({} as any));
 	const isSuccess = await orderPersistenceUtil.processOrderQueue();
 	expect(dynamoUtil.addOrder as jest.Mock).not.toBeCalled();
 	expect(dynamoUtil.updateLiveOrder as jest.Mock).not.toBeCalled();
@@ -444,7 +444,7 @@ test('processOrderQueue add', async () => {
 	dynamoUtil.addOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.updateLiveOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.deleteOrder = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({} as any));
 	const isSuccess = await orderPersistenceUtil.processOrderQueue();
 	expect((dynamoUtil.addOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(dynamoUtil.updateLiveOrder as jest.Mock).not.toBeCalled();
@@ -464,7 +464,7 @@ test('processOrderQueue update', async () => {
 	dynamoUtil.addOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.updateLiveOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.deleteOrder = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({} as any));
 	const isSuccess = await orderPersistenceUtil.processOrderQueue();
 	expect(dynamoUtil.addOrder as jest.Mock).not.toBeCalled();
 	expect((dynamoUtil.updateLiveOrder as jest.Mock).mock.calls).toMatchSnapshot();
@@ -493,7 +493,7 @@ test('processOrderQueue terminate', async () => {
 	dynamoUtil.addOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.updateLiveOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.deleteOrder = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({} as any));
 	const isSuccess = await orderPersistenceUtil.processOrderQueue();
 	expect(dynamoUtil.addOrder as jest.Mock).not.toBeCalled();
 	expect(dynamoUtil.updateLiveOrder as jest.Mock).not.toBeCalled();
@@ -511,11 +511,11 @@ test('processOrderQueue failed', async () => {
 	redisUtil.hashGet = jest.fn(() => Promise.resolve(JSON.stringify(addOrderQueueItem)));
 	redisUtil.hashDelete = jest.fn(() => Promise.resolve());
 	redisUtil.putBack = jest.fn();
-	redisUtil.hashSet = jest.fn(() => Promise.resolve());
+	redisUtil.hashSet = jest.fn(() => Promise.resolve(1));
 	dynamoUtil.addOrder = jest.fn(() => Promise.reject('processOrderQueue'));
 	dynamoUtil.updateLiveOrder = jest.fn(() => Promise.resolve());
 	dynamoUtil.deleteOrder = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({} as any));
 	const isSuccess = await orderPersistenceUtil.processOrderQueue();
 	expect((dynamoUtil.addOrder as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(dynamoUtil.updateLiveOrder as jest.Mock).not.toBeCalled();
@@ -603,7 +603,7 @@ test('getAllLiveOrdersInPersistence update in redis and exist in db', async () =
 		Promise.resolve([
 			{
 				orderHash: '0xOrderHash'
-			}
+			} as any
 		])
 	);
 	expect(
@@ -622,7 +622,7 @@ test('getAllLiveOrdersInPersistence update and temrinate in redis and exist in d
 		Promise.resolve([
 			{
 				orderHash: '0xOrderHash'
-			}
+			} as any
 		])
 	);
 	expect(await orderPersistenceUtil.getAllLiveOrdersInPersistence('code1|code2')).toEqual({});
@@ -638,7 +638,7 @@ test('getAllLiveOrdersInPersistence temrinate in redis and exist in db', async (
 		Promise.resolve([
 			{
 				orderHash: '0xOrderHash'
-			}
+			} as any
 		])
 	);
 	expect(await orderPersistenceUtil.getAllLiveOrdersInPersistence('code1|code2')).toEqual({});
@@ -683,7 +683,7 @@ test('getRawOrderInPersistence in dynamo but no signature', async () => {
 				signature: ''
 			}
 		})
-	);
+	) as any;
 	expect(
 		await orderPersistenceUtil.getRawOrderInPersistence('code1|code2', '0xOrderHash')
 	).toBeNull();
@@ -704,7 +704,7 @@ test('getRawOrderInPersistence in dynamo', async () => {
 				signature: 'signature'
 			}
 		})
-	);
+	) as any;
 	expect(
 		await orderPersistenceUtil.getRawOrderInPersistence('code1|code2', '0xOrderHash')
 	).toMatchSnapshot();
@@ -726,7 +726,7 @@ test('getRawOrderInPersistence not in neither', async () => {
 });
 
 test('hashDeleteAll', async () => {
-	redisUtil.hashDeleteAll = jest.fn(() => Promise.resolve());
+	redisUtil.hashDeleteAll = jest.fn(() => Promise.resolve(1));
 	await orderPersistenceUtil.hashDeleteAll({
 		token: 'token'
 	} as any);

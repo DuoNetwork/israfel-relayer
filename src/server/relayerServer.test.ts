@@ -1,8 +1,8 @@
 // fix for @ledgerhq/hw-transport-u2f 4.28.0
 import '@babel/polyfill';
+import * as Constants from '@finbook/duo-market-data/dist/constants';
 import * as fs from 'fs';
 import WebSocket from 'ws';
-import duoDynamoUtil from '../../../duo-admin/src/utils/dynamoUtil';
 import * as CST from '../common/constants';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
@@ -13,14 +13,12 @@ import util from '../utils/util';
 import Web3Util from '../utils/Web3Util';
 import relayerServer from './relayerServer';
 
-let hasTxReceipt = false;
-jest.mock('../utils/Web3Util', () =>
-	jest.fn(() => ({
-		getTransactionReceipt: jest.fn(() =>
-			Promise.resolve(hasTxReceipt ? { status: 'status' } : null)
-		)
-	}))
-);
+jest.mock('../utils/Web3Util', () => jest.fn(() => ({})));
+
+jest.mock('@finbook/duo-market-data', () => ({
+	Constants: Constants,
+	DynamoUtil: jest.fn().mockImplementation(() => ({ test: 'DynamoUtil' }))
+}));
 
 jest.mock('fs', () => ({
 	readFileSync: jest.fn()
@@ -39,6 +37,8 @@ jest.mock('https', () => ({
 		listen: jest.fn((port: number) => port)
 	}))
 }));
+
+import { DynamoUtil as DuoDynamoUtil } from '@finbook/duo-market-data';
 
 test('sendInfo', () => {
 	const ws = {
@@ -241,7 +241,7 @@ test('handleAddOrderRequest', async () => {
 	orderPersistenceUtil.persistOrder = jest.fn(() =>
 		Promise.resolve({
 			userOrder: 'userOrder'
-		})
+		} as any)
 	);
 	await relayerServer.handleAddOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
@@ -274,7 +274,7 @@ test('handleTerminateOrderRequest invalid request and rawOrder does not exist', 
 	});
 	relayerServer.sendErrorOrderResponse = jest.fn();
 	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve('userOrder'));
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve('userOrder' as any));
 	orderPersistenceUtil.getRawOrderInPersistence = jest.fn(() => Promise.resolve(null));
 	relayerServer.web3Util = {
 		web3AccountsRecover: jest.fn(() => '')
@@ -296,13 +296,13 @@ test('handleTerminateOrderRequest invalid request and rawOrder does not exist', 
 test('handleTerminateOrderRequest signature is wrong', async () => {
 	relayerServer.sendErrorOrderResponse = jest.fn();
 	relayerServer.sendUserOrderResponse = jest.fn(() => Promise.resolve());
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve('userOrder'));
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve('userOrder' as any));
 	orderPersistenceUtil.getRawOrderInPersistence = jest.fn(() =>
 		Promise.resolve({
 			signedOrder: {
 				makerAddress: 'account'
 			}
-		})
+		} as any)
 	);
 	relayerServer.web3Util = {
 		web3AccountsRecover: jest.fn(() => 'xxx')
@@ -327,7 +327,7 @@ test('handleTerminateOrderRequest persist no return', async () => {
 			signedOrder: {
 				makerAddress: 'account'
 			}
-		})
+		} as any)
 	);
 	relayerServer.web3Util = {
 		web3AccountsRecover: jest.fn(() => 'account')
@@ -353,7 +353,7 @@ test('handleTerminateOrderRequest persist error', async () => {
 			signedOrder: {
 				makerAddress: 'account'
 			}
-		})
+		} as any)
 	);
 	relayerServer.web3Util = {
 		web3AccountsRecover: jest.fn(() => 'account')
@@ -381,12 +381,12 @@ test('handleTerminateOrderRequest', async () => {
 			signedOrder: {
 				makerAddress: 'account'
 			}
-		})
+		} as any)
 	);
 	relayerServer.web3Util = {
 		web3AccountsRecover: jest.fn(() => 'account')
 	} as any;
-	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve('userOrder'));
+	orderPersistenceUtil.persistOrder = jest.fn(() => Promise.resolve('userOrder' as any));
 	await relayerServer.handleTerminateOrderRequest({} as any, {
 		channel: CST.DB_ORDERS,
 		method: CST.DB_TERMINATE,
@@ -435,7 +435,7 @@ test('handleOrderUpdate requested existing pair account not exist', () => {
 
 test('handleOrderUpdate requested existing pair existing account', () => {
 	relayerServer.sendUserOrderResponse = jest.fn();
-	orderUtil.constructUserOrder = jest.fn(() => 'userOrder');
+	orderUtil.constructUserOrder = jest.fn(() => 'userOrder' as any);
 	relayerServer.handleOrderUpdate('channel', {
 		requestor: 'requestor',
 		method: 'method',
@@ -451,7 +451,7 @@ test('handleOrderUpdate requested existing pair existing account', () => {
 test('handleOrderHistorySubscribeRequest no web3Util', async () => {
 	relayerServer.accountClients = {};
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders']));
+	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders' as any]));
 	util.safeWsSend = jest.fn();
 	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
 	relayerServer.web3Util = null;
@@ -469,7 +469,7 @@ test('handleOrderHistorySubscribeRequest no web3Util', async () => {
 test('handleOrderHistorySubscribeRequest new account ', async () => {
 	relayerServer.accountClients = {};
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders']));
+	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders' as any]));
 	util.safeWsSend = jest.fn();
 	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
 	relayerServer.web3Util = {
@@ -517,7 +517,7 @@ test('handleOrderHistorySubscribeRequest new account ', async () => {
 
 test('handleOrderHistorySubscribeRequest existing account same ws', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders']));
+	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders' as any]));
 	util.safeWsSend = jest.fn();
 	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
 	await relayerServer.handleOrderHistorySubscribeRequest('ws' as any, {
@@ -533,7 +533,7 @@ test('handleOrderHistorySubscribeRequest existing account same ws', async () => 
 
 test('handleOrderHistorySubscribeRequest existing account new ws', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders']));
+	dynamoUtil.getUserOrders = jest.fn(() => Promise.resolve(['userOrders' as any]));
 	util.safeWsSend = jest.fn();
 	orderPersistenceUtil.subscribeOrderUpdate = jest.fn();
 	await relayerServer.handleOrderHistorySubscribeRequest('ws1' as any, {
@@ -785,7 +785,9 @@ test('handleOrderBookUpdate', () => {
 test('handleOrderBookSubscribeRequest new pair', async () => {
 	relayerServer.orderBookPairs = {};
 	orderBookPersistenceUtil.subscribeOrderBookUpdate = jest.fn();
-	orderBookPersistenceUtil.getOrderBookSnapshot = jest.fn(() => Promise.resolve('snapshot'));
+	orderBookPersistenceUtil.getOrderBookSnapshot = jest.fn(() =>
+		Promise.resolve('snapshot' as any)
+	);
 	util.safeWsSend = jest.fn();
 	relayerServer.handleOrderBookUpdate = jest.fn();
 	await relayerServer.handleOrderBookSubscribeRequest('ws' as any, {
@@ -813,7 +815,7 @@ test('handleOrderBookSubscribeRequest new pair', async () => {
 test('handleOrderBookSubscribeRequest new pair no snapshot', async () => {
 	relayerServer.orderBookPairs = {};
 	orderBookPersistenceUtil.subscribeOrderBookUpdate = jest.fn();
-	orderBookPersistenceUtil.getOrderBookSnapshot = jest.fn(() => Promise.resolve());
+	orderBookPersistenceUtil.getOrderBookSnapshot = jest.fn(() => Promise.resolve(null));
 	relayerServer.sendResponse = jest.fn();
 	util.safeWsSend = jest.fn();
 	await relayerServer.handleOrderBookSubscribeRequest('ws' as any, {
@@ -839,7 +841,9 @@ test('handleOrderBookSubscribeRequest empty list', async () => {
 		pair: []
 	};
 	orderBookPersistenceUtil.subscribeOrderBookUpdate = jest.fn();
-	orderBookPersistenceUtil.getOrderBookSnapshot = jest.fn(() => Promise.resolve('snapshot'));
+	orderBookPersistenceUtil.getOrderBookSnapshot = jest.fn(() =>
+		Promise.resolve('snapshot' as any)
+	);
 	util.safeWsSend = jest.fn();
 	await relayerServer.handleOrderBookSubscribeRequest('ws' as any, {
 		channel: 'channel',
@@ -863,7 +867,9 @@ test('handleOrderBookSubscribeRequest existing pair new ws', async () => {
 		pair: ['ws1'] as any
 	};
 	orderBookPersistenceUtil.subscribeOrderBookUpdate = jest.fn();
-	orderBookPersistenceUtil.getOrderBookSnapshot = jest.fn(() => Promise.resolve('snapshot'));
+	orderBookPersistenceUtil.getOrderBookSnapshot = jest.fn(() =>
+		Promise.resolve('snapshot' as any)
+	);
 	util.safeWsSend = jest.fn();
 	await relayerServer.handleOrderBookSubscribeRequest('ws' as any, {
 		channel: 'channel',
@@ -885,7 +891,9 @@ test('handleOrderBookSubscribeRequest existing pair existing ws', async () => {
 		pair: ['ws'] as any
 	};
 	orderBookPersistenceUtil.subscribeOrderBookUpdate = jest.fn();
-	orderBookPersistenceUtil.getOrderBookSnapshot = jest.fn(() => Promise.resolve('snapshot'));
+	orderBookPersistenceUtil.getOrderBookSnapshot = jest.fn(() =>
+		Promise.resolve('snapshot' as any)
+	);
 	util.safeWsSend = jest.fn();
 	await relayerServer.handleOrderBookSubscribeRequest('ws' as any, {
 		channel: 'channel',
@@ -1327,29 +1335,33 @@ test('handleWebSocketMessage trades', () => {
 });
 
 test('loadDuoAcceptedPrices no web3Util', async () => {
-	duoDynamoUtil.queryAcceptPriceEvent = jest.fn(() => Promise.resolve());
+	const queryAcceptPriceEvent = jest.fn(() => Promise.resolve());
 	relayerServer.duoAcceptedPrices = {};
 	relayerServer.web3Util = null;
-	await relayerServer.loadDuoAcceptedPrices();
+	await relayerServer.loadDuoAcceptedPrices({
+		queryAcceptPriceEvent: queryAcceptPriceEvent
+	} as any);
 	expect(relayerServer.duoAcceptedPrices).toEqual({});
-	expect(duoDynamoUtil.queryAcceptPriceEvent as jest.Mock).not.toBeCalled();
+	expect(queryAcceptPriceEvent).not.toBeCalled();
 });
 
 test('loadDuoAcceptedPrices no tokens', async () => {
-	duoDynamoUtil.queryAcceptPriceEvent = jest.fn(() => Promise.resolve());
+	const queryAcceptPriceEvent = jest.fn(() => Promise.resolve());
 	relayerServer.duoAcceptedPrices = {};
 	relayerServer.web3Util = {
 		tokens: []
 	} as any;
-	await relayerServer.loadDuoAcceptedPrices();
+	await relayerServer.loadDuoAcceptedPrices({
+		queryAcceptPriceEvent: queryAcceptPriceEvent
+	} as any);
 	expect(relayerServer.duoAcceptedPrices).toEqual({});
-	expect(duoDynamoUtil.queryAcceptPriceEvent as jest.Mock).not.toBeCalled();
+	expect(queryAcceptPriceEvent).not.toBeCalled();
 });
 
 test('loadDuoAcceptedPrices', async () => {
 	Web3Util.toChecksumAddress = jest.fn(addr => addr);
 	util.getDates = () => ['YYYY-MM-DD'];
-	duoDynamoUtil.queryAcceptPriceEvent = jest.fn(() => Promise.resolve());
+	const queryAcceptPriceEvent = jest.fn(() => Promise.resolve());
 	relayerServer.duoAcceptedPrices = {};
 	relayerServer.web3Util = {
 		tokens: [
@@ -1357,17 +1369,21 @@ test('loadDuoAcceptedPrices', async () => {
 			{ custodian: '0xf474e7E554D98a580282726434d1281aA273E87F'.toLowerCase() }
 		]
 	} as any;
-	await relayerServer.loadDuoAcceptedPrices();
+	await relayerServer.loadDuoAcceptedPrices({
+		queryAcceptPriceEvent: queryAcceptPriceEvent
+	} as any);
 	expect(relayerServer.duoAcceptedPrices).toEqual({});
-	expect((duoDynamoUtil.queryAcceptPriceEvent as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(queryAcceptPriceEvent.mock.calls).toMatchSnapshot();
 });
 
 test('loadDuoExchangePrices', async () => {
 	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	duoDynamoUtil.getPrices = jest.fn(() => Promise.resolve());
-	await relayerServer.loadDuoExchangePrices();
+	const getPrices = jest.fn(() => Promise.resolve());
+	await relayerServer.loadDuoExchangePrices({
+		getPrices: getPrices
+	} as any);
 	expect(relayerServer.duoExchangePrices).toEqual({});
-	expect((duoDynamoUtil.getPrices as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(getPrices.mock.calls).toMatchSnapshot();
 });
 
 test('loadAndSubscribeMarketTrades no web3Util', async () => {
@@ -1375,7 +1391,7 @@ test('loadAndSubscribeMarketTrades no web3Util', async () => {
 	dynamoUtil.getTrades = jest
 		.fn()
 		.mockResolvedValueOnce([{ pair: 'pair' }])
-		.mockResolvedValueOnce([]);
+		.mockResolvedValueOnce([] as any) as any;
 	relayerServer.web3Util = null;
 	tradePriceUtil.subscribeTradeUpdate = jest.fn();
 	relayerServer.marketTrades = {};
@@ -1390,7 +1406,7 @@ test('loadAndSubscribeMarketTrades', async () => {
 	dynamoUtil.getTrades = jest
 		.fn()
 		.mockResolvedValueOnce([{ pair: 'pair' }])
-		.mockResolvedValueOnce([]);
+		.mockResolvedValueOnce([] as any) as any;
 	relayerServer.web3Util = {
 		tokens: [{ code: 'code1' }, { code: 'code2' }]
 	} as any;
@@ -1445,16 +1461,16 @@ test('handleWebSocketConnection', () => {
 
 test('initializeCache', async () => {
 	global.setInterval = jest.fn();
-	dynamoUtil.scanTokens = jest.fn(() => Promise.resolve(['token']));
-	dynamoUtil.scanIpList = jest.fn(() => Promise.resolve(['ip']));
-	dynamoUtil.scanStatus = jest.fn(() => Promise.resolve(['status']));
+	dynamoUtil.scanTokens = jest.fn(() => Promise.resolve(['token' as any]));
+	dynamoUtil.scanIpList = jest.fn(() => Promise.resolve('ip' as any));
+	dynamoUtil.scanStatus = jest.fn(() => Promise.resolve(['status' as any]));
 	relayerServer.loadDuoAcceptedPrices = jest.fn(() => Promise.resolve());
 	relayerServer.loadDuoExchangePrices = jest.fn(() => Promise.resolve());
 	relayerServer.loadAndSubscribeMarketTrades = jest.fn(() => Promise.resolve());
 	const web3Util = {
 		setTokens: jest.fn()
 	};
-	await relayerServer.initializeCache(web3Util as any);
+	await relayerServer.initializeCache(web3Util as any, {} as any);
 	expect((global.setInterval as jest.Mock).mock.calls).toMatchSnapshot();
 	await (global.setInterval as jest.Mock).mock.calls[0][0]();
 	await (global.setInterval as jest.Mock).mock.calls[1][0]();
@@ -1616,7 +1632,6 @@ test('initializeWsServer', () => {
 
 test('startServer', async () => {
 	Web3Util.fromWei = jest.fn();
-	duoDynamoUtil.init = jest.fn();
 	relayerServer.initializeCache = jest.fn(() => Promise.resolve());
 	relayerServer.initializeWsServer = jest.fn();
 	dynamoUtil.updateStatus = jest.fn(() => Promise.resolve());
@@ -1624,10 +1639,7 @@ test('startServer', async () => {
 
 	await relayerServer.startServer('config' as any, { server: true, env: CST.DB_LIVE } as any);
 	expect((Web3Util as any).mock.calls).toMatchSnapshot();
-	expect((duoDynamoUtil.init as jest.Mock).mock.calls).toMatchSnapshot();
-	expect(await (duoDynamoUtil.init as jest.Mock).mock.calls[0][4]('txHash')).toMatchSnapshot();
-	hasTxReceipt = true;
-	expect(await (duoDynamoUtil.init as jest.Mock).mock.calls[0][4]('txHash')).toMatchSnapshot();
+	expect((DuoDynamoUtil as any).mock.calls).toMatchSnapshot();
 	const fsCalls = (fs.readFileSync as jest.Mock).mock.calls;
 	expect(fsCalls.slice(fsCalls.length - 2)).toMatchSnapshot();
 	expect((WebSocket.Server as any).mock.calls).toMatchSnapshot();
@@ -1638,7 +1650,6 @@ test('startServer', async () => {
 
 test('startServer no server', async () => {
 	Web3Util.fromWei = jest.fn();
-	duoDynamoUtil.init = jest.fn();
 	relayerServer.initializeCache = jest.fn(() => Promise.resolve());
 	relayerServer.initializeWsServer = jest.fn();
 	dynamoUtil.updateStatus = jest.fn(() => Promise.resolve());

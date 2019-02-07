@@ -1,5 +1,3 @@
-export { API_KRAKEN } from '../../../duo-admin/src/common/constants';
-
 export const DB_ISRAFEL = 'israfel';
 export const DB_LIVE_ORDERS = 'liveOrders';
 export const DB_RAW_ORDERS = 'rawOrders';
