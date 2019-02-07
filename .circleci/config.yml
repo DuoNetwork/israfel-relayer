@@ -15,7 +15,7 @@ jobs:
                       ssh-keyscan -v github.com >> ~/.ssh/known_hosts && 
                       ssh-keyscan -v 192.30.253.112 >> ~/.ssh/known_hosts
             - run: ls -al ~/.ssh
-            - run: git clone git@github.com:FinBook/israfel-common.git /home/circleci/israfel-common
+            - run: git clone git@192.30.253.113:FinBook/israfel-common.git /home/circleci/israfel-common
             - run: cd /home/circleci/israfel-common
             - run:
                   name: Install npm wee
