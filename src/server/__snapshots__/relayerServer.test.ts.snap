@@ -1562,7 +1562,7 @@ Array [
     null,
     true,
     "",
-    false,
+    "https://mainnet.infura.io/",
   ],
 ]
 `;
@@ -1628,13 +1628,13 @@ Array [
     null,
     true,
     "",
-    false,
+    "https://mainnet.infura.io/",
   ],
   Array [
     null,
     false,
     "",
-    false,
+    "https://kovan.infura.io/",
   ],
 ]
 `;

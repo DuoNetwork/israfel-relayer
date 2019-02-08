@@ -233,7 +233,12 @@ class OrderWatcherServer {
 	}
 
 	public async startServer(option: IOption) {
-		this.web3Util = new Web3Util(null, option.env === Constants.DB_LIVE, '', true);
+		this.web3Util = new Web3Util(
+			null,
+			option.env === Constants.DB_LIVE,
+			'',
+			Constants.PROVIDER_LOCAL
+		);
 		this.web3Util.setTokens(await dynamoUtil.scanTokens());
 		this.orderWatcher = new OrderWatcher(
 			this.web3Util.getProvider(),

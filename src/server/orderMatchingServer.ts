@@ -15,18 +15,28 @@ class OrderMatchServer {
 	}
 
 	public async startServer(option: IOption) {
+		const live = option.env === Constants.DB_LIVE;
 		let mnemonic = { mnemomic: '' };
+		let infura = { token: '' };
 		try {
 			mnemonic = require('../keys/mnemomic.json');
 		} catch (err) {
 			Util.logError(JSON.stringify(err));
 		}
 
+		try {
+			infura = require('../keys/infura.json');
+		} catch (error) {
+			Util.logError(error);
+		}
+
 		const web3Util = new Web3Util(
 			null,
-			option.env === Constants.DB_LIVE,
+			live,
 			mnemonic.mnemomic,
-			false
+			(live ? Constants.PROVIDER_INFURA_MAIN : Constants.PROVIDER_INFURA_KOVAN) +
+				'/' +
+				infura.token
 		);
 		this.availableAddrs = await web3Util.getAvailableAddresses();
 		web3Util.setTokens(await dynamoUtil.scanTokens());

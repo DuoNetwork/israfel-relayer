@@ -585,7 +585,21 @@ class RelayerServer {
 	}
 
 	public async startServer(config: object, option: IOption) {
-		this.web3Util = new Web3Util(null, option.env === Constants.DB_LIVE, '', false);
+		const live = option.env === Constants.DB_LIVE;
+		let infura = { token: '' };
+		try {
+			infura = require('../keys/infura.json');
+		} catch (error) {
+			Util.logError(error);
+		}
+		this.web3Util = new Web3Util(
+			null,
+			live,
+			'',
+			(live ? Constants.PROVIDER_INFURA_MAIN : Constants.PROVIDER_INFURA_KOVAN) +
+				'/' +
+				infura.token
+		);
 		const duoDynamoUtil = new DuoDynamoUtil(
 			config,
 			option.env === Constants.DB_LIVE,
