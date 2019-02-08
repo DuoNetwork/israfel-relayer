@@ -594,11 +594,11 @@ class RelayerServer {
 		}
 		this.web3Util = new Web3Util(
 			null,
-			live,
-			'',
 			(live ? Constants.PROVIDER_INFURA_MAIN : Constants.PROVIDER_INFURA_KOVAN) +
 				'/' +
-				infura.token
+				infura.token,
+			'',
+			live
 		);
 		const duoDynamoUtil = new DuoDynamoUtil(
 			config,

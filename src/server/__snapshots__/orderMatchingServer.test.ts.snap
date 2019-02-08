@@ -4,9 +4,9 @@ exports[`startProcessing 1`] = `
 Array [
   Array [
     null,
-    true,
-    "",
     "https://mainnet.infura.io/",
+    "",
+    true,
   ],
 ]
 `;
@@ -61,15 +61,15 @@ exports[`startProcessing, no serveer 1`] = `
 Array [
   Array [
     null,
-    true,
-    "",
     "https://mainnet.infura.io/",
+    "",
+    true,
   ],
   Array [
     null,
-    false,
-    "",
     "https://kovan.infura.io/",
+    "",
+    false,
   ],
 ]
 `;

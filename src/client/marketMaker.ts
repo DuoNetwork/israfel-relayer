@@ -692,7 +692,20 @@ class MarketMaker {
 		Util.logInfo(`starting bot for token ${option.token}`);
 		const mnemonic = require('../keys/mnemomicBot.json');
 		const live = option.env === Constants.DB_LIVE;
-		const web3Util = new Web3Util(null, live, mnemonic[option.token], false);
+		let infura = { token: '' };
+		try {
+			infura = require('../keys/infura.json');
+		} catch (error) {
+			Util.logError(error);
+		}
+		const web3Util = new Web3Util(
+			null,
+			(live ? Constants.PROVIDER_INFURA_MAIN : Constants.PROVIDER_INFURA_KOVAN) +
+				'/' +
+				infura.token,
+			mnemonic[option.token],
+			live
+		);
 		this.makerAccount = Web3Util.getAccountFromMnemonic(mnemonic[option.token], 0);
 		this.isBeethoven = option.token.startsWith('a');
 		this.connectToRelayer(new RelayerClient(web3Util, option.env), option);

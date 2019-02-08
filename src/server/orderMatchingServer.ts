@@ -32,11 +32,11 @@ class OrderMatchServer {
 
 		const web3Util = new Web3Util(
 			null,
-			live,
-			mnemonic.mnemomic,
 			(live ? Constants.PROVIDER_INFURA_MAIN : Constants.PROVIDER_INFURA_KOVAN) +
 				'/' +
-				infura.token
+				infura.token,
+			mnemonic.mnemomic,
+			live
 		);
 		this.availableAddrs = await web3Util.getAvailableAddresses();
 		web3Util.setTokens(await dynamoUtil.scanTokens());

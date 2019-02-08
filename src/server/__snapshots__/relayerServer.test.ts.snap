@@ -1560,9 +1560,9 @@ exports[`startServer 1`] = `
 Array [
   Array [
     null,
-    true,
-    "",
     "https://mainnet.infura.io/",
+    "",
+    true,
   ],
 ]
 `;
@@ -1626,15 +1626,15 @@ exports[`startServer no server 1`] = `
 Array [
   Array [
     null,
-    true,
-    "",
     "https://mainnet.infura.io/",
+    "",
+    true,
   ],
   Array [
     null,
-    false,
-    "",
     "https://kovan.infura.io/",
+    "",
+    false,
   ],
 ]
 `;
