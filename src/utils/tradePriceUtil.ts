@@ -1,4 +1,4 @@
-import { Constants, ITrade } from '../../../israfel-common/src';
+import { Constants, ITrade } from '@finbook/israfel-common';
 import { IOrderMatchRequest } from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import redisUtil from './redisUtil';

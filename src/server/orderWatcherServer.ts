@@ -14,7 +14,7 @@ import {
 	OrderUtil,
 	Util,
 	Web3Util
-} from '../../../israfel-common/src';
+} from '@finbook/israfel-common';
 import { ONE_MINUTE_MS } from '../common/constants';
 import { IOption, IOrderPersistRequest, IOrderQueueItem } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';

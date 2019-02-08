@@ -16,7 +16,7 @@ import {
 	RelayerClient,
 	Util,
 	Web3Util
-} from '../../../israfel-common/src';
+} from '@finbook/israfel-common';
 import * as CST from '../common/constants';
 import { IOption } from '../common/types';
 

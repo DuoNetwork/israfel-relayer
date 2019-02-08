@@ -1,8 +1,5 @@
+import { Constants, Util } from '@finbook/israfel-common';
 import DynamoDB from 'aws-sdk/clients/dynamodb';
-import {
-	Constants,
-	Util
-} from '../../../israfel-common/src';
 import dynamoUtil from './dynamoUtil';
 
 jest.mock('aws-sdk/clients/dynamodb', () => jest.fn().mockImplementation(() => ({})));

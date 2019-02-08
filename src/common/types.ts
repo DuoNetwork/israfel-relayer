@@ -1,5 +1,5 @@
+import { ILiveOrder, IStringSignedOrder, IToken } from '@finbook/israfel-common';
 import { ChildProcess } from 'child_process';
-import { ILiveOrder, IStringSignedOrder, IToken } from '../../../israfel-common/src';
 
 export interface IOrderPersistRequest {
 	method: string;

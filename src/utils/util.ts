@@ -1,4 +1,4 @@
-import { Constants } from '../../../israfel-common/src';
+import { Constants } from '@finbook/israfel-common';
 import { IOption } from '../common/types';
 
 export default class Util {

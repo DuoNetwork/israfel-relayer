@@ -1,18 +1,18 @@
 // fix for @ledgerhq/hw-transport-u2f 4.28.0
 import '@babel/polyfill';
 import * as DataConstants from '@finbook/duo-market-data/dist/constants';
+import * as Constants from '@finbook/israfel-common/dist/constants';
+import OrderUtil from '@finbook/israfel-common/dist/OrderUtil';
+import Util from '@finbook/israfel-common/dist/Util';
 import * as fs from 'fs';
 import WebSocket from 'ws';
-import * as Constants from '../../../israfel-common/src/constants';
-import OrderUtil from '../../../israfel-common/src/OrderUtil';
-import Util from '../../../israfel-common/src/Util';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import tradePriceUtil from '../utils/tradePriceUtil';
 import relayerServer from './relayerServer';
 
-jest.mock('../../../israfel-common/src', () => ({
+jest.mock('@finbook/israfel-common', () => ({
 	Constants: Constants,
 	OrderUtil: OrderUtil,
 	Util: Util,
@@ -43,7 +43,7 @@ jest.mock('https', () => ({
 }));
 
 import { DynamoUtil as DuoDynamoUtil } from '@finbook/duo-market-data';
-import { Web3Util } from '../../../israfel-common/src';
+import { Web3Util } from '@finbook/israfel-common';
 
 test('sendInfo', () => {
 	const ws = {

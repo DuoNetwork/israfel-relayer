@@ -3,7 +3,7 @@ import {
 	IOrderBookSnapshot,
 	IOrderBookSnapshotUpdate,
 	Util
-} from '../../../israfel-common/src';
+} from '@finbook/israfel-common';
 import redisUtil from './redisUtil';
 
 class OrderBookPersistenceUtil {

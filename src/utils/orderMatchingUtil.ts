@@ -1,5 +1,4 @@
 import { BigNumber, SignedOrder } from '0x.js';
-import moment from 'moment';
 import {
 	Constants,
 	ILiveOrder,
@@ -10,7 +9,8 @@ import {
 	OrderUtil,
 	Util,
 	Web3Util
-} from '../../../israfel-common/src';
+} from '@finbook/israfel-common';
+import moment from 'moment';
 import { IOrderMatchRequest } from '../common/types';
 import orderPersistenceUtil from './orderPersistenceUtil';
 import redisUtil from './redisUtil';

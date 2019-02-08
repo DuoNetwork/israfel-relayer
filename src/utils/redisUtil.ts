@@ -1,5 +1,5 @@
+import { Constants, IOrderBookSnapshotUpdate, ITrade, Util } from '@finbook/israfel-common';
 import Redis from 'ioredis';
-import { Constants, IOrderBookSnapshotUpdate, ITrade, Util } from '../../../israfel-common/src';
 import { IOrderQueueItem } from '../common/types';
 
 class RedisUtil {

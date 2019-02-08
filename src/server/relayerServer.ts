@@ -4,9 +4,6 @@ import {
 	IAcceptedPrice,
 	IPrice
 } from '@finbook/duo-market-data';
-import * as fs from 'fs';
-import * as https from 'https';
-import WebSocket, { VerifyClientCallbackSync } from 'ws';
 import {
 	Constants,
 	IOrderBookSnapshotUpdate,
@@ -29,7 +26,10 @@ import {
 	OrderUtil,
 	Util,
 	Web3Util
-} from '../../../israfel-common/src';
+} from '@finbook/israfel-common';
+import * as fs from 'fs';
+import * as https from 'https';
+import WebSocket, { VerifyClientCallbackSync } from 'ws';
 import { IOption, IOrderQueueItem } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';

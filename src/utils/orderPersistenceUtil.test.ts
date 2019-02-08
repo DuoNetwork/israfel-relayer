@@ -1,6 +1,6 @@
 // fix for @ledgerhq/hw-transport-u2f 4.28.0
 import '@babel/polyfill';
-import { Constants, OrderUtil, Web3Util } from '../../../israfel-common/src';
+import { Constants, OrderUtil, Web3Util } from '@finbook/israfel-common';
 import dynamoUtil from './dynamoUtil';
 import orderPersistenceUtil from './orderPersistenceUtil';
 import redisUtil from './redisUtil';

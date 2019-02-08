@@ -5,7 +5,7 @@ import {
 	IToken,
 	OrderUtil,
 	Util
-} from '../../../israfel-common/src';
+} from '@finbook/israfel-common';
 import { IOption, IOrderPersistRequest, IOrderQueueItem } from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import redisUtil from './redisUtil';

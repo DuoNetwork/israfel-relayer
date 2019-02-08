@@ -1,7 +1,7 @@
 // fix for @ledgerhq/hw-transport-u2f 4.28.0
 import '@babel/polyfill';
 import * as WrapperConstants from '@finbook/duo-contract-wrapper/dist/constants';
-import { Constants, OrderBookUtil, Util } from '../../../israfel-common/src';
+import { Constants, OrderBookUtil, Util } from '@finbook/israfel-common';
 import liveOrders from '../samples/test/liveOrders.json';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderBookPersistenceUtil from '../utils/orderBookPersistenceUtil';

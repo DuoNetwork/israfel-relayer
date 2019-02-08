@@ -1,4 +1,4 @@
-import { Constants, Util, Web3Util } from '../../../israfel-common/src';
+import { Constants, Util, Web3Util } from '@finbook/israfel-common';
 import { IOption } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderMatchingUtil from '../utils/orderMatchingUtil';

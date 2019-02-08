@@ -1,3 +1,14 @@
+import {
+	Constants,
+	IFeeSchedule,
+	ILiveOrder,
+	IRawOrder,
+	IStatus,
+	IToken,
+	ITrade,
+	IUserOrder,
+	Util
+} from '@finbook/israfel-common';
 import DynamoDB, {
 	AttributeMap,
 	DeleteItemInput,
@@ -11,17 +22,7 @@ import DynamoDB, {
 } from 'aws-sdk/clients/dynamodb';
 import AWS from 'aws-sdk/global';
 import moment from 'moment';
-import {
-	Constants,
-	IFeeSchedule,
-	ILiveOrder,
-	IRawOrder,
-	IStatus,
-	IToken,
-	ITrade,
-	IUserOrder,
-	Util
-} from '../../../israfel-common/src';
+
 import { AWS_DYNAMO_API_VERSION } from '../common/constants';
 
 class DynamoUtil {

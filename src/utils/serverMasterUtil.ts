@@ -1,5 +1,5 @@
+import { IToken, Util } from '@finbook/israfel-common';
 import child_process from 'child_process';
-import { IToken, Util } from '../../../israfel-common/src';
 import { IOption, ISubProcess } from '../common/types';
 import dynamoUtil from './dynamoUtil';
 import osUtil from './osUtil';

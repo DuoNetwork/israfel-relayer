@@ -2,11 +2,7 @@
 import '@babel/polyfill';
 
 import { BigNumber, ExchangeContractErrs, OrderState } from '0x.js';
-import {
-	Constants,
-	Util,
-	Web3Util
-} from '../../../israfel-common/src';
+import { Constants, Util, Web3Util } from '@finbook/israfel-common';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderPersistenceUtil from '../utils/orderPersistenceUtil';
 import orderWatcherServer from './orderWatcherServer';

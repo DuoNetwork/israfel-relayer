@@ -1,11 +1,11 @@
-import * as Constants from '../../../israfel-common/src/constants';
-import Util from '../../../israfel-common/src/Util';
+import * as Constants from '@finbook/israfel-common/dist/constants';
+import Util from '@finbook/israfel-common/dist/Util';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderMatchingUtil from '../utils/orderMatchingUtil';
 import redisUtil from '../utils/redisUtil';
 import orderMatchingServer from './orderMatchingServer';
 
-jest.mock('../../../israfel-common/src', () => ({
+jest.mock('@finbook/israfel-common', () => ({
 	Constants: Constants,
 	Util: Util,
 	Web3Util: jest.fn(() => ({
@@ -14,7 +14,7 @@ jest.mock('../../../israfel-common/src', () => ({
 	}))
 }));
 
-import { Web3Util } from '../../../israfel-common/src';
+import { Web3Util } from '@finbook/israfel-common';
 
 test('startProcessing', async () => {
 	global.setTimeout = jest.fn();

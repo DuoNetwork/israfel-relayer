@@ -2,7 +2,7 @@
 import '@babel/polyfill';
 import { DualClassWrapper } from '@finbook/duo-contract-wrapper';
 import { Constants as DataConstants } from '@finbook/duo-market-data';
-import { Util } from '../../../israfel-common/src';
+import { Util } from '@finbook/israfel-common';
 import marketMaker from './marketMaker';
 
 const userOrders = [

@@ -1,5 +1,5 @@
+import { Constants, Util } from '@finbook/israfel-common';
 import child_process from 'child_process';
-import { Constants, Util } from '../../../israfel-common/src';
 import dynamoUtil from './dynamoUtil';
 import osUtil from './osUtil';
 import serverMasterUtil from './serverMasterUtil';

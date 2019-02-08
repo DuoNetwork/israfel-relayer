@@ -12,7 +12,7 @@ import {
 	IOrderBookSnapshotUpdate,
 	OrderBookUtil,
 	Util
-} from '../../../israfel-common/src';
+} from '@finbook/israfel-common';
 import { ONE_MINUTE_MS } from '../common/constants';
 import { IOption, IOrderQueueItem, IOrderUpdate } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
