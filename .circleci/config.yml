@@ -1,29 +1,11 @@
 version: 2
 jobs:
-    build-duo-admin:
-        working_directory: /home/circleci/duo-admin
-        docker:
-            - image: circleci/node:8.11.1
-        steps:
-            - run: git clone https://github.com/FinBook/duo-admin.git /home/circleci/duo-admin
-            - run: cd /home/circleci/duo-admin
-            - restore_cache:
-                  key: dependency-assets-{{ .Environment.CIRCLE_SHA1 }}
-            - run:
-                  name: Install npm wee
-                  command: npm install
-            - save_cache:
-                  key: dependency-assets-{{ .Environment.CIRCLE_SHA1 }}
-                  paths:
-                      - /home/circleci/duo-admin
     test:
         working_directory: /home/circleci/israfel-relayer
         docker:
             - image: circleci/node:8.11.1
         steps:
             - checkout
-            - restore_cache:
-                  key: dependency-assets-{{ .Environment.CIRCLE_SHA1 }}
             - run:
                   name: Install npm
                   command: npm install
@@ -33,29 +15,11 @@ jobs:
             - run:
                   name: post coverage
                   command: cat ./coverage/lcov.info | ./node_modules/.bin/coveralls
-            - save_cache:
-                  key: dependency-test-{{ .Environment.CIRCLE_SHA1 }}
-                  paths:
-                      - /home/circleci/israfel-relayer
-    deploy:
-        docker:
-            - image: circleci/python:2.7-jessie
-        working_directory: /home/circleci/test
-        steps:
-            - run:
-                  name: Install awscli
-                  command: sudo pip install awscli
-            - restore_cache:
-                  key: dependency-test-{{ .Environment.CIRCLE_SHA1 }}
-            - run: aws s3 sync /home/circleci/israfel-relayer/coverage/lcov-report s3://israfel-relayer
 workflows:
     version: 2
     build_and_test:
         jobs:
-            - build-duo-admin
-            - test:
-                  requires:
-                      - build-duo-admin
+            - test
     schedule_deploy:
         triggers:
             - schedule:
@@ -64,13 +28,4 @@ workflows:
                       branches:
                           only: master
         jobs:
-            - build-duo-admin
-            - test:
-                  requires:
-                      - build-duo-admin
-                  filters:
-                      branches:
-                          only: master
-            - deploy:
-                  requires:
-                      - test
+            - test

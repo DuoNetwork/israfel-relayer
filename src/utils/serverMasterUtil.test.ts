@@ -1,20 +1,19 @@
+import { Constants, Util } from '@finbook/israfel-common';
 import child_process from 'child_process';
-import { DB_DEV, DB_LIVE } from '../common/constants';
 import dynamoUtil from './dynamoUtil';
 import osUtil from './osUtil';
 import serverMasterUtil from './serverMasterUtil';
-import util from './util';
 
 test('retry after long enought time', () => {
 	const launchMock = jest.fn();
 	const launchOriginal = serverMasterUtil.launchTokenPair;
 	serverMasterUtil.launchTokenPair = launchMock;
 	child_process.exec = jest.fn() as any;
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	global.setTimeout = jest.fn();
 	serverMasterUtil.subProcesses['token'] = {
 		token: 'token',
-		lastFailTimestamp: util.getUTCNowTimestamp() - (30000 + 1),
+		lastFailTimestamp: Util.getUTCNowTimestamp() - (30000 + 1),
 		failCount: 2,
 		instance: undefined as any
 	};
@@ -36,17 +35,17 @@ test('retry after long enought time', () => {
 
 test('retry within short time', () => {
 	child_process.exec = jest.fn() as any;
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	serverMasterUtil.subProcesses['token'] = {
 		token: 'token',
-		lastFailTimestamp: util.getUTCNowTimestamp() - (30000 - 1),
+		lastFailTimestamp: Util.getUTCNowTimestamp() - (30000 - 1),
 		failCount: 2,
 		instance: undefined as any
 	};
 	serverMasterUtil.retry(
 		'tool',
 		{
-			env: DB_DEV,
+			env: Constants.DB_DEV,
 			debug: false,
 			live: false
 		} as any,
@@ -58,7 +57,7 @@ test('retry within short time', () => {
 test('launchTokenPair fail win32', () => {
 	osUtil.isWindows = jest.fn(() => true);
 	child_process.exec = jest.fn() as any;
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	serverMasterUtil.retry = jest.fn();
 	serverMasterUtil.subProcesses['token'] = {
 		token: 'token',
@@ -67,13 +66,13 @@ test('launchTokenPair fail win32', () => {
 		instance: undefined as any
 	};
 	serverMasterUtil.launchTokenPair('tool', 'token', {
-		env: DB_DEV,
+		env: Constants.DB_DEV,
 		debug: false,
 		live: false
 	} as any);
-	expect(((child_process.exec as any) as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect(((child_process.exec as any) as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(serverMasterUtil.subProcesses).toMatchSnapshot();
-	expect((serverMasterUtil.retry as jest.Mock<void>).mock.calls).toMatchSnapshot();
+	expect((serverMasterUtil.retry as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('launchTokenPair success win 32', () => {
@@ -84,7 +83,7 @@ test('launchTokenPair success win 32', () => {
 			on: execOn
 		};
 	}) as any;
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	serverMasterUtil.retry = jest.fn();
 	serverMasterUtil.subProcesses['token'] = {
 		token: 'token',
@@ -94,12 +93,12 @@ test('launchTokenPair success win 32', () => {
 	};
 	serverMasterUtil.retry = jest.fn();
 	serverMasterUtil.launchTokenPair('tool', 'token', {
-		env: DB_DEV,
+		env: Constants.DB_DEV,
 		debug: false,
 		live: false,
 		server: true
 	} as any);
-	expect(((child_process.exec as any) as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect(((child_process.exec as any) as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(serverMasterUtil.subProcesses).toMatchSnapshot();
 	expect(execOn.mock.calls).toMatchSnapshot();
 	execOn.mock.calls[0][1]();
@@ -110,7 +109,7 @@ test('launchTokenPair success win 32', () => {
 test('launchTokenPair debug win32', () => {
 	osUtil.isWindows = jest.fn(() => true);
 	child_process.exec = jest.fn() as any;
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	serverMasterUtil.subProcesses['token'] = {
 		token: 'token',
 		lastFailTimestamp: 0,
@@ -118,18 +117,18 @@ test('launchTokenPair debug win32', () => {
 		instance: undefined as any
 	};
 	serverMasterUtil.launchTokenPair('tool', 'token', {
-		env: DB_DEV,
+		env: Constants.DB_DEV,
 		debug: true,
 		live: false
 	} as any);
-	expect(((child_process.exec as any) as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect(((child_process.exec as any) as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(serverMasterUtil.subProcesses).toMatchSnapshot();
 });
 
 test('launchTokenPair fail not win32', () => {
 	osUtil.isWindows = jest.fn(() => false);
 	child_process.exec = jest.fn() as any;
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	serverMasterUtil.retry = jest.fn();
 	serverMasterUtil.subProcesses['token'] = {
 		token: 'token',
@@ -138,13 +137,13 @@ test('launchTokenPair fail not win32', () => {
 		instance: undefined as any
 	};
 	serverMasterUtil.launchTokenPair('tool', 'token', {
-		env: DB_LIVE,
+		env: Constants.DB_LIVE,
 		debug: false,
 		live: false
 	} as any);
-	expect(((child_process.exec as any) as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect(((child_process.exec as any) as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(serverMasterUtil.subProcesses).toMatchSnapshot();
-	expect((serverMasterUtil.retry as jest.Mock<void>).mock.calls).toMatchSnapshot();
+	expect((serverMasterUtil.retry as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('launchTokenPair success not win32', () => {
@@ -154,7 +153,7 @@ test('launchTokenPair success not win32', () => {
 			on: jest.fn()
 		};
 	}) as any;
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	serverMasterUtil.retry = jest.fn();
 	serverMasterUtil.subProcesses['token'] = {
 		token: 'token',
@@ -163,21 +162,21 @@ test('launchTokenPair success not win32', () => {
 		instance: undefined as any
 	};
 	serverMasterUtil.launchTokenPair('tool', 'token', {
-		env: DB_LIVE,
+		env: Constants.DB_LIVE,
 		debug: false,
 		live: false
 	} as any);
-	expect(((child_process.exec as any) as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect(((child_process.exec as any) as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(serverMasterUtil.subProcesses).toMatchSnapshot();
 	expect(
-		(serverMasterUtil.subProcesses['token'].instance.on as jest.Mock<void>).mock.calls
+		(serverMasterUtil.subProcesses['token'].instance.on as jest.Mock).mock.calls
 	).toMatchSnapshot();
 });
 
 test('launchTkenPair debug not win32', () => {
 	osUtil.isWindows = jest.fn(() => false);
 	child_process.exec = jest.fn() as any;
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	serverMasterUtil.subProcesses['token'] = {
 		token: 'token',
 		lastFailTimestamp: 0,
@@ -185,16 +184,16 @@ test('launchTkenPair debug not win32', () => {
 		instance: undefined as any
 	};
 	serverMasterUtil.launchTokenPair('tool', 'token', {
-		env: DB_LIVE,
+		env: Constants.DB_LIVE,
 		debug: true,
 		live: false
 	} as any);
-	expect(((child_process.exec as any) as jest.Mock<Promise<void>>).mock.calls).toMatchSnapshot();
+	expect(((child_process.exec as any) as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(serverMasterUtil.subProcesses).toMatchSnapshot();
 });
 
 test('startLaunching', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	child_process.exec = jest.fn() as any;
 	const option = {
 		env: 'test',
@@ -211,17 +210,17 @@ test('startLaunching', async () => {
 			{
 				code: 'test'
 			}
-		])
+		] as any)
 	);
-	util.sleep = jest.fn();
-	util.logInfo = jest.fn();
+	Util.sleep = jest.fn();
+	Util.logInfo = jest.fn();
 	const startServer = jest.fn(() => true);
 	await serverMasterUtil.startLaunching('test', option, startServer);
 	expect(startServer.mock.calls).toMatchSnapshot();
 });
 
 test('startLaunching invalid token', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	child_process.exec = jest.fn() as any;
 	const option = {
 		env: 'test',
@@ -234,8 +233,8 @@ test('startLaunching invalid token', async () => {
 		server: true
 	};
 	dynamoUtil.scanTokens = jest.fn(() => Promise.resolve([]));
-	util.sleep = jest.fn();
-	util.logInfo = jest.fn();
+	Util.sleep = jest.fn();
+	Util.logInfo = jest.fn();
 	const startServer = jest.fn(() => true);
 	try {
 		await serverMasterUtil.startLaunching('test', option, startServer);
@@ -246,7 +245,7 @@ test('startLaunching invalid token', async () => {
 });
 
 test('startLaunching tokens', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	child_process.exec = jest.fn() as any;
 	const option = {
 		env: 'test',
@@ -266,10 +265,10 @@ test('startLaunching tokens', async () => {
 			{
 				code: 'test2'
 			}
-		])
+		] as any)
 	);
-	util.sleep = jest.fn();
-	util.logInfo = jest.fn();
+	Util.sleep = jest.fn();
+	Util.logInfo = jest.fn();
 	const startServer = jest.fn(() => true);
 	serverMasterUtil.launchTokenPair = jest.fn();
 	await serverMasterUtil.startLaunching('test', option, startServer);
@@ -277,7 +276,7 @@ test('startLaunching tokens', async () => {
 });
 
 test('startLaunching no tokens', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	child_process.exec = jest.fn() as any;
 	const option = {
 		env: 'test',
@@ -294,10 +293,10 @@ test('startLaunching no tokens', async () => {
 			{
 				code: 'test'
 			}
-		])
+		] as any)
 	);
-	util.sleep = jest.fn();
-	util.logInfo = jest.fn();
+	Util.sleep = jest.fn();
+	Util.logInfo = jest.fn();
 	const startServer = jest.fn(() => true);
 	serverMasterUtil.launchTokenPair = jest.fn();
 	await serverMasterUtil.startLaunching('test', option, startServer);

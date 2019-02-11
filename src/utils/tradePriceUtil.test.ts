@@ -40,7 +40,7 @@ const orderMatchReq: IOrderMatchRequest = {
 };
 
 test('persistTrade', async () => {
-	redisUtil.publish = jest.fn(() => Promise.resolve());
+	redisUtil.publish = jest.fn(() => Promise.resolve(1));
 	dynamoUtil.addTrade = jest.fn(() => Promise.resolve());
 	await tradePriceUtil.persistTrade('txHash', 1234567890000, orderMatchReq, 'takerAddress');
 	expect((dynamoUtil.addTrade as jest.Mock).mock.calls).toMatchSnapshot();
@@ -49,7 +49,7 @@ test('persistTrade', async () => {
 
 test('persistTrade ask', async () => {
 	orderMatchReq.takerSide = 'ask';
-	redisUtil.publish = jest.fn(() => Promise.resolve());
+	redisUtil.publish = jest.fn(() => Promise.resolve(1));
 	dynamoUtil.addTrade = jest.fn(() => Promise.resolve());
 	await tradePriceUtil.persistTrade('txHash', 1234567890000, orderMatchReq, 'takerAddress');
 	expect((dynamoUtil.addTrade as jest.Mock).mock.calls).toMatchSnapshot();

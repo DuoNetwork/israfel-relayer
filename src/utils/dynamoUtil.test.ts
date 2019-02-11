@@ -1,7 +1,6 @@
+import { Constants, Util } from '@finbook/israfel-common';
 import DynamoDB from 'aws-sdk/clients/dynamodb';
-import * as CST from '../common/constants';
 import dynamoUtil from './dynamoUtil';
-import util from './util';
 
 jest.mock('aws-sdk/clients/dynamodb', () => jest.fn().mockImplementation(() => ({})));
 jest.mock('aws-sdk/global', () => ({
@@ -210,97 +209,97 @@ test('scanTokens', async () => {
 	scanOutput = {
 		Items: [
 			{
-				[CST.DB_CUSTODIAN]: { S: 'custodian1' },
-				[CST.DB_ADDRESS]: { S: 'addr1' },
-				[CST.DB_CODE]: { S: 'code1' },
-				[CST.DB_DENOMINATION]: { N: '1' },
-				[CST.DB_PRECISIONS]: {
+				[Constants.DB_CUSTODIAN]: { S: 'custodian1' },
+				[Constants.DB_ADDRESS]: { S: 'addr1' },
+				[Constants.DB_CODE]: { S: 'code1' },
+				[Constants.DB_DENOMINATION]: { N: '1' },
+				[Constants.DB_PRECISIONS]: {
 					M: {
 						WETH: { N: '0.000005' }
 					}
 				},
-				[CST.DB_FEE_SCHEDULES]: {
+				[Constants.DB_FEE_SCHEDULES]: {
 					M: {
 						WETH: {
 							M: {
-								[CST.DB_RATE]: { N: '0' },
-								[CST.DB_MIN]: { N: '1' }
+								[Constants.DB_RATE]: { N: '0' },
+								[Constants.DB_MIN]: { N: '1' }
 							}
 						}
 					}
 				}
 			},
 			{
-				[CST.DB_CUSTODIAN]: { S: 'custodian2' },
-				[CST.DB_ADDRESS]: { S: 'addr2' },
-				[CST.DB_CODE]: { S: 'code2' },
-				[CST.DB_DENOMINATION]: { N: '10' },
-				[CST.DB_PRECISIONS]: {
+				[Constants.DB_CUSTODIAN]: { S: 'custodian2' },
+				[Constants.DB_ADDRESS]: { S: 'addr2' },
+				[Constants.DB_CODE]: { S: 'code2' },
+				[Constants.DB_DENOMINATION]: { N: '10' },
+				[Constants.DB_PRECISIONS]: {
 					M: {
 						WETH: { N: '0.000005' }
 					}
 				},
-				[CST.DB_FEE_SCHEDULES]: {
+				[Constants.DB_FEE_SCHEDULES]: {
 					M: {
 						WETH: {
 							M: {
-								[CST.DB_ASSET]: { S: 'asset' },
-								[CST.DB_RATE]: { N: '0' },
-								[CST.DB_MIN]: { N: '1' }
+								[Constants.DB_ASSET]: { S: 'asset' },
+								[Constants.DB_RATE]: { N: '0' },
+								[Constants.DB_MIN]: { N: '1' }
 							}
 						}
 					}
 				},
-				[CST.DB_MATURITY]: { N: 1234567890 }
+				[Constants.DB_MATURITY]: { N: 1234567890 }
 			},
 			{
-				[CST.DB_CUSTODIAN]: { S: 'custodian3' },
-				[CST.DB_ADDRESS]: { S: 'addr3' },
-				[CST.DB_CODE]: { S: 'code3' },
-				[CST.DB_DENOMINATION]: { N: '10' },
-				[CST.DB_PRECISIONS]: {
+				[Constants.DB_CUSTODIAN]: { S: 'custodian3' },
+				[Constants.DB_ADDRESS]: { S: 'addr3' },
+				[Constants.DB_CODE]: { S: 'code3' },
+				[Constants.DB_DENOMINATION]: { N: '10' },
+				[Constants.DB_PRECISIONS]: {
 					M: {
 						WETH: { N: '0.000005' }
 					}
 				},
-				[CST.DB_FEE_SCHEDULES]: {
+				[Constants.DB_FEE_SCHEDULES]: {
 					M: {
 						WETH: {
 							M: {
-								[CST.DB_ASSET]: {},
-								[CST.DB_RATE]: { N: '0' },
-								[CST.DB_MIN]: { N: '1' }
+								[Constants.DB_ASSET]: {},
+								[Constants.DB_RATE]: { N: '0' },
+								[Constants.DB_MIN]: { N: '1' }
 							}
 						}
 					}
 				},
-				[CST.DB_MATURITY]: { N: 1234567890 }
+				[Constants.DB_MATURITY]: { N: 1234567890 }
 			},
 			{
-				[CST.DB_CUSTODIAN]: { S: 'custodian4' },
-				[CST.DB_ADDRESS]: { S: 'addr4' },
-				[CST.DB_CODE]: { S: 'code4' },
-				[CST.DB_DENOMINATION]: { N: '10' },
-				[CST.DB_PRECISIONS]: {
+				[Constants.DB_CUSTODIAN]: { S: 'custodian4' },
+				[Constants.DB_ADDRESS]: { S: 'addr4' },
+				[Constants.DB_CODE]: { S: 'code4' },
+				[Constants.DB_DENOMINATION]: { N: '10' },
+				[Constants.DB_PRECISIONS]: {
 					M: {
 						WETH: { N: '0.000005' }
 					}
 				},
-				[CST.DB_FEE_SCHEDULES]: {
+				[Constants.DB_FEE_SCHEDULES]: {
 					M: {
 						WETH: {}
 					}
 				},
-				[CST.DB_MATURITY]: { N: 1234567890 }
+				[Constants.DB_MATURITY]: { N: 1234567890 }
 			},
 			{
-				[CST.DB_CUSTODIAN]: {},
-				[CST.DB_ADDRESS]: {},
-				[CST.DB_CODE]: {},
-				[CST.DB_DENOMINATION]: { N: '10' },
-				[CST.DB_PRECISIONS]: {},
-				[CST.DB_FEE_SCHEDULES]: {},
-				[CST.DB_MATURITY]: { N: 1234567890 }
+				[Constants.DB_CUSTODIAN]: {},
+				[Constants.DB_ADDRESS]: {},
+				[Constants.DB_CODE]: {},
+				[Constants.DB_DENOMINATION]: { N: '10' },
+				[Constants.DB_PRECISIONS]: {},
+				[Constants.DB_FEE_SCHEDULES]: {},
+				[Constants.DB_MATURITY]: { N: 1234567890 }
 			}
 		]
 	};
@@ -318,20 +317,20 @@ test('scanIpList', async () => {
 	scanOutput = {
 		Items: [
 			{
-				[CST.DB_IP]: { S: 'ip1' },
-				[CST.DB_COLOR]: { S: CST.DB_WHITE }
+				[Constants.DB_IP]: { S: 'ip1' },
+				[Constants.DB_COLOR]: { S: Constants.DB_WHITE }
 			},
 			{
-				[CST.DB_IP]: { S: 'ip2' },
-				[CST.DB_COLOR]: { S: CST.DB_BLACK }
+				[Constants.DB_IP]: { S: 'ip2' },
+				[Constants.DB_COLOR]: { S: Constants.DB_BLACK }
 			},
 			{
-				[CST.DB_IP]: { S: 'ip3' },
-				[CST.DB_COLOR]: { S: '' }
+				[Constants.DB_IP]: { S: 'ip3' },
+				[Constants.DB_COLOR]: { S: '' }
 			},
 			{
-				[CST.DB_IP]: { S: '' },
-				[CST.DB_COLOR]: { S: CST.DB_BLACK }
+				[Constants.DB_IP]: { S: '' },
+				[Constants.DB_COLOR]: { S: Constants.DB_BLACK }
 			}
 		]
 	};
@@ -346,15 +345,15 @@ test('updateIpList', async () => {
 });
 
 test('updateStatus', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	dynamoUtil.putData = jest.fn(() => Promise.resolve());
 	await dynamoUtil.updateStatus('someProcess');
 	await dynamoUtil.updateStatus('someProcess', 123);
 	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('updateStatus failed', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
 	dynamoUtil.putData = jest.fn(() => Promise.reject('putDataError'));
 	await dynamoUtil.updateStatus('someProcess');
 	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
@@ -370,20 +369,20 @@ test('scanStatus', async () => {
 	scanOutput = {
 		Items: [
 			{
-				[CST.DB_PROCESS]: { S: 'tool|code1|code2|hostname' },
-				[CST.DB_UPDATED_AT]: { N: '1234567890' },
-				[CST.DB_HOSTNAME]: { S: 'hostname' },
-				[CST.DB_COUNT]: { N: '123' }
+				[Constants.DB_PROCESS]: { S: 'tool|code1|code2|hostname' },
+				[Constants.DB_UPDATED_AT]: { N: '1234567890' },
+				[Constants.DB_HOSTNAME]: { S: 'hostname' },
+				[Constants.DB_COUNT]: { N: '123' }
 			},
 			{
-				[CST.DB_PROCESS]: { S: 'tool|tool|hostname' },
-				[CST.DB_UPDATED_AT]: { N: '1234567890' },
-				[CST.DB_HOSTNAME]: { S: 'hostname' }
+				[Constants.DB_PROCESS]: { S: 'tool|tool|hostname' },
+				[Constants.DB_UPDATED_AT]: { N: '1234567890' },
+				[Constants.DB_HOSTNAME]: { S: 'hostname' }
 			},
 			{
-				[CST.DB_PROCESS]: {},
-				[CST.DB_UPDATED_AT]: { N: '1234567890' },
-				[CST.DB_HOSTNAME]: {}
+				[Constants.DB_PROCESS]: {},
+				[Constants.DB_UPDATED_AT]: { N: '1234567890' },
+				[Constants.DB_HOSTNAME]: {}
 			}
 		]
 	};
@@ -392,8 +391,8 @@ test('scanStatus', async () => {
 });
 
 test('updateLiveOrder', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.updateData = jest.fn(() => Promise.resolve({}));
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	dynamoUtil.updateData = jest.fn(() => Promise.resolve());
 	await dynamoUtil.updateLiveOrder({
 		account: '0xAccount',
 		pair: 'code1|code2',
@@ -403,7 +402,7 @@ test('updateLiveOrder', async () => {
 		balance: 123,
 		matching: 111,
 		fill: 234,
-		side: CST.DB_BID,
+		side: Constants.DB_BID,
 		expiry: 1234567890,
 		fee: 1,
 		feeAsset: 'feeAsset',
@@ -426,24 +425,24 @@ test('getLiveOrders', async () => {
 	queryOutput = {
 		Items: [
 			{
-				[CST.DB_ACCOUNT]: { S: '0xAccount' },
-				[CST.DB_PAIR]: { S: 'code1|code2' },
-				[CST.DB_ORDER_HASH]: { S: '0xOrderHash' },
-				[CST.DB_PRICE]: {
+				[Constants.DB_ACCOUNT]: { S: '0xAccount' },
+				[Constants.DB_PAIR]: { S: 'code1|code2' },
+				[Constants.DB_ORDER_HASH]: { S: '0xOrderHash' },
+				[Constants.DB_PRICE]: {
 					N: '123'
 				},
-				[CST.DB_AMOUNT]: { N: '456' },
-				[CST.DB_BALANCE]: { N: '123' },
-				[CST.DB_MATCHING]: { N: '111' },
-				[CST.DB_FILL]: { N: '234' },
-				[CST.DB_SIDE]: { S: 'side' },
-				[CST.DB_EXP]: { N: '1234567890' },
-				[CST.DB_FEE]: { N: '1' },
-				[CST.DB_FEE_ASSET]: { S: 'feeAsset' },
-				[CST.DB_INITIAL_SEQ]: { N: '1' },
-				[CST.DB_CURRENT_SEQ]: { N: '2' },
-				[CST.DB_CREATED_AT]: { N: '1234560000' },
-				[CST.DB_UPDATED_AT]: { N: '1234567890' }
+				[Constants.DB_AMOUNT]: { N: '456' },
+				[Constants.DB_BALANCE]: { N: '123' },
+				[Constants.DB_MATCHING]: { N: '111' },
+				[Constants.DB_FILL]: { N: '234' },
+				[Constants.DB_SIDE]: { S: 'side' },
+				[Constants.DB_EXP]: { N: '1234567890' },
+				[Constants.DB_FEE]: { N: '1' },
+				[Constants.DB_FEE_ASSET]: { S: 'feeAsset' },
+				[Constants.DB_INITIAL_SEQ]: { N: '1' },
+				[Constants.DB_CURRENT_SEQ]: { N: '2' },
+				[Constants.DB_CREATED_AT]: { N: '1234560000' },
+				[Constants.DB_UPDATED_AT]: { N: '1234567890' }
 			}
 		]
 	};
@@ -462,24 +461,24 @@ test('getLiveOrders with orderHash', async () => {
 	queryOutput = {
 		Items: [
 			{
-				[CST.DB_ACCOUNT]: { S: '0xAccount' },
-				[CST.DB_PAIR]: { S: 'code1|code2' },
-				[CST.DB_ORDER_HASH]: { S: '0xOrderHash' },
-				[CST.DB_PRICE]: {
+				[Constants.DB_ACCOUNT]: { S: '0xAccount' },
+				[Constants.DB_PAIR]: { S: 'code1|code2' },
+				[Constants.DB_ORDER_HASH]: { S: '0xOrderHash' },
+				[Constants.DB_PRICE]: {
 					N: '123'
 				},
-				[CST.DB_AMOUNT]: { N: '456' },
-				[CST.DB_BALANCE]: { N: '123' },
-				[CST.DB_MATCHING]: { N: '111' },
-				[CST.DB_FILL]: { N: '234' },
-				[CST.DB_SIDE]: { S: 'side' },
-				[CST.DB_EXP]: { N: '1234567890' },
-				[CST.DB_FEE]: { N: '1' },
-				[CST.DB_FEE_ASSET]: { S: 'feeAsset' },
-				[CST.DB_INITIAL_SEQ]: { N: '1' },
-				[CST.DB_CURRENT_SEQ]: { N: '2' },
-				[CST.DB_CREATED_AT]: { N: '1234560000' },
-				[CST.DB_UPDATED_AT]: { N: '1234567890' }
+				[Constants.DB_AMOUNT]: { N: '456' },
+				[Constants.DB_BALANCE]: { N: '123' },
+				[Constants.DB_MATCHING]: { N: '111' },
+				[Constants.DB_FILL]: { N: '234' },
+				[Constants.DB_SIDE]: { S: 'side' },
+				[Constants.DB_EXP]: { N: '1234567890' },
+				[Constants.DB_FEE]: { N: '1' },
+				[Constants.DB_FEE_ASSET]: { S: 'feeAsset' },
+				[Constants.DB_INITIAL_SEQ]: { N: '1' },
+				[Constants.DB_CURRENT_SEQ]: { N: '2' },
+				[Constants.DB_CREATED_AT]: { N: '1234560000' },
+				[Constants.DB_UPDATED_AT]: { N: '1234567890' }
 			}
 		]
 	};
@@ -489,24 +488,24 @@ test('getLiveOrders with orderHash', async () => {
 	queryOutput = {
 		Items: [
 			{
-				[CST.DB_ACCOUNT]: {},
-				[CST.DB_PAIR]: {},
-				[CST.DB_ORDER_HASH]: {},
-				[CST.DB_PRICE]: {
+				[Constants.DB_ACCOUNT]: {},
+				[Constants.DB_PAIR]: {},
+				[Constants.DB_ORDER_HASH]: {},
+				[Constants.DB_PRICE]: {
 					N: '123'
 				},
-				[CST.DB_AMOUNT]: { N: '456' },
-				[CST.DB_BALANCE]: { N: '123' },
-				[CST.DB_MATCHING]: { N: '111' },
-				[CST.DB_FILL]: { N: '234' },
-				[CST.DB_SIDE]: {},
-				[CST.DB_EXP]: { N: '1234567890' },
-				[CST.DB_FEE]: { N: '1' },
-				[CST.DB_FEE_ASSET]: {},
-				[CST.DB_INITIAL_SEQ]: { N: '1' },
-				[CST.DB_CURRENT_SEQ]: { N: '2' },
-				[CST.DB_CREATED_AT]: { N: '1234560000' },
-				[CST.DB_UPDATED_AT]: { N: '1234567890' }
+				[Constants.DB_AMOUNT]: { N: '456' },
+				[Constants.DB_BALANCE]: { N: '123' },
+				[Constants.DB_MATCHING]: { N: '111' },
+				[Constants.DB_FILL]: { N: '234' },
+				[Constants.DB_SIDE]: {},
+				[Constants.DB_EXP]: { N: '1234567890' },
+				[Constants.DB_FEE]: { N: '1' },
+				[Constants.DB_FEE_ASSET]: {},
+				[Constants.DB_INITIAL_SEQ]: { N: '1' },
+				[Constants.DB_CURRENT_SEQ]: { N: '2' },
+				[Constants.DB_CREATED_AT]: { N: '1234560000' },
+				[Constants.DB_UPDATED_AT]: { N: '1234567890' }
 			}
 		]
 	};
@@ -536,32 +535,32 @@ test('getRawOrder', async () => {
 	queryOutput = {
 		Items: [
 			{
-				[CST.DB_ORDER_HASH]: { S: '0xOrderHash' },
-				[CST.DB_PAIR]: { S: 'code1|code2' },
-				[CST.DB_0X_SENDER_ADDR]: { S: 'senderAddress' },
-				[CST.DB_0X_MAKER_ADDR]: { S: 'makerAddress' },
-				[CST.DB_0X_TAKER_ADDR]: { S: 'takerAddress' },
-				[CST.DB_0X_MAKER_FEE]: { S: '0' },
-				[CST.DB_0X_TAKER_FEE]: { S: '0' },
-				[CST.DB_0X_MAKER_ASSET_AMT]: {
+				[Constants.DB_ORDER_HASH]: { S: '0xOrderHash' },
+				[Constants.DB_PAIR]: { S: 'code1|code2' },
+				[Constants.DB_0X_SENDER_ADDR]: { S: 'senderAddress' },
+				[Constants.DB_0X_MAKER_ADDR]: { S: 'makerAddress' },
+				[Constants.DB_0X_TAKER_ADDR]: { S: 'takerAddress' },
+				[Constants.DB_0X_MAKER_FEE]: { S: '0' },
+				[Constants.DB_0X_TAKER_FEE]: { S: '0' },
+				[Constants.DB_0X_MAKER_ASSET_AMT]: {
 					S: '123'
 				},
-				[CST.DB_0X_TAKER_ASSET_AMT]: {
+				[Constants.DB_0X_TAKER_ASSET_AMT]: {
 					S: '456'
 				},
-				[CST.DB_0X_MAKER_ASSET_DATA]: { S: 'makerAssetData' },
-				[CST.DB_0X_TAKER_ASSET_DATA]: { S: 'takerAssetData' },
-				[CST.DB_0X_SALT]: { S: '789' },
-				[CST.DB_0X_EXCHANGE_ADDR]: { S: 'exchangeAddress' },
-				[CST.DB_0X_FEE_RECIPIENT_ADDR]: {
+				[Constants.DB_0X_MAKER_ASSET_DATA]: { S: 'makerAssetData' },
+				[Constants.DB_0X_TAKER_ASSET_DATA]: { S: 'takerAssetData' },
+				[Constants.DB_0X_SALT]: { S: '789' },
+				[Constants.DB_0X_EXCHANGE_ADDR]: { S: 'exchangeAddress' },
+				[Constants.DB_0X_FEE_RECIPIENT_ADDR]: {
 					S: 'feeRecipientAddress'
 				},
-				[CST.DB_0X_EXPIRATION_TIME_SECONDS]: {
+				[Constants.DB_0X_EXPIRATION_TIME_SECONDS]: {
 					S: '1234567890'
 				},
-				[CST.DB_0X_SIGNATURE]: { S: 'signature' },
-				[CST.DB_CREATED_AT]: { N: '1234567890' },
-				[CST.DB_UPDATED_AT]: { N: '1234567890' }
+				[Constants.DB_0X_SIGNATURE]: { S: 'signature' },
+				[Constants.DB_CREATED_AT]: { N: '1234567890' },
+				[Constants.DB_UPDATED_AT]: { N: '1234567890' }
 			}
 		]
 	};
@@ -571,24 +570,24 @@ test('getRawOrder', async () => {
 	queryOutput = {
 		Items: [
 			{
-				[CST.DB_ORDER_HASH]: {},
-				[CST.DB_PAIR]: {},
-				[CST.DB_0X_SENDER_ADDR]: {},
-				[CST.DB_0X_MAKER_ADDR]: {},
-				[CST.DB_0X_TAKER_ADDR]: {},
-				[CST.DB_0X_MAKER_FEE]: {},
-				[CST.DB_0X_TAKER_FEE]: {},
-				[CST.DB_0X_MAKER_ASSET_AMT]: {},
-				[CST.DB_0X_TAKER_ASSET_AMT]: {},
-				[CST.DB_0X_MAKER_ASSET_DATA]: {},
-				[CST.DB_0X_TAKER_ASSET_DATA]: {},
-				[CST.DB_0X_SALT]: {},
-				[CST.DB_0X_EXCHANGE_ADDR]: {},
-				[CST.DB_0X_FEE_RECIPIENT_ADDR]: {},
-				[CST.DB_0X_EXPIRATION_TIME_SECONDS]: {},
-				[CST.DB_0X_SIGNATURE]: {},
-				[CST.DB_CREATED_AT]: { N: '1234567890' },
-				[CST.DB_UPDATED_AT]: { N: '1234567890' }
+				[Constants.DB_ORDER_HASH]: {},
+				[Constants.DB_PAIR]: {},
+				[Constants.DB_0X_SENDER_ADDR]: {},
+				[Constants.DB_0X_MAKER_ADDR]: {},
+				[Constants.DB_0X_TAKER_ADDR]: {},
+				[Constants.DB_0X_MAKER_FEE]: {},
+				[Constants.DB_0X_TAKER_FEE]: {},
+				[Constants.DB_0X_MAKER_ASSET_AMT]: {},
+				[Constants.DB_0X_TAKER_ASSET_AMT]: {},
+				[Constants.DB_0X_MAKER_ASSET_DATA]: {},
+				[Constants.DB_0X_TAKER_ASSET_DATA]: {},
+				[Constants.DB_0X_SALT]: {},
+				[Constants.DB_0X_EXCHANGE_ADDR]: {},
+				[Constants.DB_0X_FEE_RECIPIENT_ADDR]: {},
+				[Constants.DB_0X_EXPIRATION_TIME_SECONDS]: {},
+				[Constants.DB_0X_SIGNATURE]: {},
+				[Constants.DB_CREATED_AT]: { N: '1234567890' },
+				[Constants.DB_UPDATED_AT]: { N: '1234567890' }
 			}
 		]
 	};
@@ -598,31 +597,31 @@ test('getRawOrder', async () => {
 	queryOutput = {
 		Items: [
 			{
-				[CST.DB_ORDER_HASH]: { S: '0xOrderHash' },
-				[CST.DB_PAIR]: { S: 'code1|code2' },
-				[CST.DB_0X_SENDER_ADDR]: { S: 'senderAddress' },
-				[CST.DB_0X_MAKER_ADDR]: { S: 'makerAddress' },
-				[CST.DB_0X_TAKER_ADDR]: { S: 'takerAddress' },
-				[CST.DB_0X_MAKER_FEE]: { S: '0' },
-				[CST.DB_0X_TAKER_FEE]: { S: '0' },
-				[CST.DB_0X_MAKER_ASSET_AMT]: {
+				[Constants.DB_ORDER_HASH]: { S: '0xOrderHash' },
+				[Constants.DB_PAIR]: { S: 'code1|code2' },
+				[Constants.DB_0X_SENDER_ADDR]: { S: 'senderAddress' },
+				[Constants.DB_0X_MAKER_ADDR]: { S: 'makerAddress' },
+				[Constants.DB_0X_TAKER_ADDR]: { S: 'takerAddress' },
+				[Constants.DB_0X_MAKER_FEE]: { S: '0' },
+				[Constants.DB_0X_TAKER_FEE]: { S: '0' },
+				[Constants.DB_0X_MAKER_ASSET_AMT]: {
 					S: '123'
 				},
-				[CST.DB_0X_TAKER_ASSET_AMT]: {
+				[Constants.DB_0X_TAKER_ASSET_AMT]: {
 					S: '456'
 				},
-				[CST.DB_0X_MAKER_ASSET_DATA]: { S: 'makerAssetData' },
-				[CST.DB_0X_TAKER_ASSET_DATA]: { S: 'takerAssetData' },
-				[CST.DB_0X_SALT]: { S: '789' },
-				[CST.DB_0X_EXCHANGE_ADDR]: { S: 'exchangeAddress' },
-				[CST.DB_0X_FEE_RECIPIENT_ADDR]: {
+				[Constants.DB_0X_MAKER_ASSET_DATA]: { S: 'makerAssetData' },
+				[Constants.DB_0X_TAKER_ASSET_DATA]: { S: 'takerAssetData' },
+				[Constants.DB_0X_SALT]: { S: '789' },
+				[Constants.DB_0X_EXCHANGE_ADDR]: { S: 'exchangeAddress' },
+				[Constants.DB_0X_FEE_RECIPIENT_ADDR]: {
 					S: 'feeRecipientAddress'
 				},
-				[CST.DB_0X_EXPIRATION_TIME_SECONDS]: {
+				[Constants.DB_0X_EXPIRATION_TIME_SECONDS]: {
 					S: '1234567890'
 				},
-				[CST.DB_CREATED_AT]: { N: '1234567890' },
-				[CST.DB_UPDATED_AT]: { N: '1234567890' }
+				[Constants.DB_CREATED_AT]: { N: '1234567890' },
+				[Constants.DB_UPDATED_AT]: { N: '1234567890' }
 			}
 		]
 	};
@@ -641,8 +640,8 @@ test('getRawOrder', async () => {
 });
 
 test('addUserOrder', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	dynamoUtil.putData = jest.fn(() => Promise.resolve());
 	await dynamoUtil.addUserOrder({
 		account: '0xAccount',
 		pair: 'code1|code2',
@@ -668,8 +667,8 @@ test('addUserOrder', async () => {
 });
 
 test('addUserOrder with txHash', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 1234567890);
-	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
+	Util.getUTCNowTimestamp = jest.fn(() => 1234567890);
+	dynamoUtil.putData = jest.fn(() => Promise.resolve());
 	await dynamoUtil.addUserOrder({
 		account: '0xAccount',
 		pair: 'code1|code2',
@@ -705,73 +704,73 @@ test('getUserOrdersForMonth', async () => {
 	queryOutput = {
 		Items: [
 			{
-				[CST.DB_ACCOUNT_YM]: {
+				[Constants.DB_ACCOUNT_YM]: {
 					S: '0xAccount|year-month'
 				},
-				[CST.DB_PAIR_OH_SEQ_STATUS]: { S: 'code1|code2|0xOrderHash|1|status' },
-				[CST.DB_TYPE]: { S: 'type' },
-				[CST.DB_PRICE]: {
+				[Constants.DB_PAIR_OH_SEQ_STATUS]: { S: 'code1|code2|0xOrderHash|1|status' },
+				[Constants.DB_TYPE]: { S: 'type' },
+				[Constants.DB_PRICE]: {
 					N: '123'
 				},
-				[CST.DB_BALANCE]: { N: '123' },
-				[CST.DB_AMOUNT]: { N: '456' },
-				[CST.DB_MATCHING]: { N: '111' },
-				[CST.DB_FILL]: { N: '234' },
-				[CST.DB_SIDE]: { S: 'side' },
-				[CST.DB_EXP]: { N: '1234567890' },
-				[CST.DB_FEE]: { N: '1' },
-				[CST.DB_FEE_ASSET]: { S: 'feeAsset' },
-				[CST.DB_INITIAL_SEQ]: { N: '1' },
-				[CST.DB_CREATED_AT]: { N: '1234560000' },
-				[CST.DB_UPDATED_AT]: { N: '1234567890' },
-				[CST.DB_UPDATED_BY]: { S: 'updatedBy' },
-				[CST.DB_PROCESSED]: { BOOL: true }
+				[Constants.DB_BALANCE]: { N: '123' },
+				[Constants.DB_AMOUNT]: { N: '456' },
+				[Constants.DB_MATCHING]: { N: '111' },
+				[Constants.DB_FILL]: { N: '234' },
+				[Constants.DB_SIDE]: { S: 'side' },
+				[Constants.DB_EXP]: { N: '1234567890' },
+				[Constants.DB_FEE]: { N: '1' },
+				[Constants.DB_FEE_ASSET]: { S: 'feeAsset' },
+				[Constants.DB_INITIAL_SEQ]: { N: '1' },
+				[Constants.DB_CREATED_AT]: { N: '1234560000' },
+				[Constants.DB_UPDATED_AT]: { N: '1234567890' },
+				[Constants.DB_UPDATED_BY]: { S: 'updatedBy' },
+				[Constants.DB_PROCESSED]: { BOOL: true }
 			},
 			{
-				[CST.DB_ACCOUNT_YM]: {
+				[Constants.DB_ACCOUNT_YM]: {
 					S: '0xAccount|year-month'
 				},
-				[CST.DB_PAIR_OH_SEQ_STATUS]: { S: 'code1|code2|0xOrderHash|1|status' },
-				[CST.DB_TYPE]: { S: 'type' },
-				[CST.DB_PRICE]: {
+				[Constants.DB_PAIR_OH_SEQ_STATUS]: { S: 'code1|code2|0xOrderHash|1|status' },
+				[Constants.DB_TYPE]: { S: 'type' },
+				[Constants.DB_PRICE]: {
 					N: '123'
 				},
-				[CST.DB_BALANCE]: { N: '123' },
-				[CST.DB_AMOUNT]: { N: '456' },
-				[CST.DB_MATCHING]: { N: '111' },
-				[CST.DB_FILL]: { N: '234' },
-				[CST.DB_SIDE]: { S: 'side' },
-				[CST.DB_EXP]: { N: '1234567890' },
-				[CST.DB_FEE]: { N: '1' },
-				[CST.DB_FEE_ASSET]: { S: 'feeAsset' },
-				[CST.DB_INITIAL_SEQ]: { N: '1' },
-				[CST.DB_CREATED_AT]: { N: '1234560000' },
-				[CST.DB_UPDATED_AT]: { N: '1234567890' },
-				[CST.DB_UPDATED_BY]: { S: 'updatedBy' },
-				[CST.DB_PROCESSED]: { BOOL: true },
-				[CST.DB_TX_HASH]: { S: 'txHash' }
+				[Constants.DB_BALANCE]: { N: '123' },
+				[Constants.DB_AMOUNT]: { N: '456' },
+				[Constants.DB_MATCHING]: { N: '111' },
+				[Constants.DB_FILL]: { N: '234' },
+				[Constants.DB_SIDE]: { S: 'side' },
+				[Constants.DB_EXP]: { N: '1234567890' },
+				[Constants.DB_FEE]: { N: '1' },
+				[Constants.DB_FEE_ASSET]: { S: 'feeAsset' },
+				[Constants.DB_INITIAL_SEQ]: { N: '1' },
+				[Constants.DB_CREATED_AT]: { N: '1234560000' },
+				[Constants.DB_UPDATED_AT]: { N: '1234567890' },
+				[Constants.DB_UPDATED_BY]: { S: 'updatedBy' },
+				[Constants.DB_PROCESSED]: { BOOL: true },
+				[Constants.DB_TX_HASH]: { S: 'txHash' }
 			},
 			{
-				[CST.DB_ACCOUNT_YM]: {},
-				[CST.DB_PAIR_OH_SEQ_STATUS]: {},
-				[CST.DB_TYPE]: {},
-				[CST.DB_PRICE]: {
+				[Constants.DB_ACCOUNT_YM]: {},
+				[Constants.DB_PAIR_OH_SEQ_STATUS]: {},
+				[Constants.DB_TYPE]: {},
+				[Constants.DB_PRICE]: {
 					N: '123'
 				},
-				[CST.DB_BALANCE]: { N: '123' },
-				[CST.DB_AMOUNT]: { N: '456' },
-				[CST.DB_MATCHING]: { N: '111' },
-				[CST.DB_FILL]: { N: '234' },
-				[CST.DB_SIDE]: {},
-				[CST.DB_EXP]: { N: '1234567890' },
-				[CST.DB_FEE]: { N: '1' },
-				[CST.DB_FEE_ASSET]: {},
-				[CST.DB_INITIAL_SEQ]: { N: '1' },
-				[CST.DB_CREATED_AT]: { N: '1234560000' },
-				[CST.DB_UPDATED_AT]: { N: '1234567890' },
-				[CST.DB_UPDATED_BY]: {},
-				[CST.DB_PROCESSED]: { BOOL: true },
-				[CST.DB_TX_HASH]: {}
+				[Constants.DB_BALANCE]: { N: '123' },
+				[Constants.DB_AMOUNT]: { N: '456' },
+				[Constants.DB_MATCHING]: { N: '111' },
+				[Constants.DB_FILL]: { N: '234' },
+				[Constants.DB_SIDE]: {},
+				[Constants.DB_EXP]: { N: '1234567890' },
+				[Constants.DB_FEE]: { N: '1' },
+				[Constants.DB_FEE_ASSET]: {},
+				[Constants.DB_INITIAL_SEQ]: { N: '1' },
+				[Constants.DB_CREATED_AT]: { N: '1234560000' },
+				[Constants.DB_UPDATED_AT]: { N: '1234567890' },
+				[Constants.DB_UPDATED_BY]: {},
+				[Constants.DB_PROCESSED]: { BOOL: true },
+				[Constants.DB_TX_HASH]: {}
 			}
 		]
 	};
@@ -783,21 +782,21 @@ test('getUserOrdersForMonth', async () => {
 });
 
 test('getUserOrders', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 9876543210);
+	Util.getUTCNowTimestamp = jest.fn(() => 9876543210);
 	dynamoUtil.getUserOrdersForMonth = jest.fn(() => Promise.resolve([]));
 	await dynamoUtil.getUserOrders('0xAccount', 1000000000);
 	expect((dynamoUtil.getUserOrdersForMonth as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('getUserOrders end pair', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 9876543210);
+	Util.getUTCNowTimestamp = jest.fn(() => 9876543210);
 	dynamoUtil.getUserOrdersForMonth = jest.fn(() => Promise.resolve([]));
 	await dynamoUtil.getUserOrders('0xAccount', 1000000000, 9876543210, 'pair');
 	expect((dynamoUtil.getUserOrdersForMonth as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('addTrade', async () => {
-	dynamoUtil.putData = jest.fn(() => Promise.resolve({}));
+	dynamoUtil.putData = jest.fn(() => Promise.resolve());
 	await dynamoUtil.addTrade({
 		pair: 'code1|code2',
 		transactionHash: 'txHash',
@@ -831,36 +830,36 @@ test('getTradesForHour', async () => {
 	queryOutput = {
 		Items: [
 			{
-				[CST.DB_PAIR_DATE_HOUR]: {
+				[Constants.DB_PAIR_DATE_HOUR]: {
 					S: 'code1|code2|1234-56-78-90'
 				},
-				[CST.DB_TS_TX_HASH]: { S: '1234567890|txHash' },
-				[CST.DB_FEE_ASSET]: { S: 'feeAsset' },
-				[CST.DB_TK_OH]: { S: 'takerOrderHash' },
-				[CST.DB_TK_ADDR]: { S: 'takerAddress' },
-				[CST.DB_TK_SIDE]: { S: 'takerSide' },
-				[CST.DB_TK_PX]: { N: '123' },
-				[CST.DB_TK_AMT]: { N: '456' },
-				[CST.DB_TK_FEE]: { N: '789' },
-				[CST.DB_MK_OH]: { S: 'makerOrderHash' },
-				[CST.DB_MK_PX]: { N: '987' },
-				[CST.DB_MK_AMT]: { N: '654' },
-				[CST.DB_MK_FEE]: { N: '321' }
+				[Constants.DB_TS_TX_HASH]: { S: '1234567890|txHash' },
+				[Constants.DB_FEE_ASSET]: { S: 'feeAsset' },
+				[Constants.DB_TK_OH]: { S: 'takerOrderHash' },
+				[Constants.DB_TK_ADDR]: { S: 'takerAddress' },
+				[Constants.DB_TK_SIDE]: { S: 'takerSide' },
+				[Constants.DB_TK_PX]: { N: '123' },
+				[Constants.DB_TK_AMT]: { N: '456' },
+				[Constants.DB_TK_FEE]: { N: '789' },
+				[Constants.DB_MK_OH]: { S: 'makerOrderHash' },
+				[Constants.DB_MK_PX]: { N: '987' },
+				[Constants.DB_MK_AMT]: { N: '654' },
+				[Constants.DB_MK_FEE]: { N: '321' }
 			},
 			{
-				[CST.DB_PAIR_DATE_HOUR]: {},
-				[CST.DB_TS_TX_HASH]: {},
-				[CST.DB_FEE_ASSET]: {},
-				[CST.DB_TK_OH]: {},
-				[CST.DB_TK_ADDR]: {},
-				[CST.DB_TK_SIDE]: {},
-				[CST.DB_TK_PX]: { N: '123' },
-				[CST.DB_TK_AMT]: { N: '456' },
-				[CST.DB_TK_FEE]: { N: '789' },
-				[CST.DB_MK_OH]: {},
-				[CST.DB_MK_PX]: { N: '987' },
-				[CST.DB_MK_AMT]: { N: '654' },
-				[CST.DB_MK_FEE]: { N: '321' }
+				[Constants.DB_PAIR_DATE_HOUR]: {},
+				[Constants.DB_TS_TX_HASH]: {},
+				[Constants.DB_FEE_ASSET]: {},
+				[Constants.DB_TK_OH]: {},
+				[Constants.DB_TK_ADDR]: {},
+				[Constants.DB_TK_SIDE]: {},
+				[Constants.DB_TK_PX]: { N: '123' },
+				[Constants.DB_TK_AMT]: { N: '456' },
+				[Constants.DB_TK_FEE]: { N: '789' },
+				[Constants.DB_MK_OH]: {},
+				[Constants.DB_MK_PX]: { N: '987' },
+				[Constants.DB_MK_AMT]: { N: '654' },
+				[Constants.DB_MK_FEE]: { N: '321' }
 			}
 		]
 	};
@@ -870,7 +869,7 @@ test('getTradesForHour', async () => {
 });
 
 test('getTrades', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 9876543210);
+	Util.getUTCNowTimestamp = jest.fn(() => 9876543210);
 	dynamoUtil.getTradesForHour = jest.fn(() => Promise.resolve([]));
 	await dynamoUtil.getTrades('code1|code2', 9870000000);
 	expect((dynamoUtil.getTradesForHour as jest.Mock).mock.calls).toMatchSnapshot();
@@ -883,7 +882,7 @@ test('getTrades end', async () => {
 });
 
 test('addOrder', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 9876543210);
+	Util.getUTCNowTimestamp = jest.fn(() => 9876543210);
 	dynamoUtil.transactPutData = jest.fn(() => Promise.resolve());
 	await dynamoUtil.addOrder(
 		{
@@ -895,7 +894,7 @@ test('addOrder', async () => {
 			balance: 123,
 			matching: 111,
 			fill: 234,
-			side: CST.DB_BID,
+			side: Constants.DB_BID,
 			expiry: 1234567890,
 			fee: 1,
 			feeAsset: 'feeAsset',
@@ -929,7 +928,7 @@ test('addOrder', async () => {
 });
 
 test('deleteOrder', async () => {
-	util.getUTCNowTimestamp = jest.fn(() => 9876543210);
+	Util.getUTCNowTimestamp = jest.fn(() => 9876543210);
 	dynamoUtil.transactPutData = jest.fn(() => Promise.resolve());
 	await dynamoUtil.deleteOrder('code1|code2', '0xOrderHash');
 	expect((dynamoUtil.transactPutData as jest.Mock).mock.calls).toMatchSnapshot();

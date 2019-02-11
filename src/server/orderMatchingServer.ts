@@ -1,10 +1,9 @@
-import * as CST from '../common/constants';
+import { Constants, Util, Web3Util } from '@finbook/israfel-common';
 import { IOption } from '../common/types';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderMatchingUtil from '../utils/orderMatchingUtil';
 import redisUtil from '../utils/redisUtil';
-import util from '../utils/util';
-import Web3Util from '../utils/Web3Util';
+
 class OrderMatchServer {
 	public availableAddrs: string[] = [];
 	public currentAddrIdx: number = 0;
@@ -16,27 +15,42 @@ class OrderMatchServer {
 	}
 
 	public async startServer(option: IOption) {
+		const live = option.env === Constants.DB_LIVE;
 		let mnemonic = { mnemomic: '' };
+		let infura = { token: '' };
 		try {
 			mnemonic = require('../keys/mnemomic.json');
 		} catch (err) {
-			util.logError(JSON.stringify(err));
+			Util.logError(JSON.stringify(err));
 		}
 
-		const web3Util = new Web3Util(null, option.env === CST.DB_LIVE, mnemonic.mnemomic, false);
+		try {
+			infura = require('../keys/infura.json');
+		} catch (error) {
+			Util.logError(error);
+		}
+
+		const web3Util = new Web3Util(
+			null,
+			(live ? Constants.PROVIDER_INFURA_MAIN : Constants.PROVIDER_INFURA_KOVAN) +
+				'/' +
+				infura.token,
+			mnemonic.mnemomic,
+			live
+		);
 		this.availableAddrs = await web3Util.getAvailableAddresses();
 		web3Util.setTokens(await dynamoUtil.scanTokens());
 
 		if (option.server) {
 			dynamoUtil.updateStatus(
-				CST.DB_ORDER_MATCHER,
+				Constants.DB_ORDER_MATCHER,
 				await redisUtil.getQueueLength(orderMatchingUtil.getMatchQueueKey())
 			);
 
 			global.setInterval(
 				async () =>
 					dynamoUtil.updateStatus(
-						CST.DB_ORDER_MATCHER,
+						Constants.DB_ORDER_MATCHER,
 						await redisUtil.getQueueLength(orderMatchingUtil.getMatchQueueKey())
 					),
 				15000

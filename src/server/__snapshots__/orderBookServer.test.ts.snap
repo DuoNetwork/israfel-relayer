@@ -383,8 +383,8 @@ exports[`startServer 2`] = `
 Array [
   Array [
     null,
-    "infura",
     "https://kovan.infura.io/",
+    "",
     false,
   ],
 ]
@@ -407,14 +407,14 @@ exports[`startServer, server 2`] = `
 Array [
   Array [
     null,
-    "infura",
     "https://kovan.infura.io/",
+    "",
     false,
   ],
   Array [
     null,
-    "infura",
     "https://mainnet.infura.io/",
+    "",
     true,
   ],
 ]

@@ -18,9 +18,9 @@ exports[`startServer 2`] = `
 Array [
   Array [
     null,
-    false,
+    "http://localhost:8545",
     "",
-    true,
+    false,
   ],
 ]
 `;

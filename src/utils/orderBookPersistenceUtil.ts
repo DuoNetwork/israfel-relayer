@@ -1,15 +1,18 @@
-import * as CST from '../common/constants';
-import { IOrderBookSnapshot, IOrderBookSnapshotUpdate } from '../common/types';
+import {
+	Constants,
+	IOrderBookSnapshot,
+	IOrderBookSnapshotUpdate,
+	Util
+} from '@finbook/israfel-common';
 import redisUtil from './redisUtil';
-import util from './util';
 
 class OrderBookPersistenceUtil {
 	private getOrderBookSnapshotKey(pair: string) {
-		return `${CST.DB_ORDER_BOOKS}|${CST.DB_SNAPSHOT}|${pair}`;
+		return `${Constants.DB_ORDER_BOOKS}|${Constants.DB_SNAPSHOT}|${pair}`;
 	}
 
 	private getOrderBookPubSubChannel(pair: string) {
-		return `${CST.DB_ORDER_BOOKS}|${CST.DB_UPDATE}|${pair}`;
+		return `${Constants.DB_ORDER_BOOKS}|${Constants.DB_UPDATE}|${pair}`;
 	}
 
 	public subscribeOrderBookUpdate(
@@ -44,7 +47,7 @@ class OrderBookPersistenceUtil {
 				);
 			return true;
 		} catch (err) {
-			util.logError(err);
+			Util.logError(err);
 			return false;
 		}
 	}

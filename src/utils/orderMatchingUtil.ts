@@ -1,26 +1,23 @@
 import { BigNumber, SignedOrder } from '0x.js';
-import moment from 'moment';
-import * as CST from '../common/constants';
 import {
+	Constants,
 	ILiveOrder,
-	// IOption,
 	IOrderBook,
 	IOrderBookLevel,
 	IOrderBookLevelUpdate,
-	IOrderMatchRequest,
-	IStringSignedOrder
-} from '../common/types';
-// import dynamoUtil from './dynamoUtil';
+	IStringSignedOrder,
+	OrderUtil,
+	Util,
+	Web3Util
+} from '@finbook/israfel-common';
+import moment from 'moment';
+import { IOrderMatchRequest } from '../common/types';
 import orderPersistenceUtil from './orderPersistenceUtil';
-import orderUtil from './orderUtil';
 import redisUtil from './redisUtil';
 import tradePriceUtil from './tradePriceUtil';
-import util from './util';
-import Web3Util from './Web3Util';
-
 class OrderMatchingUtil {
 	public getMatchQueueKey() {
-		return `${CST.DB_MATCH}|${CST.DB_QUEUE}`;
+		return `${Constants.DB_MATCH}|${Constants.DB_QUEUE}`;
 	}
 
 	public queueMatchRequest(orderMatchRequest: IOrderMatchRequest) {
@@ -66,14 +63,14 @@ class OrderMatchingUtil {
 				const ask = asksToMatch[askIdx];
 				const bidLiveOrder = liveOrders[bid.orderHash];
 				if (!bidLiveOrder) {
-					util.logDebug('missing live order for ' + bid.orderHash);
+					Util.logDebug('missing live order for ' + bid.orderHash);
 					bidIdx++;
 					continue;
 				}
 				const askLiveOrder = liveOrders[ask.orderHash];
 
 				if (!askLiveOrder) {
-					util.logDebug('missing live order for ' + ask.orderHash);
+					Util.logDebug('missing live order for ' + ask.orderHash);
 					askIdx++;
 					continue;
 				}
@@ -114,8 +111,8 @@ class OrderMatchingUtil {
 					},
 					takerSide:
 						bidLiveOrder.initialSequence > askLiveOrder.initialSequence
-							? CST.DB_BID
-							: CST.DB_ASK
+							? Constants.DB_BID
+							: Constants.DB_ASK
 				});
 				if (updatesRequired) {
 					orderBookLevelUpdates.push({
@@ -159,15 +156,15 @@ class OrderMatchingUtil {
 		);
 
 		// update order status
-		util.logDebug(`update bidOrder orderHash: ${bid.orderHash}, fill amount: ${bidFilledAmt}`);
+		Util.logDebug(`update bidOrder orderHash: ${bid.orderHash}, fill amount: ${bidFilledAmt}`);
 		await orderPersistenceUtil.persistOrder({
-			method: bidFilledAmt >= bid.orderAmount ? CST.DB_TERMINATE : CST.DB_UPDATE,
+			method: bidFilledAmt >= bid.orderAmount ? Constants.DB_TERMINATE : Constants.DB_UPDATE,
 			pair: pair,
 			orderHash: bid.orderHash,
 			fill: bidFilledAmt,
 			matching: -bid.matchingAmount,
-			requestor: CST.DB_ORDER_MATCHER,
-			status: bidFilledAmt >= bid.orderAmount ? CST.DB_FILL : CST.DB_PFILL,
+			requestor: Constants.DB_ORDER_MATCHER,
+			status: bidFilledAmt >= bid.orderAmount ? Constants.DB_FILL : Constants.DB_PFILL,
 			transactionHash: txHash
 		});
 
@@ -180,15 +177,15 @@ class OrderMatchingUtil {
 				.valueOf()
 		);
 
-		util.logDebug(`update askOrder orderHash: ${ask.orderHash}, fill amount: ${askFilledAmt}`);
+		Util.logDebug(`update askOrder orderHash: ${ask.orderHash}, fill amount: ${askFilledAmt}`);
 		await orderPersistenceUtil.persistOrder({
-			method: askFilledAmt >= ask.orderAmount ? CST.DB_TERMINATE : CST.DB_UPDATE,
+			method: askFilledAmt >= ask.orderAmount ? Constants.DB_TERMINATE : Constants.DB_UPDATE,
 			pair: pair,
 			orderHash: ask.orderHash,
 			fill: askFilledAmt,
 			matching: -ask.matchingAmount,
-			requestor: CST.DB_ORDER_MATCHER,
-			status: askFilledAmt >= ask.orderAmount ? CST.DB_FILL : CST.DB_PFILL,
+			requestor: Constants.DB_ORDER_MATCHER,
+			status: askFilledAmt >= ask.orderAmount ? Constants.DB_FILL : Constants.DB_PFILL,
 			transactionHash: txHash
 		});
 
@@ -196,7 +193,7 @@ class OrderMatchingUtil {
 			txHash,
 			matchTimeStamp,
 			matchRequest,
-			(takerSide === CST.DB_BID ? bidOrder : askOrder).makerAddress
+			(takerSide === Constants.DB_BID ? bidOrder : askOrder).makerAddress
 		);
 	}
 
@@ -213,20 +210,20 @@ class OrderMatchingUtil {
 			);
 
 			if (!bidRawOrder) {
-				util.logError(`raw order of ${bid.orderHash} does not exist, ignore match request`);
+				Util.logError(`raw order of ${bid.orderHash} does not exist, ignore match request`);
 				return true;
 			}
 
-			const bidOrder = orderUtil.parseSignedOrder(
+			const bidOrder = OrderUtil.parseSignedOrder(
 				bidRawOrder.signedOrder as IStringSignedOrder
 			);
 
-			if (orderUtil.isExpired(Number(bidOrder.expirationTimeSeconds.valueOf()) * 1000)) {
-				util.logError(`${bid.orderHash} already expired`);
+			if (OrderUtil.isExpired(Number(bidOrder.expirationTimeSeconds.valueOf()) * 1000)) {
+				Util.logError(`${bid.orderHash} already expired`);
 				await orderPersistenceUtil.persistOrder({
-					method: CST.DB_TERMINATE,
-					status: CST.DB_TERMINATE,
-					requestor: CST.DB_ORDER_MATCHER,
+					method: Constants.DB_TERMINATE,
+					status: Constants.DB_TERMINATE,
+					requestor: Constants.DB_ORDER_MATCHER,
 					pair: pair,
 					orderHash: bid.orderHash
 				});
@@ -239,27 +236,27 @@ class OrderMatchingUtil {
 			);
 
 			if (!askRawOrder) {
-				util.logError(`raw order of ${ask.orderHash} does not exist, ignore match request`);
+				Util.logError(`raw order of ${ask.orderHash} does not exist, ignore match request`);
 				return true;
 			}
 
-			const askOrder = orderUtil.parseSignedOrder(
+			const askOrder = OrderUtil.parseSignedOrder(
 				askRawOrder.signedOrder as IStringSignedOrder
 			);
 
-			if (orderUtil.isExpired(Number(askOrder.expirationTimeSeconds.valueOf()) * 1000)) {
-				util.logError(`${ask.orderHash} already expired`);
+			if (OrderUtil.isExpired(Number(askOrder.expirationTimeSeconds.valueOf()) * 1000)) {
+				Util.logError(`${ask.orderHash} already expired`);
 				await orderPersistenceUtil.persistOrder({
-					method: CST.DB_TERMINATE,
-					status: CST.DB_TERMINATE,
-					requestor: CST.DB_ORDER_MATCHER,
+					method: Constants.DB_TERMINATE,
+					status: Constants.DB_TERMINATE,
+					requestor: Constants.DB_ORDER_MATCHER,
 					pair: pair,
 					orderHash: ask.orderHash
 				});
 				return true;
 			}
 
-			util.logDebug('using sender address ' + currentAddr);
+			Util.logDebug('using sender address ' + currentAddr);
 			const currentNonce = await web3Util.getTransactionCount(currentAddr);
 			const curretnGasPrice = Math.max(await web3Util.getGasPrice(), 5000000000);
 			let txHash = '';
@@ -280,50 +277,50 @@ class OrderMatchingUtil {
 				);
 				matchTimeStamp = Number(moment.utc().valueOf());
 			} catch (matchError) {
-				util.logDebug(JSON.stringify(matchError));
-				util.logError('error in sending match tx for ' + reqString);
+				Util.logDebug(JSON.stringify(matchError));
+				Util.logError('error in sending match tx for ' + reqString);
 				await orderPersistenceUtil.persistOrder({
-					method: CST.DB_TERMINATE,
+					method: Constants.DB_TERMINATE,
 					pair: pair,
 					orderHash: bid.orderHash,
-					requestor: CST.DB_ORDER_MATCHER,
-					status: CST.DB_MATCHING
+					requestor: Constants.DB_ORDER_MATCHER,
+					status: Constants.DB_MATCHING
 				});
 				await orderPersistenceUtil.persistOrder({
-					method: CST.DB_TERMINATE,
+					method: Constants.DB_TERMINATE,
 					pair: pair,
 					orderHash: ask.orderHash,
-					requestor: CST.DB_ORDER_MATCHER,
-					status: CST.DB_MATCHING
+					requestor: Constants.DB_ORDER_MATCHER,
+					status: Constants.DB_MATCHING
 				});
 
 				return true;
 			}
 
-			util.logDebug(txHash + ' sent for ' + reqString + ', sending order update');
+			Util.logDebug(txHash + ' sent for ' + reqString + ', sending order update');
 			await orderPersistenceUtil.persistOrder({
-				method: CST.DB_UPDATE,
+				method: Constants.DB_UPDATE,
 				pair: pair,
 				orderHash: bid.orderHash,
 				matching: bid.matchingAmount,
-				requestor: CST.DB_ORDER_MATCHER,
-				status: CST.DB_MATCHING,
+				requestor: Constants.DB_ORDER_MATCHER,
+				status: Constants.DB_MATCHING,
 				transactionHash: txHash
 			});
 			await orderPersistenceUtil.persistOrder({
-				method: CST.DB_UPDATE,
+				method: Constants.DB_UPDATE,
 				pair: pair,
 				orderHash: ask.orderHash,
 				matching: ask.matchingAmount,
-				requestor: CST.DB_ORDER_MATCHER,
-				status: CST.DB_MATCHING,
+				requestor: Constants.DB_ORDER_MATCHER,
+				status: Constants.DB_MATCHING,
 				transactionHash: txHash
 			});
 
 			web3Util
 				.awaitTransactionSuccessAsync(txHash)
 				.then(receipt => {
-					util.logDebug(
+					Util.logDebug(
 						`matchOrder successfully mined: txHash: ${
 							receipt.transactionHash
 						}, sender: ${receipt.from}`
@@ -338,38 +335,37 @@ class OrderMatchingUtil {
 					);
 				})
 				.catch(async txError => {
-					util.logError(
+					Util.logError(
 						txHash + ' reverted ' + txError + ', move matching amount back to balance'
 					);
 					await orderPersistenceUtil.persistOrder({
-						method: CST.DB_UPDATE,
+						method: Constants.DB_UPDATE,
 						pair: pair,
 						orderHash: bid.orderHash,
 						matching: -bid.matchingAmount,
-						requestor: CST.DB_ORDER_MATCHER,
-						status: CST.DB_MATCHING,
+						requestor: Constants.DB_ORDER_MATCHER,
+						status: Constants.DB_MATCHING,
 						transactionHash: txHash
 					});
 					await orderPersistenceUtil.persistOrder({
-						method: CST.DB_UPDATE,
+						method: Constants.DB_UPDATE,
 						pair: pair,
 						orderHash: ask.orderHash,
 						matching: -ask.matchingAmount,
-						requestor: CST.DB_ORDER_MATCHER,
-						status: CST.DB_MATCHING,
+						requestor: Constants.DB_ORDER_MATCHER,
+						status: Constants.DB_MATCHING,
 						transactionHash: txHash
 					});
 				});
 
 			return true;
 		} catch (err) {
-			util.logError(`error in processing for ${reqString}`);
-			util.logError(err);
+			Util.logError(`error in processing for ${reqString}`);
+			Util.logError(err);
 			redisUtil.putBack(this.getMatchQueueKey(), reqString);
 			return false;
 		}
 	}
-
 }
 
 const orderMatchingUtil = new OrderMatchingUtil();

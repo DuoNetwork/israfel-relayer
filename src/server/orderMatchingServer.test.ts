@@ -1,19 +1,23 @@
+import * as Constants from '@finbook/israfel-common/dist/constants';
+import Util from '@finbook/israfel-common/dist/Util';
 import dynamoUtil from '../utils/dynamoUtil';
 import orderMatchingUtil from '../utils/orderMatchingUtil';
 import redisUtil from '../utils/redisUtil';
 import orderMatchingServer from './orderMatchingServer';
 
-jest.mock('../utils/Web3Util', () =>
-	jest.fn(() => ({
+jest.mock('@finbook/israfel-common', () => ({
+	Constants: Constants,
+	Util: Util,
+	Web3Util: jest.fn(() => ({
 		getAvailableAddresses: jest.fn(() => Promise.resolve(['addr1', 'addr2', 'addr3'])),
 		setTokens: jest.fn()
 	}))
-);
+}));
+
+import { Web3Util } from '@finbook/israfel-common';
 
 test('startProcessing', async () => {
 	global.setTimeout = jest.fn();
-	// const then = jest.fn();
-
 	dynamoUtil.scanTokens = jest.fn(() =>
 		Promise.resolve([
 			{
@@ -39,7 +43,8 @@ test('startProcessing', async () => {
 	let result = false;
 	orderMatchingUtil.processMatchQueue = jest.fn(() => Promise.resolve(result));
 
-	await orderMatchingServer.startServer({ server: true } as any);
+	await orderMatchingServer.startServer({ server: true, env: 'live' } as any);
+	expect((Web3Util as any).mock.calls).toMatchSnapshot();
 	expect((global.setInterval as jest.Mock).mock.calls).toMatchSnapshot();
 	await (global.setInterval as jest.Mock).mock.calls[0][0]();
 	expect((dynamoUtil.updateStatus as jest.Mock).mock.calls).toMatchSnapshot();
@@ -76,7 +81,8 @@ test('startProcessing, no serveer', async () => {
 	global.setInterval = jest.fn();
 	orderMatchingUtil.processMatchQueue = jest.fn(() => Promise.resolve(false));
 
-	await orderMatchingServer.startServer({ server: false } as any);
+	await orderMatchingServer.startServer({ server: false, env: 'dev' } as any);
+	expect((Web3Util as any).mock.calls).toMatchSnapshot();
 	expect(dynamoUtil.updateStatus as jest.Mock).not.toBeCalled();
 	expect(redisUtil.getQueueLength as jest.Mock).not.toBeCalled();
 	expect(global.setInterval as jest.Mock).not.toBeCalled();
