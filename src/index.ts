@@ -46,8 +46,8 @@ switch (tool) {
 		Util.logInfo('starting node heart beat');
 		const web3Wrapper = new Web3Wrapper(
 			null,
-			'local',
 			Constants.PROVIDER_LOCAL,
+			'',
 			option.env === Constants.DB_LIVE
 		);
 		setInterval(
