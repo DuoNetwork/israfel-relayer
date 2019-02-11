@@ -515,7 +515,36 @@ exports[`handleOrderHistorySubscribeRequest existing account new ws 2`] = `
 Array [
   Array [
     "ws1",
-    "{\\"method\\":\\"history\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"orderHistory\\":[\\"userOrders\\"]}",
+    "{\\"method\\":\\"history\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"orderHistory\\":[\\"userOrders\\",\\"userOrders\\",\\"userOrders\\",\\"userOrders\\"]}",
+  ],
+]
+`;
+
+exports[`handleOrderHistorySubscribeRequest existing account new ws 3`] = `
+Array [
+  Array [
+    "account",
+    "code1|base1",
+    543367890,
+    1234567890,
+  ],
+  Array [
+    "account",
+    "code1|base2",
+    543367890,
+    1234567890,
+  ],
+  Array [
+    "account",
+    "code2|base1",
+    543367890,
+    1234567890,
+  ],
+  Array [
+    "account",
+    "code2|base2",
+    543367890,
+    1234567890,
   ],
 ]
 `;
@@ -532,7 +561,36 @@ exports[`handleOrderHistorySubscribeRequest existing account same ws 2`] = `
 Array [
   Array [
     "ws",
-    "{\\"method\\":\\"history\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"orderHistory\\":[\\"userOrders\\"]}",
+    "{\\"method\\":\\"history\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"orderHistory\\":[\\"userOrders\\",\\"userOrders\\",\\"userOrders\\",\\"userOrders\\"]}",
+  ],
+]
+`;
+
+exports[`handleOrderHistorySubscribeRequest existing account same ws 3`] = `
+Array [
+  Array [
+    "account",
+    "code1|base1",
+    543367890,
+    1234567890,
+  ],
+  Array [
+    "account",
+    "code1|base2",
+    543367890,
+    1234567890,
+  ],
+  Array [
+    "account",
+    "code2|base1",
+    543367890,
+    1234567890,
+  ],
+  Array [
+    "account",
+    "code2|base2",
+    543367890,
+    1234567890,
   ],
 ]
 `;
@@ -549,7 +607,7 @@ exports[`handleOrderHistorySubscribeRequest new account  2`] = `
 Array [
   Array [
     "ws",
-    "{\\"method\\":\\"history\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"orderHistory\\":[\\"userOrders\\"]}",
+    "{\\"method\\":\\"history\\",\\"channel\\":\\"orders\\",\\"status\\":\\"ok\\",\\"pair\\":\\"\\",\\"orderHistory\\":[\\"userOrders\\",\\"userOrders\\",\\"userOrders\\",\\"userOrders\\"]}",
   ],
 ]
 `;
@@ -584,6 +642,35 @@ Array [
 ]
 `;
 
+exports[`handleOrderHistorySubscribeRequest new account  5`] = `
+Array [
+  Array [
+    "account",
+    "code1|base1",
+    543367890,
+    1234567890,
+  ],
+  Array [
+    "account",
+    "code1|base2",
+    543367890,
+    1234567890,
+  ],
+  Array [
+    "account",
+    "code2|base1",
+    543367890,
+    1234567890,
+  ],
+  Array [
+    "account",
+    "code2|base2",
+    543367890,
+    1234567890,
+  ],
+]
+`;
+
 exports[`handleOrderHistorySubscribeRequest no web3Util 1`] = `
 Array [
   Array [
@@ -592,6 +679,8 @@ Array [
   ],
 ]
 `;
+
+exports[`handleOrderHistorySubscribeRequest no web3Util 2`] = `Array []`;
 
 exports[`handleOrderHistoryUnsubscribeRequest existing account clean up 1`] = `
 Array [

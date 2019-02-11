@@ -694,21 +694,25 @@ test('addUserOrder with txHash', async () => {
 	expect((dynamoUtil.putData as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
-test('getUserOrdersForMonth', async () => {
+test('getUserOrdersForPairDate', async () => {
 	let queryOutput: { [key: string]: any } = {
 		Items: []
 	};
 	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
-	expect(await dynamoUtil.getUserOrdersForMonth('0xAccount', '1234-56')).toEqual([]);
+	expect(
+		await dynamoUtil.getUserOrdersForPairDate('0xAccount', 'code1|code2', '1234-56-78')
+	).toEqual([]);
 
 	queryOutput = {
 		Items: [
 			{
-				[Constants.DB_ACCOUNT_YM]: {
-					S: '0xAccount|year-month'
+				[Constants.DB_ACCOUNT_PAIR_DATE]: {
+					S: '0xAccount|code1|code2|YYYY-MM-DD'
 				},
-				[Constants.DB_PAIR_OH_SEQ_STATUS]: { S: 'code1|code2|0xOrderHash|1|status' },
+				[Constants.DB_CA_SEQ]: { S: '1234560000|1' },
+				[Constants.DB_ORDER_HASH]: { S: '0xOrderHash' },
 				[Constants.DB_TYPE]: { S: 'type' },
+				[Constants.DB_STATUS]: { S: 'status' },
 				[Constants.DB_PRICE]: {
 					N: '123'
 				},
@@ -721,17 +725,18 @@ test('getUserOrdersForMonth', async () => {
 				[Constants.DB_FEE]: { N: '1' },
 				[Constants.DB_FEE_ASSET]: { S: 'feeAsset' },
 				[Constants.DB_INITIAL_SEQ]: { N: '1' },
-				[Constants.DB_CREATED_AT]: { N: '1234560000' },
 				[Constants.DB_UPDATED_AT]: { N: '1234567890' },
 				[Constants.DB_UPDATED_BY]: { S: 'updatedBy' },
 				[Constants.DB_PROCESSED]: { BOOL: true }
 			},
 			{
-				[Constants.DB_ACCOUNT_YM]: {
-					S: '0xAccount|year-month'
+				[Constants.DB_ACCOUNT_PAIR_DATE]: {
+					S: '0xAccount|code1|code2|YYYY-MM-DD'
 				},
-				[Constants.DB_PAIR_OH_SEQ_STATUS]: { S: 'code1|code2|0xOrderHash|1|status' },
+				[Constants.DB_CA_SEQ]: { S: '1234560000|1' },
+				[Constants.DB_ORDER_HASH]: { S: '0xOrderHash' },
 				[Constants.DB_TYPE]: { S: 'type' },
+				[Constants.DB_STATUS]: { S: 'status' },
 				[Constants.DB_PRICE]: {
 					N: '123'
 				},
@@ -744,16 +749,17 @@ test('getUserOrdersForMonth', async () => {
 				[Constants.DB_FEE]: { N: '1' },
 				[Constants.DB_FEE_ASSET]: { S: 'feeAsset' },
 				[Constants.DB_INITIAL_SEQ]: { N: '1' },
-				[Constants.DB_CREATED_AT]: { N: '1234560000' },
 				[Constants.DB_UPDATED_AT]: { N: '1234567890' },
 				[Constants.DB_UPDATED_BY]: { S: 'updatedBy' },
 				[Constants.DB_PROCESSED]: { BOOL: true },
 				[Constants.DB_TX_HASH]: { S: 'txHash' }
 			},
 			{
-				[Constants.DB_ACCOUNT_YM]: {},
-				[Constants.DB_PAIR_OH_SEQ_STATUS]: {},
+				[Constants.DB_ACCOUNT_PAIR_DATE]: {},
+				[Constants.DB_CA_SEQ]: {},
+				[Constants.DB_ORDER_HASH]: {},
 				[Constants.DB_TYPE]: {},
+				[Constants.DB_STATUS]: {},
 				[Constants.DB_PRICE]: {
 					N: '123'
 				},
@@ -766,7 +772,6 @@ test('getUserOrdersForMonth', async () => {
 				[Constants.DB_FEE]: { N: '1' },
 				[Constants.DB_FEE_ASSET]: {},
 				[Constants.DB_INITIAL_SEQ]: { N: '1' },
-				[Constants.DB_CREATED_AT]: { N: '1234560000' },
 				[Constants.DB_UPDATED_AT]: { N: '1234567890' },
 				[Constants.DB_UPDATED_BY]: {},
 				[Constants.DB_PROCESSED]: { BOOL: true },
@@ -776,23 +781,23 @@ test('getUserOrdersForMonth', async () => {
 	};
 	dynamoUtil.queryData = jest.fn(() => Promise.resolve(queryOutput));
 	expect(
-		await dynamoUtil.getUserOrdersForMonth('0xAccount', '1234-56', 'code1|code2')
+		await dynamoUtil.getUserOrdersForPairDate('0xAccount', 'code1|code2', '1234-56-78')
 	).toMatchSnapshot();
 	expect((dynamoUtil.queryData as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('getUserOrders', async () => {
 	Util.getUTCNowTimestamp = jest.fn(() => 9876543210);
-	dynamoUtil.getUserOrdersForMonth = jest.fn(() => Promise.resolve([]));
-	await dynamoUtil.getUserOrders('0xAccount', 1000000000);
-	expect((dynamoUtil.getUserOrdersForMonth as jest.Mock).mock.calls).toMatchSnapshot();
+	dynamoUtil.getUserOrdersForPairDate = jest.fn(() => Promise.resolve([]));
+	await dynamoUtil.getUserOrders('0xAccount', 'code1|code2', 9000000000);
+	expect((dynamoUtil.getUserOrdersForPairDate as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('getUserOrders end pair', async () => {
 	Util.getUTCNowTimestamp = jest.fn(() => 9876543210);
-	dynamoUtil.getUserOrdersForMonth = jest.fn(() => Promise.resolve([]));
-	await dynamoUtil.getUserOrders('0xAccount', 1000000000, 9876543210, 'pair');
-	expect((dynamoUtil.getUserOrdersForMonth as jest.Mock).mock.calls).toMatchSnapshot();
+	dynamoUtil.getUserOrdersForPairDate = jest.fn(() => Promise.resolve([]));
+	await dynamoUtil.getUserOrders('0xAccount', 'code1|code2', 9000000000, 9876543210);
+	expect((dynamoUtil.getUserOrdersForPairDate as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('addTrade', async () => {
