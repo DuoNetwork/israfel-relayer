@@ -285,12 +285,12 @@ class OrderBookServer {
 			new DualClassWrapper(
 				new Web3Wrapper(
 					null,
-					'infura',
 					(option.env === Constants.DB_LIVE
 						? Constants.PROVIDER_INFURA_MAIN
 						: Constants.PROVIDER_INFURA_KOVAN) +
 						'/' +
 						infura.token,
+					'',
 					option.env === Constants.DB_LIVE
 				),
 				token.custodian
