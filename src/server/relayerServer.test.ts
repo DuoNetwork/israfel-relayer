@@ -469,6 +469,7 @@ test('handleOrderHistorySubscribeRequest no web3Util', async () => {
 	expect(relayerServer.accountClients).toEqual({});
 	expect((Util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).not.toBeCalled();
+	expect((dynamoUtil.getUserOrders as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleOrderHistorySubscribeRequest new account ', async () => {
@@ -518,6 +519,7 @@ test('handleOrderHistorySubscribeRequest new account ', async () => {
 		'orderQueueItem'
 	);
 	expect((relayerServer.handleOrderUpdate as jest.Mock).mock.calls).toMatchSnapshot();
+	expect((dynamoUtil.getUserOrders as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleOrderHistorySubscribeRequest existing account same ws', async () => {
@@ -534,6 +536,7 @@ test('handleOrderHistorySubscribeRequest existing account same ws', async () => 
 	expect(relayerServer.accountClients).toMatchSnapshot();
 	expect((Util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).not.toBeCalled();
+	expect((dynamoUtil.getUserOrders as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleOrderHistorySubscribeRequest existing account new ws', async () => {
@@ -550,6 +553,7 @@ test('handleOrderHistorySubscribeRequest existing account new ws', async () => {
 	expect(relayerServer.accountClients).toMatchSnapshot();
 	expect((Util.safeWsSend as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(orderPersistenceUtil.subscribeOrderUpdate as jest.Mock).not.toBeCalled();
+	expect((dynamoUtil.getUserOrders as jest.Mock).mock.calls).toMatchSnapshot();
 });
 
 test('handleOrderHistoryUnsubscribeRequest existing account more than one', async () => {

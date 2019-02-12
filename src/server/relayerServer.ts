@@ -174,24 +174,33 @@ class RelayerServer {
 	public async handleOrderHistorySubscribeRequest(ws: WebSocket, req: IWsOrderHistoryRequest) {
 		if (this.web3Util) {
 			const { account } = req;
-			if (Util.isEmptyObject(this.accountClients)) {
-				const deadline = Util.getUTCNowTimestamp();
-				const tokens = this.web3Util.tokens;
-				for (const token of tokens)
-					if (!token.maturity || token.maturity > deadline)
-						for (const code in token.feeSchedules)
-							orderPersistenceUtil.subscribeOrderUpdate(
-								`${token.code}|${code}`,
-								(channel, orderQueueItem) =>
-									this.handleOrderUpdate(channel, orderQueueItem)
-							);
-			}
+			const now = Util.getUTCNowTimestamp();
+			const userOrders = [];
+			const pairsToSubscribe = [];
+			const tokens = this.web3Util.tokens;
+			for (const token of tokens)
+				if (!token.maturity || token.maturity > now)
+					for (const code in token.feeSchedules) {
+						const pair = `${token.code}|${code}`;
+						userOrders.push(
+							...(await dynamoUtil.getUserOrders(
+								account,
+								pair,
+								now - 8 * 86400000,
+								now
+							))
+						);
+						pairsToSubscribe.push(pair);
+					}
+			if (Util.isEmptyObject(this.accountClients))
+				pairsToSubscribe.forEach(pair =>
+					orderPersistenceUtil.subscribeOrderUpdate(pair, (channel, orderQueueItem) =>
+						this.handleOrderUpdate(channel, orderQueueItem)
+					)
+				);
 
 			if (!this.accountClients[account]) this.accountClients[account] = [];
 			if (!this.accountClients[account].includes(ws)) this.accountClients[account].push(ws);
-
-			const now = Util.getUTCNowTimestamp();
-			const userOrders = await dynamoUtil.getUserOrders(account, now - 30 * 86400000, now);
 
 			const orderBookResponse: IWsOrderHistoryResponse = {
 				method: Constants.WS_HISTORY,

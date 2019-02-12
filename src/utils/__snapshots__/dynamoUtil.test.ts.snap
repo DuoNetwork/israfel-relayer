@@ -183,8 +183,8 @@ Array [
   Array [
     Object {
       "Item": Object {
-        "accountYearMonth": Object {
-          "S": "0xAccount|1970-01",
+        "accountPairDate": Object {
+          "S": "0xAccount|code1|code2|1970-01-15",
         },
         "amount": Object {
           "N": "456",
@@ -192,8 +192,8 @@ Array [
         "balance": Object {
           "N": "123",
         },
-        "createdAt": Object {
-          "N": "1234560000",
+        "createdAtSequence": Object {
+          "S": "1234560000|2",
         },
         "expiry": Object {
           "N": "1234567890",
@@ -213,8 +213,8 @@ Array [
         "matching": Object {
           "N": "111",
         },
-        "pairOrderHashSequenceStatus": Object {
-          "S": "code1|code2|0xOrderHash|2|status",
+        "orderHash": Object {
+          "S": "0xOrderHash",
         },
         "price": Object {
           "N": "0.12345679",
@@ -224,6 +224,9 @@ Array [
         },
         "side": Object {
           "S": "side",
+        },
+        "status": Object {
+          "S": "status",
         },
         "type": Object {
           "S": "type",
@@ -246,8 +249,8 @@ Array [
   Array [
     Object {
       "Item": Object {
-        "accountYearMonth": Object {
-          "S": "0xAccount|1970-01",
+        "accountPairDate": Object {
+          "S": "0xAccount|code1|code2|1970-01-15",
         },
         "amount": Object {
           "N": "456",
@@ -255,8 +258,8 @@ Array [
         "balance": Object {
           "N": "123",
         },
-        "createdAt": Object {
-          "N": "1234560000",
+        "createdAtSequence": Object {
+          "S": "1234560000|2",
         },
         "expiry": Object {
           "N": "1234567890",
@@ -276,8 +279,8 @@ Array [
         "matching": Object {
           "N": "111",
         },
-        "pairOrderHashSequenceStatus": Object {
-          "S": "code1|code2|0xOrderHash|2|status",
+        "orderHash": Object {
+          "S": "0xOrderHash",
         },
         "price": Object {
           "N": "0.12345679",
@@ -287,6 +290,9 @@ Array [
         },
         "side": Object {
           "S": "side",
+        },
+        "status": Object {
+          "S": "status",
         },
         "transactionHash": Object {
           "S": "txHash",
@@ -658,23 +664,58 @@ exports[`getUserOrders 1`] = `
 Array [
   Array [
     "0xAccount",
-    "1970-01",
-    "",
+    "code1|code2",
+    "1970-04-15",
   ],
   Array [
     "0xAccount",
-    "1970-02",
-    "",
+    "code1|code2",
+    "1970-04-16",
   ],
   Array [
     "0xAccount",
-    "1970-03",
-    "",
+    "code1|code2",
+    "1970-04-17",
   ],
   Array [
     "0xAccount",
-    "1970-04",
-    "",
+    "code1|code2",
+    "1970-04-18",
+  ],
+  Array [
+    "0xAccount",
+    "code1|code2",
+    "1970-04-19",
+  ],
+  Array [
+    "0xAccount",
+    "code1|code2",
+    "1970-04-20",
+  ],
+  Array [
+    "0xAccount",
+    "code1|code2",
+    "1970-04-21",
+  ],
+  Array [
+    "0xAccount",
+    "code1|code2",
+    "1970-04-22",
+  ],
+  Array [
+    "0xAccount",
+    "code1|code2",
+    "1970-04-23",
+  ],
+  Array [
+    "0xAccount",
+    "code1|code2",
+    "1970-04-24",
+  ],
+  Array [
+    "0xAccount",
+    "code1|code2",
+    "1970-04-25",
   ],
 ]
 `;
@@ -683,28 +724,63 @@ exports[`getUserOrders end pair 1`] = `
 Array [
   Array [
     "0xAccount",
-    "1970-01",
-    "pair",
+    "code1|code2",
+    "1970-04-15",
   ],
   Array [
     "0xAccount",
-    "1970-02",
-    "pair",
+    "code1|code2",
+    "1970-04-16",
   ],
   Array [
     "0xAccount",
-    "1970-03",
-    "pair",
+    "code1|code2",
+    "1970-04-17",
   ],
   Array [
     "0xAccount",
-    "1970-04",
-    "pair",
+    "code1|code2",
+    "1970-04-18",
+  ],
+  Array [
+    "0xAccount",
+    "code1|code2",
+    "1970-04-19",
+  ],
+  Array [
+    "0xAccount",
+    "code1|code2",
+    "1970-04-20",
+  ],
+  Array [
+    "0xAccount",
+    "code1|code2",
+    "1970-04-21",
+  ],
+  Array [
+    "0xAccount",
+    "code1|code2",
+    "1970-04-22",
+  ],
+  Array [
+    "0xAccount",
+    "code1|code2",
+    "1970-04-23",
+  ],
+  Array [
+    "0xAccount",
+    "code1|code2",
+    "1970-04-24",
+  ],
+  Array [
+    "0xAccount",
+    "code1|code2",
+    "1970-04-25",
   ],
 ]
 `;
 
-exports[`getUserOrdersForMonth 1`] = `
+exports[`getUserOrdersForPairDate 1`] = `
 Array [
   Object {
     "account": "0xAccount",
@@ -755,7 +831,7 @@ Array [
     "account": "",
     "amount": 456,
     "balance": 123,
-    "createdAt": 1234560000,
+    "createdAt": 0,
     "currentSequence": NaN,
     "expiry": 1234567890,
     "fee": 1,
@@ -763,12 +839,12 @@ Array [
     "fill": 234,
     "initialSequence": 1,
     "matching": 111,
-    "orderHash": undefined,
-    "pair": "|undefined",
+    "orderHash": "",
+    "pair": "undefined|undefined",
     "price": 123,
     "processed": true,
     "side": "",
-    "status": undefined,
+    "status": "",
     "transactionHash": undefined,
     "type": "",
     "updatedAt": 1234567890,
@@ -777,22 +853,16 @@ Array [
 ]
 `;
 
-exports[`getUserOrdersForMonth 2`] = `
+exports[`getUserOrdersForPairDate 2`] = `
 Array [
   Array [
     Object {
       "ExpressionAttributeValues": Object {
-        ":accountYearMonth": Object {
-          "S": "0xAccount|1234-56",
-        },
-        ":end": Object {
-          "S": "code1|code2|z",
-        },
-        ":start": Object {
-          "S": "code1|code2|",
+        ":accountPairDate": Object {
+          "S": "0xAccount|code1|code2|1234-56-78",
         },
       },
-      "KeyConditionExpression": "accountYearMonth = :accountYearMonth AND pairOrderHashSequenceStatus BETWEEN :start AND :end",
+      "KeyConditionExpression": "accountPairDate = :accountPairDate",
       "TableName": "israfel.env.userOrders",
     },
   ],

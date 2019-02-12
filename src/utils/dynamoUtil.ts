@@ -426,17 +426,18 @@ class DynamoUtil {
 	}
 
 	public convertUserOrderToDynamo(userOrder: IUserOrder): AttributeMap {
-		const timestamp = Util.getUTCNowTimestamp();
 		const data: AttributeMap = {
-			[Constants.DB_ACCOUNT_YM]: {
-				S: userOrder.account + '|' + moment.utc(timestamp).format('YYYY-MM')
+			[Constants.DB_ACCOUNT_PAIR_DATE]: {
+				S: `${userOrder.account}|${userOrder.pair}|${moment
+					.utc(userOrder.createdAt)
+					.format('YYYY-MM-DD')}`
 			},
-			[Constants.DB_PAIR_OH_SEQ_STATUS]: {
-				S: `${userOrder.pair}|${userOrder.orderHash}|${userOrder.currentSequence}|${
-					userOrder.status
-				}`
+			[Constants.DB_CA_SEQ]: {
+				S: `${userOrder.createdAt}|${userOrder.currentSequence}`
 			},
+			[Constants.DB_ORDER_HASH]: { S: userOrder.orderHash },
 			[Constants.DB_TYPE]: { S: userOrder.type },
+			[Constants.DB_STATUS]: { S: userOrder.status },
 			[Constants.DB_PRICE]: {
 				N: Util.round(userOrder.price) + ''
 			},
@@ -449,8 +450,7 @@ class DynamoUtil {
 			[Constants.DB_FEE]: { N: userOrder.fee + '' },
 			[Constants.DB_FEE_ASSET]: { S: userOrder.feeAsset },
 			[Constants.DB_INITIAL_SEQ]: { N: userOrder.initialSequence + '' },
-			[Constants.DB_CREATED_AT]: { N: userOrder.createdAt + '' },
-			[Constants.DB_UPDATED_AT]: { N: timestamp + '' },
+			[Constants.DB_UPDATED_AT]: { N: Util.getUTCNowTimestamp() + '' },
 			[Constants.DB_UPDATED_BY]: { S: userOrder.updatedBy + '' },
 			[Constants.DB_PROCESSED]: { BOOL: userOrder.processed }
 		};
@@ -467,15 +467,14 @@ class DynamoUtil {
 	}
 
 	public parseUserOrder(data: AttributeMap): IUserOrder {
-		const [code1, code2, orderHash, seq, status] = (
-			data[Constants.DB_PAIR_OH_SEQ_STATUS].S || ''
-		).split('|');
+		const [account, code1, code2] = (data[Constants.DB_ACCOUNT_PAIR_DATE].S || '').split('|');
+		const [createdAt, seq] = (data[Constants.DB_CA_SEQ].S || '').split('|');
 		const userOrder: IUserOrder = {
-			account: (data[Constants.DB_ACCOUNT_YM].S || '').split('|')[0],
+			account: account,
 			pair: `${code1}|${code2}`,
 			type: data[Constants.DB_TYPE].S || '',
-			status: status,
-			orderHash: orderHash,
+			status: data[Constants.DB_STATUS].S || '',
+			orderHash: data[Constants.DB_ORDER_HASH].S || '',
 			price: Number(data[Constants.DB_PRICE].N),
 			side: data[Constants.DB_SIDE].S || '',
 			amount: Number(data[Constants.DB_AMOUNT].N),
@@ -487,7 +486,7 @@ class DynamoUtil {
 			feeAsset: data[Constants.DB_FEE_ASSET].S || '',
 			initialSequence: Number(data[Constants.DB_INITIAL_SEQ].N),
 			currentSequence: Number(seq),
-			createdAt: Number(data[Constants.DB_CREATED_AT].N),
+			createdAt: Number(createdAt),
 			updatedAt: Number(data[Constants.DB_UPDATED_AT].N),
 			updatedBy: data[Constants.DB_UPDATED_BY].S || '',
 			processed: !!data[Constants.DB_PROCESSED].BOOL
@@ -496,42 +495,35 @@ class DynamoUtil {
 		return userOrder;
 	}
 
-	public async getUserOrders(account: string, start: number, end: number = 0, pair: string = '') {
-		if (!end) end = Util.getUTCNowTimestamp();
-		const startObj = moment.utc(start).startOf('month');
-		const months = [];
+	public async getUserOrders(account: string, pair: string, start: number, end: number = 0) {
+		if (end <= 0) end = Util.getUTCNowTimestamp();
+		const startObj = moment.utc(start).startOf('day');
+		const dates = [];
 		while (startObj.valueOf() <= end) {
-			months.push(startObj.format('YYYY-MM'));
-			startObj.add(1, 'month');
+			dates.push(startObj.format('YYYY-MM-DD'));
+			startObj.add(1, 'day');
 		}
 
 		const userOrders = [];
 
-		for (const month of months)
-			userOrders.push(...(await this.getUserOrdersForMonth(account, month, pair)));
+		for (const date of dates)
+			userOrders.push(...(await this.getUserOrdersForPairDate(account, pair, date)));
 
 		return userOrders;
 	}
 
-	public async getUserOrdersForMonth(account: string, yearMonth: string, pair: string = '') {
+	public async getUserOrdersForPairDate(account: string, pair: string, date: string) {
 		const params: QueryInput = {
 			TableName: this.getTableName(Constants.DB_USER_ORDERS),
-			KeyConditionExpression: `${Constants.DB_ACCOUNT_YM} = :${Constants.DB_ACCOUNT_YM}`,
+			KeyConditionExpression: `${Constants.DB_ACCOUNT_PAIR_DATE} = :${
+				Constants.DB_ACCOUNT_PAIR_DATE
+			}`,
 			ExpressionAttributeValues: {
-				[':' + Constants.DB_ACCOUNT_YM]: {
-					S: `${account}|${yearMonth}`
+				[':' + Constants.DB_ACCOUNT_PAIR_DATE]: {
+					S: `${account}|${pair}|${date}`
 				}
 			}
 		};
-		if (pair) {
-			params.KeyConditionExpression += ` AND ${
-				Constants.DB_PAIR_OH_SEQ_STATUS
-			} BETWEEN :start AND :end`;
-			if (params.ExpressionAttributeValues) {
-				params.ExpressionAttributeValues[':start'] = { S: `${pair}|` };
-				params.ExpressionAttributeValues[':end'] = { S: `${pair}|z` };
-			}
-		}
 
 		const data = await this.queryData(params);
 		if (!data.Items || !data.Items.length) return [];
