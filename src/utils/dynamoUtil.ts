@@ -496,7 +496,7 @@ class DynamoUtil {
 	}
 
 	public async getUserOrders(account: string, pair: string, start: number, end: number = 0) {
-		if (!end) end = Util.getUTCNowTimestamp();
+		if (end <= 0) end = Util.getUTCNowTimestamp();
 		const startObj = moment.utc(start).startOf('day');
 		const dates = [];
 		while (startObj.valueOf() <= end) {

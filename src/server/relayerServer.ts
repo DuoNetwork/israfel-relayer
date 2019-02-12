@@ -177,10 +177,9 @@ class RelayerServer {
 			const now = Util.getUTCNowTimestamp();
 			const userOrders = [];
 			const pairsToSubscribe = [];
-			const deadline = Util.getUTCNowTimestamp();
 			const tokens = this.web3Util.tokens;
 			for (const token of tokens)
-				if (!token.maturity || token.maturity > deadline)
+				if (!token.maturity || token.maturity > now)
 					for (const code in token.feeSchedules) {
 						const pair = `${token.code}|${code}`;
 						userOrders.push(
