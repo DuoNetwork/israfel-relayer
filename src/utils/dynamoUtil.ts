@@ -426,11 +426,10 @@ class DynamoUtil {
 	}
 
 	public convertUserOrderToDynamo(userOrder: IUserOrder): AttributeMap {
-		const timestamp = Util.getUTCNowTimestamp();
 		const data: AttributeMap = {
 			[Constants.DB_ACCOUNT_PAIR_DATE]: {
 				S: `${userOrder.account}|${userOrder.pair}|${moment
-					.utc(timestamp)
+					.utc(userOrder.createdAt)
 					.format('YYYY-MM-DD')}`
 			},
 			[Constants.DB_CA_SEQ]: {
@@ -451,7 +450,7 @@ class DynamoUtil {
 			[Constants.DB_FEE]: { N: userOrder.fee + '' },
 			[Constants.DB_FEE_ASSET]: { S: userOrder.feeAsset },
 			[Constants.DB_INITIAL_SEQ]: { N: userOrder.initialSequence + '' },
-			[Constants.DB_UPDATED_AT]: { N: timestamp + '' },
+			[Constants.DB_UPDATED_AT]: { N: Util.getUTCNowTimestamp() + '' },
 			[Constants.DB_UPDATED_BY]: { S: userOrder.updatedBy + '' },
 			[Constants.DB_PROCESSED]: { BOOL: userOrder.processed }
 		};
