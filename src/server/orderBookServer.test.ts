@@ -13,10 +13,11 @@ import orderBookServer from './orderBookServer';
 jest.mock('@finbook/duo-contract-wrapper', () => ({
 	Constants: WrapperConstants,
 	Web3Wrapper: jest.fn(() => ({ contractAddresses: kovan })),
-	DualClassWrapper: jest.fn()
+	DualClassWrapper: jest.fn(),
+	VivaldiWrapper: jest.fn()
 }));
 
-import { DualClassWrapper, Web3Wrapper } from '@finbook/duo-contract-wrapper';
+import { DualClassWrapper, VivaldiWrapper, Web3Wrapper } from '@finbook/duo-contract-wrapper';
 
 orderBookServer.pair = 'code1|code2';
 orderBookServer.loadingOrders = false;
@@ -431,6 +432,37 @@ test('startServer', async () => {
 		token: 'code'
 	} as any);
 	expect((DualClassWrapper as any).mock.calls).toMatchSnapshot();
+	expect((Web3Wrapper as any).mock.calls).toMatchSnapshot();
+	expect(dynamoUtil.updateStatus as jest.Mock).not.toBeCalled();
+	expect(global.setInterval as jest.Mock).not.toBeCalled();
+});
+
+test('startServer, isDualClass false', async () => {
+	dynamoUtil.scanTokens = jest.fn(() =>
+		Promise.resolve([
+			{
+				custodian: '0xd697eb5a080590e14e00fd355ceb547fb5b32de1',
+				address: 'address',
+				code: 'code',
+				denomination: 0.0001,
+				precisions: {
+					WETH: 0.001
+				},
+				feeSchedules: {
+					WETH: {
+						minimum: 0,
+						rate: 0.01
+					}
+				}
+			}
+		])
+	);
+	dynamoUtil.updateStatus = jest.fn();
+	global.setInterval = jest.fn();
+	await orderBookServer.startServer({
+		token: 'code'
+	} as any);
+	expect((VivaldiWrapper as any).mock.calls).toMatchSnapshot();
 	expect((Web3Wrapper as any).mock.calls).toMatchSnapshot();
 	expect(dynamoUtil.updateStatus as jest.Mock).not.toBeCalled();
 	expect(global.setInterval as jest.Mock).not.toBeCalled();
