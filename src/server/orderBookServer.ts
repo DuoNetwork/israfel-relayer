@@ -1,6 +1,7 @@
 import {
 	Constants as WrapperConstants,
 	DualClassWrapper,
+	VivaldiWrapper,
 	Web3Wrapper
 } from '@finbook/duo-contract-wrapper';
 import {
@@ -213,7 +214,7 @@ class OrderBookServer {
 		});
 	}
 
-	public async checkCustodianState(dualClassWrapper: DualClassWrapper) {
+	public async checkCustodianState(dualClassWrapper: DualClassWrapper | VivaldiWrapper) {
 		const state = await dualClassWrapper.getStates();
 		this.custodianInTrading = state.state === WrapperConstants.CTD_TRADING;
 		if (!this.custodianInTrading) {
@@ -253,9 +254,9 @@ class OrderBookServer {
 		}
 	}
 
-	public async initialize(dualClassWrapper: DualClassWrapper) {
-		await this.checkCustodianState(dualClassWrapper);
-		global.setInterval(() => this.checkCustodianState(dualClassWrapper), 10000);
+	public async initialize(custodianWrapper: DualClassWrapper | VivaldiWrapper) {
+		await this.checkCustodianState(custodianWrapper);
+		global.setInterval(() => this.checkCustodianState(custodianWrapper), 10000);
 
 		orderPersistenceUtil.subscribeOrderUpdate(this.pair, (channel, orderQueueItem) =>
 			this.handleOrderUpdate(channel, orderQueueItem)
@@ -281,20 +282,29 @@ class OrderBookServer {
 			Util.logError(JSON.stringify(err));
 		}
 
+		const duoWeb3Wrapper = new Web3Wrapper(
+			null,
+			(option.env === Constants.DB_LIVE
+				? Constants.PROVIDER_INFURA_MAIN
+				: Constants.PROVIDER_INFURA_KOVAN) +
+				'/' +
+				infura.token,
+			'',
+			option.env === Constants.DB_LIVE
+		);
+		let isDualClass = true;
+		for (const tenor in duoWeb3Wrapper.contractAddresses.Custodians.Vivaldi) {
+			const addr = duoWeb3Wrapper.contractAddresses.Custodians.Vivaldi[tenor];
+			if (addr.custodian.address.toLowerCase() === token.custodian) {
+				isDualClass = false;
+				break;
+			}
+		}
+
 		this.initialize(
-			new DualClassWrapper(
-				new Web3Wrapper(
-					null,
-					(option.env === Constants.DB_LIVE
-						? Constants.PROVIDER_INFURA_MAIN
-						: Constants.PROVIDER_INFURA_KOVAN) +
-						'/' +
-						infura.token,
-					'',
-					option.env === Constants.DB_LIVE
-				),
-				token.custodian
-			)
+			isDualClass
+				? new DualClassWrapper(duoWeb3Wrapper, token.custodian)
+				: new VivaldiWrapper(duoWeb3Wrapper, token.custodian)
 		);
 		if (option.server) {
 			dynamoUtil.updateStatus(this.pair);

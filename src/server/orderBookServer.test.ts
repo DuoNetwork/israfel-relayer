@@ -1,6 +1,7 @@
 // fix for @ledgerhq/hw-transport-u2f 4.28.0
 import '@babel/polyfill';
 import * as WrapperConstants from '@finbook/duo-contract-wrapper/dist/constants';
+import { kovan } from '@finbook/duo-contract-wrapper/dist/contractAddresses';
 import { Constants, OrderBookUtil, Util } from '@finbook/israfel-common';
 import liveOrders from '../samples/test/liveOrders.json';
 import dynamoUtil from '../utils/dynamoUtil';
@@ -11,7 +12,7 @@ import orderBookServer from './orderBookServer';
 
 jest.mock('@finbook/duo-contract-wrapper', () => ({
 	Constants: WrapperConstants,
-	Web3Wrapper: jest.fn(),
+	Web3Wrapper: jest.fn(() => ({ contractAddresses: kovan })),
 	DualClassWrapper: jest.fn()
 }));
 
