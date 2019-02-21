@@ -152,7 +152,7 @@ class MarketMaker {
 				web3Util.contractAddresses.etherToken,
 				{
 					gasPrice: gasPrice,
-					gasLimit: WrapperConstants.CREATE_GAS
+					gasLimit: WrapperConstants.DUAL_CLASS_CREATE_GAS
 				}
 			);
 			Util.logDebug(`tx hash: ${tx}`);
@@ -170,7 +170,7 @@ class MarketMaker {
 				Util.round(bTokenToRedeem),
 				{
 					gasPrice: gasPrice,
-					gasLimit: WrapperConstants.REDEEM_GAS
+					gasLimit: WrapperConstants.DUAL_CLASS_REDEEM_GAS
 				}
 			);
 			Util.logDebug(`tx hash: ${tx}`);
