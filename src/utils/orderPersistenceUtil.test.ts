@@ -69,6 +69,7 @@ const addOrderQueueItem = {
 	status: 'status',
 	requestor: 'requestor',
 	liveOrder: liveOrder,
+	processRetry: 0,
 	signedOrder: {
 		senderAddress: 'senderAddress',
 		makerAddress: 'makerAddress',
@@ -503,8 +504,9 @@ test('processOrderQueue terminate', async () => {
 	expect(isSuccess).toEqual(true);
 });
 
-test('processOrderQueue failed', async () => {
+test('processOrderQueue failed, less than 3 times', async () => {
 	redisUtil.pop = jest.fn(() => Promise.resolve('code1|code2|add|0xOrderHash'));
+	// addOrderQueueItem.processRetry = 3;
 	redisUtil.hashGet = jest.fn(() => Promise.resolve(JSON.stringify(addOrderQueueItem)));
 	redisUtil.hashDelete = jest.fn(() => Promise.resolve());
 	redisUtil.putBack = jest.fn();
@@ -534,9 +536,35 @@ test('processOrderQueue failed', async () => {
 	expect((redisUtil.hashSet as jest.Mock).mock.calls[0][1]).toEqual(
 		(redisUtil.hashGet as jest.Mock).mock.calls[0][1]
 	);
+
+	const output = addOrderQueueItem;
+	output.processRetry ++;
+
 	expect((redisUtil.hashSet as jest.Mock).mock.calls[0][2]).toEqual(
-		JSON.stringify(addOrderQueueItem)
+		JSON.stringify(output)
 	);
+	expect(isSuccess).toEqual(false);
+});
+
+test('processOrderQueue failed, more than 3 times', async () => {
+	redisUtil.pop = jest.fn(() => Promise.resolve('code1|code2|add|0xOrderHash'));
+	addOrderQueueItem.processRetry = 4;
+	redisUtil.hashGet = jest.fn(() => Promise.resolve(JSON.stringify(addOrderQueueItem)));
+	redisUtil.hashDelete = jest.fn(() => Promise.resolve());
+	redisUtil.putBack = jest.fn();
+	redisUtil.hashSet = jest.fn(() => Promise.resolve(1));
+	dynamoUtil.addOrder = jest.fn(() => Promise.reject('processOrderQueue'));
+	dynamoUtil.updateLiveOrder = jest.fn(() => Promise.resolve());
+	dynamoUtil.deleteOrder = jest.fn(() => Promise.resolve());
+	orderPersistenceUtil.addUserOrderToDB = jest.fn(() => Promise.resolve({} as any));
+	const isSuccess = await orderPersistenceUtil.processOrderQueue();
+	expect((dynamoUtil.addOrder as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(dynamoUtil.updateLiveOrder as jest.Mock).not.toBeCalled();
+	expect(dynamoUtil.deleteOrder as jest.Mock).not.toBeCalled();
+	expect(orderPersistenceUtil.addUserOrderToDB as jest.Mock).not.toBeCalled();
+	expect((redisUtil.hashGet as jest.Mock).mock.calls).toMatchSnapshot();
+	expect(redisUtil.hashDelete as jest.Mock).not.toBeCalled();
+	expect(redisUtil.putBack as jest.Mock).not.toBeCalled();
 	expect(isSuccess).toEqual(false);
 });
 

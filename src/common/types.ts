@@ -36,6 +36,7 @@ export interface IOrderQueueItem {
 	status: string;
 	requestor: string;
 	liveOrder: ILiveOrder;
+	processRetry: number;
 	signedOrder?: IStringSignedOrder;
 	transactionHash?: string;
 }

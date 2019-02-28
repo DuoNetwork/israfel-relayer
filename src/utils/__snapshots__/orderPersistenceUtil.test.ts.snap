@@ -150,7 +150,7 @@ Array [
   Array [
     "orders|cache|code1|code2",
     "code1|code2|add|0xOrderHash",
-    "{\\"method\\":\\"add\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"test\\":\\"liveOrder\\",\\"initialSequence\\":123,\\"currentSequence\\":123},\\"signedOrder\\":\\"may or may not exist\\"}",
+    "{\\"method\\":\\"add\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"test\\":\\"liveOrder\\",\\"initialSequence\\":123,\\"currentSequence\\":123},\\"processRetry\\":0,\\"signedOrder\\":\\"may or may not exist\\"}",
   ],
 ]
 `;
@@ -168,7 +168,7 @@ exports[`persistOrder add 3`] = `
 Array [
   Array [
     "orders|pubsub|code1|code2",
-    "{\\"method\\":\\"add\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"test\\":\\"liveOrder\\",\\"initialSequence\\":123,\\"currentSequence\\":123},\\"signedOrder\\":\\"may or may not exist\\"}",
+    "{\\"method\\":\\"add\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"test\\":\\"liveOrder\\",\\"initialSequence\\":123,\\"currentSequence\\":123},\\"processRetry\\":0,\\"signedOrder\\":\\"may or may not exist\\"}",
   ],
 ]
 `;
@@ -195,7 +195,7 @@ Array [
   Array [
     "orders|cache|code1|code2",
     "code1|code2|add|0xOrderHash",
-    "{\\"method\\":\\"add\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"test\\":\\"liveOrder\\",\\"initialSequence\\":123,\\"currentSequence\\":123},\\"signedOrder\\":\\"may or may not exist\\"}",
+    "{\\"method\\":\\"add\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"test\\":\\"liveOrder\\",\\"initialSequence\\":123,\\"currentSequence\\":123},\\"processRetry\\":0,\\"signedOrder\\":\\"may or may not exist\\"}",
   ],
 ]
 `;
@@ -213,7 +213,7 @@ exports[`persistOrder add publish failed 3`] = `
 Array [
   Array [
     "orders|pubsub|code1|code2",
-    "{\\"method\\":\\"add\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"test\\":\\"liveOrder\\",\\"initialSequence\\":123,\\"currentSequence\\":123},\\"signedOrder\\":\\"may or may not exist\\"}",
+    "{\\"method\\":\\"add\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"test\\":\\"liveOrder\\",\\"initialSequence\\":123,\\"currentSequence\\":123},\\"processRetry\\":0,\\"signedOrder\\":\\"may or may not exist\\"}",
   ],
 ]
 `;
@@ -240,7 +240,7 @@ Array [
   Array [
     "orders|cache|code1|code2",
     "code1|code2|method|0xOrderHash",
-    "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"matching\\":20,\\"balance\\":40,\\"fill\\":40,\\"currentSequence\\":123}}",
+    "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"matching\\":20,\\"balance\\":40,\\"fill\\":40,\\"currentSequence\\":123},\\"processRetry\\":0}",
   ],
 ]
 `;
@@ -258,7 +258,7 @@ exports[`persistOrder not add fill 3`] = `
 Array [
   Array [
     "orders|pubsub|code1|code2",
-    "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"matching\\":20,\\"balance\\":40,\\"fill\\":40,\\"currentSequence\\":123}}",
+    "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"matching\\":20,\\"balance\\":40,\\"fill\\":40,\\"currentSequence\\":123},\\"processRetry\\":0}",
   ],
 ]
 `;
@@ -287,7 +287,7 @@ Array [
   Array [
     "orders|cache|code1|code2",
     "code1|code2|method|0xOrderHash",
-    "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"matching\\":70,\\"balance\\":20,\\"fill\\":10,\\"currentSequence\\":123},\\"transactionHash\\":\\"txHash\\"}",
+    "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"matching\\":70,\\"balance\\":20,\\"fill\\":10,\\"currentSequence\\":123},\\"processRetry\\":0,\\"transactionHash\\":\\"txHash\\"}",
   ],
 ]
 `;
@@ -305,7 +305,7 @@ exports[`persistOrder not add match 3`] = `
 Array [
   Array [
     "orders|pubsub|code1|code2",
-    "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"matching\\":70,\\"balance\\":20,\\"fill\\":10,\\"currentSequence\\":123},\\"transactionHash\\":\\"txHash\\"}",
+    "{\\"method\\":\\"method\\",\\"status\\":\\"status\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"matching\\":70,\\"balance\\":20,\\"fill\\":10,\\"currentSequence\\":123},\\"processRetry\\":0,\\"transactionHash\\":\\"txHash\\"}",
   ],
 ]
 `;
@@ -334,7 +334,7 @@ Array [
   Array [
     "orders|cache|code1|code2",
     "code1|code2|terminate|0xOrderHash",
-    "{\\"method\\":\\"terminate\\",\\"status\\":\\"fill\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":100,\\"matching\\":0,\\"balance\\":0}}",
+    "{\\"method\\":\\"terminate\\",\\"status\\":\\"fill\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":100,\\"matching\\":0,\\"balance\\":0},\\"processRetry\\":0}",
   ],
 ]
 `;
@@ -352,7 +352,7 @@ exports[`persistOrder terminate fill 3`] = `
 Array [
   Array [
     "orders|pubsub|code1|code2",
-    "{\\"method\\":\\"terminate\\",\\"status\\":\\"fill\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":100,\\"matching\\":0,\\"balance\\":0}}",
+    "{\\"method\\":\\"terminate\\",\\"status\\":\\"fill\\",\\"requestor\\":\\"requestor\\",\\"liveOrder\\":{\\"amount\\":100,\\"currentSequence\\":123,\\"fill\\":100,\\"matching\\":0,\\"balance\\":0},\\"processRetry\\":0}",
   ],
 ]
 `;
@@ -475,7 +475,7 @@ Array [
 ]
 `;
 
-exports[`processOrderQueue failed 1`] = `
+exports[`processOrderQueue failed, less than 3 times 1`] = `
 Array [
   Array [
     Object {
@@ -519,7 +519,60 @@ Array [
 ]
 `;
 
-exports[`processOrderQueue failed 2`] = `
+exports[`processOrderQueue failed, less than 3 times 2`] = `
+Array [
+  Array [
+    "orders|cache|code1|code2",
+    "code1|code2|add|0xOrderHash",
+  ],
+]
+`;
+
+exports[`processOrderQueue failed, more than 3 times 1`] = `
+Array [
+  Array [
+    Object {
+      "account": "0xAccount",
+      "amount": 456,
+      "balance": 123,
+      "createdAt": 1111111111,
+      "currentSequence": 2,
+      "expiry": 1234567890,
+      "fee": 1,
+      "feeAsset": "feeAsset",
+      "fill": 234,
+      "initialSequence": 1,
+      "matching": 99,
+      "orderHash": "0xOrderHash",
+      "pair": "code1|code2",
+      "price": 0.123456789,
+      "side": "bid",
+    },
+    Object {
+      "orderHash": "0xOrderHash",
+      "pair": "code1|code2",
+      "signedOrder": Object {
+        "exchangeAddress": "exchangeAddress",
+        "expirationTimeSeconds": "1234567890",
+        "feeRecipientAddress": "feeRecipientAddress",
+        "makerAddress": "makerAddress",
+        "makerAssetAmount": "123",
+        "makerAssetData": "makerAssetData",
+        "makerFee": "0",
+        "salt": "789",
+        "senderAddress": "senderAddress",
+        "signature": "signature",
+        "takerAddress": "takerAddress",
+        "takerAssetAmount": "456",
+        "takerAssetData": "takerAssetData",
+        "takerFee": "0",
+      },
+    },
+  ],
+]
+`;
+
+exports[`processOrderQueue failed, more than 3 times 2`] = `
 Array [
   Array [
     "orders|cache|code1|code2",
