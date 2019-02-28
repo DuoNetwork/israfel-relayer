@@ -49,8 +49,8 @@
 	"dependencies": {
 		"0x.js": "^3.0.2",
 		"@babel/polyfill": "^7.2.5",
-		"@finbook/duo-contract-wrapper": "^1.2.2",
-		"@finbook/duo-market-data": "^1.0.1",
+		"@finbook/duo-contract-wrapper": "^1.2.3",
+		"@finbook/duo-market-data": "^1.0.2",
 		"@finbook/israfel-common": "^1.1.0",
 		"aws-sdk": "^2.398.0",
 		"ethers": "^4.0.23",
