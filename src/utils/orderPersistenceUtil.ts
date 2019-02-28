@@ -300,11 +300,19 @@ class OrderPersistenceUtil {
 			redisUtil.hashDelete(this.getOrderCacheMapKey(pair), queueKey);
 			Util.logDebug(`removed redis data`);
 		} catch (err) {
-			Util.logError(`error in processing for ${queueKey}`);
+			Util.logError(
+				`error in processing for ${queueKey} and the queue item is ${JSON.stringify(
+					orderQueueItem
+				)}`
+			);
 			Util.logError(err);
 			if (orderQueueItem.processRetry <= 3) {
 				orderQueueItem.processRetry += 1;
-				await redisUtil.hashSet(this.getOrderCacheMapKey(pair), queueKey, JSON.stringify(orderQueueItem));
+				await redisUtil.hashSet(
+					this.getOrderCacheMapKey(pair),
+					queueKey,
+					JSON.stringify(orderQueueItem)
+				);
 				redisUtil.putBack(this.getOrderQueueKey(), queueKey);
 				return false;
 			}
