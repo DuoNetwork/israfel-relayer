@@ -565,7 +565,7 @@ test('processOrderQueue failed, more than 3 times', async () => {
 	expect((redisUtil.hashGet as jest.Mock).mock.calls).toMatchSnapshot();
 	expect(redisUtil.hashDelete as jest.Mock).not.toBeCalled();
 	expect(redisUtil.putBack as jest.Mock).not.toBeCalled();
-	expect(isSuccess).toEqual(false);
+	expect(isSuccess).toEqual(true);
 });
 
 test('getAllLiveOrdersInPersistence only add in redis', async () => {

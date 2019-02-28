@@ -306,8 +306,9 @@ class OrderPersistenceUtil {
 				orderQueueItem.processRetry += 1;
 				await redisUtil.hashSet(this.getOrderCacheMapKey(pair), queueKey, JSON.stringify(orderQueueItem));
 				redisUtil.putBack(this.getOrderQueueKey(), queueKey);
+				return false;
 			}
-			return false;
+			return true;
 		}
 
 		await this.addUserOrderToDB(
