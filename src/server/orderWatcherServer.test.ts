@@ -291,6 +291,7 @@ const orderQueueItem = {
 	method: 'method',
 	status: 'status',
 	requestor: Constants.DB_ORDER_WATCHER,
+	processRetry: 0,
 	liveOrder: {
 		orderHash: '0xOrderHash'
 	} as any,

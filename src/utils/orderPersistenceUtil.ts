@@ -107,7 +107,8 @@ class OrderPersistenceUtil {
 			const method = parts[2];
 			const orderHash = parts[3];
 			const orderQueueItem: IOrderQueueItem = JSON.parse(redisOrders[key]);
-			if (method === Constants.DB_TERMINATE) terminateOrders[orderHash] = orderQueueItem.liveOrder;
+			if (method === Constants.DB_TERMINATE)
+				terminateOrders[orderHash] = orderQueueItem.liveOrder;
 			else if (method === Constants.DB_ADD) addOrders[orderHash] = orderQueueItem.liveOrder;
 			else updateOrders[orderHash] = orderQueueItem.liveOrder;
 		}
@@ -194,10 +195,12 @@ class OrderPersistenceUtil {
 			method: method,
 			status: status,
 			requestor: requestor,
-			liveOrder: liveOrder as ILiveOrder
+			liveOrder: liveOrder as ILiveOrder,
+			processRetry: 0
 		};
 		orderQueueItem.liveOrder.currentSequence = sequence;
-		if (method === Constants.DB_ADD) orderQueueItem.signedOrder = orderPersistRequest.signedOrder;
+		if (method === Constants.DB_ADD)
+			orderQueueItem.signedOrder = orderPersistRequest.signedOrder;
 		else if (orderPersistRequest.status === Constants.DB_FILL) {
 			orderQueueItem.liveOrder.fill = orderQueueItem.liveOrder.amount;
 			orderQueueItem.liveOrder.matching = 0;
@@ -297,11 +300,23 @@ class OrderPersistenceUtil {
 			redisUtil.hashDelete(this.getOrderCacheMapKey(pair), queueKey);
 			Util.logDebug(`removed redis data`);
 		} catch (err) {
-			Util.logError(`error in processing for ${queueKey}`);
+			Util.logError(
+				`error in processing for ${queueKey} and the queue item is ${JSON.stringify(
+					orderQueueItem
+				)}`
+			);
 			Util.logError(err);
-			await redisUtil.hashSet(this.getOrderCacheMapKey(pair), queueKey, queueItemString);
-			redisUtil.putBack(this.getOrderQueueKey(), queueKey);
-			return false;
+			if (orderQueueItem.processRetry <= 3) {
+				orderQueueItem.processRetry += 1;
+				await redisUtil.hashSet(
+					this.getOrderCacheMapKey(pair),
+					queueKey,
+					JSON.stringify(orderQueueItem)
+				);
+				redisUtil.putBack(this.getOrderQueueKey(), queueKey);
+				return false;
+			}
+			return true;
 		}
 
 		await this.addUserOrderToDB(

@@ -103,7 +103,8 @@ const orderQueueItem = {
 	method: Constants.DB_ADD,
 	status: 'status',
 	requestor: 'requestor',
-	liveOrder: liveOrders['orderHash1']
+	liveOrder: liveOrders['orderHash1'],
+	processRetry: 0
 };
 
 test('handleOrderUpdate ignore update by self', async () => {
