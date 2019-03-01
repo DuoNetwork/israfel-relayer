@@ -1,1 +1,0 @@
-npm run orderBooks tokens=bETH-M19,aETH-M19 server env=uat $1 &> orderBooks.ETH-100C-3H.log &
