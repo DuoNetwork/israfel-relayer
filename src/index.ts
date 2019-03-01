@@ -9,6 +9,7 @@ import orderMatchServer from './server/orderMatchingServer';
 import orderPersistanceServer from './server/orderPersistanceServer';
 import orderWatcherServer from './server/orderWatcherServer';
 import relayerServer from './server/relayerServer';
+import dexBalanceUtil from './utils/dexBalanceUtil';
 import dynamoUtil from './utils/dynamoUtil';
 import osUtil from './utils/osUtil';
 import redisUtil from './utils/redisUtil';
@@ -65,6 +66,9 @@ switch (tool) {
 	// case Constants.DB_HASH_DELETE_ALL:
 	// 	orderPersistenceUtil.hashDeleteAll(option);
 	// 	break;
+	case 'dexBalance':
+		dexBalanceUtil.fetchDexBalance(option);
+		break;
 	default:
 		break;
 }
