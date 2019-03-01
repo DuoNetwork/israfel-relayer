@@ -1,0 +1,1 @@
+npm run orderWatcher server env=uat tokens=sETH-M19,LETH-M19,aETH-M19,bETH-M19 $1 &> orderWatcher-btv.log &
