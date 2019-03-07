@@ -233,18 +233,27 @@ class OrderWatcherServer {
 	}
 
 	public async startServer(option: IOption) {
+		const isLive = option.env === Constants.DB_LIVE;
+
+		let infura = {
+			token: ''
+		};
+		try {
+			infura = require('../keys/infura.json');
+		} catch (error) {
+			Util.logError(`error in loading infura token: ${JSON.stringify(error)}`);
+		}
+
 		this.web3Util = new Web3Util(
 			null,
-			Constants.PROVIDER_LOCAL,
+			isLive ? `${Constants.PROVIDER_INFURA_MAIN}/${infura.token}` : Constants.PROVIDER_LOCAL,
 			'',
-			option.env === Constants.DB_LIVE
+			isLive
 		);
 		this.web3Util.setTokens(await dynamoUtil.scanTokens());
 		this.orderWatcher = new OrderWatcher(
 			this.web3Util.getProvider(),
-			option.env === Constants.DB_LIVE
-				? Constants.NETWORK_ID_MAIN
-				: Constants.NETWORK_ID_KOVAN,
+			isLive ? Constants.NETWORK_ID_MAIN : Constants.NETWORK_ID_KOVAN,
 			undefined,
 			{
 				cleanupJobIntervalMs: 30000,
