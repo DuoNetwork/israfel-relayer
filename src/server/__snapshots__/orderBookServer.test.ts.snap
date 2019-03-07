@@ -379,20 +379,6 @@ Array [
       "contractAddresses": Object {
         "Custodians": Object {
           "Beethoven": Object {
-            "M19": Object {
-              "aToken": Object {
-                "address": "0xB608f08d94662453ac8fce91f5956CCd00031449",
-                "code": "aETH-M19",
-              },
-              "bToken": Object {
-                "address": "0xe6c92061a8890FFC429485c36fa76853ddC4f07D",
-                "code": "bETH-M19",
-              },
-              "custodian": Object {
-                "address": "0x1e20057a6Ddc009b275926d7d54cCA19625c974E",
-                "code": "BEETHOVEN-M19",
-              },
-            },
             "Perpetual": Object {
               "aToken": Object {
                 "address": "0x59E6B3d43F762310626d2905148939973db2BBd3",
@@ -409,20 +395,6 @@ Array [
             },
           },
           "Mozart": Object {
-            "M19": Object {
-              "aToken": Object {
-                "address": "0x2B675f1A282954Ce4FEeb93b9504a6f78B616DE9",
-                "code": "sETH-M19",
-              },
-              "bToken": Object {
-                "address": "0x47aC357b44d1b3A0799D91741fA1bD717C1f7900",
-                "code": "LETH-M19",
-              },
-              "custodian": Object {
-                "address": "0x56e2727e56F9D6717e462418f822a8FE08Be4711",
-                "code": "MOZART-M19",
-              },
-            },
             "Perpetual": Object {
               "aToken": Object {
                 "address": "0x2cB7CDDF82AD7fF2b207AD43586976FEB19BA985",
@@ -439,20 +411,6 @@ Array [
             },
           },
           "Vivaldi": Object {
-            "095P-3H": Object {
-              "aToken": Object {
-                "address": "0x0",
-                "code": "ETH-095P-3H",
-              },
-              "bToken": Object {
-                "address": "0x0",
-                "code": "ETH-095C-3H",
-              },
-              "custodian": Object {
-                "address": "0x0",
-                "code": "VIVALDI-095P-3H",
-              },
-            },
             "100C-3H": Object {
               "aToken": Object {
                 "address": "0x2C4bD22588af822a95Fb9D7e972A1F1C4aE28F13",
@@ -465,20 +423,6 @@ Array [
               "custodian": Object {
                 "address": "0x5734Fe05187857066Ed00d963D4bBBeB619797f4",
                 "code": "VIVALDI-100C-3H",
-              },
-            },
-            "105C-3H": Object {
-              "aToken": Object {
-                "address": "0x0",
-                "code": "ETH-105C-3H",
-              },
-              "bToken": Object {
-                "address": "0x0",
-                "code": "ETH-105P-3H",
-              },
-              "custodian": Object {
-                "address": "0x0",
-                "code": "VIVALDI-105C-3H",
               },
             },
           },
@@ -539,20 +483,6 @@ Array [
       "contractAddresses": Object {
         "Custodians": Object {
           "Beethoven": Object {
-            "M19": Object {
-              "aToken": Object {
-                "address": "0xB608f08d94662453ac8fce91f5956CCd00031449",
-                "code": "aETH-M19",
-              },
-              "bToken": Object {
-                "address": "0xe6c92061a8890FFC429485c36fa76853ddC4f07D",
-                "code": "bETH-M19",
-              },
-              "custodian": Object {
-                "address": "0x1e20057a6Ddc009b275926d7d54cCA19625c974E",
-                "code": "BEETHOVEN-M19",
-              },
-            },
             "Perpetual": Object {
               "aToken": Object {
                 "address": "0x59E6B3d43F762310626d2905148939973db2BBd3",
@@ -569,20 +499,6 @@ Array [
             },
           },
           "Mozart": Object {
-            "M19": Object {
-              "aToken": Object {
-                "address": "0x2B675f1A282954Ce4FEeb93b9504a6f78B616DE9",
-                "code": "sETH-M19",
-              },
-              "bToken": Object {
-                "address": "0x47aC357b44d1b3A0799D91741fA1bD717C1f7900",
-                "code": "LETH-M19",
-              },
-              "custodian": Object {
-                "address": "0x56e2727e56F9D6717e462418f822a8FE08Be4711",
-                "code": "MOZART-M19",
-              },
-            },
             "Perpetual": Object {
               "aToken": Object {
                 "address": "0x2cB7CDDF82AD7fF2b207AD43586976FEB19BA985",
@@ -599,20 +515,6 @@ Array [
             },
           },
           "Vivaldi": Object {
-            "095P-3H": Object {
-              "aToken": Object {
-                "address": "0x0",
-                "code": "ETH-095P-3H",
-              },
-              "bToken": Object {
-                "address": "0x0",
-                "code": "ETH-095C-3H",
-              },
-              "custodian": Object {
-                "address": "0x0",
-                "code": "VIVALDI-095P-3H",
-              },
-            },
             "100C-3H": Object {
               "aToken": Object {
                 "address": "0x2C4bD22588af822a95Fb9D7e972A1F1C4aE28F13",
@@ -625,20 +527,6 @@ Array [
               "custodian": Object {
                 "address": "0x5734Fe05187857066Ed00d963D4bBBeB619797f4",
                 "code": "VIVALDI-100C-3H",
-              },
-            },
-            "105C-3H": Object {
-              "aToken": Object {
-                "address": "0x0",
-                "code": "ETH-105C-3H",
-              },
-              "bToken": Object {
-                "address": "0x0",
-                "code": "ETH-105P-3H",
-              },
-              "custodian": Object {
-                "address": "0x0",
-                "code": "VIVALDI-105C-3H",
               },
             },
           },
@@ -664,20 +552,6 @@ Array [
       "contractAddresses": Object {
         "Custodians": Object {
           "Beethoven": Object {
-            "M19": Object {
-              "aToken": Object {
-                "address": "0xB608f08d94662453ac8fce91f5956CCd00031449",
-                "code": "aETH-M19",
-              },
-              "bToken": Object {
-                "address": "0xe6c92061a8890FFC429485c36fa76853ddC4f07D",
-                "code": "bETH-M19",
-              },
-              "custodian": Object {
-                "address": "0x1e20057a6Ddc009b275926d7d54cCA19625c974E",
-                "code": "BEETHOVEN-M19",
-              },
-            },
             "Perpetual": Object {
               "aToken": Object {
                 "address": "0x59E6B3d43F762310626d2905148939973db2BBd3",
@@ -694,20 +568,6 @@ Array [
             },
           },
           "Mozart": Object {
-            "M19": Object {
-              "aToken": Object {
-                "address": "0x2B675f1A282954Ce4FEeb93b9504a6f78B616DE9",
-                "code": "sETH-M19",
-              },
-              "bToken": Object {
-                "address": "0x47aC357b44d1b3A0799D91741fA1bD717C1f7900",
-                "code": "LETH-M19",
-              },
-              "custodian": Object {
-                "address": "0x56e2727e56F9D6717e462418f822a8FE08Be4711",
-                "code": "MOZART-M19",
-              },
-            },
             "Perpetual": Object {
               "aToken": Object {
                 "address": "0x2cB7CDDF82AD7fF2b207AD43586976FEB19BA985",
@@ -724,20 +584,6 @@ Array [
             },
           },
           "Vivaldi": Object {
-            "095P-3H": Object {
-              "aToken": Object {
-                "address": "0x0",
-                "code": "ETH-095P-3H",
-              },
-              "bToken": Object {
-                "address": "0x0",
-                "code": "ETH-095C-3H",
-              },
-              "custodian": Object {
-                "address": "0x0",
-                "code": "VIVALDI-095P-3H",
-              },
-            },
             "100C-3H": Object {
               "aToken": Object {
                 "address": "0x2C4bD22588af822a95Fb9D7e972A1F1C4aE28F13",
@@ -750,20 +596,6 @@ Array [
               "custodian": Object {
                 "address": "0x5734Fe05187857066Ed00d963D4bBBeB619797f4",
                 "code": "VIVALDI-100C-3H",
-              },
-            },
-            "105C-3H": Object {
-              "aToken": Object {
-                "address": "0x0",
-                "code": "ETH-105C-3H",
-              },
-              "bToken": Object {
-                "address": "0x0",
-                "code": "ETH-105P-3H",
-              },
-              "custodian": Object {
-                "address": "0x0",
-                "code": "VIVALDI-105C-3H",
               },
             },
           },
@@ -789,20 +621,6 @@ Array [
       "contractAddresses": Object {
         "Custodians": Object {
           "Beethoven": Object {
-            "M19": Object {
-              "aToken": Object {
-                "address": "0xB608f08d94662453ac8fce91f5956CCd00031449",
-                "code": "aETH-M19",
-              },
-              "bToken": Object {
-                "address": "0xe6c92061a8890FFC429485c36fa76853ddC4f07D",
-                "code": "bETH-M19",
-              },
-              "custodian": Object {
-                "address": "0x1e20057a6Ddc009b275926d7d54cCA19625c974E",
-                "code": "BEETHOVEN-M19",
-              },
-            },
             "Perpetual": Object {
               "aToken": Object {
                 "address": "0x59E6B3d43F762310626d2905148939973db2BBd3",
@@ -819,20 +637,6 @@ Array [
             },
           },
           "Mozart": Object {
-            "M19": Object {
-              "aToken": Object {
-                "address": "0x2B675f1A282954Ce4FEeb93b9504a6f78B616DE9",
-                "code": "sETH-M19",
-              },
-              "bToken": Object {
-                "address": "0x47aC357b44d1b3A0799D91741fA1bD717C1f7900",
-                "code": "LETH-M19",
-              },
-              "custodian": Object {
-                "address": "0x56e2727e56F9D6717e462418f822a8FE08Be4711",
-                "code": "MOZART-M19",
-              },
-            },
             "Perpetual": Object {
               "aToken": Object {
                 "address": "0x2cB7CDDF82AD7fF2b207AD43586976FEB19BA985",
@@ -849,20 +653,6 @@ Array [
             },
           },
           "Vivaldi": Object {
-            "095P-3H": Object {
-              "aToken": Object {
-                "address": "0x0",
-                "code": "ETH-095P-3H",
-              },
-              "bToken": Object {
-                "address": "0x0",
-                "code": "ETH-095C-3H",
-              },
-              "custodian": Object {
-                "address": "0x0",
-                "code": "VIVALDI-095P-3H",
-              },
-            },
             "100C-3H": Object {
               "aToken": Object {
                 "address": "0x2C4bD22588af822a95Fb9D7e972A1F1C4aE28F13",
@@ -875,20 +665,6 @@ Array [
               "custodian": Object {
                 "address": "0x5734Fe05187857066Ed00d963D4bBBeB619797f4",
                 "code": "VIVALDI-100C-3H",
-              },
-            },
-            "105C-3H": Object {
-              "aToken": Object {
-                "address": "0x0",
-                "code": "ETH-105C-3H",
-              },
-              "bToken": Object {
-                "address": "0x0",
-                "code": "ETH-105P-3H",
-              },
-              "custodian": Object {
-                "address": "0x0",
-                "code": "VIVALDI-105C-3H",
               },
             },
           },
