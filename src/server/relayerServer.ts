@@ -504,7 +504,7 @@ class RelayerServer {
 	}
 
 	public async loadDuoExchangePrices(duoDynamoUtil: DuoDynamoUtil) {
-		const start = Util.getUTCNowTimestamp() - 24 * 3600000;
+		const start = Util.getUTCNowTimestamp() - 2 * 3600000;
 		for (const source of [
 			DataConstants.API_GDAX,
 			DataConstants.API_GEMINI,
@@ -513,7 +513,7 @@ class RelayerServer {
 		])
 			this.duoExchangePrices[source] = await duoDynamoUtil.getPrices(
 				source,
-				60,
+				1,
 				start,
 				0,
 				'ETH|USD'
