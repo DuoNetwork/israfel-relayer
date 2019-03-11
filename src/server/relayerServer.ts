@@ -513,7 +513,7 @@ class RelayerServer {
 		])
 			this.duoExchangePrices[source] = await duoDynamoUtil.getPrices(
 				source,
-				60,
+				1,
 				start,
 				0,
 				'ETH|USD'

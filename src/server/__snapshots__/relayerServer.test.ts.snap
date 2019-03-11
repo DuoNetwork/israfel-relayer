@@ -1576,28 +1576,28 @@ exports[`loadDuoExchangePrices 1`] = `
 Array [
   Array [
     "gdax",
-    60,
+    1,
     1148167890,
     0,
     "ETH|USD",
   ],
   Array [
     "gemini",
-    60,
+    1,
     1148167890,
     0,
     "ETH|USD",
   ],
   Array [
     "kraken",
-    60,
+    1,
     1148167890,
     0,
     "ETH|USD",
   ],
   Array [
     "bitstamp",
-    60,
+    1,
     1148167890,
     0,
     "ETH|USD",
