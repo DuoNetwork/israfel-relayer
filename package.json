@@ -3,7 +3,7 @@
 	"version": "1.0.0",
 	"private": true,
 	"description": "Israfel Relayer",
-	"author": "FinBook Pte Ltd",
+	"author": "Duo Network",
 	"scripts": {
 		"test": "jest",
 		"tslint": "tslint -c tslint.json -p tsconfig.json src/**/*.ts{,x} --fix",
